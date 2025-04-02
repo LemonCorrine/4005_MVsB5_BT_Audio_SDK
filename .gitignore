@@ -19,8 +19,8 @@
 *.bat
 *.chm
 *.pdf
-*.S
-*.apk
+# *.S
+# *.apk
 # *.project
 # *.cproject
 # *.xlsx
