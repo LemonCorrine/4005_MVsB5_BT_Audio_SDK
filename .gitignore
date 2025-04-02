@@ -15,7 +15,7 @@
 *.txt
 *.ld
 *.sag
-*.ini
+# *.ini
 # *.bat
 # *.chm
 # *.pdf
