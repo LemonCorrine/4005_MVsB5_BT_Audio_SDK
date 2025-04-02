@@ -13,7 +13,7 @@
 *.exe
 *.mp3
 *.txt
-*.ld
+# *.ld
 # *.sag
 # *.ini
 # *.bat
