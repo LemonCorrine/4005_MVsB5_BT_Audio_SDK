@@ -8,7 +8,7 @@
 *.elf
 *.prefs
 *.c
-*.h
+# *.h
 # *.a
 # *.exe
 # *.mp3
