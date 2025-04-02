@@ -17,8 +17,8 @@
 *.sag
 *.ini
 *.bat
-*.chm
-*.pdf
+# *.chm
+# *.pdf
 # *.S
 # *.apk
 # *.project
