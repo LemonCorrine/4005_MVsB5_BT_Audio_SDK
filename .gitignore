@@ -7,7 +7,7 @@
 *.d
 *.elf
 *.prefs
-*.c
+# *.c
 # *.h
 # *.a
 # *.exe
