@@ -22,7 +22,7 @@
 *.S
 *.apk
 # *.project
-*.cproject
+# *.cproject
 # *.xlsx
 # *.html
 # *.gatt
