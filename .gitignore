@@ -14,7 +14,7 @@
 *.mp3
 *.txt
 *.ld
-*.sag
+# *.sag
 # *.ini
 # *.bat
 # *.chm
