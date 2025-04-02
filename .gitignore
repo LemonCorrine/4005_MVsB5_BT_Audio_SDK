@@ -16,7 +16,7 @@
 *.ld
 *.sag
 *.ini
-*.bat
+# *.bat
 # *.chm
 # *.pdf
 # *.S
