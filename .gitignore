@@ -9,7 +9,7 @@
 *.prefs
 *.c
 *.h
-*.a
+# *.a
 # *.exe
 # *.mp3
 # *.txt
