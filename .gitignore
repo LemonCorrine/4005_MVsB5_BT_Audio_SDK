@@ -6,7 +6,8 @@
 *.o
 *.d
 *.elf
-*.prefs
+# *.prefs
+*.flash.ui*
 # *.c
 # *.h
 # *.a
