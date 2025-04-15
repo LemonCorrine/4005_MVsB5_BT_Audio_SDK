@@ -8,7 +8,7 @@
 #include "type.h"
 #include "otg_device_hcd.h"
 #include "otg_host_hcd.h"
-
+#include "otg_device_standard_request.h"
 #define  HOST_EP0_DEPTH    64
 #define  HOST_EP1_TX_DEPTH 128
 #define  HOST_EP1_RX_DEPTH 1024
@@ -23,7 +23,6 @@
 
 #define HOST_FIFO_SIZE (HOST_EP0_DEPTH+HOST_EP1_TX_DEPTH+HOST_EP1_RX_DEPTH+HOST_EP2_TX_DEPTH+HOST_EP2_RX_DEPTH)
 #define DEVICE_FIFO_SIZE (DEVICE_EP0_DEPTH+DEVICE_EP1_TX_DEPTH+DEVICE_EP1_RX_DEPTH+DEVICE_EP2_TX_DEPTH+DEVICE_EP2_RX_DEPTH)
-#define MAX(a,b) (a>b?a:b)
 
 uint32_t UsbEpBuf[MAX(HOST_FIFO_SIZE,DEVICE_FIFO_SIZE)/4];
 

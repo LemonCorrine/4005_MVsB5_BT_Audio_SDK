@@ -44,7 +44,7 @@
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(0)
 #define  CFG_SDK_MINOR_VERSION		(2)
-#define  CFG_SDK_PATCH_VERSION	    (9)
+#define  CFG_SDK_PATCH_VERSION	    (10)
 
 
 //****************************************************************************************
@@ -81,7 +81,6 @@
 #endif
 
 /**USB声卡，读卡器，一线通功能 **/
-#define CFG_FUNC_USB_DEVICE_DETECT
 #ifdef  CFG_APP_USB_AUDIO_MODE_EN
 	#define CFG_PARA_USB_MODE	AUDIO_MIC
 	#define CFG_RES_AUDIO_USB_IN_EN		//缺省 作为模式通路使能
@@ -401,7 +400,7 @@
 
 /**USB Device检测功能**/
 #if (defined (CFG_APP_USB_AUDIO_MODE_EN)) || (defined(CFG_COMMUNICATION_BY_USB))
-	#define CFG_FUNC_USB_DEVICE_EN
+	#define CFG_FUNC_USB_DEVICE_DETECT
 #endif
 
 

@@ -29,6 +29,7 @@
 #include "bt_app_hfp_deal.h"
 #include "audio_vol.h"
 
+#if (BT_HFP_SUPPORT == ENABLE)
 #define BT_MANAGER_HFP_ERROR_NONE					0
 #define BT_MANAGER_ERROR_PARAMETER_INVAILD			-1
 #define BT_MANAGER_ERROR_NOT_INITIALIZED			-2
@@ -466,4 +467,9 @@ int16_t GetBtHfpSpeakerVolume(uint8_t * gain)
 	*gain = btManager.volGain;
 	return BT_MANAGER_HFP_ERROR_NONE;
 }
+#else
+void BtHfpCallback(BT_HFP_CALLBACK_EVENT event, BT_HFP_CALLBACK_PARAMS * param)
+{
 
+}
+#endif

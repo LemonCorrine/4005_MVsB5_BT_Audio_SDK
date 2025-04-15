@@ -34,6 +34,7 @@ typedef struct _UsbAudio
 {
 	uint8_t					InitOk;
 	uint8_t					AltSet;
+	uint8_t					ByteSet;
 	uint8_t 				Channels;
 	uint8_t 				Mute;
 	uint32_t				LeftVol;

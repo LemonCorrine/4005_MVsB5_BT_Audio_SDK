@@ -9,7 +9,7 @@
 
 #define AUDIOCORE_SOURCE_SINK_ERROR 0xFF
 
-typedef struct _ROBOEFFECT_EFFECT_ADDR
+typedef struct _AUDIOEFFECT_EFFECT_ADDR
 {
 	uint8_t MUSIC_EQ_ADDR;
 	uint8_t MIC_EQ_ADDR;
@@ -27,9 +27,9 @@ typedef struct _ROBOEFFECT_EFFECT_ADDR
 	uint8_t APP_SINK_GAIN_ADDR;
 	uint8_t STEREO_SINK_GAIN_ADDR;
 	uint8_t REC_SINK_GAIN_ADDR;
-} ROBOEFFECT_EFFECT_ADDR;
+} AUDIOEFFECT_EFFECT_ADDR;
 
-typedef enum _ROBOEFFECT_EFFECT_TYPE
+typedef enum _AUDIOEFFECT_EFFECT_TYPE
 {
 	MUSIC_EQ = 0,
 	MIC_EQ,
@@ -51,9 +51,9 @@ typedef enum _ROBOEFFECT_EFFECT_TYPE
 	STEREO_SINK_GAIN,
 	I2S_MIX_SINK_GAIN,
 	REC_SINK_GAIN,
-} ROBOEFFECT_EFFECT_TYPE;
+} AUDIOEFFECT_EFFECT_TYPE;
 
-typedef struct _ROBOEFFECT_SOURCE_NUM
+typedef struct _AUDIOEFFECT_SOURCE_NUM
 {
 	uint8_t mic_source;		//MIC_SOURCE_NUM	 //麦克风通路
 	uint8_t app_source;		//APP_SOURCE_NUM 	//app主要音源通道
@@ -62,9 +62,9 @@ typedef struct _ROBOEFFECT_SOURCE_NUM
 	uint8_t usb_source;     //USB_SOURCE        //USB MIX通道
 	uint8_t i2s_mix_source; //I2S_MIX_SOURCE     //I2S MIX通道
 	uint8_t linein_mix_source; //LINEIN_MIX_SOURCE_NUM     //LINE IN MIX通道
-} ROBOEFFECT_SOURCE_NUM;
+} AUDIOEFFECT_SOURCE_NUM;
 
-typedef struct _ROBOEFFECT_SINK_NUM
+typedef struct _AUDIOEFFECT_SINK_NUM
 {
 	uint8_t dac0_sink;		//AUDIO_DAC0_SINK_NUM		//主音频输出在audiocore Sink中的通道，必须配置，audiocore借用此通道buf处理数据
 	uint8_t app_sink;		//AUDIO_APP_SINK_NUM
@@ -72,28 +72,29 @@ typedef struct _ROBOEFFECT_SINK_NUM
 	uint8_t rec_sink;		//AUDIO_RECORDER_SINK_NUM		//录音通道
 	uint8_t i2s_mix_sink;  	//AUDIO_I2S_MIX_OUT_SINK_NUM //I2S MIX OUT通道
 	uint8_t spdif_sink;		//AUDIO_SPDIF_SINK_NUM
-} ROBOEFFECT_SINK_NUM;
+} AUDIOEFFECT_SINK_NUM;
 
-typedef struct _ROBOEFFECT_EFFECT_PARA
+typedef struct _AUDIOEFFECT_EFFECT_PARA
 {
 	roboeffect_effect_list_info *user_effect_list;
 	roboeffect_effect_steps_table *user_effect_steps;
 	uint8_t *user_effects_script;
+	uint8_t *user_effect_name;
 
 	uint8_t *user_effect_parameters;
 	uint8_t *user_module_parameters;
 	uint32_t (*get_user_effects_script_len)(void);
-}ROBOEFFECT_EFFECT_PARA;
+}AUDIOEFFECT_EFFECT_PARA;
 
-typedef struct _ROBOEFFECT_EFFECT_PARA_TABLE
+typedef struct _AUDIOEFFECT_EFFECT_PARA_TABLE
 {
 	uint32_t		effect_id;
 	uint32_t		effect_id_count;
-	ROBOEFFECT_EFFECT_ADDR effect_addr;
-	ROBOEFFECT_SOURCE_NUM roboeffect_source;
-	ROBOEFFECT_SINK_NUM roboeffect_sink;
-	ROBOEFFECT_EFFECT_PARA *roboeffect_para;
-}ROBOEFFECT_EFFECT_PARA_TABLE;
+	AUDIOEFFECT_EFFECT_ADDR effect_addr;
+	AUDIOEFFECT_SOURCE_NUM audioeffect_source;
+	AUDIOEFFECT_SINK_NUM audioeffect_sink;
+	AUDIOEFFECT_EFFECT_PARA *audioeffect_para;
+}AUDIOEFFECT_EFFECT_PARA_TABLE;
 
 typedef struct __FilterParams
 {
@@ -183,33 +184,33 @@ typedef struct __ReverbMaxUnit
 	int16_t  		 max_reverbplate_wetdrymix;
 } ReverbMaxUnit;
 
-void Roboeffect_GetAudioEffectMaxValue(void);
+void AudioEffect_GetAudioEffectMaxValue(void);
 
-void Roboeffect_EQ_Ajust(ROBOEFFECT_EFFECT_TYPE type,uint8_t BassGain, uint8_t TrebGain);
+void AudioEffect_EQ_Ajust(AUDIOEFFECT_EFFECT_TYPE type, uint8_t BassGain, uint8_t TrebGain);
 
-void Roboeffect_ReverbStep_Ajust(uint8_t ReverbStep);
+void AudioEffect_ReverbStep_Ajust(uint8_t ReverbStep);
 
-void Roboeffect_ReverbPlateStep_Ajust(uint8_t ReverbStep);
+void AudioEffect_ReverbPlateStep_Ajust(uint8_t ReverbStep);
 
-uint16_t Roboeffect_SilenceDetector_Get(uint8_t node);
+uint16_t AudioEffect_SilenceDetector_Get(AUDIOEFFECT_EFFECT_TYPE type);
 
-uint16_t Roboeffect_GainControl_Get(uint8_t node);
+uint16_t AudioEffect_GainControl_Get(AUDIOEFFECT_EFFECT_TYPE type);
 
-void Roboeffect_GainControl_Set(uint8_t node, uint16_t gain);
+void AudioEffect_GainControl_Set(AUDIOEFFECT_EFFECT_TYPE type, uint16_t gain);
 
-void Roboeffect_EQMode_Set(uint8_t EQMode);
+void AudioEffect_EQMode_Set(uint8_t EQMode);
 
-void Roboeffect_SourceGain_Update(uint8_t Index);
+void AudioEffect_SourceGain_Update(uint8_t Index);
 
-void Roboeffect_SinkGain_Update(uint8_t Index);
+void AudioEffect_SinkGain_Update(uint8_t Index);
 
-void roboeffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t *param_input, uint8_t param_len);
+void AudioEffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t *param_input, uint8_t param_len);
 
-void roboeffect_update_local_block_params(uint8_t addr);
+void AudioEffect_update_local_block_params(uint8_t addr);
 
-uint8_t Roboeffect_effect_status_Get(ROBOEFFECT_EFFECT_TYPE type);
+uint8_t AudioEffect_effect_status_Get(AUDIOEFFECT_EFFECT_TYPE type);
 
-void Roboeffect_effect_enable(ROBOEFFECT_EFFECT_TYPE type, uint8_t enable);
+void AudioEffect_effect_enable(AUDIOEFFECT_EFFECT_TYPE type, uint8_t enable);
 
 uint8_t AudioCoreSourceToRoboeffect(int8_t source);
 
@@ -217,11 +218,13 @@ uint8_t AudioCoreSinkToRoboeffect(int8_t sink);
 
 uint16_t get_user_effect_parameters_len(uint8_t *user_effect_parameters);
 
-ROBOEFFECT_EFFECT_PARA * get_user_effect_parameters(uint8_t mode);
+AUDIOEFFECT_EFFECT_PARA * get_user_effect_parameters(uint8_t mode);
 
-uint8_t get_roboeffect_addr(ROBOEFFECT_EFFECT_TYPE effect_name);
+uint8_t get_audioeffect_addr(AUDIOEFFECT_EFFECT_TYPE effect_name);
 
-uint16_t get_roboeffectVolArr(uint8_t vol);
+uint16_t get_audioeffectVolArr(uint8_t vol);
 
 void AudioEffectParamSync(void);
+
+bool AudioEffect_effectAddr_check(uint8_t node);
 #endif

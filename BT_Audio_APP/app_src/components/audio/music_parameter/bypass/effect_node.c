@@ -5,9 +5,10 @@ extern uint32_t get_user_effects_script_len_bypass(void);
 extern const unsigned char user_effect_parameters_bypass_bypass[];
 extern const unsigned char user_module_parameters_bypass_bypass[];
 
-static const ROBOEFFECT_EFFECT_PARA effect_para[] =
+static const AUDIOEFFECT_EFFECT_PARA effect_para[] =
 {
 	{
+		.user_effect_name = (uint8_t *)"Bypass",
 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_bypass,
 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_bypass,
 		.user_effects_script = (uint8_t *)user_effects_script_bypass,
@@ -17,7 +18,7 @@ static const ROBOEFFECT_EFFECT_PARA effect_para[] =
 	}
 };
 
-const ROBOEFFECT_EFFECT_PARA_TABLE bypass_node =
+const AUDIOEFFECT_EFFECT_PARA_TABLE bypass_node =
 {
 	//ROBOEFFECT effect ID 通过这个ID来搜索匹配
 	.effect_id    = EFFECT_MODE_BYPASS,
@@ -30,7 +31,7 @@ const ROBOEFFECT_EFFECT_PARA_TABLE bypass_node =
 
 	},
 	//ROBOEFFECT effect SOURCE映射
-	.roboeffect_source =
+	.audioeffect_source =
 	{
 		.mic_source = BYPASS_SOURCE_MIC_SOURCE,
 		.app_source = BYPASS_SOURCE_APP_SOURCE,
@@ -42,7 +43,7 @@ const ROBOEFFECT_EFFECT_PARA_TABLE bypass_node =
 	},
 
 	//ROBOEFFECT effect SINK映射
-	.roboeffect_sink =
+	.audioeffect_sink =
 	{
 		.dac0_sink = BYPASS_SINK_DAC0_SINK,
 		.app_sink = BYPASS_SINK_APP_SINK,
@@ -53,5 +54,5 @@ const ROBOEFFECT_EFFECT_PARA_TABLE bypass_node =
 	},
 
 	//ROBOEFFECT effect 参数
-	.roboeffect_para = (ROBOEFFECT_EFFECT_PARA *)&effect_para[0],
+	.audioeffect_para = (AUDIOEFFECT_EFFECT_PARA *)&effect_para[0],
 };

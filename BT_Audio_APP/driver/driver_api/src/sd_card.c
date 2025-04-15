@@ -134,7 +134,7 @@ void SDCard_ControllerInit(void)
 	SDIO_SysToSdioDivSet(15);
 	SDIO_Init();
 	SDIO_ClkSet(15);
-	SDIO_ByteModeEnable();
+	SDIO_ByteModeDisable();
 	SDCard.CardInit = SD_CONTROLER_INIT;
 }
 uint32_t volatile  cmd_timeout_count=0;

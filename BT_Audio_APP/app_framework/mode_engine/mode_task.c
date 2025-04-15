@@ -346,6 +346,7 @@ static void SysModeGenerateByPlugEvent(uint16_t Msg)
 	{
 		if(Msg == DeviceEventMsgTableArray[i_count].MsgID)
 		{
+
 			osMutexLock(SysModeMutex);
 			for(i=0;i < SYS_MODE_MAX_NUMBER;i++)
 			{
@@ -403,7 +404,8 @@ void SysModeGenerate(uint16_t Msg)
 	extern TaskState GetMediaRecorderState(void);
 	extern void RecServierToParentAgain(uint16_t id);
 	if(GetMediaRecorderState() == TaskStateRunning &&
-	  (Msg == MSG_MODE||Msg ==MSG_SOFT_MODE || Msg == MSG_ENTER_IDLE_MODE || Msg == MSG_QUIT_IDLE_MODE)
+	  (Msg == MSG_MODE||Msg ==MSG_SOFT_MODE || Msg == MSG_ENTER_IDLE_MODE || Msg == MSG_QUIT_IDLE_MODE ||
+		Msg == MSG_DEVICE_SERVICE_BTHF_IN || Msg == MSG_DEVICE_SERVICE_BTHF_OUT)
 	   )//Í£Ö¹Â¼Òô
 	{
 		RecServierToParentAgain(Msg);

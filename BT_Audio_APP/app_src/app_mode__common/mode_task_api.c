@@ -33,8 +33,6 @@
 #include "spdif_out.h"
 #endif
 
-#define roboeffect_malloc osPortMallocFromEnd
-#define roboeffect_free osPortFree
 extern volatile SysModeStruct SysMode[];
 extern uint32_t GetModeIndexInModeLoop(SysModeNumber *sys_mode);
 
@@ -81,19 +79,19 @@ void PauseAuidoCore(void)
 	}
 }
 
-bool RoboeffectInit()
+bool AudioEffectInit()
 {
-	if(AudioCore.Roboeffect.effect_addr)
+	if(AudioCore.Audioeffect.effect_addr)
 	{
-		uint8_t *params = AudioCore.Roboeffect.user_effect_parameters + 5;
-		uint16_t data_len = *(uint16_t *)AudioCore.Roboeffect.user_effect_parameters - 5;
+		uint8_t *params = AudioCore.Audioeffect.user_effect_parameters + 5;
+		uint16_t data_len = *(uint16_t *)AudioCore.Audioeffect.user_effect_parameters - 5;
 		uint8_t len = 0;
 		while(data_len)
 		{
-			if(*params == AudioCore.Roboeffect.effect_addr)
+			if(*params == AudioCore.Audioeffect.effect_addr)
 			{
 				params += 2;
-				*params = AudioCore.Roboeffect.effect_enable;
+				*params = AudioCore.Audioeffect.effect_enable;
 				break;
 			}
 			else
@@ -105,61 +103,62 @@ bool RoboeffectInit()
 			}
 		};
 
-		DBG("Roboeffect ReInit:0x%x\n", AudioCore.Roboeffect.effect_addr);
+		DBG("Audioeffect ReInit:0x%x\n", AudioCore.Audioeffect.effect_addr);
 	}
 	else
 	{
-		if(AudioCore.Roboeffect.user_effect_parameters)
+		if(AudioCore.Audioeffect.user_effect_parameters)
 		{
 			//先释放资源
-			osPortFree(AudioCore.Roboeffect.user_effect_parameters);
+			osPortFree(AudioCore.Audioeffect.user_effect_parameters);
 		}
 		
-		ROBOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(mainAppCt.EffectMode);
+		AUDIOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(mainAppCt.EffectMode);
 
-		AudioCore.Roboeffect.effect_count = para->user_effect_list->count + 0x80;
-		AudioCore.Roboeffect.user_effect_steps = para->user_effect_steps;
-		AudioCore.Roboeffect.user_effects_script = para->user_effects_script;
-		AudioCore.Roboeffect.user_effects_script_len = para->get_user_effects_script_len();
-		AudioCore.Roboeffect.user_effect_list = para->user_effect_list;
-		AudioCore.Roboeffect.user_effect_parameters = osPortMalloc(get_user_effect_parameters_len(para->user_effect_parameters) * sizeof(uint8_t));
-		memcpy(AudioCore.Roboeffect.user_effect_parameters, para->user_effect_parameters,get_user_effect_parameters_len(para->user_effect_parameters) * sizeof(uint8_t));
-		AudioCore.Roboeffect.user_module_parameters = para->user_module_parameters;
+		AudioCore.Audioeffect.effect_count = para->user_effect_list->count + 0x80;
+		AudioCore.Audioeffect.user_effect_steps = para->user_effect_steps;
+		AudioCore.Audioeffect.user_effects_script = para->user_effects_script;
+		AudioCore.Audioeffect.user_effects_script_len = para->get_user_effects_script_len();
+		AudioCore.Audioeffect.user_effect_list = para->user_effect_list;
+		AudioCore.Audioeffect.user_effect_parameters = osPortMalloc(get_user_effect_parameters_len(para->user_effect_parameters) * sizeof(uint8_t));
+		memcpy(AudioCore.Audioeffect.user_effect_parameters, para->user_effect_parameters,get_user_effect_parameters_len(para->user_effect_parameters) * sizeof(uint8_t));
+		AudioCore.Audioeffect.user_module_parameters = para->user_module_parameters;
+		AudioCore.Audioeffect.audioeffect_frame_size = para->user_effect_list->frame_size;
+
+		DBG("EFFECT_MODE: %s\n", para->user_effect_name);
 	}
 
 	//When effect change framesize to 512 and then switch mode, AudioCore need reset to default.
 	//AudioCoreFrameSizeSet(DefaultNet, CFG_PARA_SAMPLES_PER_FRAME);
-	AudioCoreFrameSizeSet(DefaultNet, AudioCore.Roboeffect.user_effect_list->frame_size);
+	AudioCoreFrameSizeSet(DefaultNet, AudioCore.Audioeffect.user_effect_list->frame_size);
 
-	AudioCore.Roboeffect.roboeffect_size_max = roboeffect_get_memory_max_size(
-			AudioCore.Roboeffect.user_effect_steps, AudioCore.Roboeffect.user_effect_list, AudioCore.Roboeffect.user_effect_parameters);
-	AudioCore.Roboeffect.roboeffect_size = roboeffect_get_memory_current_size(
-			AudioCore.Roboeffect.user_effect_steps, AudioCore.Roboeffect.user_effect_list, AudioCore.Roboeffect.user_effect_parameters);
-	DBG("max memory: %ld, current memory: %ld\n", AudioCore.Roboeffect.roboeffect_size_max, AudioCore.Roboeffect.roboeffect_size);
+	AudioCore.Audioeffect.audioeffect_memory_size = roboeffect_get_memory_current_size(
+			AudioCore.Audioeffect.user_effect_steps, AudioCore.Audioeffect.user_effect_list, AudioCore.Audioeffect.user_effect_parameters);
+	DBG("Audio effect malloc memory: %ld\n", AudioCore.Audioeffect.audioeffect_memory_size);
 
-	if(AudioCore.Roboeffect.roboeffect_size < 0 || AudioCore.Roboeffect.roboeffect_size_max < 0)
+	if(AudioCore.Audioeffect.audioeffect_memory_size < 0)
 	{
-		DBG("get context size failed. %ld,%ld\n", AudioCore.Roboeffect.roboeffect_size, AudioCore.Roboeffect.roboeffect_size_max);
+		DBG("get context size failed. %ld\n", AudioCore.Audioeffect.audioeffect_memory_size);
 		return FALSE;
 	}
 	/**
 	 * malloc context memory
 	*/
-	if(AudioCore.Roboeffect.roboeffect_size < xPortGetFreeHeapSize())
+	if(AudioCore.Audioeffect.audioeffect_memory_size < xPortGetFreeHeapSize())
 	{
-		AudioCore.Roboeffect.context_memory = roboeffect_malloc(AudioCore.Roboeffect.roboeffect_size);
-		if(AudioCore.Roboeffect.context_memory == NULL)
+		AudioCore.Audioeffect.context_memory = osPortMallocFromEnd(AudioCore.Audioeffect.audioeffect_memory_size);
+		if(AudioCore.Audioeffect.context_memory == NULL)
 		{
 			return FALSE;
 		}
 		/**
 		 * initial roboeffect context memory
 		*/
-		if(ROBOEFFECT_ERROR_OK != roboeffect_init(AudioCore.Roboeffect.context_memory,
-												  AudioCore.Roboeffect.roboeffect_size,
-												  AudioCore.Roboeffect.user_effect_steps,
-												  AudioCore.Roboeffect.user_effect_list,
-												  AudioCore.Roboeffect.user_effect_parameters) )
+		if(ROBOEFFECT_ERROR_OK != roboeffect_init(AudioCore.Audioeffect.context_memory,
+												  AudioCore.Audioeffect.audioeffect_memory_size,
+												  AudioCore.Audioeffect.user_effect_steps,
+												  AudioCore.Audioeffect.user_effect_list,
+												  AudioCore.Audioeffect.user_effect_parameters) )
 		{
 			DBG("roboeffect_init failed.\n");
 			return FALSE;
@@ -167,10 +166,10 @@ bool RoboeffectInit()
 		else
 		{
 			DBG("roboeffect_init ok.\n");
-			AudioCore.Roboeffect.effect_addr = 0;
-			Roboeffect_GetAudioEffectMaxValue();
+			AudioCore.Audioeffect.effect_addr = 0;
+			AudioEffect_GetAudioEffectMaxValue();
 
-			////Audio Core & roboeffect音量配置
+			////Audio Core & Audioeffect音量配置
 			SystemVolSet();
 		}
 	}
@@ -178,7 +177,7 @@ bool RoboeffectInit()
 	{
 		DBG("**************************************\n");
 		DBG("Error:memory is not enough!!!\n");
-		DBG("malloc:%ld, leave:%ld\n", AudioCore.Roboeffect.roboeffect_size_max, xPortGetFreeHeapSize());
+		DBG("malloc:%ld, leave:%ld\n", AudioCore.Audioeffect.audioeffect_memory_size, xPortGetFreeHeapSize());
 		DBG("**************************************\n");
 		return FALSE;
 	}
@@ -223,13 +222,13 @@ bool ModeCommonInit(void)
 	AudioCoreIO AudioIOSet;
 	uint16_t FifoLenStereo;
 
-	if(!RoboeffectInit())
+	if(!AudioEffectInit())
 	{
-		DBG("!!!roboeffect init must be earlier than sink init!!!.\n");
-		if(AudioCore.Roboeffect.effect_addr)
+		DBG("!!!audioeffect init must be earlier than sink init!!!.\n");
+		if(AudioCore.Audioeffect.effect_addr)
 		{
-			AudioCore.Roboeffect.effect_enable = 0;
-			DBG("roboeffect init again because cannot enable effect:%d\n", RoboeffectInit());
+			AudioCore.Audioeffect.effect_enable = 0;
+			DBG("audioeffect init again because cannot enable effect:%d\n", AudioEffectInit());
 		}
 	}
 
@@ -628,8 +627,8 @@ void ModeCommonDeinit(void)
 #ifdef CFG_FUNC_USB_AUDIO_MIX_MODE
 	UsbDevicePlayMixDeinit();
 #endif
-	roboeffect_free(AudioCore.Roboeffect.context_memory);
-	AudioCore.Roboeffect.context_memory = NULL;
+	osPortFree(AudioCore.Audioeffect.context_memory);
+	AudioCore.Audioeffect.context_memory = NULL;
 }
 
 bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
@@ -638,9 +637,9 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 	uint16_t FifoLenStereo;
 //	uint16_t FifoLenMono = SampleLen * 2 * 2;//单声到4倍大小于帧长，单位byte
 
-	if(!RoboeffectInit())
+	if(!AudioEffectInit())
 	{
-		DBG("!!!roboeffect init must be earlier than sink init!!!.\n");
+		DBG("!!!audioeffect init must be earlier than sink init!!!.\n");
 	}
 	FifoLenStereo = AudioCoreFrameSizeGet(DefaultNet) * 2 * 2 * 2;//立体声8倍大小于帧长，单位byte
 
@@ -908,15 +907,15 @@ void AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 	if(sel == 1 || sel == 2)
 	{
 		PauseAuidoCore();
-		roboeffect_free(AudioCore.Roboeffect.context_memory);
-		AudioCore.Roboeffect.context_memory = NULL;
+		osPortFree(AudioCore.Audioeffect.context_memory);
+		AudioCore.Audioeffect.context_memory = NULL;
 
-		if(!RoboeffectInit())
+		if(!AudioEffectInit())
 		{
-			if(AudioCore.Roboeffect.effect_addr)
+			if(AudioCore.Audioeffect.effect_addr)
 			{
-				AudioCore.Roboeffect.effect_enable = 0;
-				DBG("roboeffect init again because cannot enable effect:%d\n", RoboeffectInit());
+				AudioCore.Audioeffect.effect_enable = 0;
+				DBG("audioeffect init again because cannot enable effect:%d\n", AudioEffectInit());
 			}
 		}
 
@@ -925,7 +924,7 @@ void AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 			if(AudioCoreSourceToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
 			{
 				AudioCore.AudioSource[i].PcmInBuf = roboeffect_get_source_buffer(
-								AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(i));
+								AudioCore.Audioeffect.context_memory, AudioCoreSourceToRoboeffect(i));
 			}
 		}
 		for(i = 0; i < AUDIO_CORE_SINK_MAX_NUM; i++)
@@ -933,7 +932,7 @@ void AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 			if(AudioCoreSinkToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
 			{
 				AudioCore.AudioSink[i].PcmOutBuf = roboeffect_get_sink_buffer(
-								AudioCore.Roboeffect.context_memory, AudioCoreSinkToRoboeffect(i));
+								AudioCore.Audioeffect.context_memory, AudioCoreSinkToRoboeffect(i));
 			}
 		}
 
@@ -1090,7 +1089,7 @@ void CommonMsgProccess(uint16_t Msg)
 			{
 				mainAppCt.ReverbStep = 0;
 			}
-			Roboeffect_ReverbStep_Ajust(mainAppCt.ReverbStep);
+			AudioEffect_ReverbStep_Ajust(mainAppCt.ReverbStep);
 			APP_DBG("MSG_MIC_EFFECT_UP\n");
 			APP_DBG("ReverbStep = %d\n", mainAppCt.ReverbStep);
 			#ifdef CFG_FUNC_BREAKPOINT_EN
@@ -1107,7 +1106,7 @@ void CommonMsgProccess(uint16_t Msg)
 			{
 				mainAppCt.ReverbStep = 0;
 			}
-			Roboeffect_ReverbStep_Ajust(mainAppCt.ReverbStep);
+			AudioEffect_ReverbStep_Ajust(mainAppCt.ReverbStep);
 			APP_DBG("MSG_MIC_EFFECT_DW\n");
 			APP_DBG("ReverbStep = %d\n", mainAppCt.ReverbStep);
 			#ifdef CFG_FUNC_BREAKPOINT_EN
@@ -1129,7 +1128,7 @@ void CommonMsgProccess(uint16_t Msg)
 				mainAppCt.EqMode = EQ_MODE_FLAT;
 			}
 			APP_DBG("EqMode = %d\n", mainAppCt.EqMode);
-			Roboeffect_EQMode_Set(mainAppCt.EqMode);
+			AudioEffect_EQMode_Set(mainAppCt.EqMode);
 
 			#ifdef CFG_FUNC_DISPLAY_EN
 			msgSend.msgId = MSG_DISPLAY_SERVICE_EQ;
@@ -1149,7 +1148,7 @@ void CommonMsgProccess(uint16_t Msg)
 				mainAppCt.MicTrebStep++;
 			}
 			APP_DBG("MicTrebStep = %d\n", mainAppCt.MicTrebStep);
-			Roboeffect_EQ_Ajust(MIC_EQ, mainAppCt.MicBassStep, mainAppCt.MicTrebStep);
+			AudioEffect_EQ_Ajust(MIC_EQ, mainAppCt.MicBassStep, mainAppCt.MicTrebStep);
 			#ifdef CFG_FUNC_DISPLAY_EN
 			msgSend.msgId = MSG_DISPLAY_SERVICE_TRE;
 			MessageSend(GetDisplayMessageHandle(), &msgSend);
@@ -1166,7 +1165,7 @@ void CommonMsgProccess(uint16_t Msg)
 				mainAppCt.MicTrebStep--;
 			}
 			APP_DBG("MicTrebStep = %d\n", mainAppCt.MicTrebStep);
-			Roboeffect_EQ_Ajust(MIC_EQ, mainAppCt.MicBassStep, mainAppCt.MicTrebStep);
+			AudioEffect_EQ_Ajust(MIC_EQ, mainAppCt.MicBassStep, mainAppCt.MicTrebStep);
 			#ifdef CFG_FUNC_DISPLAY_EN
 			msgSend.msgId = MSG_DISPLAY_SERVICE_TRE;
 			MessageSend(GetDisplayMessageHandle(), &msgSend);
@@ -1183,7 +1182,7 @@ void CommonMsgProccess(uint16_t Msg)
 				mainAppCt.MicBassStep++;
 			}
 			APP_DBG("MicBassStep = %d\n", mainAppCt.MicBassStep);
-			Roboeffect_EQ_Ajust(MIC_EQ, mainAppCt.MicBassStep, mainAppCt.MicTrebStep);
+			AudioEffect_EQ_Ajust(MIC_EQ, mainAppCt.MicBassStep, mainAppCt.MicTrebStep);
 			#ifdef CFG_FUNC_DISPLAY_EN
 			msgSend.msgId = MSG_DISPLAY_SERVICE_BAS;
 			MessageSend(GetDisplayMessageHandle(), &msgSend);
@@ -1200,7 +1199,7 @@ void CommonMsgProccess(uint16_t Msg)
 				mainAppCt.MicBassStep--;
 			}
 			APP_DBG("MicBassStep = %d\n", mainAppCt.MicBassStep);
-			Roboeffect_EQ_Ajust(MIC_EQ, mainAppCt.MicBassStep, mainAppCt.MicTrebStep);
+			AudioEffect_EQ_Ajust(MIC_EQ, mainAppCt.MicBassStep, mainAppCt.MicTrebStep);
 			#ifdef CFG_FUNC_DISPLAY_EN
 			msgSend.msgId = MSG_DISPLAY_SERVICE_BAS;
 			MessageSend(GetDisplayMessageHandle(), &msgSend);
@@ -1219,7 +1218,7 @@ void CommonMsgProccess(uint16_t Msg)
 				mainAppCt.MusicTrebStep++;
 			}
 			APP_DBG("MusicTrebStep = %d\n", mainAppCt.MusicTrebStep);
-			Roboeffect_EQ_Ajust(MUSIC_EQ, mainAppCt.MusicBassStep, mainAppCt.MusicTrebStep);
+			AudioEffect_EQ_Ajust(MUSIC_EQ, mainAppCt.MusicBassStep, mainAppCt.MusicTrebStep);
 
 			#ifdef CFG_FUNC_BREAKPOINT_EN
 			BackupInfoUpdata(BACKUP_SYS_INFO);
@@ -1233,7 +1232,7 @@ void CommonMsgProccess(uint16_t Msg)
 				mainAppCt.MusicTrebStep--;
 			}
 			APP_DBG("MusicTrebStep = %d\n", mainAppCt.MusicTrebStep);
-			Roboeffect_EQ_Ajust(MUSIC_EQ, mainAppCt.MusicBassStep, mainAppCt.MusicTrebStep);
+			AudioEffect_EQ_Ajust(MUSIC_EQ, mainAppCt.MusicBassStep, mainAppCt.MusicTrebStep);
 			
 			#ifdef CFG_FUNC_BREAKPOINT_EN
 			BackupInfoUpdata(BACKUP_SYS_INFO);
@@ -1247,7 +1246,7 @@ void CommonMsgProccess(uint16_t Msg)
 				mainAppCt.MusicBassStep++;
 			}
 			APP_DBG("MusicBassStep = %d\n", mainAppCt.MusicBassStep);
-			Roboeffect_EQ_Ajust(MUSIC_EQ, mainAppCt.MusicBassStep, mainAppCt.MusicTrebStep);
+			AudioEffect_EQ_Ajust(MUSIC_EQ, mainAppCt.MusicBassStep, mainAppCt.MusicTrebStep);
 
 			#ifdef CFG_FUNC_BREAKPOINT_EN
 			BackupInfoUpdata(BACKUP_SYS_INFO);
@@ -1261,7 +1260,7 @@ void CommonMsgProccess(uint16_t Msg)
 				mainAppCt.MusicBassStep--;
 			}
 			APP_DBG("MusicBassStep = %d\n", mainAppCt.MusicBassStep);
-			Roboeffect_EQ_Ajust(MUSIC_EQ, mainAppCt.MusicBassStep, mainAppCt.MusicTrebStep);
+			AudioEffect_EQ_Ajust(MUSIC_EQ, mainAppCt.MusicBassStep, mainAppCt.MusicTrebStep);
 			#ifdef CFG_FUNC_BREAKPOINT_EN
 			BackupInfoUpdata(BACKUP_SYS_INFO);
 			#endif
@@ -1282,7 +1281,7 @@ void CommonMsgProccess(uint16_t Msg)
 
 		case MSG_VOCAL_CUT:
 			APP_DBG("MSG_VOCAL_CUT\n");
-			Roboeffect_effect_enable(VOCAL_CUT, !Roboeffect_effect_status_Get(VOCAL_CUT));
+			AudioEffect_effect_enable(VOCAL_CUT, !AudioEffect_effect_status_Get(VOCAL_CUT));
 			#ifdef CFG_FUNC_DISPLAY_EN
             msgSend.msgId = MSG_DISPLAY_SERVICE_VOCAL_CUT;
             MessageSend(GetSysModeMsgHandle(), &msgSend);
@@ -1301,7 +1300,11 @@ void CommonMsgProccess(uint16_t Msg)
 			break;
 		case MSG_EFFECTMODE:
 #ifndef CFG_FUNC_EFFECT_BYPASS_EN
-			if(GetSystemMode() == ModeBtHfPlay)//蓝牙通话模式下，不支持音效模式切换
+			if(GetSystemMode() == ModeBtHfPlay	//蓝牙通话模式下，不支持音效模式切换
+#ifdef CFG_FUNC_RECORDER_EN
+			|| SoftFlagGet(SoftFlagRecording)	//录音中，不能切换音效模式
+#endif
+			)
 			{
 				break;
 			}
@@ -1330,7 +1333,7 @@ void CommonMsgProccess(uint16_t Msg)
 #endif
 			APP_DBG("EffectMode = %d\n", mainAppCt.EffectMode);
 
-			ROBOEFFECT_EFFECT_PARA *mpara = get_user_effect_parameters(mainAppCt.EffectMode);
+			AUDIOEFFECT_EFFECT_PARA *mpara = get_user_effect_parameters(mainAppCt.EffectMode);
 
 			if (mpara->user_effect_list->frame_size == AudioCoreFrameSizeGet(DefaultNet))
 			{
@@ -1350,7 +1353,7 @@ void CommonMsgProccess(uint16_t Msg)
 					if(AudioCoreSourceToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
 					{
 						AudioCore.AudioSource[i].PcmInBuf = roboeffect_get_source_buffer(
-										AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(i));
+										AudioCore.Audioeffect.context_memory, AudioCoreSourceToRoboeffect(i));
 					}
 				}
 				for(int8_t i = 0; i < AUDIO_CORE_SINK_MAX_NUM; i++)
@@ -1358,7 +1361,7 @@ void CommonMsgProccess(uint16_t Msg)
 					if(AudioCoreSinkToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
 					{
 						AudioCore.AudioSink[i].PcmOutBuf = roboeffect_get_sink_buffer(
-										AudioCore.Roboeffect.context_memory, AudioCoreSinkToRoboeffect(i));
+										AudioCore.Audioeffect.context_memory, AudioCoreSinkToRoboeffect(i));
 					}
 				}
 				SoftFlagDeregister(SoftFlagAudioCoreSourceIsDeInit);
@@ -1381,40 +1384,42 @@ void CommonMsgProccess(uint16_t Msg)
 			{
 				HardWareMuteOrUnMute();
 			}
-			int8_t opera = AudioCore.Roboeffect.effect_enable ? 1 : -1;
-			uint8_t addr = AudioCore.Roboeffect.effect_addr;
-			ROBOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(mainAppCt.EffectMode);
+			int8_t opera = AudioCore.Audioeffect.effect_enable ? 1 : -1;
+			uint8_t addr = AudioCore.Audioeffect.effect_addr;
+//			AUDIOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(mainAppCt.EffectMode);
 
-//			APP_DBG("Roboeffect FrameSize %d, %d\n", opera, roboeffect_get_suit_frame_size(
-//					AudioCore.Roboeffect.context_memory, CFG_PARA_SAMPLES_PER_FRAME, AudioCore.Roboeffect.effect_addr, opera));
+//			APP_DBG("Audioeffect FrameSize %d, %d\n", opera, roboeffect_get_suit_frame_size(
+//					AudioCore.Audioeffect.context_memory, CFG_PARA_SAMPLES_PER_FRAME, AudioCore.Audioeffect.effect_addr, opera));
 			if(roboeffect_get_suit_frame_size(
-					AudioCore.Roboeffect.context_memory, para->user_effect_list->frame_size, AudioCore.Roboeffect.effect_addr, opera)
+					AudioCore.Audioeffect.context_memory, AudioCore.Audioeffect.audioeffect_frame_size, AudioCore.Audioeffect.effect_addr, opera)
 				&& AudioCoreFrameSizeGet(DefaultNet) != roboeffect_get_suit_frame_size(
-					AudioCore.Roboeffect.context_memory, para->user_effect_list->frame_size, AudioCore.Roboeffect.effect_addr, opera))
+					AudioCore.Audioeffect.context_memory, AudioCore.Audioeffect.audioeffect_frame_size, AudioCore.Audioeffect.effect_addr, opera))
 			{
-				AudioCore.Roboeffect.user_effect_list->frame_size = roboeffect_get_suit_frame_size(
-						AudioCore.Roboeffect.context_memory, para->user_effect_list->frame_size, AudioCore.Roboeffect.effect_addr, opera);
-				APP_DBG("Need Change FrameSize to %ld\n", AudioCore.Roboeffect.user_effect_list->frame_size);
+				AudioCore.Audioeffect.user_effect_list->frame_size = roboeffect_get_suit_frame_size(
+						AudioCore.Audioeffect.context_memory, AudioCore.Audioeffect.audioeffect_frame_size, AudioCore.Audioeffect.effect_addr, opera);
+				APP_DBG("Need Change FrameSize to %ld\n", AudioCore.Audioeffect.user_effect_list->frame_size);
 
 				SysMode[GetModeIndexInModeLoop(&mainAppCt.SysCurrentMode)].SysModeDeInit();
-				AudioCoreFrameSizeSet(DefaultNet, AudioCore.Roboeffect.user_effect_list->frame_size);
+				AudioCoreFrameSizeSet(DefaultNet, AudioCore.Audioeffect.user_effect_list->frame_size);
 				SysMode[GetModeIndexInModeLoop(&mainAppCt.SysCurrentMode)].SysModeInit();
 				SysMode[GetModeIndexInModeLoop(&mainAppCt.SysCurrentMode)].SysModeRun(0);
+				RemindSoundClearPlay();
 
 				SoftFlagDeregister(SoftFlagAudioCoreSourceIsDeInit);
 				AudioCoreServiceResume();
+				gCtrlVars.AutoRefresh = 1;
 			}
 			else
 			{
 				AudioEffectModeSel(mainAppCt.EffectMode, 1);//sel: 0=init hw, 1=effect, 2=hw + effect
+				gCtrlVars.AutoRefresh = addr;
 			}
 
 			if(IsAudioPlayerMute() == TRUE)
 			{
 				HardWareMuteOrUnMute();
 			}
-            AudioCore.Roboeffect.reinit_done = 1;
-			gCtrlVars.AutoRefresh = addr;
+            AudioCore.Audioeffect.reinit_done = 1;
 			break;
 
 		#ifdef CFG_FUNC_RTC_EN

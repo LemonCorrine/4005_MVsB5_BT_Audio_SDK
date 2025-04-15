@@ -46,7 +46,8 @@ extern void OTG_DeviceAudioRequest(void);
 void hid_recive_data(void);
 void hid_send_data(void);
 const uint8_t DeviceString_LangID[] = {0x04, 0x03, 0x09, 0x04};
-
+const uint8_t MicByteSet[] = {0,MIC_ALT1_BITS,MIC_ALT2_BITS};
+const uint8_t SpeakerByteSet[] = {0,SPEAKER_ALT1_BITS,SPEAKER_ALT2_BITS};
 uint8_t Setup[8];
 uint8_t Request[256];
 
@@ -265,6 +266,10 @@ void OTG_DeviceStandardRequest()
 #endif
 				OTG_DeviceEndpointReset(DEVICE_ISO_OUT_EP,TYPE_ISO_OUT);
 				OTG_DeviceEndpointReset(DEVICE_ISO_IN_EP,TYPE_ISO_IN);
+
+				OTG_DeviceEndpointPacketSizeSet(DEVICE_ISO_OUT_EP,DEVICE_FS_ISO_OUT_MPS);
+				OTG_DeviceEndpointPacketSizeSet(DEVICE_ISO_IN_EP,DEVICE_FS_ISO_IN_MPS);
+
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
 				OTG_EndpointInterruptEnable(DEVICE_ISO_OUT_EP,OnDeviceAudioRcvIsoPacket);
 				OTG_EndpointInterruptEnable(DEVICE_ISO_IN_EP,OnDeviceAudioSendIsoPacket);
@@ -291,15 +296,18 @@ void OTG_DeviceStandardRequest()
 				{
 					OTG_EndpointInterruptDisable(DEVICE_ISO_IN_EP);
 					OTG_DeviceEndpointReset(DEVICE_ISO_IN_EP,TYPE_ISO_IN);
+					OTG_DeviceEndpointPacketSizeSet(DEVICE_ISO_IN_EP,DEVICE_FS_ISO_IN_MPS);
 				}else{
 					OTG_EndpointInterruptEnable(DEVICE_ISO_IN_EP,OnDeviceAudioSendIsoPacket);
 					OTG_DeviceISOSend(DEVICE_ISO_IN_EP,0,0);
 				}
+				UsbAudioMic.ByteSet = MicByteSet[UsbAudioMic.AltSet];
 			}
 			else if(Setup[4] == InterfaceNum[AUDIO_SRM_OUT_INTERFACE_NUM])
 			{
 				UsbAudioSpeaker.AltSet = Setup[2];
 				DBG("speaker %d",Setup[2]);
+				UsbAudioSpeaker.ByteSet = SpeakerByteSet[UsbAudioSpeaker.AltSet];
 			}
 		#endif
 			break;

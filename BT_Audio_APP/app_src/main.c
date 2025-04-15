@@ -103,7 +103,7 @@ void OneMSTimer(void)
 void Timer2Interrupt(void)
 {
 	Timer_InterruptFlagClear(TIMER2, UPDATE_INTERRUPT_SRC);
-#if defined(CFG_FUNC_USB_DEVICE_EN) || defined(CFG_FUNC_UDISK_DETECT)
+#if defined(CFG_FUNC_USB_DEVICE_DETECT) || defined(CFG_FUNC_UDISK_DETECT)
 	OTG_PortLinkCheck();
 #endif
 

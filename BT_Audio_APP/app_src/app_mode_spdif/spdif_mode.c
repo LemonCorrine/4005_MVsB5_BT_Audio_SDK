@@ -125,9 +125,6 @@ void SpdifDataCarry(void)
 		DBG("err\n");
 		return;
 	}
-#if 1//def CFG_FUNC_MIXER_SRC_EN
-	pcm_space = (pcm_space * SpdifPlayCt->SampleRate) / CFG_PARA_SAMPLE_RATE - (sizeof(PCM_DATA_TYPE) * 8);
-#endif
 
 	if((spdif_len >> 1) > pcm_space)
 	{
@@ -443,7 +440,7 @@ void SpdifPlayRun(uint16_t msgId)
 		}
 #endif
 
-		///AudioCoreSourceUnmute(SPDIF_SOURCE_NUM, TRUE, TRUE);
+		AudioCoreSourceUnmute(SPDIF_SOURCE_NUM, TRUE, TRUE);
 		if(IsAudioPlayerMute() == TRUE)
 		{
 			HardWareMuteOrUnMute();

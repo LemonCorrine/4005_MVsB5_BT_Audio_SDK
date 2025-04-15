@@ -28,7 +28,6 @@
 #include "clk.h"
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
 
-//extern volatile uint32_t gDeviceUSBDeviceTimer;
 static const uint8_t DmaChannelMap[6] = {
 	PERIPHERAL_ID_AUDIO_ADC0_RX,
 	PERIPHERAL_ID_AUDIO_ADC1_RX,
@@ -129,7 +128,7 @@ void UsbDevicePlayResInit(void)
 #endif
 #endif
 	AudioIOSet.Sync = TRUE;
-	AudioIOSet.Channels = 2;
+	AudioIOSet.Channels = PACKET_CHANNELS_NUM;
 	AudioIOSet.Net = DefaultNet;
 	AudioIOSet.DataIOFunc = UsbAudioSpeakerDataGet;
 	AudioIOSet.LenGetFunc = UsbAudioSpeakerDataLenGet;
@@ -203,12 +202,12 @@ void UsbDevicePlayHardwareInit(void)
 	if(UsbAudioSpeaker.InitOk != 1)
 	{
 		//不清除FIFO,只清除usb声卡相关配置
-//		memset(&UsbAudioSpeaker,0,sizeof(UsbAudioSpeaker)-sizeof(MCU_CIRCULAR_CONTEXT)-sizeof(int16_t*));
-//		memset(&UsbAudioMic,0,sizeof(UsbAudioMic)-sizeof(MCU_CIRCULAR_CONTEXT)-sizeof(int16_t*));
-		memset(&UsbAudioSpeaker,0,24);
-		memset(&UsbAudioMic,0,24);
+		memset(&UsbAudioSpeaker,0,sizeof(UsbAudio)-sizeof(MCU_CIRCULAR_CONTEXT)-sizeof(int16_t*));
+		memset(&UsbAudioMic,0,sizeof(UsbAudio)-sizeof(MCU_CIRCULAR_CONTEXT)-sizeof(int16_t*));
+//		memset(&UsbAudioSpeaker,0,25);
+//		memset(&UsbAudioMic,0,25);
 
-		UsbAudioSpeaker.Channels    = 2;
+		UsbAudioSpeaker.Channels    = PACKET_CHANNELS_NUM;
 		UsbAudioSpeaker.LeftVol    = AUDIO_MAX_VOLUME;
 		UsbAudioSpeaker.RightVol   = AUDIO_MAX_VOLUME;
 
@@ -359,6 +358,13 @@ bool UsbDevicePlayDeinit(void)
 #ifdef CFG_COMMUNICATION_BY_USB
 		SetUSBDeviceInitState(FALSE);
 #endif
+	}
+	else
+	{
+		APP_DBG("OTG_DeviceModeSel HID\n");
+		OTG_DeviceModeSel(HID, USB_VID, USBPID(HID));
+		OTG_DeviceFifoInit();
+		OTG_DeviceInit();
 	}
 	
 	//NVIC_DisableIRQ(Usb_IRQn);

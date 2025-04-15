@@ -164,7 +164,7 @@ static void SysVarInit(void)
 	{
 		mainAppCt.EqMode = EQ_MODE_FLAT;
 	}
-	Roboeffect_EQMode_Set(mainAppCt.EqMode);
+	AudioEffect_EQMode_Set(mainAppCt.EqMode);
 //	EqModeSet(mainAppCt.EqMode);
 	#ifdef CFG_FUNC_EQMODE_FADIN_FADOUT_EN    
 	mainAppCt.EqModeBak = mainAppCt.EqMode;
@@ -330,13 +330,13 @@ static void SystemInit(void)
 
 	//For OTG check
 #if defined(CFG_FUNC_UDISK_DETECT)
-#if defined(CFG_FUNC_USB_DEVICE_EN)
+#if defined(CFG_FUNC_USB_DEVICE_DETECT)
  	OTG_PortSetDetectMode(1,1);
 #else
  	OTG_PortSetDetectMode(1,0);
 #endif
 #else
-#if defined(CFG_FUNC_USB_DEVICE_EN)
+#if defined(CFG_FUNC_USB_DEVICE_DETECT)
  	OTG_PortSetDetectMode(0,1);
 #else
  	OTG_PortSetDetectMode(0,0);
