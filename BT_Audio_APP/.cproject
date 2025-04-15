@@ -14,7 +14,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactExtension="adx" artifactName="${ProjName}" buildArtefactType="nds.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=nds.buildArtefactType.exe" description="" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="config.nds32le-elf-mculib-v3s.exe.debug.1519929465" name="Release" parent="config.nds32le-elf-mculib-v3s.exe.debug" postannouncebuildStep="" postbuildStep="$(CROSS_COMPILE)objcopy -O binary &quot;${ProjName}.adx&quot; output/BT_Audio_APP.bin ; $(CROSS_COMPILE)objcopy -O binary app_src/components/flash_manage/flash_param.o ../tools/merge_script/flash_param.bin ;  ../tools/script_post.bat ; " preannouncebuildStep="" prebuildStep="..\tools\script.bat">
+				<configuration artifactExtension="adx" artifactName="${ProjName}" buildArtefactType="nds.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=nds.buildArtefactType.exe" description="" errorParsers="org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="config.nds32le-elf-mculib-v3s.exe.debug.1519929465" name="Release" parent="config.nds32le-elf-mculib-v3s.exe.debug" postannouncebuildStep="" postbuildStep="$(CROSS_COMPILE)objcopy -O binary &quot;${ProjName}.adx&quot; output/BT_Audio_APP.bin ; $(CROSS_COMPILE)objcopy -O binary app_src/components/flash_manage/flash_param.o ../tools/merge_script/flash_param.bin ;  ../tools/script_post.bat ; " preannouncebuildStep="" prebuildStep="../tools/script.bat">
 					<folderInfo id="config.nds32le-elf-mculib-v3s.exe.debug.1519929465." name="/" resourcePath="">
 						<toolChain errorParsers="" id="nds.nds32le-elf-mculib-v3s.base.1706622000" name="nds32le-elf-mculib-v3s" superClass="nds.nds32le-elf-mculib-v3s.base">
 							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CPU.458838856" name="CPU" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CPU"/>
@@ -43,7 +43,6 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/otg/host/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/otg/device/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/audio/music_parameter}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/driver/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/src/materials}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/cec/inc}&quot;"/>
@@ -100,7 +99,7 @@
 								<option id="nds.c.compiler.option.optimization.removesections.function.642468704" name="Remove unused function sections (-ffunction-sections)" superClass="nds.c.compiler.option.optimization.removesections.function" value="true" valueType="boolean"/>
 								<option id="nds.c.compiler.option.optimization.removesections.data.766274609" name="Remove unused data sections (-fdata-sections)" superClass="nds.c.compiler.option.optimization.removesections.data" value="true" valueType="boolean"/>
 								<option id="nds32le-elf-mculib-v3s.c.compiler.option.optimization.level.base.1312002207" name="Optimization Level" superClass="nds32le-elf-mculib-v3s.c.compiler.option.optimization.level.base" value="nds.c.optimization.level.space.mOs1" valueType="enumerated"/>
-								<option id="nds.c.compiler.option.optimization.flags.902723598" superClass="nds.c.compiler.option.optimization.flags" value="-fwrapv" valueType="string"/>
+								<option id="nds.c.compiler.option.optimization.flags.902723598" name="Other optimization flags" superClass="nds.c.compiler.option.optimization.flags" value="-fwrapv" valueType="string"/>
 								<inputType id="tool.nds.c.compiler.input.619503611" superClass="tool.nds.c.compiler.input"/>
 							</tool>
 							<tool command="$(CROSS_COMPILE)gcc" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser" id="tool.nds32le-elf-mculib-v3s.c.linker.base.1485094752" name="Andes C Linker" superClass="tool.nds32le-elf-mculib-v3s.c.linker.base">
