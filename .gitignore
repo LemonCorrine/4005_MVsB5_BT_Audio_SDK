@@ -14,16 +14,16 @@
 *.exe
 *.mp3
 *.txt
-*.ld
-*.sag
+# *.ld
+# *.sag
 *.ini
 *.bat
 *.chm
 *.pdf
-*.S
+# *.S
 # *.apk
-*.project
-*.cproject
+# *.project
+# *.cproject
 # *.xlsx
 # *.html
 # *.gatt
