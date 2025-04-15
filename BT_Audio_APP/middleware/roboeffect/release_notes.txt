@@ -25,6 +25,31 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 联系山景的技术工程人员，谢谢！
 
 ------------------------------------------------------------------------------------------------
+date: 2024_03_06：v2.16.2
+1. 修复某些内存足够的情况下，roboeffect_get_error_code()误报内存不足的bug。
+
+------------------------------------------------------------------------------------------------
+date: 2024_03_01：v2.16.1
+1. 增加误删除的roboeffect_estimate_frame_size()接口。
+2. third_party_effects_data_gen.exe 更新，生成一些注释。
+
+------------------------------------------------------------------------------------------------
+date: 2024_02_29：v2.16.0
+1. roboeffect API名称调整，详情如下：
+  A：删去roboeffect_get_memory_max_size
+  B：roboeffect_get_memory_current_size 改为 roboeffect_estimate_memory_size
+  C：roboeffect_get_effect_memory_size 改为 roboeffect_estimate_effect_size
+  D：roboeffect_get_parameter_number 改为 roboeffect_get_effect_parameter_count
+  E：roboeffect_get_suit_frame_size 改为 roboeffect_get_frame_size_after_effect_change
+  F：roboeffect_get_effect_memory_size_runtime 改为 roboeffect_get_effect_size
+2. 上位机通讯协议修改，增加版本校验功能，增加端点音效类型。请使用3.9.1及以上版本的Acpworkbench。
+3. sine_generator类型调整为端点音效，增加mono的输出，请参考Acpworkbench中关于“新建端点音效”的相应操作。
+4. 增加异步错误号获取接口：roboeffect_get_error_code() 。
+5. 音效库升级到2.38.0，增加noise_generator音效，基于修改点2，此音效为端点类音效。
+6. 增加双麦降噪noise_suppressor_blue_dual音效。
+
+
+------------------------------------------------------------------------------------------------
 date: 2024_02_02：v2.15.0
 1. 音效库升级到2.37.0，reverb_pro音效增加24bit，当erfactor和delay参数修改时，需改变reverb_pro的内存用量大小。
 2. 新增roboeffect_estimate_frame_size()接口，方便在引擎初始化前得到flow chart的适用帧长。
