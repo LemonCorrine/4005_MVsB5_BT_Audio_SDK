@@ -95,6 +95,12 @@ typedef enum PVDD_Model
 	PVDD33     	//使用3.3V电源
 } PVDD_Model;
 
+typedef enum DAC_EnergyModel
+{
+	DACLowEnergy = 0, //低功耗模式
+	DACCommonEnergy
+} DAC_EnergyModel;
+
 /**
  * @brief  Audio DAC module enable
  * @param  DACModule which AudioDac you will use
@@ -365,10 +371,11 @@ void AudioDAC_IBSelect(DAC_MODULE DACModule, uint8_t VrefpL, uint8_t VrefpR);
  * @param DACModel: DAC_Single 单端，DAC_Diff 差分
  * @param DAC_LoadStatus: DAC_NOLoad 不带负载，DAC_Load 带负载
  * @param PVDDModel：PVDD16 使用1.6V电源 ; PVDD33 使用3.3V电源
+ * @param DACEnergyModel：LowEnergy 低功耗模式; CommonEnergy 普通功耗模式
  * @note  使用PVDD16时不要使用单端模式
  * @return TRUE:sucess,FALSE:failure
  */
-bool AudioDAC_AllPowerOn(DAC_Model DACModel, DAC_LoadStatus DACLoadStatus, PVDD_Model PVDDModel);
+bool AudioDAC_AllPowerOn(DAC_Model DACModel, DAC_LoadStatus DACLoadStatus, PVDD_Model PVDDModel, DAC_EnergyModel DACEnergyModel);
 
 /**
  * @brief All Analog power Down DAC

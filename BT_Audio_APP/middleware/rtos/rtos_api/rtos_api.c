@@ -349,6 +349,18 @@ void vApplicationIdleHook(void)
 			__nds32__mtsr(__nds32__mfsr(NDS32_SR_INT_PEND2), NDS32_SR_INT_PEND2);
 		}
 		__nds32__standby_no_wake_grant();
+#else
+		{
+			#include "app_message.h"
+			extern bool AudioCoreDataSpaceCheck(void);
+			extern MessageHandle GetAudioCoreServiceMsgHandle(void);
+			if(AudioCoreDataSpaceCheck())
+			{
+				MessageContext		msgSend;
+				msgSend.msgId		= MSG_NONE;
+				MessageSend(GetAudioCoreServiceMsgHandle(), &msgSend);
+			}
+		}
 #endif
 }
 

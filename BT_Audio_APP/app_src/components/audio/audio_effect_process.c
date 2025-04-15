@@ -32,7 +32,7 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 {
 	int16_t  s;
 	uint16_t n = AudioCoreFrameSizeGet(AudioCore.CurrentMix);
-	PCM_DATA_TYPE *monitor_out	= NULL;
+//	PCM_DATA_TYPE *monitor_out	= NULL;
 	PCM_DATA_TYPE *mic_in	= NULL;
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
 	PCM_DATA_TYPE *usb_out	= NULL;
@@ -47,12 +47,6 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 		}
 	}
 
-#ifdef CFG_RES_AUDIO_DAC0_EN
-	if(pAudioCore->AudioSink[AUDIO_DAC0_SINK_NUM].Active == TRUE)   ////dac0 buff
-	{
-		monitor_out = pAudioCore->AudioSink[AUDIO_DAC0_SINK_NUM].PcmOutBuf;
-	}
-#endif
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
 	if(pAudioCore->AudioSink[USB_AUDIO_SINK_NUM].Active == TRUE)
 	{
@@ -70,7 +64,6 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 				mic_in[s*2 + 0] = mic_in[s];
 				mic_in[s*2 + 1] = mic_in[s];
 			}
-			AudioCoreAppSourceVolApply(MIC_SOURCE_NUM, (int16_t *)mic_in, n, 2);
 		}
 	}
 
@@ -86,11 +79,6 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 	Roboeffect_GainControl_Set(effect_addr[AudioCore.Roboeffect.flow_chart_mode].MUSIC_PREGAIN_ADDR, gain);
 #endif
 
-	if(monitor_out)
-	{
-//		AudioCoreAppSourceVolApply(AUDIO_DAC0_SINK_NUM, (int16_t *)monitor_out, n, 2);
-		AudioCoreSinkVolApply();
-	}
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
 	if(usb_out)
 	{

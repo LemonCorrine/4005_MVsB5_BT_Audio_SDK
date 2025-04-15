@@ -215,8 +215,8 @@ bool LineInPlayInit(void)
 	GPIO_RegBitsClear(GPIO_B_IE,GPIOB1);
 	GPIO_RegBitsClear(GPIO_B_OE,GPIOB1);
 
-	AudioADC_AnaInit(ADC0_MODULE,LINEIN2_LEFT,Single);
-	AudioADC_AnaInit(ADC0_MODULE,LINEIN2_RIGHT,Single);
+	AudioADC_AnaInit(ADC0_MODULE,LINEIN2_LEFT,Single,ADCCommonEnergy);
+	AudioADC_AnaInit(ADC0_MODULE,LINEIN2_RIGHT,Single,ADCCommonEnergy);
 #endif
 
 #if 0

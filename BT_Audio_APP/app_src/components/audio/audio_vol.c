@@ -44,6 +44,7 @@
 #include "i2s.h"
 #include "delay.h"
 #include "hdmi_in_api.h"
+#include "user_effect_parameter.h"
 bool gIsVolSetEnable = FALSE;
 int32_t SetChannel = 0xff;
 static int32_t Cnt = -1;
@@ -104,6 +105,7 @@ uint8_t BtLocalVolLevel2AbsVolme(uint8_t localValue)
 void HardWareMuteOrUnMute(void)
 {
 	mainAppCt.gSysVol.MuteFlag = !mainAppCt.gSysVol.MuteFlag;
+	Roboeffect_SinkMute_Set(mainAppCt.gSysVol.MuteFlag);
 }
 
 bool IsAudioPlayerMute(void)

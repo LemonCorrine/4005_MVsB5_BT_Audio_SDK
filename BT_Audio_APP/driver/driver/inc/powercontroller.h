@@ -410,7 +410,20 @@ void Power_WakeupRestoreLDO33AConfig();
  */
 void Power_DeepSleepLDO33AConfig(uint8_t OCSel_val);
 
+/*
+ * ldo_switch_to_dcdc
+ * trim_cfg: 3-1.9V;7-1.8;12-1.7V;18-1.6V;27-1.5V;39-1.4V;57-1.3V
+ */
 void ldo_switch_to_dcdc(uint8_t trim_cfg);
+
+/*
+ * dcdc_switch_to_ldo
+ * ldo_value:  7: 1.69V; 6:1.75; 0:1.65; 1:1.60V ; default 0
+ */
+void dcdc_switch_to_ldo(uint8_t ldo_value);
+
+// value: 7: 1.69V; 6:1.75; 0:1.65 1:1.60V default max power
+void Power_LDO16Config(uint8_t value);
 
 #ifdef  __cplusplus
 }

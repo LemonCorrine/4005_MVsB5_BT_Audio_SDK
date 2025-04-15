@@ -24,7 +24,7 @@
 #include "roboeffect_prot.h"
 #include "ctrlvars.h"
 #include "main_task.h"
-#include "user_defined_effect_api.h"
+#include "user_effect_parameter.h"
 
 #ifdef CFG_FUNC_USBDEBUG_EN
 bool hid_tx_buf_is_used = 0;
@@ -394,14 +394,14 @@ void Communication_Effect_0x01(uint8_t *buf, uint32_t len)
 		tx_buf[0]  = 0xa5;
 		tx_buf[1]  = 0x5a;
 		tx_buf[2]  = 0x01;
-		tx_buf[3]  = 1+7*2;
+		tx_buf[3]  = 1+8*2;
 		tx_buf[4]  = 0xff;
 		tx_buf[10]  = 0x1;//System Sample Rate Enable
 		memcpy(&tx_buf[11], &gCtrlVars.sample_rate_index, 2);//注意需要确认使用哪个变量Sam mask
 		tx_buf[13]  = 0x1;//SDK MCLK为全局
-		//memcpy(&tx_buf[17], &FrameSize, 2);//注意需要确认使用哪个变量Sam mask
-		tx_buf[5 + 7*2] = 0x16;
-		Communication_Effect_Send(tx_buf, 6 + 7*2);
+		memcpy(&tx_buf[19], &gCtrlVars.SamplesPerFrame, 2);//注意需要确认使用哪个变量Sam mask
+		tx_buf[5 + 8*2] = 0x16;
+		Communication_Effect_Send(tx_buf, 6 + 8*2);
 	}
 	//else
 	//{
@@ -453,22 +453,22 @@ void Comm_PGA0_0x03(uint8_t * buf)
 		case 2:///line1 Left en?
 			memcpy(&TmpData, &buf[1], 2);
 			gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_en = !!TmpData;
-			AudioLineSelSet();
+			AudioLineSelSet(ANA_INPUT_CH_LINEIN2);
 			break;
 		case 3://line1 Right en?
 			memcpy(&TmpData, &buf[1], 2);
 			gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_en = !!TmpData;
-			AudioLineSelSet();
+			AudioLineSelSet(ANA_INPUT_CH_LINEIN2);
 			break;
 		case 4://line1 Left gain
 			memcpy(&TmpData, &buf[1], 2);
 			gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain = TmpData > 31? 31 : TmpData;
-			AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_LEFT, LINEIN1_LEFT, 31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
+			AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_LEFT, LINEIN2_LEFT, 31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
 			break;
 		case 5://line1 Right gain
 			memcpy(&TmpData, &buf[1], 2);
 			gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain = TmpData > 31? 31 : TmpData;
-			AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_RIGHT, LINEIN1_RIGHT, 31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
+			AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_RIGHT, LINEIN2_RIGHT, 31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
 			break;
 		default:
 			break;

@@ -72,7 +72,7 @@ void AudioDAC_Init(uint32_t SampleRate, uint16_t BitWidth, void *Buf, uint16_t L
 
 	AudioDAC_ClkEnable(DAC0, TRUE);
 
-	AudioDAC_Enable(DAC0);
+//	AudioDAC_Enable(DAC0);//使能放在模拟上电部分 避免上电pop声
 	AudioDAC_Reset(DAC0);
 	AudioDAC_SoftMute(DAC0,FALSE, FALSE);
 }

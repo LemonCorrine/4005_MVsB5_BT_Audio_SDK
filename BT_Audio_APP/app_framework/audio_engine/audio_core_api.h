@@ -27,9 +27,7 @@ enum
 #ifdef BT_TWS_SUPPORT
 	TWS_SOURCE_NUM,
 #endif
-#ifdef CFG_FUNC_RECORDER_EN
 	PLAYBACK_SOURCE_NUM,	//flashfs 录音回放通道		无音效
-#endif
 	AUDIO_CORE_SOURCE_MAX_NUM,
 };
 //不会并存的通路可以合并，特别是sink通路
