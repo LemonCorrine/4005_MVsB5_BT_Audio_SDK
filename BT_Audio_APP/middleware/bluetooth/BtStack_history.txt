@@ -27,6 +27,11 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 
 版本历史：（采用倒序排列，最新版置顶）
 
+2023-12-21【15_0.2.6 build @ Dec 21 2023 18:46:11】
+size:2,249,178 bytes
+1、整理内存申请，优化ke_malloc_error问题
+2、增加调试函数接口 BtDebugEnable
+
 2023-12-14【15_0.2.5 build @ Dec 14 2023 18:35:24】
 size:2,280,180 bytes
 1、修复BLE收包ke_malloc溢出的问题

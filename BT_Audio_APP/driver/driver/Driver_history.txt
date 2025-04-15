@@ -26,6 +26,29 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 --------------------------------------------------------------------------------------
 版本历史：（采用倒序排列，最新版置顶）
 
+2024-1-11【0.1.16  build @ Jan 11 2024 16:24:24】
+size:349,130 bytes
+更新内容：
+	1、新增I2S_MclkFreqSet，用于配置I2S mclk频率
+	2、修改ldo_switch_to_dcdc，优化DCDC切换逻辑
+	3、优化免晶体模式DPLL配置成非240mhz时异常问题
+	4、修改I2S_SampleRateGet，优化I2S slave采样率计算
+	5、优化OTG_HostISOWrite接口发送丢数据问题
+	6、修改ADC_ClockDivSet/ADC_ClockDivGet接口参数
+	7、新增Clock_AudioMclkGet API
+	8、新增TIMER_DmaRequestEnable/TIMER_DmaRequestDisable API
+	9、优化调音工具+usb录音数据错误问题
+	10、新增DMA_ConfigDwidth
+
+------------------------------
+2023-12-22【0.1.15  build @ Dec 22 2023 11:23:04】
+size:343,806 bytes
+更新内容：
+	1、删除Remap_InitTcm\Remap_DisableTcm，用宏替换
+	2、修改 Remap_InitTcm接口
+	3、Add build fft.c
+
+------------------------------
 2023-12-15【0.1.14  build @ Dec 15 2023 10:13:05】
 size:341,204 bytes
 更新内容：

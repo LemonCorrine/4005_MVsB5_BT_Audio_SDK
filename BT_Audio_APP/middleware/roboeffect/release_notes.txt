@@ -24,6 +24,54 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 注意：在工程文件中，所有源文件的位置、文件名请不要轻易改动，任何疑问请及时
 联系山景的技术工程人员，谢谢！
 
+
+------------------------------------------------------------------------------------------------
+date: 2023_12_25：v2.12.2
+1. 修复冗余代码访问空指针的bug。
+
+------------------------------------------------------------------------------------------------
+date: 2023_12_20：v2.12.1
+1. 修复裁剪音效后编译报错的问题。
+
+------------------------------------------------------------------------------------------------
+date: 2023_12_20：v2.12.0
+1. 修复一个读取空指针的逻辑漏洞，防止访问空指针内的数据。
+2. 音效库升级到2.35.0，以下音效支持24bit：reverb， pitch_shifter， dc_blocker。
+
+------------------------------------------------------------------------------------------------
+date: 2023_12_19：v2.11.2
+1. 修复gain_control在连续下发gain和mute参数后，新设的gain值失效的问题。
+2. 将roboeffect_get_effect_name()更名为roboeffect_get_effect_type()，防止歧义。
+3. 第三方音效内嵌代码使用third_party_effects_data_gen.exe生成，不再依赖python环境。
+4. release包的文件目录组织改动。
+
+------------------------------------------------------------------------------------------------
+date: 2023_12_06：v2.11.1
+1. roboeffect_api.h 提供4字节对齐的功能宏。
+2. 去掉roboeffect库里无用的打印。
+3. third_party_effects_data_gen.py脚本对导入包错误进行报错处理。
+
+
+------------------------------------------------------------------------------------------------
+date: 2023_12_05：v2.11.0
+1. 启用第三方音效内存用量查询函数，需要实现roboeffect_XXXXX_memory_size_if接口，见simple_gain音效
+bool roboeffect_simple_gain_memory_size_if(
+  roboeffect_memory_size_query *query, 
+  roboeffect_memory_size_response *response
+)
+该函数内部返回三类内存的使用情况，如不使用请填0：
+response->context_memory_size = sizeof(simple_gain_struct); //音效上下文内存大小
+response->additional_memory_size = 16; //可额外分配的内存大小，如delay buffer等
+response->scratch_memory_size = 0; //与系统公用的内存大小，和其他音效共享使用
+注意：memory_size请4字节对齐
+
+2. 文件目录组织改动，区分如下：
+roboeffect_lib: roboeffect库相关，包括头文件和开放源码。
+third_part_effect：第三方音效库总目录
+graphics：图相关文件
+
+graphics文件夹不再随roboeffect发布。
+
 ------------------------------------------------------------------------------------------------
 date: 2023_11_30：v2.10.0
 1. 启用分离式第三方音效库的集成方案，今后第三方音效库不再和标准库绑定在一起发布。
