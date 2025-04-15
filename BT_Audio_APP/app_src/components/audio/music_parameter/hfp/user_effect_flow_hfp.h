@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define HFP_ROBOEFFECT_LIB_VER "2.12.0"
+#define HFP_ROBOEFFECT_LIB_VER "2.14.0"
 
 typedef enum _HFP_roboeffect_io_enum
 {

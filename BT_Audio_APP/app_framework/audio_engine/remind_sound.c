@@ -35,6 +35,7 @@
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 
 #define CFG_DBUS_ACCESS_REMIND_SOUND_DATA  	//开启宏则使用DBUS从flash中获取提示音数据
+
 #define CFG_PARAM_REMIND_LIST_MAX		15	//提示音阻塞播放最大个数。
 
 #define	REMIND_DBG(format, ...)		//printf(format, ##__VA_ARGS__)
@@ -86,14 +87,14 @@ typedef struct _RemindSoundContext
 	uint8_t					EmptyIndex;//非0时，播Request[0]
 	REMIND_ITEM_STATE		ItemState;
 	bool					RequestUpdate;
-	uint32_t				Samples;
-	TIMER					Timer;
+//	uint32_t				Samples;
+//	TIMER					Timer;
 
 	uint8_t 				player_init;
 	bool					MuteAppFlag;
 	bool					Disable;
 	bool 					NeedUnmute;
-	bool                    NeedSync;
+//	bool                    NeedSync;
 }RemindSoundContext;
 
 
@@ -103,6 +104,12 @@ typedef struct _RemindSoundContext
 #define REMIND_FLASH_ADDR(n) 		(REMIND_FLASH_STORE_BASE + sizeof(SongClipsEntry) * n + sizeof(SongClipsHdr))//flash提示音区配置决定
 #define REMIND_ID(Addr)				((Addr - REMIND_FLASH_STORE_BASE - sizeof(SongClipsHdr)) / (sizeof(SongClipsEntry)))
 #define REMIND_FLASH_FLAG_STR		("MVUB")
+
+#ifdef CFG_DBUS_ACCESS_REMIND_SOUND_DATA
+	#define	RemindDataRead(addr,buf,len)	(NULL == memcpy((void *)(buf),(void *)(addr),len))
+#else
+	#define	RemindDataRead(addr,buf,len)	(FLASH_NONE_ERR != SpiFlashRead(addr,(uint8_t *)(buf),len,REMIND_FLASH_READ_TIMEOUT))
+#endif
 
 static RemindSoundContext		RemindSoundCt;
 
@@ -117,13 +124,21 @@ osMutexId RemindMutex = NULL;
 	extern uint16_t RemindDecoderPcmDataGet(void * pcmData,uint16_t sampleLen);// call by audio core one by one
 	extern uint16_t RemindDecoderPcmDataLenGet(void);	
 #else
+	#define CFG_REMIND_MP2_DECODE_BUF_USE_MALLOC	//使用malloc申请内存  动态使用
 	static	struct _Mp2DecodeContext
 	{
 		MPADecodeContext  	dec_cnt;
 		int16_t 			dec_fifo[15*128];//3840字节
 		uint32_t 			dec_last_len;
 		uint8_t 			dec_buf[626];
-	}Mp2Decode;
+	}
+	#ifdef CFG_REMIND_MP2_DECODE_BUF_USE_MALLOC
+		* Mp2Decode = NULL;
+	#else
+		Mp2DecodeTemp;
+
+		#define Mp2Decode		((struct _Mp2DecodeContext *)(&Mp2DecodeTemp))
+	#endif
 
 	extern bool decode_header(uint32_t header);
 	extern bool MP2_decode_frame(void* PcmData, uint8_t* Mp2Data);
@@ -139,8 +154,10 @@ void RemindSoundAudioPlayEnd(void);
 void Reset_Remind_Buffer(void)
 {
 	RemindSoundAudioPlayEnd();
-	memset(&Mp2Decode,0,sizeof(struct _Mp2DecodeContext));
-	//printf("ppppppppppppppppppppppppppppppppppppppppppppppppppppppppp = %d\n",sizeof(struct _Mp2DecodeContext));
+#ifndef CFG_REMIND_SOUND_DECODING_USE_LIBRARY
+	if(Mp2Decode != NULL)
+		memset(Mp2Decode,0,sizeof(struct _Mp2DecodeContext));
+#endif
 }
 
 static uint16_t RemindSountItemFind(uint8_t *RemindItem)
@@ -151,14 +168,10 @@ static uint16_t RemindSountItemFind(uint8_t *RemindItem)
 	//查找对应的ConstDataId
 	for(j = 0; j < SOUND_REMIND_TOTAL; j++)
 	{
-#ifdef CFG_DBUS_ACCESS_REMIND_SOUND_DATA
-		memcpy((uint8_t *)&SongClips, (void *)REMIND_FLASH_ADDR(j), sizeof(SongClipsEntry));
-#else
-		if(FLASH_NONE_ERR != SpiFlashRead(REMIND_FLASH_ADDR(j), (uint8_t *)&SongClips, sizeof(SongClipsEntry), REMIND_FLASH_READ_TIMEOUT))
+		if(RemindDataRead(REMIND_FLASH_ADDR(j), &SongClips, sizeof(SongClipsEntry)))
 		{
 			return SOUND_REMIND_TOTAL;
 		}
-#endif
 		if(memcmp(&SongClips.id,RemindItem, sizeof(SongClips.id)) == 0)//找到
 		{
 //			RemindSoundCt.ConstDataOffset = 0;
@@ -180,15 +193,10 @@ static bool	RemindSoundReadItemInfo(uint16_t ItemRef)
 	if(ItemRef >= SOUND_REMIND_TOTAL)
 		return FALSE;
 
-#ifdef CFG_DBUS_ACCESS_REMIND_SOUND_DATA
-	memcpy((uint8_t *)&SongClips, (uint8_t *)(REMIND_FLASH_ADDR(ItemRef)), sizeof(SongClipsEntry));
-#else
-	if(FLASH_NONE_ERR != SpiFlashRead(REMIND_FLASH_ADDR(ItemRef), (uint8_t *)&SongClips, sizeof(SongClipsEntry), REMIND_FLASH_READ_TIMEOUT))
+	if(RemindDataRead(REMIND_FLASH_ADDR(ItemRef), &SongClips, sizeof(SongClipsEntry)))
 	{
 		return FALSE;
 	}
-#endif
-
 	RemindSoundCt.ConstDataOffset = 0;
 	RemindSoundCt.ConstDataAddr = SongClips.offset + REMIND_FLASH_STORE_BASE; //工具制作提示音bin 使用相对地址
 	RemindSoundCt.ConstDataSize = SongClips.size;
@@ -216,16 +224,13 @@ bool sound_clips_all_crc(void)
 	{
 		return FALSE;
 	}
-#ifdef CFG_DBUS_ACCESS_REMIND_SOUND_DATA
-	memcpy(data_ptr, (void *)FlashAddr, REMIND_FLASH_HDR_SIZE);
-#else
-	if(SpiFlashRead(FlashAddr,data_ptr,REMIND_FLASH_HDR_SIZE,REMIND_FLASH_READ_TIMEOUT) != FLASH_NONE_ERR)
+
+	if(RemindDataRead(FlashAddr,data_ptr,REMIND_FLASH_HDR_SIZE))
 	{
 		REMIND_DBG("read const data error!\r\n");
 		ret = FALSE;
 	}
 	else
-#endif
 	{
 		ptr = (SongClipsEntry*)(data_ptr + sizeof(SongClipsHdr));
 		hdr = (SongClipsHdr *)(data_ptr);
@@ -265,16 +270,12 @@ bool sound_clips_all_crc(void)
 				{
 					i = all_len;
 				}
-#ifdef CFG_DBUS_ACCESS_REMIND_SOUND_DATA
-				memcpy(data_ptr, (void *)FlashAddr, i);
-#else
-				if(SpiFlashRead(FlashAddr,data_ptr,i,REMIND_FLASH_READ_TIMEOUT) != FLASH_NONE_ERR)
+				if(RemindDataRead(FlashAddr,data_ptr,i))
 				{
 					REMIND_DBG("read const data error!\r\n");
 					ret = FALSE;
 				}
 				else
-#endif
 				{
 					crc = ROM_CRC16((char *)data_ptr, i, crc);
 					FlashAddr += i;
@@ -299,28 +300,25 @@ bool sound_clips_all_crc(void)
 #ifndef CFG_REMIND_SOUND_DECODING_USE_LIBRARY
 static void mp2_play_init(void)
 {
-	MP2_decode_init(&Mp2Decode.dec_cnt);
-#ifdef CFG_DBUS_ACCESS_REMIND_SOUND_DATA
-	memcpy(Mp2Decode.dec_buf, (void *)RemindSoundCt.ConstDataAddr, 4);
-#else
-	if(FLASH_NONE_ERR != SpiFlashRead(RemindSoundCt.ConstDataAddr, Mp2Decode.dec_buf, 4, 1))
+	MP2_decode_init(&Mp2Decode->dec_cnt);
+
+	if(RemindDataRead(RemindSoundCt.ConstDataAddr, Mp2Decode->dec_buf, 4))
 	{
 		return;
 	}
-#endif
 	//读取4个字节确定帧长
-	if(!decode_header((Mp2Decode.dec_buf[0] << 24) | (Mp2Decode.dec_buf[1] << 16) | (Mp2Decode.dec_buf[2] << 8) | Mp2Decode.dec_buf[3]))
+	if(!decode_header((Mp2Decode->dec_buf[0] << 24) | (Mp2Decode->dec_buf[1] << 16) | (Mp2Decode->dec_buf[2] << 8) | Mp2Decode->dec_buf[3]))
 	{
 		REMIND_DBG("decode_header error!\n");
 		return;
 	}
-	RemindSoundCt.FramSize = Mp2Decode.dec_cnt.frame_size;
-	Mp2Decode.dec_last_len = 0;
+	RemindSoundCt.FramSize = Mp2Decode->dec_cnt.frame_size;
+	Mp2Decode->dec_last_len = 0;
 //	REMIND_DBG("sample ramte:%u\n",Mp2Decode.dec_cnt.sample_rate);
 //	REMIND_DBG("fram size   :%u\n",Mp2Decode.dec_cnt.frame_size);
 //	REMIND_DBG("bit rate    :%u\n",Mp2Decode.dec_cnt.bit_rate);
 //	REMIND_DBG("channels    :%u\n",Mp2Decode.dec_cnt.nb_channels);
-	AudioCoreSourceChange(REMIND_SOURCE_NUM, Mp2Decode.dec_cnt.nb_channels, Mp2Decode.dec_cnt.sample_rate);
+	AudioCoreSourceChange(REMIND_SOURCE_NUM, Mp2Decode->dec_cnt.nb_channels, Mp2Decode->dec_cnt.sample_rate);
 }
 #endif
 
@@ -378,26 +376,38 @@ void RemindSoundAudioDecoderStop(void)
 
 void RemindMp2Decode(void)
 {
-	uint8_t *p = (uint8_t*)Mp2Decode.dec_fifo;
-
 	if(RemindSoundCt.player_init == MP2_DECODE_HEADER)
 	{
 		REMIND_DBG("remind play start!\n");
+#ifdef CFG_REMIND_MP2_DECODE_BUF_USE_MALLOC
+		if(!Mp2Decode)
+			Mp2Decode = osPortMalloc(sizeof(struct _Mp2DecodeContext));
+		if(Mp2Decode)
+			memset(Mp2Decode,0,sizeof(struct _Mp2DecodeContext));
+		else
+		{
+			RemindSoundAudioPlayEnd();
+			RemindSoundCt.NeedUnmute = TRUE;
+			RemindSoundPlayEndNotify();
+			return;
+		}
+#endif
 		mp2_play_init();
 		RemindSoundCt.player_init = MP2_DECODE_FRAME;
 		RemindSoundCt.NeedUnmute = TRUE;
-		RemindSoundCt.Samples = 0;
+//		RemindSoundCt.Samples = 0;
 	}
 	if(RemindSoundCt.player_init == MP2_DECODE_FRAME)
 	{
-		if(Mp2Decode.dec_last_len < AudioCoreFrameSizeGet(DefaultNet))
+		uint8_t *p = (uint8_t*)Mp2Decode->dec_fifo;
+		if(Mp2Decode->dec_last_len < AudioCoreFrameSizeGet(DefaultNet))
 		{
-#ifdef CFG_DBUS_ACCESS_REMIND_SOUND_DATA
-			memcpy(Mp2Decode.dec_buf,(void *)RemindSoundCt.ConstDataAddr+RemindSoundCt.ConstDataOffset, 4);
-#else
-			SpiFlashRead(RemindSoundCt.ConstDataAddr+RemindSoundCt.ConstDataOffset, Mp2Decode.dec_buf, 4, 1);
-#endif
-			if(!decode_header((Mp2Decode.dec_buf[0] << 24) | (Mp2Decode.dec_buf[1] << 16) | (Mp2Decode.dec_buf[2] << 8) | Mp2Decode.dec_buf[3]))
+			if(RemindDataRead(RemindSoundCt.ConstDataAddr+RemindSoundCt.ConstDataOffset, Mp2Decode->dec_buf, 4))
+			{
+
+			}
+
+			if(!decode_header((Mp2Decode->dec_buf[0] << 24) | (Mp2Decode->dec_buf[1] << 16) | (Mp2Decode->dec_buf[2] << 8) | Mp2Decode->dec_buf[3]))
 			{
 				REMIND_DBG("decode_header error!\n");
 				RemindSoundAudioPlayEnd();
@@ -406,13 +416,11 @@ void RemindMp2Decode(void)
 				RemindSoundPlayEndNotify();
 				return;
 			}
-			RemindSoundCt.FramSize = Mp2Decode.dec_cnt.frame_size;
-#ifdef CFG_DBUS_ACCESS_REMIND_SOUND_DATA
-			memcpy(Mp2Decode.dec_buf,(void *)RemindSoundCt.ConstDataAddr+RemindSoundCt.ConstDataOffset, RemindSoundCt.FramSize);
-#else
-			SpiFlashRead(RemindSoundCt.ConstDataAddr+RemindSoundCt.ConstDataOffset, Mp2Decode.dec_buf, RemindSoundCt.FramSize, 1);
-#endif
-			
+			RemindSoundCt.FramSize = Mp2Decode->dec_cnt.frame_size;
+			if(RemindDataRead(RemindSoundCt.ConstDataAddr+RemindSoundCt.ConstDataOffset, Mp2Decode->dec_buf, RemindSoundCt.FramSize))
+			{
+
+			}
 			//REMIND_DBG("RemindSoundCt.FramSize:%u %08X\n",RemindSoundCt.FramSize,RemindSoundCt.ConstDataAddr+RemindSoundCt.ConstDataOffset);
 			RemindSoundCt.ConstDataOffset += RemindSoundCt.FramSize;
 //			DBG("Remind %d @ %d\n", RemindSoundCt.ConstDataOffset, RemindSoundCt.ConstDataSize);
@@ -424,7 +432,7 @@ void RemindMp2Decode(void)
 				RemindSoundPlayEndNotify();
 			}
 //			REMIND_DBG("%02X,%02X,%02X,%02X\n",Mp2Decode.dec_buf[0],Mp2Decode.dec_buf[1],Mp2Decode.dec_buf[2],Mp2Decode.dec_buf[3]);
-			if(MP2_decode_frame(p+Mp2Decode.dec_last_len*2,Mp2Decode.dec_buf) == FALSE)
+			if(MP2_decode_frame(p+Mp2Decode->dec_last_len*2,Mp2Decode->dec_buf) == FALSE)
 			{
 				REMIND_DBG("MP2_decode_frame error!\n");
 				RemindSoundAudioPlayEnd();
@@ -433,7 +441,7 @@ void RemindMp2Decode(void)
 				RemindSoundPlayEndNotify();
 				return;
 			}
-			Mp2Decode.dec_last_len += 1152;
+			Mp2Decode->dec_last_len += 1152;
 		}
 	}
 }
@@ -480,7 +488,7 @@ uint16_t RemindDataLenGet(void)
 		}
 	}
 
-	if(RemindSoundCt.player_init == MP2_DECODE_END && Mp2Decode.dec_last_len < AudioCoreFrameSizeGet(DefaultNet))
+	if(RemindSoundCt.player_init == MP2_DECODE_END && (Mp2Decode == NULL || Mp2Decode->dec_last_len < AudioCoreFrameSizeGet(DefaultNet)))
 	{
 		++delay_cnt;
 		if(delay_cnt > 100) //延时结束		
@@ -491,7 +499,10 @@ uint16_t RemindDataLenGet(void)
 			delay_cnt = 0;
 		}
 	}
-	return Mp2Decode.dec_last_len;
+	if(Mp2Decode != NULL)
+		return Mp2Decode->dec_last_len;
+	else
+		return 0;
 #endif
 }
 
@@ -502,14 +513,13 @@ uint16_t RemindDataGet(void* Buf, uint16_t Samples)
 #ifdef CFG_REMIND_SOUND_DECODING_USE_LIBRARY
 	return RemindDecoderPcmDataGet(Buf,Samples);
 #else
-	uint8_t *p = (uint8_t*)Mp2Decode.dec_fifo;
-
-	if(Mp2Decode.dec_last_len >= Samples)
+	if(Mp2Decode != NULL && Mp2Decode->dec_last_len >= Samples)
 	{
+		uint8_t *p = (uint8_t*)Mp2Decode->dec_fifo;
 		memcpy(Buf,p,Samples*2);
-		RemindSoundCt.Samples += Samples;
-		Mp2Decode.dec_last_len = Mp2Decode.dec_last_len-Samples;
-		memcpy(p,p+Samples*2,Mp2Decode.dec_last_len*2);
+//		RemindSoundCt.Samples += Samples;
+		Mp2Decode->dec_last_len = Mp2Decode->dec_last_len-Samples;
+		memcpy(p,p+Samples*2,Mp2Decode->dec_last_len*2);
 		return Samples;
 	}
 	return 0;
@@ -723,7 +733,7 @@ bool RemindSoundRun(SysModeState ModeState)
 
 	if(RemindSoundCt.EmptyIndex == 0 && RemindSoundCt.ItemState == REMIND_ITEM_IDLE)
 	{
-		RemindSoundCt.NeedSync = FALSE;
+//		RemindSoundCt.NeedSync = FALSE;
 		return FALSE;
 	}
 	else if(ModeState == ModeStateDeinit
@@ -841,12 +851,16 @@ bool RemindSoundRun(SysModeState ModeState)
 			break;
 
 		case REMIND_ITEM_MUTE:
-			if(Mp2Decode.dec_last_len < AudioCoreFrameSizeGet(DefaultNet))
+			if(Mp2Decode->dec_last_len < AudioCoreFrameSizeGet(DefaultNet))
 			{
 				RemindSoundCt.Request[0].Attr |= REMIND_ATTR_CLEAR;
 				RemindSoundCt.ItemState = REMIND_ITEM_IDLE;
 				RemindSoundCt.RequestUpdate = TRUE;
 				AudioCoreSourceDisable(REMIND_SOURCE_NUM);
+	#ifdef CFG_REMIND_MP2_DECODE_BUF_USE_MALLOC
+				osPortFree(Mp2Decode);
+				Mp2Decode = NULL;
+	#endif
 			}
 			break;
 	}
@@ -869,7 +883,8 @@ void RemindSoundInit(void)
 #ifdef CFG_REMIND_SOUND_DECODING_USE_LIBRARY
 	memset(&RemindDecoderInMemHandle, 0, sizeof(RemindDecoderInMemHandle));
 #else
-	memset(&Mp2Decode,0,sizeof(Mp2Decode));
+	if(Mp2Decode != NULL)
+		memset(Mp2Decode,0,sizeof(struct _Mp2DecodeContext));
 #endif
 	memset(&RemindSoundCt,0,sizeof(RemindSoundCt));
 
@@ -899,7 +914,10 @@ void RemindSoundClearPlay(void)
 void RemindSoundClearSlavePlay(void)
 {
 	memset(&RemindSoundCt,0,sizeof(RemindSoundCt));
-	memset(&Mp2Decode,0,sizeof(struct _Mp2DecodeContext));
+#ifndef CFG_REMIND_SOUND_DECODING_USE_LIBRARY
+	if(Mp2Decode != NULL)
+		memset(Mp2Decode,0,sizeof(struct _Mp2DecodeContext));
+#endif
 }
 
 uint8_t RemindSoundIsPlay(void)
@@ -965,11 +983,10 @@ bool RemindMp3DataRead(void)
 		
 		if(len > sizeof(read_flash_buf))
 			len = sizeof(read_flash_buf);
-#ifdef CFG_DBUS_ACCESS_REMIND_SOUND_DATA
-		memcpy(read_flash_buf,(void *)RemindSoundCt.ConstDataAddr+RemindSoundCt.ConstDataOffset, len);
-#else
-		SpiFlashRead(RemindSoundCt.ConstDataAddr+RemindSoundCt.ConstDataOffset, read_flash_buf, len, 1);
-#endif		
+		if(RemindDataRead(RemindSoundCt.ConstDataAddr+RemindSoundCt.ConstDataOffset, read_flash_buf, len))
+		{
+
+		}
 		RemindSoundCt.ConstDataOffset += len;
 		mv_mwrite(read_flash_buf, len, 1, &RemindDecoderInMemHandle);
 		if(RemindSoundCt.ConstDataOffset >= RemindSoundCt.ConstDataSize)

@@ -11,6 +11,9 @@
 #define	SYS_AUDIO_CLK_SELECT		APLL_CLK_MODE
 #endif
 
+static uint8_t I2s0_MasterMode = 0;
+static uint8_t I2s1_MasterMode = 0;
+
 void AudioI2S_Init(I2S_MODULE Module, I2SParamCt *ct)
 {
 	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
@@ -46,6 +49,7 @@ void AudioI2S_Init(I2S_MODULE Module, I2SParamCt *ct)
 		
 		I2S_FadeTimeSet(I2S0_MODULE,90);
 		I2S_FadeEnable(I2S0_MODULE);// bkd add 2021.11.09
+		I2s0_MasterMode = ct->IsMasterMode;
     }
     else if(Module == I2S1_MODULE)
     {
@@ -59,6 +63,7 @@ void AudioI2S_Init(I2S_MODULE Module, I2SParamCt *ct)
 		}
 		I2S_FadeTimeSet(I2S1_MODULE,90);
 		I2S_FadeEnable(I2S1_MODULE);//  bkd add 2021.11.09
+		I2s1_MasterMode = ct->IsMasterMode;
     }
 
 	I2S_SampleRateSet(Module, ct->SampleRate);
@@ -122,6 +127,18 @@ void AudioI2S_DeInit(I2S_MODULE Module)
 		DMA_ChannelDisable(PERIPHERAL_ID_I2S1_RX);
         DMA_ChannelDisable(PERIPHERAL_ID_I2S1_TX);
 		
+    }
+}
+
+uint8_t AudioI2S_MasterModeGet(I2S_MODULE Module)
+{
+	if(Module == I2S0_MODULE)
+    {
+		return I2s0_MasterMode;
+    }
+    else//if(Module == I2S1_MODULE)
+    {
+		return I2s1_MasterMode;
     }
 }
 

@@ -58,7 +58,7 @@ osMutexId SDIOSendCommandMutex = NULL;
 #define CARD_DBG	printf
 
 #ifndef CFG_SDIO_BYTE_MODE_ENABLE
-uint32_t *      SD_WordModeBuf = NULL;  //SDIO WORD方式读写buf,SDIO读写时传入的buf不是WORD对齐的情况下用于临时缓存数据
+uint32_t SD_WordModeBuf[4096/4];  //SDIO WORD方式读写buf,SDIO读写时传入的buf不是WORD对齐的情况下用于临时缓存数据
 #endif
 SD_CARD		    SDCard;
 SD_CARD_ID 		SDCardId;
@@ -522,13 +522,13 @@ SD_CARD_ERR_CODE SDCard_ReadBlock(uint32_t Block, uint8_t* Buffer,uint8_t Size)
 #ifndef CFG_SDIO_BYTE_MODE_ENABLE
 	if(((uint32_t)Buffer & 0x03)) //不是WORD对齐，需要临时拷贝到SD_WordModeBuf，然后在传回Buffer
 	{
-		if(SD_WordModeBuf)
+		if((SD_BLOCK_SIZE*Size) <= sizeof(SD_WordModeBuf))
 		{
 			SD_WordModeBufFlag = 1;
 		}
 		else
 		{
-			DBG("SD_WordModeBuf is empty!\n");
+			DBG("SD_WordModeBuf not enough!\n");
 		}
 	}
 #endif
@@ -543,9 +543,9 @@ SD_CARD_ERR_CODE SDCard_ReadBlock(uint32_t Block, uint8_t* Buffer,uint8_t Size)
 		if(SD_WordModeBufFlag)
 			DMA_BlockBufSet(PERIPHERAL_ID_SDIO_RX, SD_WordModeBuf, SD_BLOCK_SIZE);
 		else
-#endif
+			DMA_BlockBufSet(PERIPHERAL_ID_SDIO_RX, Buffer, SD_BLOCK_SIZE);
+#else
 		DMA_BlockBufSet(PERIPHERAL_ID_SDIO_RX, Buffer, SD_BLOCK_SIZE);
-#ifdef CFG_SDIO_BYTE_MODE_ENABLE
 		DMA_ConfigDwidth(PERIPHERAL_ID_SDIO_RX, DMA_DWIDTH_BYTE);
 #endif
 		DMA_ChannelEnable(PERIPHERAL_ID_SDIO_RX);
@@ -588,9 +588,9 @@ SD_CARD_ERR_CODE SDCard_ReadBlock(uint32_t Block, uint8_t* Buffer,uint8_t Size)
 		if(SD_WordModeBufFlag)
 			DMA_BlockBufSet(PERIPHERAL_ID_SDIO_RX, SD_WordModeBuf, SD_BLOCK_SIZE*Size);
 		else
-#endif
+			DMA_BlockBufSet(PERIPHERAL_ID_SDIO_RX, Buffer, SD_BLOCK_SIZE*Size);
+#else
 		DMA_BlockBufSet(PERIPHERAL_ID_SDIO_RX, Buffer, SD_BLOCK_SIZE*Size);
-#ifdef CFG_SDIO_BYTE_MODE_ENABLE
 		DMA_ConfigDwidth(PERIPHERAL_ID_SDIO_RX, DMA_DWIDTH_BYTE);
 #endif
 		DMA_ChannelEnable(PERIPHERAL_ID_SDIO_RX);
@@ -668,14 +668,14 @@ SD_CARD_ERR_CODE SDCard_WriteBlock(uint32_t Block, uint8_t* Buffer, uint8_t Size
 #ifndef CFG_SDIO_BYTE_MODE_ENABLE
 	if(((uint32_t)Buffer & 0x03)) //不是WORD对齐，需要临时拷贝到SD_WordModeBuf
 	{
-		if(SD_WordModeBuf)
+		if((SD_BLOCK_SIZE*Size) <= sizeof(SD_WordModeBuf))
 		{
 			SD_WordModeBufFlag = 1;
 			memcpy(SD_WordModeBuf,Buffer,SD_BLOCK_SIZE*Size);
 		}
 		else
 		{
-			DBG("SD_WordModeBuf is empty!\n");
+			DBG("SD_WordModeBuf not enough!\n");
 		}
 	}
 #endif
@@ -700,9 +700,9 @@ SD_CARD_ERR_CODE SDCard_WriteBlock(uint32_t Block, uint8_t* Buffer, uint8_t Size
 			if(SD_WordModeBufFlag)
 				DMA_BlockBufSet(PERIPHERAL_ID_SDIO_TX, SD_WordModeBuf, SD_BLOCK_SIZE);
 			else
-#endif
+				DMA_BlockBufSet(PERIPHERAL_ID_SDIO_TX, (uint8_t*)(Buffer), SD_BLOCK_SIZE);
+#else
 			DMA_BlockBufSet(PERIPHERAL_ID_SDIO_TX, (uint8_t*)(Buffer), SD_BLOCK_SIZE);
-#ifdef CFG_SDIO_BYTE_MODE_ENABLE
 			DMA_ConfigDwidth(PERIPHERAL_ID_SDIO_TX, DMA_DWIDTH_BYTE);
 #endif
 			DMA_ChannelEnable(PERIPHERAL_ID_SDIO_TX);
@@ -752,9 +752,9 @@ SD_CARD_ERR_CODE SDCard_WriteBlock(uint32_t Block, uint8_t* Buffer, uint8_t Size
 			if(SD_WordModeBufFlag)
 				DMA_BlockBufSet(PERIPHERAL_ID_SDIO_TX, SD_WordModeBuf, SD_BLOCK_SIZE*Size);
 			else
-#endif
+				DMA_BlockBufSet(PERIPHERAL_ID_SDIO_TX, (uint8_t*)(Buffer), SD_BLOCK_SIZE*Size);
+#else
 			DMA_BlockBufSet(PERIPHERAL_ID_SDIO_TX, (uint8_t*)(Buffer), SD_BLOCK_SIZE*Size);
-#ifdef CFG_SDIO_BYTE_MODE_ENABLE
 			DMA_ConfigDwidth(PERIPHERAL_ID_SDIO_TX, DMA_DWIDTH_BYTE);
 #endif
 			DMA_ChannelEnable(PERIPHERAL_ID_SDIO_TX);

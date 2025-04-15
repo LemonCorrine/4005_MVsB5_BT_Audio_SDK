@@ -44,7 +44,7 @@
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(0)
 #define  CFG_SDK_MINOR_VERSION		(2)
-#define  CFG_SDK_PATCH_VERSION	    (11)
+#define  CFG_SDK_PATCH_VERSION	    (12)
 
 
 //****************************************************************************************
@@ -239,6 +239,9 @@
 #ifdef CFG_FUNC_AUDIO_EFFECT_EN
 
 //#define CFG_FUNC_EFFECT_BYPASS_EN		//开启后默认运行bypass音效框图，用于音频指标测试
+#ifdef CFG_FUNC_EFFECT_BYPASS_EN
+	#undef CFG_FUNC_MIC_KARAOKE_EN
+#endif
 
     //#define CFG_FUNC_ECHO_DENOISE          //消除快速调节delay时的杂音，
  	//#define CFG_FUNC_MUSIC_EQ_MODE_EN     //Music EQ模式功能配置

@@ -56,6 +56,7 @@
 #include "reverb.h"
 #include "reverb_plate.h"
 #include "reverb_pro.h"
+#include "robot_tone.h"
 #include "silence_detector.h"
 #include "stereo_widener.h"
 #include "three_d.h"
@@ -80,7 +81,7 @@
 #include "beamforming.h"
 
 // audio effect library version
-#define AUDIO_EFFECT_LIBRARY_VERSION "2.35.0"
+#define AUDIO_EFFECT_LIBRARY_VERSION "2.36.0"
 
 // audio effect versions (Info below is for convenience only. In case of any contradiction, the version info in the respective file header shall prevail.)
 #define EFFECT_VERSION_ADPCM_CODEC                  "2.0.1"
@@ -120,11 +121,12 @@
 #define EFFECT_VERSION_PINGPONG                     "1.5.0"
 #define EFFECT_VERSION_PITCH_DETECTOR               "2.1.1"
 #define EFFECT_VERSION_PITCH_SHIFTER                "1.8.0"
-#define EFFECT_VERSION_PITCH_SHIFTER_PRO            "2.2.0"
+#define EFFECT_VERSION_PITCH_SHIFTER_PRO            "2.2.1"
 #define EFFECT_VERSION_REVERB                       "2.1.0"
 #define EFFECT_VERSION_REVERB_PLATE                 "2.3.0"
 #define EFFECT_VERSION_REVERB_PRO                   "1.3.1"
-#define EFFECT_VERSION_SILENCE_DETECTOR             "1.2.0"
+#define EFFECT_VERSION_ROBOT_TONE                   "1.0.0"
+#define EFFECT_VERSION_SILENCE_DETECTOR             "1.2.1"
 #define EFFECT_VERSION_STEREO_WIDENER               "1.3.1"
 #define EFFECT_VERSION_3D                           "3.4.0"
 #define EFFECT_VERSION_3D_PLUS                      "1.0.2"
@@ -132,10 +134,10 @@
 #define EFFECT_VERSION_VIRTUAL_BASS                 "4.4.2"
 #define EFFECT_VERSION_VIRTUAL_BASS_TD              "4.1.6"
 #define EFFECT_VERSION_VIRTUAL_BASS_CLASSIC         "3.17.0"
-#define EFFECT_VERSION_VIRTUAL_SURROUND             "1.1.1"
+#define EFFECT_VERSION_VIRTUAL_SURROUND             "1.2.0"
 #define EFFECT_VERSION_VOCAL_REMOVER                "1.4.0"
 #define EFFECT_VERSION_VOICE_CHANGER                "1.6.3"
-#define EFFECT_VERSION_VOICE_CHANGER_PRO            "2.5.0"
+#define EFFECT_VERSION_VOICE_CHANGER_PRO            "2.5.1"
 
 
 #endif // __AUDIO_EFFECT_LIBRARY_H__

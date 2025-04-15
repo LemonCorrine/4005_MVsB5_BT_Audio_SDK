@@ -14,7 +14,7 @@
 const unsigned char user_effect_parameters_bypass_bypass[] = {
 0x18, 0x00, /*total data length*/
 
-0x02, 0x23, 0x00, /*Effect Version*/
+0x02, 0x24, 0x00, /*Effect Version*/
 
 0x81, /*mic_gain*/
 0x05,/*length*/

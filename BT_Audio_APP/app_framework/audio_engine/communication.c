@@ -214,9 +214,9 @@ bool roboeffect_effect_update_params_entrance(uint8_t addr, uint8_t *buf, uint32
 }
 
 uint8_t graph_cnt = 0;
+static uint8_t package_id = 0;
 void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 {
-	static uint8_t package_id = 0;
 	uint8_t *temp;
 	uint16_t total_len = 0;
 	static int32_t remain_len;
@@ -238,7 +238,7 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 		temp[8] = 0x01;//graph count
 
 		*(uint16_t *)&temp[9] = AudioCoreFrameSizeGet(DefaultNet);
-		*(uint16_t *)&temp[11] = comm_ret_sample_rate_enum(AudioCoreMixSampleRateGet(DefaultNet));
+		*(uint16_t *)&temp[11] = comm_ret_sample_rate_enum(AudioCore.Audioeffect.user_effect_list->sample_rate);
 		
 		temp[13] = 0x01;//EOM
 		temp[14] = 0x16;
@@ -396,7 +396,7 @@ void Communication_Effect_0x01(uint8_t *buf, uint32_t len)
 		tx_buf[3]  = 1+8*2;
 		tx_buf[4]  = 0xff;
 		tx_buf[10]  = 0x1;//System Sample Rate Enable
-		memcpy(&tx_buf[11], &gCtrlVars.sample_rate_index, 2);//注意需要确认使用哪个变量Sam mask
+		tx_buf[11] = comm_ret_sample_rate_enum(AudioCore.SampleRate[DefaultNet]);;
 		tx_buf[13]  = 0x1;//SDK MCLK为全局
 		memcpy(&tx_buf[19], &AudioCore.FrameSize[DefaultNet], 2);//注意需要确认使用哪个变量Sam mask
 		tx_buf[5 + 8*2] = 0x16;
@@ -655,10 +655,10 @@ void Comm_PGA1_0x06(uint8_t * buf)
 		    memcpy(&TmpData, &buf[1], 2);
 		    gCtrlVars.HwCt.ADC1PGACt.pga_mic_show = !!TmpData;
 			break;
-		case 1:////mic mode ?
-		    memcpy(&TmpData, &buf[1], 2);
-		    gCtrlVars.HwCt.ADC1PGACt.pga_mic_mode = !!TmpData;
-			break;
+//		case 1:////mic mode ?
+//		    memcpy(&TmpData, &buf[1], 2);
+//		    gCtrlVars.HwCt.ADC1PGACt.pga_mic_mode = !!TmpData;
+//			break;
 		case 2:////mic en ?
 		    memcpy(&TmpData, &buf[1], 2);
 		    gCtrlVars.HwCt.ADC1PGACt.pga_mic_enable = !!TmpData;
@@ -1107,6 +1107,7 @@ void Communication_Effect_0x0B(uint8_t *buf, uint32_t len)//I2S0
 	uint16_t i,k;
 	if(len == 0) //ask
 	{
+		uint32_t Sample = I2S_SampleRateGet(I2S0_MODULE);
 		memset(tx_buf, 0, sizeof(tx_buf));
 #if defined(CFG_APP_I2SIN_MODE_EN) || defined(CFG_RES_AUDIO_I2SOUT_EN) || defined(CFG_RES_AUDIO_I2S_MIX_IN_EN) || defined(CFG_RES_AUDIO_I2S_MIX_OUT_EN)
 		tx_buf[0]  = 0xa5;
@@ -1124,10 +1125,10 @@ void Communication_Effect_0x0B(uint8_t *buf, uint32_t len)//I2S0
 #else
 		tx_buf[7] = 0;
 #endif
-		tx_buf[9]  = (CFG_PARA_I2S_SAMPLERATE >> 8) & 0xff;
-		tx_buf[10] = (CFG_PARA_I2S_SAMPLERATE) & 0xff;
+		tx_buf[9]  = (Sample >> 8) & 0xff;
+		tx_buf[10] = (Sample) & 0xff;
 		tx_buf[12] = (gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source) & 0xff;
-		tx_buf[14] = (CFG_RES_I2S_MODE) & 0xff;
+		tx_buf[14] = (AudioI2S_MasterModeGet(I2S0_MODULE)) & 0xff;
 		tx_buf[16] = 2;
 //		tx_buf[18] = 0;
 //		tx_buf[20] = 0;
@@ -1175,11 +1176,12 @@ void Comm_I2S1_0x0C(uint8_t * buf)
 			break;
 	}
 }
-void Communication_Effect_0x0C(uint8_t *buf, uint32_t len)//I2S0
+void Communication_Effect_0x0C(uint8_t *buf, uint32_t len)//I2S1
 {
 	uint16_t i,k;
 	if(len == 0) //ask
 	{
+		uint32_t Sample = I2S_SampleRateGet(I2S1_MODULE);
 		memset(tx_buf, 0, sizeof(tx_buf));
 #if defined(CFG_APP_I2SIN_MODE_EN) || defined(CFG_RES_AUDIO_I2SOUT_EN) || defined(CFG_RES_AUDIO_I2S_MIX_IN_EN) || defined(CFG_RES_AUDIO_I2S_MIX_OUT_EN)
 		tx_buf[0]  = 0xa5;
@@ -1197,10 +1199,10 @@ void Communication_Effect_0x0C(uint8_t *buf, uint32_t len)//I2S0
 #else
 		tx_buf[7] = 0;
 #endif
-		tx_buf[9]  = (CFG_PARA_I2S_SAMPLERATE >> 8) & 0xff;
-		tx_buf[10] = (CFG_PARA_I2S_SAMPLERATE) & 0xff;
-		tx_buf[12] = (gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source) & 0xff;
-		tx_buf[14] = (CFG_RES_I2S_MODE) & 0xff;
+		tx_buf[9]  = (Sample >> 8) & 0xff;
+		tx_buf[10] = (Sample) & 0xff;
+		tx_buf[12] = (gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source) & 0xff;
+		tx_buf[14] = (AudioI2S_MasterModeGet(I2S1_MODULE)) & 0xff;
 		tx_buf[16] = 2;
 //		tx_buf[18] = 0;
 //		tx_buf[20] = 0;
@@ -1460,6 +1462,10 @@ void Communication_Effect_Config(uint8_t Control, uint8_t *buf, uint32_t len)
 	if(Control > 0xf0)///有效控制寄存器范围   这句解决加调音参数加密问题
 	{
 		return;
+	}
+	if(Control != 0x80)
+	{
+		package_id = 0;		//重新开始计数;
 	}
 	if((Control > 2)&&(Control != 0x80))
 	{

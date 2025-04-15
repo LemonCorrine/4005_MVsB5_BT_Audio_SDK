@@ -13,6 +13,7 @@
 #include "audio_core_service.h"
 #include "mode_task_api.h"
 #include "reset.h"
+#include "ctrlvars.h"
 
 #ifdef CFG_FUNC_I2S_MIX_MODE
 

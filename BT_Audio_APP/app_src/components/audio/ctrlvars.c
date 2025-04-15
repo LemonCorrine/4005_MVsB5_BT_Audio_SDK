@@ -566,6 +566,7 @@ void AudioLine3MicSelect(void)
 	{
 		AudioADC_PGASel(ADC1_MODULE, CHANNEL_LEFT,MIC_LEFT);
 		AudioADC_PGAGainSet(ADC1_MODULE, CHANNEL_LEFT,  MIC_LEFT, 31 - gCtrlVars.HwCt.ADC1PGACt.pga_mic_gain);//0db bypass
+//		gCtrlVars.HwCt.ADC1PGACt.pga_mic_mode = Single;
 	}
 	else
 	{

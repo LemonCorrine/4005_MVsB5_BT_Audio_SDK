@@ -472,6 +472,15 @@ bool MediaPlayerInitialize(DEV_ID DeviceIndex, int32_t FileIndex, uint32_t Folde
 
 void MediaPlayerDeinitialize(void)
 {
+#ifdef CFG_FUNC_RECORDER_EN
+#ifdef CFG_FUNC_RECORD_SD_UDISK
+	if(gMediaPlayer->RecFileList)
+	{
+		osPortFree(gMediaPlayer->RecFileList);
+		gMediaPlayer->RecFileList = NULL;
+	}
+#endif
+#endif
 	if(gMediaPlayer != NULL)
 	{
 	    osPortFree(gMediaPlayer);

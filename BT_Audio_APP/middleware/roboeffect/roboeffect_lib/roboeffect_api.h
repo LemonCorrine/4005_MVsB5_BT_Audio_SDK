@@ -13,7 +13,7 @@
 #define __ROBOEFFECT_API_H__
 
 /*Roboeffect Library version*/
-#define ROBOEFFECT_LIB_VER "2.12.2"
+#define ROBOEFFECT_LIB_VER "2.14.0"
 
 #include <stdio.h>
 #include <nds32_intrinsic.h>
@@ -92,10 +92,12 @@ typedef enum _roboeffect_effect_type_enum
 	ROBOEFFECT_OVER_DRIVE_PLOY,
 	ROBOEFFECT_TREMOLO,
 	ROBOEFFECT_BEAMFORMING,
+	ROBOEFFECT_VIRTUAL_SURROUND_2CH,
+	ROBOEFFECT_ROBOT_TONE,
 
 
 	/*node type below*/
-	ROBOEFFECT_FADER,//45
+	ROBOEFFECT_FADER,//
 	ROBOEFFECT_DOWNMIX_2TO1,
 	ROBOEFFECT_UPMIX_1TO2,
 
@@ -110,7 +112,7 @@ typedef enum _roboeffect_effect_type_enum
 
 typedef enum _ROBOEFFECT_ERROR_CODE
 {
-  ROBOEFFECT_EFFECT_NOT_EXISTED = -256,
+    ROBOEFFECT_EFFECT_NOT_EXISTED = -256,
 	ROBOEFFECT_EFFECT_PARAMS_NOT_FOUND,
 	ROBOEFFECT_INSUFFICIENT_MEMORY,
 	ROBOEFFECT_EFFECT_INIT_FAILED,
@@ -121,6 +123,9 @@ typedef enum _ROBOEFFECT_ERROR_CODE
 	ROBOEFFECT_PARAMS_ERROR,
 	ROBOEFFECT_FRAME_SIZE_ERROR,
 	ROBOEFFECT_MEMORY_SIZE_QUERY_ERROR,
+	ROBOEFFECT_EFFECT_VER_NOT_MATCH_ERROR,//one effect version not match
+	ROBOEFFECT_LIB_VER_NOT_MATCH_ERROR,//roboeffect lib version in parameters not match
+	ROBOEFFECT_3RD_PARTY_LIB_NOT_MATCH_ERROR,//third party library not match
 
 	// No Error
 	ROBOEFFECT_ERROR_OK = 0,					/**< no error */
@@ -393,6 +398,14 @@ void *roboeffect_get_source_buffer(void *main_context, uint8_t id);
  * @return void* NULL if failed
  */
 void *roboeffect_get_sink_buffer(void *main_context,  uint8_t id);
+
+/**
+ * @brief Get sink/source buffer size in bytes
+ * 
+ * @param main_context: context memory allocated by user
+ * @return buffer size in bytes
+ */
+uint32_t roboeffect_get_buffer_size(void *main_context);
 
 /**
  * @brief Enable/Disable one effect
