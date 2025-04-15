@@ -8,8 +8,8 @@
 *.elf
 # *.prefs
 *.flash.ui*
-*.c
-*.h
+# *.c
+# *.h
 # *.a
 # *.exe
 # *.mp3
