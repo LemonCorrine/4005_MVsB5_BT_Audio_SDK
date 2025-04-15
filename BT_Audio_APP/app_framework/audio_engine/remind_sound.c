@@ -219,6 +219,12 @@ bool sound_clips_all_crc(void)
 	uint8_t *data_ptr = NULL;
 	bool ret = TRUE;
 	FlashAddr = REMIND_FLASH_STORE_BASE;
+
+	if(FlashAddr == 0)
+	{
+		return FALSE;
+	}
+
 	data_ptr = (uint8_t *)osPortMalloc(REMIND_FLASH_HDR_SIZE);
 	if(data_ptr == NULL)
 	{

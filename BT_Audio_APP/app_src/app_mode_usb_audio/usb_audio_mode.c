@@ -58,14 +58,6 @@ void UsbDevicePlayResRelease(void)
 		osPortFree(UsbAudioSpeaker.PCMBuffer);
 		UsbAudioSpeaker.PCMBuffer = NULL;
 	}
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-	if(UsbAudioSpeaker1.PCMBuffer != NULL)
-	{
-		APP_DBG("UsbAudioSpeaker1.PCMBuffer free\n");
-		osPortFree(UsbAudioSpeaker1.PCMBuffer);
-		UsbAudioSpeaker1.PCMBuffer = NULL;
-	}
-#endif
 #endif
 #ifdef CFG_RES_AUDIO_USB_OUT_EN	
 	if(UsbAudioMic.PCMBuffer != NULL)
@@ -92,17 +84,6 @@ bool UsbDevicePlayResMalloc(uint16_t SampleLen)
 	}
 	memset(UsbAudioSpeaker.PCMBuffer, 0, SampleLen * 16 * (USBD_AUDIO_FREQ / CFG_PARA_SAMPLE_RATE));
 	MCUCircular_Config(&UsbAudioSpeaker.CircularBuf, UsbAudioSpeaker.PCMBuffer, SampleLen * 16  * (USBD_AUDIO_FREQ / CFG_PARA_SAMPLE_RATE));
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-	//Speaker1 FIFO
-	UsbAudioSpeaker1.PCMBuffer = osPortMalloc(SampleLen * 16 * (USBD_SPEAKER1_FREQ / CFG_PARA_SAMPLE_RATE));
-	if(UsbAudioSpeaker1.PCMBuffer == NULL)
-	{
-		APP_DBG("UsbAudioSpeaker1.PCMBuffer memory error\n");
-		return FALSE;
-	}
-	memset(UsbAudioSpeaker1.PCMBuffer, 0, SampleLen * 16 * (USBD_SPEAKER1_FREQ / CFG_PARA_SAMPLE_RATE));
-	MCUCircular_Config(&UsbAudioSpeaker1.CircularBuf, UsbAudioSpeaker1.PCMBuffer, SampleLen * 16  * (USBD_SPEAKER1_FREQ / CFG_PARA_SAMPLE_RATE));
-#endif
 #endif//end of CFG_RES_USB_IN_EN
 
 #ifdef CFG_RES_AUDIO_USB_OUT_EN
@@ -169,52 +150,6 @@ bool UsbDevicePlayResInit(void)
 	}
 	AudioCoreSourceAdjust(USB_AUDIO_SOURCE_NUM, TRUE);//仅在init通路配置微调后，通路使能时 有效
 
-
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
-#if !defined(CFG_PARA_AUDIO_USB_IN_SYNC)
-#if !defined(CFG_PARA_AUDIO_USB_IN_SRC)
-	AudioIOSet.Adapt = STD;
-#else
-	AudioIOSet.Adapt = SRC_ONLY;
-#endif
-#else //需微调   启用硬件时需要和Out协同
-#if !defined(CFG_PARA_AUDIO_USB_IN_SRC)
-	AudioIOSet.Adapt = SRA_ONLY;//CLK_ADJUST_ONLY;
-#else
-	AudioIOSet.Adapt = SRC_SRA;//STD;//SRC_ADJUST;
-#endif
-#endif
-	AudioIOSet.Sync = TRUE;
-	AudioIOSet.Channels = SPEAKER1_CHANNELS_NUM;
-	AudioIOSet.Net = DefaultNet;
-	AudioIOSet.DataIOFunc = UsbAudioSpeaker1DataGet;
-	AudioIOSet.LenGetFunc = UsbAudioSpeaker1DataLenGet;
-	AudioIOSet.Depth = UsbAudioSpeaker1DepthGet();
-	AudioIOSet.LowLevelCent = 40;
-	AudioIOSet.HighLevelCent = 60;
-	if(UsbAudioSpeaker1.AudioSampleRate) //已枚举
-	{
-		AudioIOSet.SampleRate = UsbAudioSpeaker1.AudioSampleRate;
-	}
-	else
-	{
-		AudioIOSet.SampleRate = CFG_PARA_SAMPLE_RATE;//初始值
-	}
-#ifdef CFG_AUDIO_OUT_AUTO_SAMPLE_RATE_44100_48000
-	AudioOutSampleRateSet(AudioIOSet.SampleRate);
-#endif
-#ifdef	CFG_AUDIO_WIDTH_24BIT
-	AudioIOSet.IOBitWidth = 1;//0,16bit,1:24bit
-	AudioIOSet.IOBitWidthConvFlag = 0;//不需要数据进行位宽扩展
-#endif
-	if(!AudioCoreSourceInit(&AudioIOSet, USB_AUDIO_SOURCE1_NUM))
-	{
-		DBG("Usbin source error!\n");
-		return FALSE;
-	}
-	AudioCoreSourceAdjust(USB_AUDIO_SOURCE1_NUM, TRUE);//仅在init通路配置微调后，通路使能时 有效
-#endif
 #endif //CFG_RES_AUDIO_USB_IN_EN
 #ifdef CFG_RES_AUDIO_USB_OUT_EN
 	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
@@ -266,17 +201,9 @@ void UsbDevicePlayHardwareInit(void)
 	if(UsbAudioSpeaker.InitOk != 1)
 	{
 		//不清除FIFO,只清除usb声卡相关配置
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-		memset(&UsbAudioSpeaker1,0,sizeof(UsbAudio)-sizeof(MCU_CIRCULAR_CONTEXT)-sizeof(int16_t*));
-#endif
 		memset(&UsbAudioSpeaker,0,sizeof(UsbAudio)-sizeof(MCU_CIRCULAR_CONTEXT)-sizeof(int16_t*));
 		memset(&UsbAudioMic,0,sizeof(UsbAudio)-sizeof(MCU_CIRCULAR_CONTEXT)-sizeof(int16_t*));
 
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-		UsbAudioSpeaker1.Channels   = SPEAKER1_CHANNELS_NUM;
-		UsbAudioSpeaker1.LeftVol    = AUDIO_MAX_VOLUME;
-		UsbAudioSpeaker1.RightVol   = AUDIO_MAX_VOLUME;
-#endif
 		UsbAudioSpeaker.Channels   = PACKET_CHANNELS_NUM;
 		UsbAudioSpeaker.LeftVol    = AUDIO_MAX_VOLUME;
 		UsbAudioSpeaker.RightVol   = AUDIO_MAX_VOLUME;
@@ -312,12 +239,14 @@ bool UsbDevicePlayInit(void)
 	APP_DBG("UsbDevice Play Init\n");
 	//1st：DMA通道初始化
 	DMA_ChannelAllocTableSet((uint8_t *)DmaChannelMap);
-	//2st：配置系统标准通路
+	//2st：usb声卡相关硬件配置
+	UsbDevicePlayHardwareInit();
+	//3st：配置系统标准通路
 	if(!ModeCommonInit())
 	{
 		return FALSE;
 	}
-	//3st：usb声卡通路资源申请及配置
+	//4st：usb声卡通路资源申请及配置
 	if(!UsbDevicePlayResMalloc(AudioCoreFrameSizeGet(DefaultNet)))
 	{
 		APP_DBG("UsbDevicePlayResMalloc Res Error!\n");
@@ -335,9 +264,8 @@ bool UsbDevicePlayInit(void)
 	AudioCoreProcessConfig((AudioCoreProcessFunc)AudioBypassProcess);
 #endif
 
-	//4st：usb声卡相关硬件配置
 	AudioCodecGainUpdata();//update hardware config
-	UsbDevicePlayHardwareInit();
+
 #ifdef CFG_COMMUNICATION_BY_USB
 	SetUSBDeviceInitState(TRUE);
 #endif
@@ -353,9 +281,6 @@ bool UsbDevicePlayInit(void)
 #endif
 
 	AudioCoreSourceUnmute(USB_AUDIO_SOURCE_NUM,TRUE,TRUE);
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-	AudioCoreSourceUnmute(USB_AUDIO_SOURCE1_NUM,TRUE,TRUE);
-#endif
 
 #ifndef CFG_FUNC_REMIND_SOUND_EN
 	if(IsAudioPlayerMute() == TRUE)
@@ -414,9 +339,6 @@ bool UsbDevicePlayDeinit(void)
 	APP_DBG("UsbDevice Play Deinit\n");
 
 	AudioCoreSourceMute(USB_AUDIO_SOURCE_NUM,TRUE,TRUE);
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-	AudioCoreSourceMute(USB_AUDIO_SOURCE1_NUM,TRUE,TRUE);
-#endif
 
 	if(IsAudioPlayerMute() == FALSE)
 	{
@@ -428,9 +350,6 @@ bool UsbDevicePlayDeinit(void)
 	//注意：AudioCore父任务调整到mainApp下，此处只关闭AudioCore通道，不关闭任务
 	AudioCoreProcessConfig((void*)AudioNoAppProcess);
 	AudioCoreSourceDisable(USB_AUDIO_SOURCE_NUM);
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-	AudioCoreSourceDisable(USB_AUDIO_SOURCE1_NUM);
-#endif
 
 #ifdef CFG_RES_AUDIO_USB_OUT_EN
 	AudioCoreSinkDisable(USB_AUDIO_SINK_NUM);
@@ -455,9 +374,6 @@ bool UsbDevicePlayDeinit(void)
 	//NVIC_DisableIRQ(Usb_IRQn);
 	UsbDevicePlayResRelease();
 	AudioCoreSourceDeinit(USB_AUDIO_SOURCE_NUM);
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-	AudioCoreSourceDeinit(USB_AUDIO_SOURCE1_NUM);
-#endif
 #ifdef CFG_RES_AUDIO_USB_OUT_EN
 	AudioCoreSinkDeinit(USB_AUDIO_SINK_NUM);
 #endif
@@ -478,9 +394,6 @@ bool UsbDevicePlayMixInit(void)
 	UsbDevicePlayResInit();
 
 	AudioCoreSourceUnmute(USB_AUDIO_SOURCE_NUM,TRUE,TRUE);
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-	AudioCoreSourceUnmute(USB_AUDIO_SOURCE1_NUM,TRUE,TRUE);
-#endif
 	return TRUE;
 }
 bool UsbDevicePlayMixDeinit(void)
@@ -489,19 +402,11 @@ bool UsbDevicePlayMixDeinit(void)
 	AudioCoreSourceMute(USB_AUDIO_SOURCE_NUM,TRUE,TRUE);
 	AudioCoreSourceDisable(USB_AUDIO_SOURCE_NUM);
 
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-	AudioCoreSourceMute(USB_AUDIO_SOURCE1_NUM,TRUE,TRUE);
-	AudioCoreSourceDisable(USB_AUDIO_SOURCE1_NUM);
-#endif
-
 #ifdef CFG_RES_AUDIO_USB_OUT_EN
 	AudioCoreSinkDisable(USB_AUDIO_SINK_NUM);
 #endif
 	UsbDevicePlayResRelease();
 	AudioCoreSourceDeinit(USB_AUDIO_SOURCE_NUM);
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-	AudioCoreSourceDeinit(USB_AUDIO_SOURCE1_NUM);
-#endif
 #ifdef CFG_RES_AUDIO_USB_OUT_EN
 	AudioCoreSinkDeinit(USB_AUDIO_SINK_NUM);
 #endif

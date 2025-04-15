@@ -46,9 +46,8 @@ extern "C"{
 #define AUDIO_ONLY			1
 #define MIC_ONLY			2
 #define AUDIO_MIC			3
-#define AUDIO_MIC_AUDIO		4
 #ifdef USB_READER_EN
-#define READER				5
+#define READER				4
 #endif
 
 #if (CFG_PARA_USB_MODE == AUDIO_MIC)
@@ -89,41 +88,6 @@ extern "C"{
 #ifdef SPEAKER_ALT2_EN
 	#define	SPEAKER_ALT2_BITS						PCM24BIT	//PCM16BIT or PCM24BIT
 	#define	SPEAKER_ALT2_DESCRIPTOR_SIZE			0x31		//描述符长度
-#endif
-
-#elif (CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-
-#define MIC_ALT2_EN			//麦克风第二种PCM格式使能
-#define	USBD_AUDIO_MIC_FREQ							48000		//192000 : bits per seconds 麦克风最大采样率
-#define	USBD_AUDIO_MIC_FREQ1						44100		//96000 : bits per seconds
-#define	USBD_AUDIO_MIC_FREQ2						44100		//48000 : bits per seconds
-#define MIC_CHANNELS_NUM							1			//麦克风声道数  1 or 2
-#define	MIC_ALT1_BITS								PCM16BIT	//PCM16BIT or PCM24BIT
-#ifdef MIC_ALT2_EN
-	#define	MIC_ALT2_BITS							PCM24BIT	//PCM16BIT or PCM24BIT
-	#define	MIC_ALT2_DESCRIPTOR_SIZE				0x31		//描述符长度
-#endif
-
-#define SPEAKER_ALT2_EN		//扬声器第二种PCM格式使能
-#define	USBD_AUDIO_FREQ								48000		//48000 : bits per seconds 扬声器最大采样率
-#define	USBD_AUDIO_FREQ1							44100		//44100 : bits per seconds
-#define	USBD_AUDIO_FREQ2							44100		//44100 : bits per seconds
-#define PACKET_CHANNELS_NUM							2			//扬声器声道数  1 or 2
-#define	SPEAKER_ALT1_BITS							PCM16BIT	//PCM16BIT or PCM24BIT
-#ifdef SPEAKER_ALT2_EN
-	#define	SPEAKER_ALT2_BITS						PCM24BIT	//PCM16BIT or PCM24BIT
-	#define	SPEAKER_ALT2_DESCRIPTOR_SIZE			0x31		//描述符长度
-#endif
-
-#define SPEAKER1_ALT2_EN	//扬声器2第二种PCM格式使能
-#define	USBD_SPEAKER1_FREQ							48000		//48000 : bits per seconds 扬声器最大采样率
-#define	USBD_SPEAKER1_FREQ1							44100		//44100 : bits per seconds
-#define	USBD_SPEAKER1_FREQ2							44100		//44100 : bits per seconds
-#define SPEAKER1_CHANNELS_NUM						2			//扬声器声道数  1 or 2
-#define	SPEAKER1_ALT1_BITS							PCM16BIT	//PCM16BIT or PCM24BIT
-#ifdef SPEAKER1_ALT2_EN
-	#define	SPEAKER1_ALT2_BITS						PCM24BIT	//PCM16BIT or PCM24BIT
-	#define	SPEAKER1_ALT2_DESCRIPTOR_SIZE			0x31		//描述符长度
 #endif
 
 #else

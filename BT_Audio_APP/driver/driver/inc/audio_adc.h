@@ -204,7 +204,7 @@ void AudioADC_Clear(ADC_MODULE ADCModule);
  * @param  BitWidth  ADC_LENGTH_24BITS：24位; ADC_LENGTH_16BITS：16位
  * @return 无
  */
-void AudioADC_WidthSet(ADC_MODULE ADCModule,AUDIO_BitWidth BitWidth);
+void AudioADC_WidthSet(ADC_MODULE ADCModule, AUDIO_BitWidth BitWidth);
 
 /**
  * @brief  ADC 模块采样率配置
@@ -546,26 +546,100 @@ uint8_t AudioADC_AGCUpdateFlagGet(ADC_MODULE ADCModule);
  */
 void AudioADC_AGCUpdateFlagClear(ADC_MODULE ADCModule);
 
+/**
+ * @brief  BIAS上电
+ * @param  无
+ * @return 无
+ */
 void AudioADC_BIASPowerOn(void);
-/*ASDM比较器电流控制信号,只有ASDM0有ASDM_IBSEL_CMP_L*/
+
+/**
+ * @brief  ASDM比较器电流控制信号,只有ASDM0有ASDM_IBSEL_CMP_L
+ * @param  ADCModule 	0,ADC0模块; 1,ADC1模块
+ * @param  LeftCmp 左声道配置值; RightCmp 右边声道配置值
+ * @return 无
+ */
 void AudioADC_ComparatorIBiasSet(ADC_MODULE ADCModule,  uint8_t LeftCmp,  uint8_t RightCmp);
-/*OTA1的偏置电流选择信号*/
+
+/**
+ * @brief  OTA1的偏置电流选择信号
+ * @param  ADCModule 	0,ADC0模块; 1,ADC1模块
+ * @param  LeftIBSEL 左声道电流值; RightCmp 右声道电流值
+ * @return 无
+ */
 void AudioADC_OTA1IBiasSet(ADC_MODULE ADCModule,  uint8_t LeftIBSEL,  uint8_t RightIBSEL);
-/*OTA2的偏置电流选择信号*/
+
+/**
+ * @brief  OTA2的偏置电流选择信号
+ * @param  ADCModule 	0,ADC0模块; 1,ADC1模块
+ * @param  LeftIBSEL 左声道电流值; RightCmp 右声道电流值
+ * @return 无
+ */
 void AudioADC_OTA2IBiasSet(ADC_MODULE ADCModule,  uint8_t LeftIBSEL,  uint8_t RightIBSEL);
-/*PGA PD控制*/
+
+/**
+ * @brief  PGA PD控制
+ * @param  ADCModule 	0,ADC0模块; 1,ADC1模块
+ * @param  IsLeftEn 左声道PGAPowerUp; IsRightEn 右声道PGAPowerUp
+ * @return 无
+ */
 void AudioADC_PGAPowerUp(ADC_MODULE ADCModule, bool IsLeftEn, bool IsRightEn);
+
+/**
+ * @brief  ADC PowerUp
+ * @param  ADCModule 	0,ADC0模块; 1,ADC1模块
+ * @param  IsLeftEn 左声道PowerUp; IsRightEn 右声道PowerUp
+ * @return 无
+ */
 void AudioADC_PowerUp(ADC_MODULE ADCModule, bool IsLeftEn, bool IsRightEn);
-//absmute 强制静音，放在内部,B5只有MIC有ABSMute
+
+/**
+ * @brief  absmute 强制静音，放在内部,B5只有MIC有ABSMute
+ * @param  ADCModule 	0,ADC0模块; 1,ADC1模块
+ * @param  IsLeftEn 左声道PGAAbsMute; IsRightEn 右声道PGAAbsMutep
+ * @return 无
+ */
 void AudioADC_PGAAbsMute(ADC_MODULE ADCModule, bool IsLeftEn, bool IsRightEn);
-/*锁存器延迟选择信号*/
+
+/**
+ * @brief  锁存器延迟选择信号
+ * @param  ADCModule 	0,ADC0模块; 1,ADC1模块
+ * @param  LeftIBSEL 左声道电流值; IsRightEn 右声道电流值
+ * @return 无
+ */
 void AudioADC_LatchDelayIBiasSet(ADC_MODULE ADCModule,  uint8_t LeftIBSEL,  uint8_t RightIBSEL);
-/*PGA电流控制信号*/
+
+/**
+ * @brief  PGA电流控制信号
+ * @param  ADCModule 	0,ADC0模块; 1,ADC1模块
+ * @param  LeftIBSEL 左声道电流值; IsRightEn 右声道电流值
+ * @return 无
+ */
 void AudioADC_PGAIBiasSet(ADC_MODULE ADCModule,  uint8_t LeftIBSEL,  uint8_t RightIBSEL);
-/*PGA MUTE信号*/
+
+/**
+ * @brief  PGA MUTE信号
+ * @param  ADCModule 	0,ADC0模块; 1,ADC1模块
+ * @param  IsLeftEn 左声道PGAMute使能; IsRightEn 左声道PGAMute使能
+ * @return 无
+ */
 void AudioADC_PGAMute(ADC_MODULE ADCModule, bool IsLeftEn, bool IsRightEn);
-//缓冲器电流控制
+
+/**
+ * @brief  缓冲器电流控制
+ * @param  ADCModule 	0,ADC0模块; 1,ADC1模块
+ * @param  LeftBuf 左声道电流值; RightBuf 右声道电流值
+ * @return 无
+ */
 void AudioADC_BufferIBiasSet(ADC_MODULE ADCModule,  uint8_t LeftBuf,  uint8_t RightBuf);
+
+/**
+ * @brief  vmid初始化
+ * @param  无
+ * @return 无
+ * @note   只使用audio_adc,不使用dac的时候,可以使用AudioADC_VMIDInit()替代AudioDAC_AllPowerOn(),来对vmid进行上电
+ */
+void AudioADC_VMIDInit(void);
 
 #ifdef  __cplusplus
 }

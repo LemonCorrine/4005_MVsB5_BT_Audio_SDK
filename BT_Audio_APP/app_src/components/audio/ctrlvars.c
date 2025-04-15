@@ -488,13 +488,17 @@ void DefaultParamgsInit(void)
 		AUDIOEFFECT_EFFECT_PARA *para;
 		if (mainAppCt.EffectMode  == 0)
 		{
+#ifdef CFG_AI_DENOISE_EN
+            mainAppCt.EffectMode = EFFECT_MODE_MICUSBAI;
+#else
 #ifdef CFG_FUNC_EFFECT_BYPASS_EN
 			mainAppCt.EffectMode = EFFECT_MODE_BYPASS;
 #else
 #ifdef CFG_FUNC_MIC_KARAOKE_EN
 			mainAppCt.EffectMode = EFFECT_MODE_HunXiang;
-#else
+#else 
 			mainAppCt.EffectMode = EFFECT_MODE_MIC;
+#endif
 #endif
 #endif
 		}

@@ -183,15 +183,19 @@ void LogUartConfig(bool InitBandRate)
 {
 #ifdef CFG_FUNC_DEBUG_EN
 	if(GET_DEBUG_GPIO_PORT(CFG_UART_TX_PORT) == DEBUG_GPIO_PORT_A)
-		GPIO_PortAModeSet(1 << GET_DEBUG_GPIO_INDEX(CFG_UART_TX_PORT), GET_DEBUG_GPIO_MODE(CFG_UART_TX_PORT));
+		GPIO_PortAModeSet(GET_DEBUG_GPIO_PIN(CFG_UART_TX_PORT), GET_DEBUG_GPIO_MODE(CFG_UART_TX_PORT));
 	else
-		GPIO_PortBModeSet(1 << GET_DEBUG_GPIO_INDEX(CFG_UART_TX_PORT), GET_DEBUG_GPIO_MODE(CFG_UART_TX_PORT));
+		GPIO_PortBModeSet(GET_DEBUG_GPIO_PIN(CFG_UART_TX_PORT), GET_DEBUG_GPIO_MODE(CFG_UART_TX_PORT));
+#ifdef CFG_FUNC_SHELL_EN
+	if(GET_DEBUG_GPIO_PORT(CFG_FUNC_SHELL_RX_PORT) == DEBUG_GPIO_PORT_A)
+		GPIO_PortAModeSet(GET_DEBUG_GPIO_PIN(CFG_FUNC_SHELL_RX_PORT), GET_DEBUG_GPIO_MODE(CFG_FUNC_SHELL_RX_PORT));
+	else
+		GPIO_PortBModeSet(GET_DEBUG_GPIO_PIN(CFG_FUNC_SHELL_RX_PORT), GET_DEBUG_GPIO_MODE(CFG_FUNC_SHELL_RX_PORT));
+#endif
 	if(InitBandRate)
 	{
 		DbgUartInit(GET_DEBUG_GPIO_UARTPORT(CFG_UART_TX_PORT), CFG_UART_BANDRATE, 8, 0, 1);
 	}
-#else
-	DbgUartInit(1, 0, 8, 0, 1);
 #endif
 }
 
@@ -315,19 +319,6 @@ int main(void)
 	prvInitialiseHeap();
 
 	osSemaphoreMutexCreate();//硬件串口OS启用了软件锁，必须在创建锁之后输出log，否则死机，锁要初始化堆栈后创建。软件模拟串口不影响。
-	
-#ifdef CFG_RES_RTC_EN
-	#ifdef CFG_CHIP_BP1064L2
-    RTC_ClockSrcSel(OSC_32K);//此函数的参数选择必须和上面系统初始化选择的晶振（“Clock_Config()”）保持一致
-	#else
-	RTC_ClockSrcSel(OSC_24M);
-	#endif
-	
-	RTC_IntDisable();//默认关闭RTC中断
-	RTC_IntFlagClear();
-	RTC_WakeupDisable();	
-		
-#endif
 
 #ifdef CFG_SOFT_POWER_KEY_EN
 	SoftPowerInit();
@@ -392,13 +383,10 @@ int main(void)
 	LedPortInit();  //在此之后可以使用LedOn LedOff 观测 调试时序 特别是逻分
 #endif
 #ifdef CFG_FUNC_RTC_EN
-#ifdef CFG_RES_RTC_EN
-	RTC_IntEnable();
-	NVIC_EnableIRQ(Rtc_IRQn);
-#endif
 	RTC_ServiceInit(RstFlag&0x01);
+	RTC_IntEnable();
+	NVIC_EnableIRQ(RTC_IRQn);
 #endif
-	RTC_SecGet();//OWEN: 不能去掉
 
 	__nds32__mtsr(0,NDS32_SR_PFMC0);
 	__nds32__mtsr(1,NDS32_SR_PFM_CTL);

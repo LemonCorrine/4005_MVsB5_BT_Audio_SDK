@@ -81,7 +81,7 @@ const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
 
 0x8a, /*eq0*/
 0x69,/*length*/
-0x01, /*enable*/
+0x00, /*enable*/
 0x00, 0x00, /*Pregain*/
 0x00, 0x00, /*Fixed-Floating_Point*/
 0x01, 0x00, /*Filter1_Enable*/
@@ -233,7 +233,7 @@ const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
 
 0x8f, /*noise_suppressor_expander1*/
 0x09,/*length*/
-0x01, /*enable*/
+0x00, /*enable*/
 0x6c, 0xee, /*threshold*/
 0x03, 0x00, /*ratio*/
 0x05, 0x00, /*attack*/
@@ -344,7 +344,7 @@ const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
 
 0x9a, /*eq4*/
 0x69,/*length*/
-0x01, /*enable*/
+0x00, /*enable*/
 0x00, 0x00, /*Pregain*/
 0x00, 0x00, /*Fixed-Floating_Point*/
 0x01, 0x00, /*Filter1_Enable*/
@@ -406,7 +406,7 @@ const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
 
 0x9c, /*drc0*/
 0x35,/*length*/
-0x01, /*enable*/
+0x00, /*enable*/
 0x00, 0x00, /*mode*/
 0x03, 0x00, /*CF_type*/
 0xd4, 0x02, /*Q_L*/
@@ -529,7 +529,7 @@ const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
 
 0xa4, /*echo0*/
 0x0f,/*length*/
-0x01, /*enable*/
+0x00, /*enable*/
 0x34, 0x21, /*cutoff frequency*/
 0xba, 0xff, /*attenuation*/
 0x2c, 0x01, /*delay*/
@@ -641,7 +641,7 @@ const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
 
 0xac, /*eq9*/
 0x69,/*length*/
-0x01, /*enable*/
+0x00, /*enable*/
 0x00, 0x00, /*Pregain*/
 0x00, 0x00, /*Fixed-Floating_Point*/
 0x01, 0x00, /*Filter1_Enable*/
@@ -697,7 +697,7 @@ const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
 
 0xad, /*drc2*/
 0x35,/*length*/
-0x01, /*enable*/
+0x00, /*enable*/
 0x00, 0x00, /*mode*/
 0x03, 0x00, /*CF_type*/
 0xd4, 0x02, /*Q_L*/

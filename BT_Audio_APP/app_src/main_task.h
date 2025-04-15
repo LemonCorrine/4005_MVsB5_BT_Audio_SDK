@@ -206,7 +206,7 @@ enum _SYS_SOFTWARE_FLAG_
 	#define CFG_PARA_SYS_VOLUME_DEFAULT			(12)	//SDK默认音量
 #else
 	#define CFG_PARA_MAX_VOLUME_NUM		        (32)	//SDK 32 级音量
-	#define CFG_PARA_SYS_VOLUME_DEFAULT			(25)	//SDK默认音量
+	#define CFG_PARA_SYS_VOLUME_DEFAULT			(32)	//SDK默认音量
 #endif
 
 

@@ -25,7 +25,7 @@ const unsigned char user_effect_parameters_hfp_hfp[] = {
 
 0x82, /*aec0*/
 0x03,/*length*/
-0x00, /*enable*/
+0x01, /*enable*/
 0x03, 0x00, /*echo suppression level*/
 
 0x83, /*noise_suppressor_blue0*/
@@ -228,9 +228,9 @@ const unsigned char user_effect_parameters_hfp_hfp[] = {
 
 0x8c, /*pcm_delay0*/
 0x07,/*length*/
-0x00, /*enable*/
-0x28, 0x00, /*delay*/
-0x32, 0x00, /*max delay*/
+0x01, /*enable*/
+0x90, 0x01, /*delay*/
+0xf4, 0x01, /*max delay*/
 0x01, 0x00, /*high quality enable*/
 
 };
@@ -266,7 +266,7 @@ const unsigned char user_module_parameters_hfp_hfp[] = {
 0x00, 0x00, /*pga_mic_show*/
 0x00, 0x00, /*pga_mic_mode*/
 0x01, 0x00, /*pga_mic_enable*/
-0x00, 0x00, /*pga_mic_gain*/
+0x1F, 0x00, /*pga_mic_gain*/
 
 0x07, /*ADC1 DIGITAL CONTROL*/
 0x14, /*length*/

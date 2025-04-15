@@ -92,7 +92,12 @@
 
 #else
 	#define	SYS_CORE_APLL_FREQ			240*1000		//kHZ
+	
+#ifdef CFG_AI_DENOISE_EN
+	#define	SYS_CORE_DPLL_FREQ			288*1000		//kHZ only allow 240M、264M and 288M
+#else
 	#define	SYS_CORE_DPLL_FREQ			240*1000		//kHZ only allow 240M、264M and 288M
+#endif
 
 	#define SYS_CORE_CLK_SELECT			PLL_CLK_MODE //APLL_CLK_MODE
 	//Note: USB和UART时钟配置DPLL和APLL必须是同一个时钟,但是UART可以单独选择RC

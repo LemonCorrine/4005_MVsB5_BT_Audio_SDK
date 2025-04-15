@@ -786,6 +786,14 @@ void GPIO_RegSet(uint8_t RegIndex, GPIO_INDEX GpioIndex);
  */
 uint32_t GPIO_RegGet(uint8_t RegIndex);
 
+/**
+ * @brief      获取GPIO寄存器地址
+ *
+ * @param[in]  RegIndex: GPIO地址索引，例如： GPIO_A_OUT
+ *
+ * @return     寄存器地址
+ */
+uint32_t GPIO_RegGetAddr(uint8_t RegIndex);
 
 //*************************** 4、  GPIO中断  ******************************* //
 

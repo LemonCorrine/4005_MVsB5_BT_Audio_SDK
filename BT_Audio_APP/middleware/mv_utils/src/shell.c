@@ -8,22 +8,17 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "shell.h"
-#ifdef CFG_APP_CONFIG
-#include "app_config.h"
-#if CFG_UART_TX_PORT == 1 || CFG_UART_TX_PORT == 2 //for B1x sdk
-#define CFG_PARA_SHELL_COM1
-#else //注意：软件串口 不支持。
-#define CFG_PARA_SHELL_COM0
-#endif
-#endif
-//////////////////////////////////////////////////////////////
-//UART1和UART0 二选一，默认使用UART1
-//另外注意和系统UART端口使用上是否有冲突
-//////////////////////////////////////////////////////////////
 
-#if !defined(CFG_PARA_SHELL_COM1) && !defined(CFG_PARA_SHELL_COM0)
-#define CFG_PARA_SHELL_COM1
-//#define CFG_PARA_SHELL_COM0
+#ifdef CFG_APP_CONFIG
+	#include "app_config.h"
+	#if GET_DEBUG_GPIO_UARTPORT(CFG_FUNC_SHELL_RX_PORT) //for B5x sdk
+		#define CFG_PARA_SHELL_COM1
+	#else
+		#define CFG_PARA_SHELL_COM0
+	#endif
+#else
+	#define CFG_PARA_SHELL_COM1
+	//#define CFG_PARA_SHELL_COM0
 #endif
 
 #ifdef CFG_FUNC_SHELL_EN
@@ -39,18 +34,6 @@ char cmdbuffer[CMD_ARG_MAX_COUNT][ONE_ARG_MAX_LEN];
 
 //多出ONE_ARG_MAX_LEN,目的有参数之间的间隔' '，还有cmd长度可以大于ONE_ARG_MAX_LEN,因此多出ONE_ARG_MAX_LEN长度预留
 uint8_t shellbuffer[(CMD_ARG_MAX_COUNT+1)*ONE_ARG_MAX_LEN];
-
-const int num_tab[10] = {	1000000000,
-							100000000,
-							10000000,
-							1000000,
-							100000,
-							10000,
-							1000,
-							100,
-							10,
-							1};
-
 
 /**
  * @func        char_to_num
@@ -78,6 +61,8 @@ int char_to_num(char *buffer)
         if((buffer[i]>=0)&&(buffer[i]<=9))
         {
         	//DBG("%x",buffer[i]);
+        	sum *= 10;
+        	sum += buffer[i];
         }
         else
         {
@@ -85,12 +70,7 @@ int char_to_num(char *buffer)
             return -1;
         }
     }
-    int j = 0;
-    for(i=0;i<templen;i++)
-    {
-        sum += buffer[i]*num_tab[10 - templen + j];
-        j++;
-    }
+
     return sum;
 }
 

@@ -46,6 +46,8 @@ typedef enum _EFFECT_MODE
 	EFFECT_MODE_MIC,
 	/**********music mode**************/
 	EFFECT_MODE_MUSIC,
+	/**********micusbAI mode***********/
+	EFFECT_MODE_MICUSBAI,
 	/**********bypass mode*************/
 	EFFECT_MODE_BYPASS,
 	/**********hfp mode****************/

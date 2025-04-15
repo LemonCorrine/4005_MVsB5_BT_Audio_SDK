@@ -16,6 +16,7 @@ extern const AUDIOEFFECT_EFFECT_PARA_TABLE karaoke_mode;
 #else
 extern const AUDIOEFFECT_EFFECT_PARA_TABLE mic_mode;
 extern const AUDIOEFFECT_EFFECT_PARA_TABLE music_mode;
+extern const AUDIOEFFECT_EFFECT_PARA_TABLE micusbAI_mode;
 #endif
 #endif
 #if defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE)
@@ -32,6 +33,7 @@ static const AUDIOEFFECT_EFFECT_PARA_TABLE *effect_para_table[] =
 #else
 	&mic_mode,
 	&music_mode,
+	&micusbAI_mode,
 #endif
 #endif
 #if defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE)
@@ -58,6 +60,10 @@ static const uint16_t audioeffectVolArr[CFG_PARA_MAX_VOLUME_NUM + 1] =
 
 #ifdef CFG_FUNC_MIC_KARAOKE_EN
 static ReverbMaxUnit ReverbMaxParam = {0 , 0 , 0 ,0};
+#endif
+
+#ifdef CFG_EFFECT_PARAM_UPDATA_BY_ACPWORKBENCH
+uint8_t EffectParamFlahBuf[1024 * CFG_EFFECT_PARAM_IN_FLASH_SIZE] ={0};//定义16K buf，读取存储参数
 #endif
 
 AUDIOEFFECT_EFFECT_PARA_TABLE * GetCurEffectParaNode(void)
@@ -725,7 +731,7 @@ uint16_t get_EffectParamFlash_WriteAddr(void)
 
 void EffectParamFlashUpdata(void)
 {
-	SPI_FLASH_ERR_CODE ret = 0;
+//	SPI_FLASH_ERR_CODE ret = 0;
 	int32_t FlashAddr = get_effect_data_addr();
 	uint16_t FlashWriteOffset = 0;
 	uint16_t effectHwCfgOffset = 0;
@@ -758,28 +764,44 @@ void EffectParamFlashUpdata(void)
 		DBG("effectHwCfgOffset = %d\n", effectHwCfgOffset);
 		DBG("effectParamOffset = %d\n", effectParamOffset);
 	}
-//	SpiFlashErase(SECTOR_ERASE, FlashAdd /4096 , 1);
+
 	//write data
-	if (effectHwCfgOffset - effectParamOffset == get_user_effect_parameters_len(AudioCore.Audioeffect.user_effect_parameters))
+	if(SpiFlashRead(FlashAddr, EffectParamFlahBuf, 1024 * CFG_EFFECT_PARAM_IN_FLASH_SIZE, 1) == FLASH_NONE_ERR)
 	{
-		ret += SpiFlashWrite(FlashAddr + effectHwCfgOffset, (uint8_t*)&gCtrlVars.HwCt, sizeof(gCtrlVars.HwCt), 1);
-		ret += SpiFlashWrite(FlashAddr + effectParamOffset, (uint8_t*)AudioCore.Audioeffect.user_effect_parameters,
-								get_user_effect_parameters_len(AudioCore.Audioeffect.user_effect_parameters), 1);
-		if (ret != FLASH_NONE_ERR)
+		for(uint8_t i = 0; i < CFG_EFFECT_PARAM_IN_FLASH_SIZE / 4; i ++)
 		{
-			APP_DBG("write error:%d\n", ret);
+			SpiFlashErase(SECTOR_ERASE, (FlashAddr + 4096 * i) /4096 , 1);
+		}
+
+		if (effectHwCfgOffset - effectParamOffset == get_user_effect_parameters_len(AudioCore.Audioeffect.user_effect_parameters))
+		{
+			memcpy(&EffectParamFlahBuf[effectHwCfgOffset], (uint8_t*)&gCtrlVars.HwCt, sizeof(gCtrlVars.HwCt));
+			memcpy(&EffectParamFlahBuf[effectParamOffset], (uint8_t*)AudioCore.Audioeffect.user_effect_parameters,
+									get_user_effect_parameters_len(AudioCore.Audioeffect.user_effect_parameters));
+		}
+		else
+		{
+			APP_DBG("Please reburning flash image to erase flash effect param!!!\n");
 			return;
 		}
+
+		memcpy(&EffectParamFlahBuf[(mainAppCt.EffectMode - 1) * 4], (uint8_t*)&effectHwCfgOffset, 2);
+		memcpy(&EffectParamFlahBuf[((mainAppCt.EffectMode - 1) * 4) + 2], (uint8_t*)&effectParamOffset, 2);
 	}
 	else
 	{
-		APP_DBG("Please reburning flash image to erase flash effect param!!!\n");
+		APP_DBG("EffectParam read Flash Error!\n");
 		return;
 	}
 
-	SpiFlashWrite(FlashAddr + ((mainAppCt.EffectMode - 1) * 4), (uint8_t*)&effectHwCfgOffset, 2, 1);
-	SpiFlashWrite(FlashAddr + ((mainAppCt.EffectMode - 1) * 4) + 2, (uint8_t*)&effectParamOffset, 2, 1);
-	APP_DBG("EffectParamFlashUpdata done!\n");
+	if (SpiFlashWrite(FlashAddr, EffectParamFlahBuf, 1024 * CFG_EFFECT_PARAM_IN_FLASH_SIZE, 1) == FLASH_NONE_ERR)
+	{
+		APP_DBG("EffectParamFlashUpdata ok!\n");
+	}
+	else
+	{
+		APP_DBG("EffectParamFlashUpdata Error!\n");
+	}
 }
 
 bool AudioEffect_GetFlashHwCfg(uint8_t effectMode, HardwareConfigContext *hw_ct)
