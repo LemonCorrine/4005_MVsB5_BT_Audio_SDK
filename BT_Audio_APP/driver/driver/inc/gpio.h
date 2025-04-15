@@ -130,13 +130,12 @@ extern "C"{
 
 #define		GPIO_A_PULLDOWN0				(0x01 + GPIO_B_INT_END)	/**<GPIOA pull down0 current register macro.0: 0mA pull-down current, 1: 1.3mA pull-down current, 2: 2.6mA pull-down current, 3: 3.9mA pull-down current*/
 #define		GPIO_A_PULLDOWN1				(0x01 + GPIO_A_PULLDOWN0)/**<GPIOA pull down1 current register macro.0: 0mA pull-down current, 1: 1.3mA pull-down current, 2: 2.6mA pull-down current, 3: 3.9mA pull-down current*/
-#define		GPIO_A_OUTDS					(0x01 + GPIO_A_PULLDOWN1)
-#define		GPIO_A_REG_RPU					(0x01 + GPIO_A_OUTDS)
+#define		GPIO_B_PULLDOWN0				(0x01 + GPIO_A_PULLDOWN1)
+#define		GPIO_A_OUTDS0					(0x01 + GPIO_B_PULLDOWN0)
+#define		GPIO_A_OUTDS1					(0x01 + GPIO_A_OUTDS0)
+#define		GPIO_A_REG_RPU					(0x01 + GPIO_A_OUTDS1)
 
-
-#define		GPIO_B_PULLDOWN					(0x01+GPIO_A_REG_RPU)
-#define		GPIO_B_PULLDOWN1				(0x01+GPIO_B_PULLDOWN)
-#define	 	GPIO_B_OUTDS					(0x01+GPIO_B_PULLDOWN1)
+#define	 	GPIO_B_OUTDS					(0x01+GPIO_A_REG_RPU)
 #define		GPIO_B_REG_RPU					(0x01+GPIO_B_OUTDS)
 
 #define		GPIO_C_START					(0x01+GPIO_B_REG_RPU)
@@ -147,22 +146,19 @@ extern "C"{
 #define		GPIO_C_SEP_INTS					(4+GPIO_C_START)
 #define		GPIO_C_REG_I					(5+GPIO_C_START)
 
-#define		GPIO_FSHC_REG_START				(GPIO_C_REG_I+1)
-#define		GPIO_FSHC_SCK_CTRL				(0+GPIO_FSHC_REG_START)
-#define		GPIO_FSHC_CS_CTRL				(1+GPIO_FSHC_REG_START)
-#define		GPIO_FSHC_MOSI_CTRL				(2+GPIO_FSHC_REG_START)
-#define		GPIO_FSHC_MISO_CTRL				(3+GPIO_FSHC_REG_START)
-#define		GPIO_FSHC_WP_CTRL				(4+GPIO_FSHC_REG_START)
-#define		GPIO_FSHC_HOLD_CTRL				(5+GPIO_FSHC_REG_START)
+#define		GPIO_GPIO_FSHC_CTRL				(1 + GPIO_C_REG_I)
+#define		GPIO_GTIMER_SUB_CTRL			(1 + GPIO_GPIO_FSHC_CTRL)
+#define		BT_DEBUG_O						(1 + GPIO_GTIMER_SUB_CTRL)
+#define		ROM_FIX_ENABLE					(1 + BT_DEBUG_O)
+#define		ROM_FIX_ADDR0					(1 + ROM_FIX_ENABLE)
+#define		ROM_FIX_ADDR1					(1 + ROM_FIX_ADDR0)
+#define		ROM_FIX_ADDR2					(1 + ROM_FIX_ADDR1)
+#define		ROM_FIX_DATA0					(1 + ROM_FIX_ADDR2)
+#define		ROM_FIX_DATA1					(1 + ROM_FIX_DATA0)
+#define		ROM_FIX_DATA2					(1 + ROM_FIX_DATA1)
+#define		LEDC_OUT						(1 + ROM_FIX_DATA2)
 
-#define		GPIO_GTIMER_SUB_CTRL			(1+GPIO_FSHC_HOLD_CTRL)
-
-
-
-#define		GPIO_BT_DEBUG_IO				(1+GPIO_GTIMER_SUB_CTRL) 
-
-
-#define		GPIO_MUX_SEL0					(1+GPIO_BT_DEBUG_IO) 
+#define		GPIO_MUX_SEL0					(1+LEDC_OUT) 
 #define		GPIO_MUX_SEL1					(1+GPIO_MUX_SEL0) 
 #define		GPIO_MUX_SEL2					(1+GPIO_MUX_SEL1) 
 #define		GPIO_MUX_SEL3					(1+GPIO_MUX_SEL2) 

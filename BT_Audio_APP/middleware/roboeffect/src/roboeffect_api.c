@@ -193,7 +193,7 @@ const roboeffect_effect_property_struct effect_property_for_robo[] = {
 #endif/*PHASE_CONTROL_ENABLE*/
 	},
 
-	{ROBOEFFECT_VOCAL_REMOVER, ROBOEFFECT_CH_STEREO, FZ_128|FZ_256|FZ_512, ROBOEFFECT_VOCAL_REMOVER_PARAM_LEN, sizeof(VocalRemoverContext),
+	{ROBOEFFECT_VOCAL_REMOVER, ROBOEFFECT_CH_STEREO, FZ_128|FZ_256|FZ_512, ROBOEFFECT_VOCAL_REMOVER_PARAM_LEN, sizeof(VocalRemoverContext24),
 #if VOCAL_REMOVER_ENABLE
 	ROBOEFFECT_EFF_IF_NAME_INIT(vocal_remover), ROBOEFFECT_EFF_IF_NAME_CONF(vocal_remover), ROBOEFFECT_EFF_IF_NAME_APPLY(vocal_remover), NULL,
 #else
@@ -486,7 +486,7 @@ char *effect_lib_version_return(void)
 }
 
 const uint8_t effect_property_for_display[] = {
-0x02, 0x1F, 0x00, //audio_effect_library@2.31.0
+0x02, 0x21, 0x00, //audio_effect_library@2.33.0
 0x39, //sizeof(effect_property_for_robo)/sizeof(roboeffect_effect_property_struct), //total effect number 57
 /*****auto_tune*****/
 0x14, 0x01, //item len=276
@@ -1714,10 +1714,10 @@ const uint8_t effect_property_for_display[] = {
 /*****gain_control end*****/
 /*****vocal_cut*****/
 0x2E, 0x00, //item len=46
-0x01, 0x06, 0x01, //vocal_cut@1.6.1
+0x02, 0x00, 0x00, //vocal_cut@2.0.0
 0x09, //effect name length
 0x76, 0x6F, 0x63, 0x61, 0x6C, 0x5F, 0x63, 0x75, 0x74, 
-0x00, //bits width is 16
+0x02, //bits width is 16/24
 0x02, //input1 channel is stereo
 0x00, //input2 channel is N/A
 0x02, //output channel is stereo
@@ -2102,10 +2102,10 @@ const uint8_t effect_property_for_display[] = {
 /*****phase_control end*****/
 /*****vocal_remover*****/
 0x5E, 0x00, //item len=94
-0x01, 0x03, 0x02, //vocal_remover@1.3.2
+0x01, 0x04, 0x00, //vocal_remover@1.4.0
 0x0D, //effect name length
 0x76, 0x6F, 0x63, 0x61, 0x6C, 0x5F, 0x72, 0x65, 0x6D, 0x6F, 0x76, 0x65, 0x72, 
-0x00, //bits width is 16
+0x02, //bits width is 16/24
 0x02, //input1 channel is stereo
 0x00, //input2 channel is N/A
 0x02, //output channel is stereo

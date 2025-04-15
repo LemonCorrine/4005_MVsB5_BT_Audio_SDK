@@ -586,10 +586,10 @@ void AudioLine3MicSelect(void)
 
 void AudioAnaChannelSet(int8_t ana_input_ch)
 {
-	gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_en = 0;
-	gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_en = 0;
-
-	if(ANA_INPUT_CH_LINEIN1 == ana_input_ch)
+//	gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_en = 0;
+//	gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_en = 0;
+//
+//	if(ANA_INPUT_CH_LINEIN1 == ana_input_ch)
 	{
 		gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_en = 1;
 		gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_en = 1;

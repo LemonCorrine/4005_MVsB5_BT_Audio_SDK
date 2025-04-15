@@ -32,7 +32,6 @@
 #include "decoder.h"
 #include "audio_core_service.h"
 #include "remind_sound.h"
-#include "backup_interface.h"
 #include "breakpoint.h"
 #include "debug.h"
 #include "irqn.h"
@@ -519,9 +518,6 @@ bool BtPlayDeinit(void)
 //	BtPlayerDeinitialize();
 	if(IsAudioPlayerMute() == FALSE)
 	{
-#ifdef CFG_FUNC_PCM_FIND_ZERO_EN
-		SetFindPCMZeroStart();
-#endif
 		HardWareMuteOrUnMute();
 	}	
 	PauseAuidoCore();

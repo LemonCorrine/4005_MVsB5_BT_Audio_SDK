@@ -83,6 +83,6 @@ void nds_write(const unsigned char *buf, int size)
 #endif
 
 #ifdef CFG_FUNC_USBDEBUG_EN
-	MCUCircular_PutData(&usb_fifo,buf,size);
+	MCUCircular_PutData(&usb_fifo,(void*)buf,size);
 #endif		
 }

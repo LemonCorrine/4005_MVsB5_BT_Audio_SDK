@@ -34,11 +34,8 @@
 #include "bt_hf_mode.h"
 #include "idle_mode.h"
 #include "bt_app_connect.h"
-//#include "backup_interface.h"
 #include <components/soft_watchdog/soft_watch_dog.h>
 
-
-uint32_t SoftwareFlag;// soft flag register
 MainAppContext	mainAppCt;
 #ifdef CFG_RES_IR_NUMBERKEY
 bool Number_select_flag = 0;
@@ -591,6 +588,9 @@ static void PublicMsgPross(MessageContext msg)
 		case MSG_POWER:
 		case MSG_POWERDOWN:
 		case MSG_DEEPSLEEP:
+#ifdef CFG_SOFT_POWER_KEY_EN
+		case MSG_SOFT_POWER:
+#endif
 #ifdef CFG_APP_HDMIIN_MODE_EN
 			if(GetSystemMode() == ModeHdmiAudioPlay)
 			{
@@ -633,14 +633,20 @@ static void PublicMsgPross(MessageContext msg)
 					SoftFlagRegister(SoftFlagIdleModeEnterSleep);
 				}
 			#endif	
+			#ifdef CFG_SOFT_POWER_KEY_EN
+				if(msg.msgId == MSG_SOFT_POWER)
+				{
+					SoftFlagRegister(SoftFlagIdleModeEnterSoftPower);
+				}
+			#endif
 			}
-			break;			
-#endif	
-
+			break;
+#else
 #ifdef CFG_SOFT_POWER_KEY_EN
 		case MSG_SOFT_POWER:
 			SoftKeyPowerOff();
 			break;
+#endif
 #endif
 
 #ifdef CFG_APP_BT_MODE_EN
@@ -778,23 +784,6 @@ MessageHandle GetMainMessageHandle(void)
 uint32_t GetSystemMode(void)
 {
 	return mainAppCt.SysCurrentMode;
-}
-
-void SoftFlagRegister(uint32_t SoftEvent)
-{
-	SoftwareFlag |= SoftEvent;
-	return ;
-}
-
-void SoftFlagDeregister(uint32_t SoftEvent)
-{
-	SoftwareFlag &= ~SoftEvent;
-	return ;
-}
-
-bool SoftFlagGet(uint32_t SoftEvent)
-{
-	return SoftwareFlag & SoftEvent ? TRUE : FALSE;
 }
 
 void SamplesFrameUpdataMsg(void)//发现帧变化，发送消息

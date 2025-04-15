@@ -88,31 +88,4 @@ extern roboeffect_effect_list_info user_effect_list_Karaoke;
 
 extern const roboeffect_effect_steps_table user_effect_steps_Karaoke;
 
-extern const unsigned char user_effect_parameters_Karaoke_HunXiang[];
-
-extern const unsigned char user_module_parameters_Karaoke_HunXiang[];
-
-extern const unsigned char user_effect_parameters_Karaoke_DianYin[];
-
-extern const unsigned char user_module_parameters_Karaoke_DianYin[];
-
-extern const unsigned char user_effect_parameters_Karaoke_MoYin[];
-
-extern const unsigned char user_module_parameters_Karaoke_MoYin[];
-
-extern const unsigned char user_effect_parameters_Karaoke_HanMai[];
-
-extern const unsigned char user_module_parameters_Karaoke_HanMai[];
-
-extern const unsigned char user_effect_parameters_Karaoke_NanBianNv[];
-
-extern const unsigned char user_module_parameters_Karaoke_NanBianNv[];
-
-extern const unsigned char user_effect_parameters_Karaoke_NvBianNan[];
-
-extern const unsigned char user_module_parameters_Karaoke_NvBianNan[];
-
-extern const unsigned char user_effect_parameters_Karaoke_WaWaYin[];
-
-extern const unsigned char user_module_parameters_Karaoke_WaWaYin[];
 #endif/*__USER_EFFECT_FLOW_KARAOKE_H__*/

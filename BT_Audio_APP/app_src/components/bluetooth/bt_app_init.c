@@ -16,6 +16,10 @@
 #include "debug.h"
 #include "chip_info.h"
 #include "efuse.h"
+#include "remap.h"
+#include "spi_flash.h"
+#include "rtos_api.h"
+
 #include "app_config.h"
 #include "bt_manager.h"
 #include "bt_app_init.h"
@@ -55,24 +59,45 @@ static bool GetBtDefaultAddr(uint8_t *devAddr)
 	
 	if((devAddr[3] == 0)&&(devAddr[4] == 0)&&(devAddr[5] == 0))
 	{
-		//DBG("efuse is null\n");
-		//获取随机地址
+		DBG("efuse is empty\n");
+		//efuse为空,获取flash id
 		{
-			extern unsigned int gSysTick;
-			srand(gSysTick);
-			uint32_t rand_cnt = rand();
-			//随机地址
-			//LAP
-			devAddr[5] = (uint8_t)(rand_cnt);
-			devAddr[4] = (uint8_t)((rand_cnt>>8)&0xff);
-			devAddr[3] = (uint8_t)((rand_cnt>>16)&0xff);
+			extern SPI_FLASH_ERR_CODE SpiFlashReadUniqueIDCb(uint8_t* Buffer, uint8_t BufLen);
+			uint32_t *tcm_addr = NULL;
+			uint32_t tcm_addr_1k = 0;
+
+			tcm_addr = osPortMalloc(4*1024);
+			tcm_addr_1k = (tcm_addr);
+			tcm_addr_1k = (tcm_addr_1k/1024 + 1)*1024;
 			
-			//UAP
-			devAddr[2] = (uint8_t)((rand_cnt>>24)&0xff);
+			Remap_AddrRemapDisable(3);
+			memcpy(tcm_addr_1k, 0x10000, 1*1024);
+			Remap_AddrRemapSet(3, 0x10000, tcm_addr_1k, 1);
+			{
+				uint8_t u8a_tmpBuf[16];
+				int j;
 			
-			//NAP
-			devAddr[1] = (uint8_t)(devAddr[4] + devAddr[5]);
-			devAddr[0] = (uint8_t)(devAddr[2] + devAddr[3]);
+				memset(u8a_tmpBuf, 0, sizeof(u8a_tmpBuf));
+				if (SpiFlashReadUniqueIDCb(u8a_tmpBuf, sizeof(u8a_tmpBuf)) == FLASH_NONE_ERR)
+				{
+					DBG("Flash ID:");
+					for (j=0; j<sizeof(u8a_tmpBuf); j++)
+					{
+						DBG("%02X ", u8a_tmpBuf[j]);
+					}
+					DBG("\r\n");
+				}
+
+				devAddr[5] = u8a_tmpBuf[10];
+				devAddr[4] = u8a_tmpBuf[11];
+				devAddr[3] = u8a_tmpBuf[12];
+				devAddr[2] = u8a_tmpBuf[13];
+				devAddr[1] = u8a_tmpBuf[14];
+				devAddr[0] = u8a_tmpBuf[15];
+			}
+			Remap_AddrRemapDisable(3);
+
+			osPortFree(tcm_addr);
 		}
 	}
 

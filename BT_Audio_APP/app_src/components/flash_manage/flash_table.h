@@ -4,11 +4,7 @@
 
 // 8  --> 8Mb		
 // 4/8/16/32/64/128
-#if defined(CFG_CHIP_BP1524A1) || defined(CFG_CHIP_BP1564A1) || defined(CFG_CHIP_AP1524A1) || defined(CFG_CHIP_BP1532B1)
-	#define FLASH_CAPACTITY_TYPE	8
-#else
-	#define FLASH_CAPACTITY_TYPE	16
-#endif
+#define FLASH_CAPACTITY_TYPE	CHIP_FLASH_CAPACTITY
 
 #define FLASH_CAPACTITY_ADDR	0xD4 
 

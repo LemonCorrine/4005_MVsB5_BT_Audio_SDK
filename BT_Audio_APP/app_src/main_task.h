@@ -140,53 +140,48 @@ typedef struct _MainAppContext
 	uint8_t     hdmiResetFlg;
 #endif
 
+	uint32_t SoftwareFlag;	// soft flag register
 }MainAppContext;
 
 extern MainAppContext	mainAppCt;
-#define SoftFlagNoRemind				BIT(0)	//提示音故障
-#define SoftFlagMediaDevicePlutOut		BIT(1)
-#if FLASH_BOOT_EN 
-#define SoftFlagMvaInCard				BIT(2)	//文件预搜索发现SD卡有MVA包 卡拔除时清理
-#define SoftFlagMvaInUDisk				BIT(3)	//文件预搜索发现U盘有Mva包 U盘拔除时清理
-#endif
-#define SoftFlagDiscDelayMask			BIT(4)//通话模式,蓝牙断开连接,延时播放提示音,即退回到每个模式时播放
-#define SoftFlagWaitBtRemindEnd			BIT(5)//标记来电时等待提示音播放完成再进入通话状态
-#define SoftFlagDelayEnterBtHf			BIT(6)//标记延时进入通话状态
-#define SoftFlagFrameSizeChange			BIT(7)//旨在登记系统帧切换流程这一状态，避免打断。
-#define SoftFlagBtCurPlayStateMask		BIT(8)//标记来电时记录当前蓝牙播放的状态
-#ifdef BT_TWS_SUPPORT
-#define SoftFlagTwsRemind				BIT(9)//标记tws连接成功事件 等待unmute后提示音开播
-#define SoftFlagTwsSlaveRemind			BIT(10)
-#endif
-#ifdef CFG_FUNC_BT_OTA_EN
-#define SoftFlagBtOtaUpgradeOK			BIT(11)
-#endif
-#ifdef CFG_APP_IDLE_MODE_EN
-#ifdef CFG_IDLE_MODE_DEEP_SLEEP
-#define SoftFlagIdleModeEnterSleep		BIT(12)//标记进入睡眠模式
-#endif
-#ifdef	CFG_IDLE_MODE_POWER_KEY
-#define SoftFlagIdleModeEnterPowerDown	BIT(13)
-#endif
-#endif
-#define SoftFlagMediaModeRead			BIT(14)// 进入media mode 读一次U或SD
-#define SoftFlagMediaNextOrPrev			BIT(15)// 0:next 1:prev
-#define SoftFlagUpgradeOK				BIT(16)
 
-#define SoftFlagAudioCoreSourceIsDeInit		BIT(18)	//AudioCoreSource资源已经被删除
+enum _SYS_SOFTWARE_FLAG_
+{
+	SoftFlagNoRemind				=	BIT(0),	//提示音故障
+	SoftFlagMediaDevicePlutOut 		= 	BIT(1),
+	SoftFlagMvaInCard				=	BIT(2),	//文件预搜索发现SD卡有MVA包 卡拔除时清理
+	SoftFlagMvaInUDisk				=	BIT(3),	//文件预搜索发现U盘有Mva包 U盘拔除时清理
+	SoftFlagDiscDelayMask			=	BIT(4), //通话模式,蓝牙断开连接,延时播放提示音,即退回到每个模式时播放
+	SoftFlagWaitBtRemindEnd			=	BIT(5), //标记来电时等待提示音播放完成再进入通话状态
+	SoftFlagDelayEnterBtHf			=	BIT(6), //标记延时进入通话状态
+	SoftFlagFrameSizeChange			=	BIT(7), //旨在登记系统帧切换流程这一状态，避免打断。
+	SoftFlagBtCurPlayStateMask		=	BIT(8), //标记来电时记录当前蓝牙播放的状态
+	SoftFlagTwsRemind				=	BIT(9), //标记tws连接成功事件 等待unmute后提示音开播
+	SoftFlagTwsSlaveRemind			=	BIT(10),
+	SoftFlagBtOtaUpgradeOK			=	BIT(11),
 
-#define SoftFlagUDiskEnum				BIT(19)	//u盘枚举标志
-#define SoftFlagRecording				BIT(20)	//录音进行标记，禁止后插先播，模式切换需清理
+	SoftFlagIdleModeEnterSleep		=	BIT(12),//标记进入睡眠模式
+	SoftFlagIdleModeEnterPowerDown	=	BIT(13),
+	SoftFlagMediaModeRead			=	BIT(14),// 进入media mode 读一次U或SD
+	SoftFlagMediaNextOrPrev			=	BIT(15),// 0:next 1:prev
+	SoftFlagUpgradeOK				=	BIT(16),
 
-//标记本次deepsleep消息是否来自于TV
-#define SoftFlagDeepSleepMsgIsFromTV 	BIT(21)
+	SoftFlagAudioCoreSourceIsDeInit	=	BIT(18),//AudioCoreSource资源已经被删除
 
-//标记本次唤醒源是否为CEC唤醒
-#define SoftFlagWakeUpSouceIsCEC BIT(22)
+	SoftFlagUDiskEnum				=	BIT(19),//u盘枚举标志
+	SoftFlagRecording				=	BIT(20),//录音进行标记，禁止后插先播，模式切换需清理
+	//标记本次deepsleep消息是否来自于TV
+	SoftFlagDeepSleepMsgIsFromTV 	=	BIT(21),
+	//标记本次唤醒源是否为CEC唤醒
+	SoftFlagWakeUpSouceIsCEC 		= 	BIT(22),
+	//标记进入SoftPower
+	SoftFlagIdleModeEnterSoftPower 	=	BIT(23),
+};
 
-void SoftFlagRegister(uint32_t SoftEvent);
-void SoftFlagDeregister(uint32_t SoftEvent);
-bool SoftFlagGet(uint32_t SoftEvent);
+#define SoftFlagRegister(SoftEvent)			(mainAppCt.SoftwareFlag |= SoftEvent)
+#define SoftFlagDeregister(SoftEvent)		(mainAppCt.SoftwareFlag &= ~SoftEvent)
+#define SoftFlagGet(SoftEvent)				(mainAppCt.SoftwareFlag & SoftEvent ? TRUE : FALSE)
+
 int32_t MainAppTaskStart(void);
 MessageHandle GetMainMessageHandle(void);
 uint32_t GetSystemMode(void);

@@ -4,7 +4,7 @@
  * @brief   Vocal Cut Effect Module
  *
  * @author  Cecilia Wang
- * @version V1.6.1
+ * @version V2.0.0
  *
  * &copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  **************************************************************************************
@@ -37,9 +37,9 @@ typedef enum _VOCALCUT_ERROR_CODE
 /** vocal context */ 
 typedef struct _VOCALCUTContext
 {
-    int16_t 		pcm_low[128 * 2];
-    int16_t 		pcm_high[128 * 2];
-    int16_t 		pcm_band[128 * 2];
+    int16_t 		pcm_low[128  * 4];
+    int16_t 		pcm_high[128 * 4];
+    int16_t 		pcm_band[128 * 4];
         
     EQContext  		eq1;
     EQContext  		eq2;
@@ -77,6 +77,17 @@ int32_t vocal_cut_init(VocalCutContext *ct, int32_t samplerate);
 int32_t vocal_cut_apply(VocalCutContext *ct, int16_t* pcm_in, int16_t* pcm_out, int32_t samples, int32_t wetdrymix);
 
 
+/**
+ * @brief  Apply vocal cut effect to a frame of PCM data (24-bit PCM in & out).
+ * @param  pcm_in Address of the PCM input. The PCM layout must be stereo format : L0, R0, L1, R1, L2, R2, ...
+ * @param  pcm_out Address of the PCM output. The PCM layout is stereo format, stereo: L0, R0, L1, R1, L2, R2, ...
+ *         pcm_out can be the same as pcm_in. In this case, the PCM signals are changed in-place.
+ * @param  samples Number of PCM samples to process
+ * @param  wetdrymix The ratio of wet(vocal cut) signal to the mixed output (wet+dry). Range: 0~100 for 0~100%.
+ * @return error code. VOCALCUT_ERROR_OK means successful, other codes indicate error.
+ * @note   Input signals should be always stereo format.
+ */
+int32_t vocal_cut_apply24(VocalCutContext *ct, int32_t* pcm_in, int32_t* pcm_out, int32_t samples, int32_t wetdrymix);
 
 #ifdef  __cplusplus
 }

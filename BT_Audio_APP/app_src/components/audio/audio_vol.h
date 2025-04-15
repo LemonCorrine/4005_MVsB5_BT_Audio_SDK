@@ -44,9 +44,6 @@ uint8_t BtLocalVolLevel2AbsVolme(uint8_t localValue);
 void AudioMicVolDown(void);
 void AudioMicVolUp(void);
 void HardWareMuteOrUnMute(void);
-#ifdef CFG_FUNC_PCM_FIND_ZERO_EN
-void SetFindPCMZeroStart(void);
-#endif
 
 #ifdef  CFG_APP_HDMIIN_MODE_EN
 void HDMISourceMute(void);

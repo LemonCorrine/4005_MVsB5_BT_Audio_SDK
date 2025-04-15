@@ -163,14 +163,14 @@ static const struct
 	{AdcKeyInit, 	AdcKeyScan, 	(uint16_t *)ADKEY_TAB},
 #endif
 #ifdef CFG_RES_IO_KEY_SCAN
-	{IOKeyInit, 	IOKeyScan, 		IOKEY_TAB},
+	{IOKeyInit, 	IOKeyScan, 		(uint16_t *)IOKEY_TAB},
 #endif
 #ifdef CFG_RES_IR_KEY_SCAN
 	{IRKeyInit, 	IRKeyScan, 		(uint16_t *)IRKEY_TAB},
 #endif
 
 #ifdef CFG_RES_CODE_KEY_USE
-	{CodeKeyInit, 	CodeKeyScan, 	CODEKEY_TAB},
+	{CodeKeyInit, 	CodeKeyScan, 	(uint16_t *)CODEKEY_TAB},
 #endif
 
 #ifdef CFG_ADC_LEVEL_KEY_EN
@@ -312,13 +312,6 @@ MessageId KeyScan(void)
 				break;
 		}
 	}
-
-#if	defined(CFG_APP_IDLE_MODE_EN)
-	if(KeyMsg == MSG_NONE)
-	{
-		KeyMsg = GetEnterIdleModeScanKey();
-	}
-#endif
 
 #ifdef CFG_FUNC_DBCLICK_MSG_EN
 	KeyMsg = DbclickProcess(KeyMsg);

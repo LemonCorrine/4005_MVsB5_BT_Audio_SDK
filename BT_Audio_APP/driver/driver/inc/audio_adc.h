@@ -328,13 +328,6 @@ void AudioADC_PGASel(ADC_MODULE ADCModule, ADC_CHANNEL ChannelSel, AUDIO_ADC_INP
 void AudioADC_PGAGainSet(ADC_MODULE ADCModule, ADC_CHANNEL ChannelSel, AUDIO_ADC_INPUT InputSel, uint16_t Gain);
 
 /**
- * @brief  ADC 模块Mic Bias1电压使能
- * @param  IsMicBiasEn  MIC Bias1使能
- * @return 无
- */
-void AudioADC_MicBias1Enable(bool IsMicBiasEn);
-
-/**
  * @brief  ADC模块PGA模块模式选择
  * @param  ADCModule    0,ADC0模块; 1,ADC1模块
  * @param  AUDIOMode  	Single:单端; Diff:差分      默认为差分输入

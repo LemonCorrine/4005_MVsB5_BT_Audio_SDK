@@ -101,7 +101,7 @@ roboeffect_effect_list_info user_effect_list_mic = {
     48000, //sample rate
     256, //framse size
     user_effects_mic,
-    NULL,
+//    NULL,
 };
 static const roboeffect_io_unit source_unit_mic[] = {
     {MIC_SOURCE_MIC_SOURCE          ,  0 , BITS_24         , CH_STEREO}, //{source, mem, bit_width, ch}

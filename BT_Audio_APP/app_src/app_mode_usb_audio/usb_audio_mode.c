@@ -25,6 +25,7 @@
 #include "audio_effect.h"
 #include "irqn.h"
 #include "dma.h"
+#include "clk.h"
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
 
 //extern volatile uint32_t gDeviceUSBDeviceTimer;
@@ -312,11 +313,13 @@ void UsbDevicePlayRun(uint16_t msgId)
 			CommonMsgProccess(msgId);
 			break;
 	}
-
-		OTG_DeviceRequestProcess();
+#ifdef USB_CRYSTA_FREE_EN
+	Clock_USBCrystaFreeAdjustProcess();
+#endif
+	OTG_DeviceRequestProcess();
 #ifdef USB_READER_EN
 # if( (CFG_PARA_USB_MODE == READER) || (CFG_PARA_USB_MODE == AUDIO_READER) || (CFG_PARA_USB_MODE == MIC_READER) || (CFG_PARA_USB_MODE == AUDIO_MIC_READER) )
-		OTG_DeviceStorProcess();
+	OTG_DeviceStorProcess();
 #endif
 #endif
 }
@@ -328,9 +331,6 @@ bool UsbDevicePlayDeinit(void)
 	AudioCoreSourceMute(USB_AUDIO_SOURCE_NUM,TRUE,TRUE);
 	if(IsAudioPlayerMute() == FALSE)
 	{
-#ifdef CFG_FUNC_PCM_FIND_ZERO_EN
-		SetFindPCMZeroStart();
-#endif
 		HardWareMuteOrUnMute();
 	}	
 	

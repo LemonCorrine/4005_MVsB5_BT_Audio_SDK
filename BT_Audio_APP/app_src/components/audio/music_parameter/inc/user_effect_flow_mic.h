@@ -62,8 +62,5 @@ extern roboeffect_effect_list_info user_effect_list_mic;
 
 extern const roboeffect_effect_steps_table user_effect_steps_mic;
 
-extern const unsigned char user_effect_parameters_mic_mic[];
-
-extern const unsigned char user_module_parameters_mic_mic[];
 
 #endif/*__USER_EFFECT_FLOW_MIC_H__*/

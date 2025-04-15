@@ -298,6 +298,52 @@ bool RoboeffectInit()
 	return TRUE;
 }
 
+#ifdef CFG_RES_AUDIO_I2SOUT_EN
+void AudioI2sOutParamsSet(void)
+{
+	I2SParamCt i2s_set;
+	i2s_set.IsMasterMode = CFG_RES_I2S_MODE;// 0:master 1:slave
+	i2s_set.SampleRate = CFG_PARA_I2S_SAMPLERATE; //外设采样率
+	i2s_set.I2sFormat = I2S_FORMAT_I2S;
+#ifdef	CFG_AUDIO_WIDTH_24BIT
+	i2s_set.I2sBits = I2S_LENGTH_24BITS;
+#else
+	i2s_set.I2sBits = I2S_LENGTH_16BITS;
+#endif
+	i2s_set.I2sTxRxEnable = 1;
+
+	i2s_set.TxPeripheralID = PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE;
+
+	i2s_set.TxBuf = (void*)mainAppCt.I2SFIFO;
+
+	i2s_set.TxLen = mainAppCt.I2SFIFO_LEN;
+
+	GPIO_PortAModeSet(1 << GET_I2S_GPIO_INDEX(I2S_MCLK_GPIO), GET_I2S_GPIO_MODE(I2S_MCLK_GPIO));//mclk
+	GPIO_PortAModeSet(1 << GET_I2S_GPIO_INDEX(I2S_LRCLK_GPIO),GET_I2S_GPIO_MODE(I2S_LRCLK_GPIO));//lrclk
+	GPIO_PortAModeSet(1 << GET_I2S_GPIO_INDEX(I2S_BCLK_GPIO), GET_I2S_GPIO_MODE(I2S_BCLK_GPIO));//bclk
+	GPIO_PortAModeSet(1 << GET_I2S_GPIO_INDEX(I2S_DOUT_GPIO), GET_I2S_GPIO_MODE(I2S_DOUT_GPIO));//do
+
+	I2S_AlignModeSet(CFG_RES_I2S_MODULE, I2S_LOW_BITS_ACTIVE);
+	AudioI2S_Init(CFG_RES_I2S_MODULE, &i2s_set);//
+}
+#endif
+
+void AudioDacPowerOn(void)
+{
+	DAC_Model DACModel = DAC_Single;
+	PVDD_Model PVDDModel = PVDD33;
+
+#ifdef CHIP_DAC_USE_DIFF
+	DACModel = DAC_Diff;
+#endif
+
+#ifdef CHIP_DAC_USE_PVDD16
+	PVDDModel = PVDD16;
+#endif
+
+	AudioDAC_AllPowerOn(DACModel,DAC_NOLoad,PVDDModel);
+}
+
 //配置系统标准通路
 bool ModeCommonInit(void)
 {
@@ -321,6 +367,10 @@ bool ModeCommonInit(void)
 #ifdef CFG_RES_AUDIO_DAC0_EN
 	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
 	AudioIOSet.Depth = AudioCore.FrameSize[0] * 2 ;
+#ifdef	CFG_AUDIO_WIDTH_24BIT
+	AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
+	AudioIOSet.IOBitWidthConvFlag = 0;//不需要做位宽转换处理
+#endif
 	if(!AudioCoreSinkIsInit(AUDIO_DAC0_SINK_NUM))
 	{
 		mainAppCt.DACFIFO_LEN = AudioIOSet.Depth * sizeof(PCM_DATA_TYPE) * 2;
@@ -342,10 +392,6 @@ bool ModeCommonInit(void)
 		AudioIOSet.Net = DefaultNet;
 		AudioIOSet.DataIOFunc = AudioDAC0DataSet;
 		AudioIOSet.LenGetFunc = AudioDAC0DataSpaceLenGet;
-	#ifdef	CFG_AUDIO_WIDTH_24BIT
-		AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
-		AudioIOSet.IOBitWidthConvFlag = 0;//不需要做位宽转换处理
-	#endif
 		if(!AudioCoreSinkInit(&AudioIOSet, AUDIO_DAC0_SINK_NUM))
 		{
 			DBG("Dac init error");
@@ -357,8 +403,6 @@ bool ModeCommonInit(void)
 	{
 		AudioDAC0_SampleRateChange(CFG_PARA_SAMPLE_RATE);
 	#ifdef	CFG_AUDIO_WIDTH_24BIT
-		AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
-		AudioIOSet.IOBitWidthConvFlag = 0;//DAC 24bit ,sink最后一级输出时需要转变为24bi
 		AudioCore.AudioSink[AUDIO_DAC0_SINK_NUM].BitWidth = AudioIOSet.IOBitWidth;
 		AudioCore.AudioSink[AUDIO_DAC0_SINK_NUM].BitWidthConvFlag = AudioIOSet.IOBitWidthConvFlag;
 	#endif
@@ -450,18 +494,15 @@ bool ModeCommonInit(void)
 
 #ifdef CFG_RES_AUDIO_I2SOUT_EN
 	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
-	#if defined(TWS_IIS0_OUT) || defined(TWS_IIS1_OUT)
-		AudioIOSet.Resident = TRUE;
-		AudioIOSet.Depth = TWS_SINK_DEV_FIFO_SAMPLES;
-	#else
-		AudioIOSet.Depth = AudioCore.FrameSize[0] * 2 ;
-	#endif
+	AudioIOSet.Depth = AudioCore.FrameSize[0] * 2 ;
+#ifdef	CFG_AUDIO_WIDTH_24BIT
+	AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
+	AudioIOSet.IOBitWidthConvFlag = 0;//不需要做位宽转换处理
+#endif
 	if(!AudioCoreSinkIsInit(AUDIO_I2SOUT_SINK_NUM))
 	{
-#if !defined(TWS_IIS0_OUT) && !defined(TWS_IIS1_OUT)
 		mainAppCt.I2SFIFO_LEN = AudioIOSet.Depth * sizeof(PCM_DATA_TYPE) * 2;
 		mainAppCt.I2SFIFO = (uint32_t*)osPortMalloc(mainAppCt.I2SFIFO_LEN);//I2S fifo
-#endif
 		if(mainAppCt.I2SFIFO != NULL)
 		{
 			memset(mainAppCt.I2SFIFO, 0, mainAppCt.I2SFIFO_LEN);
@@ -505,10 +546,7 @@ bool ModeCommonInit(void)
 			AudioIOSet.LenGetFunc = AudioI2S1_DataSpaceLenGet;
 		}
 
-#ifdef	CFG_AUDIO_WIDTH_24BIT
-		AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
-		AudioIOSet.IOBitWidthConvFlag = 0;//不需要做位宽转换处理
-#endif
+
 		if(!AudioCoreSinkInit(&AudioIOSet, AUDIO_I2SOUT_SINK_NUM))
 		{
 			DBG("I2S out init error");
@@ -523,8 +561,6 @@ bool ModeCommonInit(void)
 	{
 		I2S_SampleRateSet(CFG_RES_I2S_MODULE, CFG_PARA_SAMPLE_RATE);
 	#ifdef	CFG_AUDIO_WIDTH_24BIT
-		AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
-		AudioIOSet.IOBitWidthConvFlag = 0;//DAC 24bit ,sink最后一级输出时需要转变为24bi
 		AudioCore.AudioSink[AUDIO_I2SOUT_SINK_NUM].BitWidth = AudioIOSet.IOBitWidth;
 		AudioCore.AudioSink[AUDIO_I2SOUT_SINK_NUM].BitWidthConvFlag = AudioIOSet.IOBitWidthConvFlag;
 		AudioCore.AudioSink[AUDIO_I2SOUT_SINK_NUM].Sync = TRUE;		
@@ -540,11 +576,7 @@ bool ModeCommonInit(void)
 	}
 #endif
 
-#if	defined(CFG_CHIP_BP1532A2)
-	AudioDAC_AllPowerOn(DAC_Diff,DAC_NOLoad);
-#else
-	AudioDAC_AllPowerOn(DAC_Single,DAC_NOLoad);
-#endif
+	AudioDacPowerOn();
 	return TRUE;
 }
 
@@ -567,22 +599,6 @@ void ModeCommonDeinit(void)
 	}
 	AudioCoreSinkDeinit(AUDIO_DAC0_SINK_NUM);
 
-#if defined(CFG_RES_AUDIO_DACX_EN) && !defined(TWS_DACX_OUT)
-	AudioCoreSinkDisable(AUDIO_DACX_SINK_NUM);
-	AudioDAC_Disable(DAC1);
-	DMA_InterruptFlagClear(PERIPHERAL_ID_AUDIO_DAC1_TX, DMA_DONE_INT);
-	DMA_InterruptFlagClear(PERIPHERAL_ID_AUDIO_DAC1_TX, DMA_THRESHOLD_INT);
-	DMA_InterruptFlagClear(PERIPHERAL_ID_AUDIO_DAC1_TX, DMA_ERROR_INT);
-	DMA_ChannelDisable(PERIPHERAL_ID_AUDIO_DAC1_TX);
-//	AudioDAC_Reset(DAC1);
-	if(mainAppCt.DACXFIFO != NULL)
-	{
-		osPortFree(mainAppCt.DACXFIFO);
-		mainAppCt.DACXFIFO = NULL;
-	}
-	AudioCoreSinkDeinit(AUDIO_DACX_SINK_NUM);
-#endif
-
 #if CFG_RES_MIC_SELECT
 	AudioCoreSourceDisable(MIC_SOURCE_NUM);
 	vTaskDelay(5);
@@ -599,7 +615,7 @@ void ModeCommonDeinit(void)
 	}
 	AudioCoreSourceDeinit(MIC_SOURCE_NUM);
 #endif
-#if defined(CFG_RES_AUDIO_I2SOUT_EN) && !defined(TWS_IIS0_OUT)&& !defined(TWS_IIS1_OUT)
+#if defined(CFG_RES_AUDIO_I2SOUT_EN)
 	I2S_ModuleDisable(CFG_RES_I2S_MODULE);
 	DMA_InterruptFlagClear(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE, DMA_DONE_INT);
 	DMA_InterruptFlagClear(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE, DMA_THRESHOLD_INT);
@@ -630,39 +646,7 @@ void ModeCommonDeinit(void)
 	AudioCore.Roboeffect.context_memory = NULL;
 }
 
-#ifdef CFG_RES_AUDIO_I2SOUT_EN
-void AudioI2sOutParamsSet(void)
-{
-	I2SParamCt i2s_set;
-	i2s_set.IsMasterMode = CFG_RES_I2S_MODE;// 0:master 1:slave
-	i2s_set.SampleRate = CFG_PARA_I2S_SAMPLERATE; //外设采样率
-	i2s_set.I2sFormat = I2S_FORMAT_I2S;
-#ifdef	CFG_AUDIO_WIDTH_24BIT
-	i2s_set.I2sBits = I2S_LENGTH_24BITS;
-#else
-	i2s_set.I2sBits = I2S_LENGTH_16BITS;
-#endif
-	i2s_set.I2sTxRxEnable = 1;
-
-	i2s_set.TxPeripheralID = PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE;
-
-	i2s_set.TxBuf = (void*)mainAppCt.I2SFIFO;
-
-	i2s_set.TxLen = mainAppCt.I2SFIFO_LEN;
-
-	GPIO_PortAModeSet(1 << GET_I2S_GPIO_INDEX(I2S_MCLK_GPIO), GET_I2S_GPIO_MODE(I2S_MCLK_GPIO));//mclk
-	GPIO_PortAModeSet(1 << GET_I2S_GPIO_INDEX(I2S_LRCLK_GPIO),GET_I2S_GPIO_MODE(I2S_LRCLK_GPIO));//lrclk
-	GPIO_PortAModeSet(1 << GET_I2S_GPIO_INDEX(I2S_BCLK_GPIO), GET_I2S_GPIO_MODE(I2S_BCLK_GPIO));//bclk
-	GPIO_PortAModeSet(1 << GET_I2S_GPIO_INDEX(I2S_DOUT_GPIO), GET_I2S_GPIO_MODE(I2S_DOUT_GPIO));//do
-
-	I2S_AlignModeSet(CFG_RES_I2S_MODULE, I2S_LOW_BITS_ACTIVE);
-	AudioI2S_Init(CFG_RES_I2S_MODULE, &i2s_set);//
-}
-#endif
-
-
-
-bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain, uint8_t gainBoostSel)
+bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 {
 	AudioCoreIO AudioIOSet;
 	uint16_t SampleLen = AudioCoreFrameSizeGet(DefaultNet);
@@ -777,6 +761,10 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain, uint8_t gainBoostSe
 	AudioCoreSinkDisable(AUDIO_DAC0_SINK_NUM);
 	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
 	AudioIOSet.Depth = AudioCore.FrameSize[DefaultNet] * 2 ;
+#ifdef	CFG_AUDIO_WIDTH_24BIT
+	AudioIOSet.IOBitWidth = PCM_DATA_16BIT_WIDTH;//0,16bit,1:24bit
+	AudioIOSet.IOBitWidthConvFlag = 1;//DAC 24bit ,sink最后一级输出时需要转变为24bi
+#endif
 	if(!AudioCoreSinkIsInit(AUDIO_DAC0_SINK_NUM))
 	{
 		mainAppCt.DACFIFO_LEN = AudioIOSet.Depth * sizeof(PCM_DATA_TYPE) * 2;
@@ -799,10 +787,6 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain, uint8_t gainBoostSe
 		AudioIOSet.DataIOFunc = AudioDAC0DataSet;
 		AudioIOSet.LenGetFunc = AudioDAC0DataSpaceLenGet;
 
-#ifdef	CFG_AUDIO_WIDTH_24BIT
-		AudioIOSet.IOBitWidth = PCM_DATA_16BIT_WIDTH;//0,16bit,1:24bit
-		AudioIOSet.IOBitWidthConvFlag = 1;//DAC 24bit ,sink最后一级输出时需要转变为24bi
-#endif
 		if(!AudioCoreSinkInit(&AudioIOSet, AUDIO_DAC0_SINK_NUM))
 		{
 			DBG("Dac init error");
@@ -815,8 +799,6 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain, uint8_t gainBoostSe
 		AudioDAC0_SampleRateChange(sampleRate);
 		printf("mode task io set\n");
 #ifdef	CFG_AUDIO_WIDTH_24BIT
-		AudioIOSet.IOBitWidth = PCM_DATA_16BIT_WIDTH;//0,16bit,1:24bit
-		AudioIOSet.IOBitWidthConvFlag = 1;//DAC 24bit ,sink最后一级输出时需要转变为24bi
 		AudioCore.AudioSink[AUDIO_DAC0_SINK_NUM].BitWidth = AudioIOSet.IOBitWidth;
 		AudioCore.AudioSink[AUDIO_DAC0_SINK_NUM].BitWidthConvFlag = AudioIOSet.IOBitWidthConvFlag;
 #endif
@@ -825,18 +807,16 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain, uint8_t gainBoostSe
 #endif
 
 #ifdef CFG_RES_AUDIO_I2SOUT_EN
-	#if defined(TWS_IIS0_OUT) || defined(TWS_IIS1_OUT)
-	AudioIOSet.Resident = TRUE;
-	AudioIOSet.Depth = TWS_SINK_DEV_FIFO_SAMPLES;
-	#else
+
 	AudioIOSet.Depth = AudioCore.FrameSize[DefaultNet] * 2 ;
-	#endif
+#ifdef	CFG_AUDIO_WIDTH_24BIT
+	AudioIOSet.IOBitWidth = PCM_DATA_16BIT_WIDTH;//0,16bit,1:24bit
+	AudioIOSet.IOBitWidthConvFlag = 1;//不需要做位宽转换处理
+#endif
 	if(!AudioCoreSinkIsInit(AUDIO_I2SOUT_SINK_NUM))
 	{
-	#if !defined(TWS_IIS0_OUT) && !defined(TWS_IIS1_OUT)
 		mainAppCt.I2SFIFO_LEN = AudioIOSet.Depth * sizeof(PCM_DATA_TYPE) * 2;
 		mainAppCt.I2SFIFO = (uint32_t*)osPortMalloc(mainAppCt.I2SFIFO_LEN);//I2S fifo
-	#endif
 
 		if(mainAppCt.I2SFIFO != NULL)
 		{
@@ -881,10 +861,7 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain, uint8_t gainBoostSe
 			AudioIOSet.DataIOFunc = AudioI2S1_DataSet;
 			AudioIOSet.LenGetFunc = AudioI2S1_DataSpaceLenGet;
 		}
-#ifdef	CFG_AUDIO_WIDTH_24BIT
-		AudioIOSet.IOBitWidth = PCM_DATA_16BIT_WIDTH;//0,16bit,1:24bit
-		AudioIOSet.IOBitWidthConvFlag = 1;//不需要做位宽转换处理
-#endif
+
 		if(!AudioCoreSinkInit(&AudioIOSet, AUDIO_I2SOUT_SINK_NUM))
 		{
 			DBG("I2S out init error");
@@ -899,8 +876,6 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain, uint8_t gainBoostSe
 	{
 		I2S_SampleRateSet(CFG_RES_I2S_MODULE, sampleRate);
 	#ifdef	CFG_AUDIO_WIDTH_24BIT
-		AudioIOSet.IOBitWidth = PCM_DATA_16BIT_WIDTH;//0,16bit,1:24bit
-		AudioIOSet.IOBitWidthConvFlag = 1;//DAC 24bit ,sink最后一级输出时需要转变为24bi
 		AudioCore.AudioSink[AUDIO_I2SOUT_SINK_NUM].BitWidth = AudioIOSet.IOBitWidth;
 		AudioCore.AudioSink[AUDIO_I2SOUT_SINK_NUM].BitWidthConvFlag = AudioIOSet.IOBitWidthConvFlag;
 		AudioCore.AudioSink[AUDIO_I2SOUT_SINK_NUM].Sync = FALSE;
@@ -908,11 +883,7 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain, uint8_t gainBoostSe
 	}
 #endif
 
-#if	defined(CFG_CHIP_BP1532A2)
-	AudioDAC_AllPowerOn(DAC_Diff,DAC_NOLoad);
-#else
-	AudioDAC_AllPowerOn(DAC_Single,DAC_NOLoad);
-#endif
+	AudioDacPowerOn();
 	return TRUE;
 }
 

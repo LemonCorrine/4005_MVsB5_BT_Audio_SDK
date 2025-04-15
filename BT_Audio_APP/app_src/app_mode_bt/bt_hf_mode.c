@@ -67,7 +67,11 @@ static const uint8_t DmaChannelMap[6] = {
 		PERIPHERAL_ID_AUDIO_ADC0_RX,
 		PERIPHERAL_ID_AUDIO_ADC1_RX,
 		PERIPHERAL_ID_AUDIO_DAC0_TX,
+#ifdef CFG_DUMP_DEBUG_EN
+		CFG_DUMP_UART_TX_DMA_CHANNEL,
+#else
 		255,
+#endif
 	#ifdef CFG_RES_AUDIO_I2SOUT_EN
 		PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE,
 	#else
@@ -517,7 +521,7 @@ bool BtHfInit(void)
 	/* Create media audio services */
 	gBtHfCt->SampleRate = CFG_BTHF_PARA_SAMPLE_RATE;//蓝牙模式下采样率为16K
 
-	if(!AudioIoCommonForHfp(CFG_BTHF_PARA_SAMPLE_RATE, BT_HFP_MIC_PGA_GAIN, 2))
+	if(!AudioIoCommonForHfp(CFG_BTHF_PARA_SAMPLE_RATE, BT_HFP_MIC_PGA_GAIN))
 	{
 		DBG("Mic and Dac set error\n");
 	}
@@ -603,11 +607,6 @@ bool BtHfInit(void)
 	//需要发送数据缓存
 	MCUCircular_Config(&gBtHfCt->MsbcSendCircular, &gBtHfCt->MsbcSendFifo[0], BT_SCO_PCM_FIFO_LEN);
 	memset(&gBtHfCt->MsbcSendFifo[0], 0, BT_SCO_PCM_FIFO_LEN);
-
-	//AEC
-	BtHf_AECInit();
-	//AEC effect init
-	BtHf_AECEffectInit();
 
 	//SBC receivr fifo
 	MCUCircular_Config(&gBtHfCt->msbcRecvFifoCircular, &gBtHfCt->msbcRecvFifo[0], BT_SBC_RECV_FIFO_SIZE);
@@ -872,9 +871,6 @@ bool BtHfDeinit(void)
 	
 	if(IsAudioPlayerMute() == FALSE)
 	{
-#ifdef CFG_FUNC_PCM_FIND_ZERO_EN
-		SetFindPCMZeroStart();
-#endif
 		HardWareMuteOrUnMute();
 	}	
 	
@@ -892,9 +888,6 @@ bool BtHfDeinit(void)
 
 	//BtHfDeinitialize();	
 	AudioCoreProcessConfig((void*)AudioNoAppProcess);
-
-	//AEC
-	BtHf_AECDeinit();
 
 	//msbc
 	//if(gBtHfCt->codecType == HFP_AUDIO_DATA_mSBC)

@@ -25,7 +25,6 @@
 extern "C" {
 #endif//__cplusplus
 
-
 /**
  * DAC Module Select
  */
@@ -39,7 +38,6 @@ typedef enum _SCRAMBLE_MODULE
 	DWA = 0,
 	RANDOM_DWA = 1,
 	POS_NEG = 2
-
 }SCRAMBLE_MODULE;
 
 typedef enum _DOUT_MODE
@@ -79,7 +77,6 @@ typedef enum _EDGE
 	NEGEDGE = 1
 }EDGE;
 
-
 typedef enum DAC_Model
 {
 	DAC_Single,   //单端
@@ -91,6 +88,12 @@ typedef enum DAC_LoadStatus
 	DAC_NOLoad = 0, //不带负载
 	DAC_Load     	//带负载
 } DAC_LoadStatus;
+
+typedef enum PVDD_Model
+{
+	PVDD16 = 0, //使用1.6V电源
+	PVDD33     	//使用3.3V电源
+} PVDD_Model;
 
 /**
  * @brief  Audio DAC module enable
@@ -148,7 +151,6 @@ void AudioDAC_Pause(DAC_MODULE DACModule);
  */
 void AudioDAC_Run(DAC_MODULE DACModule);
 
-
 /**
  * @brief  Audio DAC output mode set
  * @param  DoutOut 	MODE0 = 0,// L_o=L_i;R_o=R_i;
@@ -204,7 +206,6 @@ void AudioDAC_DsmOutdisModeSet(DAC_MODULE DACModule,uint8_t mode);
  */
 void AudioDAC_ZeroNumSet(DAC_MODULE DACModule,uint8_t sel);
 
-
 /**
  * @brief  Audio DAC dither pow set
  * @param  DACModule which AudioDAC you will use
@@ -220,7 +221,6 @@ void AudioDAC_DitherPowSet(DAC_MODULE DACModule,uint32_t DitherPow);
  */
 uint32_t AudioDAC_DitherPowGet(DAC_MODULE DACModule);
 
-
 /**
  * @brief  Audio DAC get sampler rate
  * @param  DACModule which AudioDAC you will use
@@ -235,7 +235,6 @@ uint32_t AudioDAC_SampleRateGet(DAC_MODULE DACModule);
  * @return NONE
  */
 void AudioDAC_SampleRateSet(DAC_MODULE DACModule,uint32_t SampleRate);
-
 
 /**
  * @brief  Audio DAC reset the reg data and mem data
@@ -365,9 +364,11 @@ void AudioDAC_IBSelect(DAC_MODULE DACModule, uint8_t VrefpL, uint8_t VrefpR);
  * @brief All Analog power on DAC
  * @param DACModel: DAC_Single 单端，DAC_Diff 差分
  * @param DAC_LoadStatus: DAC_NOLoad 不带负载，DAC_Load 带负载
+ * @param PVDDModel：PVDD16 使用1.6V电源 ; PVDD33 使用3.3V电源
+ * @note  使用PVDD16时不要使用单端模式
  * @return TRUE:sucess,FALSE:failure
  */
-bool AudioDAC_AllPowerOn(DAC_Model DACModel, DAC_LoadStatus DACLoadStatus);
+bool AudioDAC_AllPowerOn(DAC_Model DACModel, DAC_LoadStatus DACLoadStatus, PVDD_Model PVDDModel);
 
 /**
  * @brief All Analog power Down DAC
@@ -397,7 +398,7 @@ void AudioDAC_SCFMute(DAC_MODULE DACModule, bool MuteL, bool MuteR);
  *  					EXTMODE3 = 3,//L=L_int+L_ext,R=R_int+0
  * @return NONE
  */
-void AudioDAC_EXTEnable(DMIX_MODE DMIXMODE,EXT_MODE EXTMODE);
+void AudioDAC_EXTEnable(DMIX_MODE DMIXMODE, EXT_MODE EXTMODE);
 
 /**
  * @brief  Audio DAC mdac EXT path disable

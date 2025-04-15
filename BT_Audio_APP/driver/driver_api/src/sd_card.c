@@ -132,8 +132,9 @@ void SDCard_ControllerInit(void)
 	if(SDIOMutex == NULL)
 		SDIOMutex = osMutexCreate();
 #endif
-	SDIO_SysToSdioDivSet(1);
+	SDIO_SysToSdioDivSet(15);
 	SDIO_Init();
+	SDIO_ClkSet(15);
 	SDIO_ByteModeEnable();
 	SDCard.CardInit = SD_CONTROLER_INIT;
 }
@@ -444,6 +445,7 @@ SD_CARD_ERR_CODE SDCard_Identify(void)
 SD_CARD_ERR_CODE SDCard_Init(void)
 {
 	uint8_t Retry = 4;
+	int32_t err=0;
 #ifdef FUNC_OS_EN
 	osMutexLock(SDIOMutex);
 #endif
@@ -459,11 +461,13 @@ SD_CARD_ERR_CODE SDCard_Init(void)
 	{
 		WDG_Feed();
 		SDCard_Detect();//主要是探测是否有卡插入
-		if(SDCard_Identify() == NONE_ERR)
+		err=SDCard_Identify();
+		if(err == NONE_ERR)
 		{
-			DBG("CardGetInfo OK\n");
+			CARD_DBG("CardGetInfo OK\n");
 			break;
 		}
+		DBG("err = %d\n",err);
 		if(!(--Retry))
 		{
 			DBG("retry 4 times was still failed\n");
@@ -473,7 +477,7 @@ SD_CARD_ERR_CODE SDCard_Init(void)
 			return GET_SD_CARD_INFO_ERR;
 		}
 	}
-
+	SDIO_SysToSdioDivSet(1);
 	SDIO_ClkSet(SDCard.MaxTransSpeed);
 	SDIO_ClkEnable();
 #ifdef FUNC_OS_EN
