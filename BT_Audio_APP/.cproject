@@ -100,6 +100,7 @@
 								<option id="nds.c.compiler.option.optimization.removesections.function.642468704" name="Remove unused function sections (-ffunction-sections)" superClass="nds.c.compiler.option.optimization.removesections.function" value="true" valueType="boolean"/>
 								<option id="nds.c.compiler.option.optimization.removesections.data.766274609" name="Remove unused data sections (-fdata-sections)" superClass="nds.c.compiler.option.optimization.removesections.data" value="true" valueType="boolean"/>
 								<option id="nds32le-elf-mculib-v3s.c.compiler.option.optimization.level.base.1312002207" name="Optimization Level" superClass="nds32le-elf-mculib-v3s.c.compiler.option.optimization.level.base" value="nds.c.optimization.level.space.mOs1" valueType="enumerated"/>
+								<option id="nds.c.compiler.option.optimization.flags.902723598" superClass="nds.c.compiler.option.optimization.flags" value="-fwrapv" valueType="string"/>
 								<inputType id="tool.nds.c.compiler.input.619503611" superClass="tool.nds.c.compiler.input"/>
 							</tool>
 							<tool command="$(CROSS_COMPILE)gcc" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser" id="tool.nds32le-elf-mculib-v3s.c.linker.base.1485094752" name="Andes C Linker" superClass="tool.nds32le-elf-mculib-v3s.c.linker.base">
