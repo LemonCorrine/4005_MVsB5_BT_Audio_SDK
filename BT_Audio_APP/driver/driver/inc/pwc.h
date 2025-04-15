@@ -114,28 +114,28 @@ typedef struct __PWC_StructInit
 
     uint8_t  PwcOpt;           	 //0: first valid edge not generate dma req  1: first valid edge generate dma req
           
-    uint8_t  MasterModeSel;      //000: Reset - timer3_ug is used as trigger out
+    uint8_t  MasterModeSel;      //000: Reset - timer6_ug is used as trigger out
      							 //001: Update - the update event is used as trigger out
    								 //010: PWM - pwm_o1 is used as trigger out.
     uint8_t  MasterSlaveSel;     //0: trigger input is no action
                                 //1: the counter is reset by the posedge of trigger input
     /*TriggerInSrc
-     * 	Timer3:
-     *      00: Internal trigger 0 (itr0), Timer4
-     *      01: Internal trigger 1 (itr1), Timer5
-     *      10: Internal trigger 2 (itr2), Timer6
-     *  Timer4:
-     *      00: Internal trigger 0 (itr0), Timer3
-     *      01: Internal trigger 1 (itr1), Timer5
-     *      10: Internal trigger 2 (itr2), Timer6
-     *  Timer5:
-     *      00: Internal trigger 0 (itr0), Timer3
-     *      01: Internal trigger 1 (itr1), Timer4
-     *      10: Internal trigger 2 (itr2), Timer6
+     * 	Timer5:
+     *      00: Internal trigger 0 (itr0), Timer6
+	 *		01: Internal trigger 1 (itr1), Timer7
+	 *		10: Internal trigger 2 (itr2), Timer8
      *  Timer6:
-     *      00: Internal trigger 0 (itr0), Timer3
-     *      01: Internal trigger 1 (itr1), Timer4
-     *      10: Internal trigger 2 (itr2), Timer5*/
+     *      00: Internal trigger 0 (itr0), Timer5
+	 *		01: Internal trigger 1 (itr1), Timer7
+	 *		10: Internal trigger 2 (itr2), Timer8
+     *  Timer7:
+     *      00: Internal trigger 0 (itr0), Timer5
+	 *		01: Internal trigger 1 (itr1), Timer6
+	 *		10: Internal trigger 2 (itr2), Timer8
+     *  Timer8:
+     *      00: Internal trigger 0 (itr0), Timer5
+	 *		01: Internal trigger 1 (itr1), Timer6
+	 *		10: Internal trigger 2 (itr2), Timer7*/
     uint8_t  TriggerInSrc;
 
     uint8_t  CcxmAndCccUpdataSel;  //0: the timerX_ccxm and timerX_ccc only update when timerX_ug or timerX_com set
@@ -174,7 +174,7 @@ typedef struct _PWC_IOCTRL_ARG
 /**
  * @brief      将GPIO复用为PWC引脚或还原为GPIO引脚.
  *
- * @param[in]  TimerId  定时器选择，注意：PWC只适用GTIMER: TIMER3/TIMER4/TIMER5/TIMER6
+ * @param[in]  TimerId  定时器选择，注意：PWC只适用GTIMER: TIMER5/TIMER6/TIMER7/TIMER8
  * @param[in]  PWCIoSel  gpio pwc input select
 						   note:all gpio can be PWC input and should enable IE witch is the selected gpio by software
 						   -------------------------------------------------------
@@ -208,7 +208,7 @@ PWC_ERROR_CODE PWC_GpioConfig(TIMER_INDEX TimerId, uint8_t PWCIoSel);
 /**
  * @brief     选择一个定时器下PWC1通道并配置参数
  *
- * @param[in] TimerIdx  定时器索引号，只支持TIMER3、TIMER4
+ * @param[in] TimerIdx  定时器索引号，只支持TIMER5、TIMER6、TIMER7、TIMER8
  * @param[in] PWCParam  PWC初始化参数，详细参考 PWCInfo
  *
  * @return    错误号：0 - 正确，其他为错误，详细参考PWC_ERROR_CODE
@@ -218,7 +218,7 @@ PWC_ERROR_CODE PWC_Config(TIMER_INDEX TimerIdx, PWC_StructInit *PWCParam);
 /**
  * @brief     使能TimerIdx下的PWC通道进行采集
  *
- * @param[in] TimerIdx  定时器索引号，只支持TIMER3、TIMER4
+ * @param[in] TimerIdx  定时器索引号，只支持TIMER5、TIMER6、TIMER7、TIMER8
  *
  * @return    错误号：0 - 正确，其他为错误，详细参考PWC_ERROR_CODE
  */
@@ -227,7 +227,7 @@ PWC_ERROR_CODE PWC_Enable(TIMER_INDEX TimerIdx);
 /**
  * @brief     关闭TimerIdx下的PWC通道进行采集
  *
- * @param[in] TimerIdx  定时器索引号，只支持TIMER3、TIMER4
+ * @param[in] TimerIdx  定时器索引号，只支持TIMER5、TIMER6、TIMER7、TIMER8
  *
  * @return    错误号：0 - 正确，其他为错误，详细参考PWC_ERROR_CODE
  */
@@ -237,7 +237,7 @@ PWC_ERROR_CODE PWC_Disable(TIMER_INDEX TimerIdx);
 /**
  * @brief     读取TimerIdx下的一路PWC捕获的数据
  *
- * @param[in] TimerIdx  定时器索引号，只支持TIMER3、TIMER4
+ * @param[in] TimerIdx  定时器索引号，只支持TIMER5、TIMER6、TIMER7、TIMER8
  *
  * @return    0xffff -- 数据溢出，其他：PWC获取到的数据
  */
@@ -248,7 +248,7 @@ uint32_t PWC_CaptureValueGet(TIMER_INDEX TimerIdx);
 /**
  * @brief     TimerIdx下的PWC操作
  *
- * @param[in] TimerIdx  定时器索引号，只支持TIMER3、TIMER4
+ * @param[in] TimerIdx  定时器索引号，只支持TIMER5、TIMER6、TIMER7、TIMER8
  *
  * @return    >=0: 正确数值， < 0: 错误返回值
  */

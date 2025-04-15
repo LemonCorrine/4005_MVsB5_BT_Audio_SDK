@@ -687,7 +687,7 @@ void BreakPointSave(uint16_t device_msgId)
 			pBpSysInfo->EqMode		 = mainAppCt.EqMode;
 #endif	
 			pBpSysInfo->MicEffectDelayStep   = mainAppCt.MicEffectDelayStep;
-#ifdef CFG_FUNC_MUSIC_TREB_BASS_EN			
+#ifdef CFG_FUNC_MIC_TREB_BASS_EN
 			pBpSysInfo->MicBassStep     = mainAppCt.MicBassStep;
 			pBpSysInfo->MicTrebStep     = mainAppCt.MicTrebStep;
 #endif

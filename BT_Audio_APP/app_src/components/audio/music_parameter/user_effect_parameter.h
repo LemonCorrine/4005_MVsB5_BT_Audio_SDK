@@ -30,6 +30,7 @@ typedef struct _AUDIOEFFECT_EFFECT_ADDR
 	uint8_t ECHO_ADDR;
 	uint8_t VOCAL_CUT_ADDR;
 	uint8_t SILENCE_DETECTOR_ADDR;
+	uint8_t SILENCE_DETECTOR_MUSIC_ADDR;
 	uint8_t VOICE_CHANGER_ADDR;
 	uint8_t APP_SOURCE_GAIN_ADDR;
 	uint8_t REMIND_SOURCE_GAIN_ADDR;
@@ -53,6 +54,7 @@ typedef enum _AUDIOEFFECT_EFFECT_NUM
 	ECHO,
 	VOCAL_CUT,
 	SILENCE_DETECTOR,
+	SILENCE_DETECTOR_MUSIC,
 	VOICE_CHANGER,
 	APP_SOURCE_GAIN,
 	I2S_MIX_SOURCE_GAIN,
@@ -273,7 +275,7 @@ void AudioEffect_ReverbPlateStep_Ajust(uint8_t ReverbStep);
  * @param  effect : expected audio effect
  * @return uint16_t : SilenceDetector level
  */
-uint16_t AudioEffect_SilenceDetector_Get(AUDIOEFFECT_EFFECT_NUM effect);
+int32_t AudioEffect_SilenceDetector_Get(AUDIOEFFECT_EFFECT_NUM effect);
 
 /**
  * @brief  Get GainControl gain level
@@ -406,4 +408,28 @@ void AudioEffectParamSync(void);
  * @return bool : TRUE or FALSE
  */
 bool AudioEffect_effectAddr_check(uint8_t addr);
+
+/**
+ * @brief  Save effect parameters to flash
+ * @param  void
+ * @return None
+ */
+void EffectParamFlashUpdata(void);
+
+/**
+ * @brief  Get effect hardware config from flash
+ * @param  effectMode : effect mode in enum EFFECT_MODE
+ * @param  hw_ct : effect hardware config data pointer
+ * @return bool : TRUE or FALSE
+ */
+bool AudioEffect_GetFlashHwCfg(uint8_t effectMode, HardwareConfigContext *hw_ct);
+
+/**
+ * @brief  Get effect parameters from flash
+ * @param  effectMode : effect mode in enum EFFECT_MODE
+ * @param  hw_ct : effect parameters data pointer
+ * @return bool : TRUE or FALSE
+ */
+bool AudioEffect_GetFlashEffectParam(uint8_t effectMode,  uint8_t *effect_param);
+
 #endif

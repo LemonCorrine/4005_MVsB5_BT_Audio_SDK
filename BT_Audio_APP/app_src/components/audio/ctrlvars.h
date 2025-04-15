@@ -22,7 +22,10 @@ extern "C" {
 #include "app_config.h"
 #include "bt_config.h"
 #include "audio_core_api.h"
+#include "sys.h"
 #include "clk.h"
+#include "timer.h"
+#include "irqn.h"
 
 #define  MIN_BASS_TREB_GAIN             (0)
 #define  MAX_BASS_TREB_GAIN             (15)
@@ -39,15 +42,15 @@ extern "C" {
 typedef enum _EFFECT_MODE
 {
 	EFFECT_MODE_DEFAULT = 0,
-	/**********mic node****************/
+	/**********mic mode****************/
 	EFFECT_MODE_MIC,
-	/**********music node**************/
+	/**********music mode**************/
 	EFFECT_MODE_MUSIC,
-	/**********bypass node*************/
+	/**********bypass mode*************/
 	EFFECT_MODE_BYPASS,
-	/**********hfp node****************/
+	/**********hfp mode****************/
 	EFFECT_MODE_HFP_AEC,
-	/**********karaoke node************/
+	/**********karaoke mode************/
     EFFECT_MODE_HunXiang,
     EFFECT_MODE_DianYin,
     EFFECT_MODE_MoYin,
@@ -269,6 +272,28 @@ typedef struct _ControlVariablesContext
 	#endif
 }ControlVariablesContext;
 
+#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
+typedef struct _SyncModuleContext
+{
+	uint64_t gI2sBclkCnt;
+	uint64_t gDacMclkCnt;
+	uint8_t  gRefreshFlag;
+	uint8_t  gClearDoneFlag;
+	uint64_t gMClkFromBCLK;
+	uint64_t gMClkFromDPLL;
+	uint32_t gSyncTimerCnt;
+	uint16_t defVal_bak;
+	uint16_t dat;
+	uint16_t clkRatio;
+}SyncModuleContext;
+
+#define SYNC_TIMER_INDEX        TIMER4  //定时器
+#define SYNC_TIMER_OUT_VALUE    100000 //定时器的间隔值，单位us
+#define BCLK_MCLK_RATIO         4       //MCLK和BCLK的比值， 48K与12.288M是4， 44.1与11.2896M是4.。。
+#define MCLK_DIV_VALUE          20
+
+extern SyncModuleContext gSyncModule;
+#endif
 extern ControlVariablesContext gCtrlVars;
 
 extern const uint16_t HPCList[3];
@@ -284,6 +309,13 @@ void AudioLine3MicSelect(void);
 //音效参数更新之后同步更新模拟Gain和数字Vol
 //只更新增益相关参数，其他参数比如通道选择不会同步更新，必须由SDK代码来实现
 void AudioCodecGainUpdata(void);
+
+#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
+void SyncModule_Init(void);
+void SyncModule_Reset(void);
+void SyncModule_Get(void);
+void SyncModule_Process(void);
+#endif
 
 extern const uint16_t DigVolTab_256[256];
 extern const int16_t DigVolTab_64[64];

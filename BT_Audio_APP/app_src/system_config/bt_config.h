@@ -33,6 +33,12 @@
 //蓝牙双手机连接开关
 //#define BT_MULTI_LINK_SUPPORT
 
+/*****************************************************************
+ * 蓝牙名称注意事项:
+ * 1.蓝牙名称支持中文,需要使用URL编码,开启bt_name.h,屏蔽此文件下的BT_NAME定义
+ * 2.BLE的名称修改在ble广播数据中体现(ble_app_func.c)
+ *****************************************************************/
+//#include "bt_name.h"
 #define BT_NAME						"BP15_BT"
 #define BLE_NAME					"BP15_BLE"
 
@@ -267,13 +273,6 @@ enum
 //#define BT_HFP_MIC_PGA_GAIN				14  //ADC PGA GAIN +2db(0~31, 0:max, 31:min)
 //#define BT_HFP_MIC_DIGIT_GAIN				4095
 //#define BT_HFP_INPUT_DIGIT_GAIN			4095
-
-#define BT_HFP_AEC_ECHO_LEVEL			4 //Echo suppression level: 0(min)~5(max)
-#define BT_HFP_AEC_NOISE_LEVEL			2 //Noise suppression level: 0(min)~5(max)
-
-#define BT_HFP_AEC_MAX_DELAY_BLK		32
-#define BT_HFP_AEC_DELAY_BLK			4 //MIC无运放参考值
-//#define BT_HFP_AEC_DELAY_BLK			14 //MIC有运放参考值(参考开发板)
 
 //来电通话时长配置选项
 #define BT_HFP_CALL_DURATION_DISP

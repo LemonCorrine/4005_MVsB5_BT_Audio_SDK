@@ -30,7 +30,7 @@ extern "C"{
 #define REMAP_DBG(format, ...)		//DBG(format, ##__VA_ARGS__)
 
 #define FLASH_ADDR 			0x0
-#define TCM_SIZE   			3//8
+#define TCM_SIZE   			8//4
 #define SRAM_END_ADDR		0x2003C000
 #define TCM_SRAM_START_ADDR	0x20002000
 

@@ -24,6 +24,9 @@
 #include "audio_vol.h"
 #include "recorder_service.h"
 #include "watchdog.h"
+#include "can_func.h"
+#include "otg_device_standard_request.h"
+
 #define SYS_MODE_NUM_MESSAGE_QUEUE			20
 #define SYS_MODE_MSG_TIMEOUT 				1
 #define MODE_TASK_PRIO						4
@@ -654,6 +657,15 @@ static void SysModeRun(uint16_t MsgId)
 			SysMode[i_count].SysModeRun(MsgId);
 		}
 	}
+#ifdef CFG_EFFECT_PARAM_UPDATA_BY_ACPWORKBENCH
+	extern bool EffectParamFlashUpdataFlag;
+	if(EffectParamFlashUpdataFlag
+		&& GetSystemMode() != ModeIdle)
+	{
+		EffectParamFlashUpdataFlag = FALSE;
+		EffectParamFlashUpdata();
+	}
+#endif	
 }
 
 /**
@@ -674,8 +686,8 @@ static void SysModeEntrance(void * param)
 #endif
 
 #ifdef CFG_FUNC_RECORDER_EN
-			void MediaRecorderEncode(void);
-			MediaRecorderEncode();
+		void MediaRecorderEncode(void);
+		MediaRecorderEncode();
 #endif
 
 		SysModeDeinit();
@@ -684,11 +696,29 @@ static void SysModeEntrance(void * param)
 		{
 			ModeInputFunction.RemindRun(ModeStateRunning);
 		}
+#ifdef CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN//usb path
+		if((GetSystemMode() != ModeIdle)
+		&& (GetSystemMode() != ModeUsbDevicePlay)
+		&& (GetSystemMode() != ModeUDiskAudioPlay)
+		)
+		{
+#ifdef CFG_COMMUNICATION_BY_USB
+			if(GetUSBDeviceInitState())
+			{
+				OTG_DeviceRequestProcess();
+			}
+#endif
+		}
+#endif
 #ifdef CFG_FUNC_RECORDER_EN
 		RecServierMsg(&msg.msgId);
 #endif
 		SysModeRun(msg.msgId);
 		EventSendAgainProcess();
+
+#ifdef CFG_FUNC_CAN_DEMO_EN
+		CAN_FuncEntrance();
+#endif
 	}
 }
 

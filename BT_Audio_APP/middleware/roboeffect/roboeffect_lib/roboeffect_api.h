@@ -13,7 +13,7 @@
 #define __ROBOEFFECT_API_H__
 
 /*Roboeffect Library version*/
-#define ROBOEFFECT_LIB_VER "2.14.0"
+#define ROBOEFFECT_LIB_VER "2.15.0"
 
 #include <stdio.h>
 #include <nds32_intrinsic.h>
@@ -344,7 +344,7 @@ int32_t roboeffect_get_memory_max_size(const roboeffect_effect_steps_table *exec
 int32_t roboeffect_get_memory_current_size(const roboeffect_effect_steps_table *effect_steps, const roboeffect_effect_list_info *effect_list, const uint8_t *parameters);
 
 /**
- * @brief Get context memory size of ONE effect according to address.
+ * @brief Get context memory size of ONE effect according to address, can be called BEFORE roboeffect_init().
  * 
  * @param address : effect address 
  * @param effect_list : execution effect list
@@ -352,6 +352,25 @@ int32_t roboeffect_get_memory_current_size(const roboeffect_effect_steps_table *
  * @return int32_t : memory size in Bytes; if < 0, check ROBOEFFECT_ERROR_CODE
  */
 int32_t roboeffect_get_effect_memory_size(uint8_t address, const roboeffect_effect_list_info *effect_list, const uint8_t *parameters);
+
+/**
+ * @brief Get context memory size of ONE effect according to address, should be called AFTER roboeffect_init();
+ *
+ * @param main_context : main context memory allocated by user.
+ * @param address : effect address .
+ * @param context_size : output context size of effect, only valid when the return value is ROBOEFFECT_ERROR_CODE.
+ * @return ROBOEFFECT_ERROR_CODE 
+ */
+ROBOEFFECT_ERROR_CODE roboeffect_get_effect_memory_size_runtime(void *context, uint8_t address, uint32_t *context_size);
+
+/**
+ * @brief Estimate frame size of the flow chart based on parameters.
+ * 
+ * @param effect_list : execution effect list
+ * @param parameters : effects parameters data
+ * @return uint32_t : 0 for error
+ */
+uint32_t roboeffect_estimate_frame_size(roboeffect_effect_list_info *exec_efft, uint8_t *param);
 
 /**
  * @brief initial context for roboeffect

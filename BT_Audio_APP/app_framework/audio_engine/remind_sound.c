@@ -386,9 +386,12 @@ void RemindMp2Decode(void)
 			memset(Mp2Decode,0,sizeof(struct _Mp2DecodeContext));
 		else
 		{
+			APP_DBG("RemindSound Malloc ERROR!!!\n");
 			RemindSoundAudioPlayEnd();
 			RemindSoundCt.NeedUnmute = TRUE;
 			RemindSoundPlayEndNotify();
+			RemindSoundCt.EmptyIndex = 0;
+			RemindSoundCt.ItemState = REMIND_ITEM_IDLE;
 			return;
 		}
 #endif

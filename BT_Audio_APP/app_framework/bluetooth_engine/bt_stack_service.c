@@ -1314,7 +1314,7 @@ void BtPowerOff(void)
 	}
 	
 	//bb reset
-	rwip_reset();
+//	rwip_reset();
 	BT_IntDisable();
 	//Kill bt stack service
 	BtStackServiceKill();

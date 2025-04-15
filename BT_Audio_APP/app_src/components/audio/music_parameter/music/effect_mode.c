@@ -18,7 +18,7 @@ static const AUDIOEFFECT_EFFECT_PARA effect_para[] =
 	}
 };
 
-const AUDIOEFFECT_EFFECT_PARA_TABLE music_node =
+const AUDIOEFFECT_EFFECT_PARA_TABLE music_mode =
 {
 	//ROBOEFFECT effect ID 通过这个ID来搜索匹配
 	.effect_id    = EFFECT_MODE_MUSIC ,
@@ -31,6 +31,8 @@ const AUDIOEFFECT_EFFECT_PARA_TABLE music_node =
 		.APP_SOURCE_GAIN_ADDR = MUSIC_gain_control0_ADDR,
 		.MIC_SOURCE_GAIN_ADDR = MUSIC_mic_gain_ADDR,
 		.REMIND_SOURCE_GAIN_ADDR = MUSIC_gain_control3_ADDR,
+		.SILENCE_DETECTOR_ADDR = MUSIC_silence_detector_mic_ADDR,
+		.SILENCE_DETECTOR_MUSIC_ADDR = MUSIC_silence_detector_music_ADDR,
 	},
 
 	//ROBOEFFECT effect SOURCE映射

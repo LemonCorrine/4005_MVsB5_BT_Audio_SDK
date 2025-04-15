@@ -278,12 +278,62 @@ bool Power_HRCCtrlByHwDuringDeepSleep(bool IsOpen);
 void RF_PowerDown(void);
 
 /**
- * @brief  config power LDO33D Power_LDO33DConfig
- * @param  level:  0-3.0V  1-3.3v
- * @return void
- * @note   none
+* @brief  获取LDO11D配置的电压值
+* @param  void
+* @return uint16_t 电压值，单位：mV
+* @note   none
+*/
+uint16_t Power_GetLDO11DConfigVoltage();
+
+/**
+* @brief  获取LDO16配置的电压值
+* @param  void
+* @return uint16_t 电压值，单位：mV
+* @note   none
+*/
+uint16_t Power_GetLDO16ConfigVoltage();
+
+/**
+* @brief  获取LDO33D配置的电压值
+* @param  void
+* @return uint16_t 电压值，单位：mV
+* @note   none
+*/
+uint16_t Power_GetLDO33DConfigVoltage();
+
+/**
+* @brief  获取LDO33A配置的电压值
+* @param  void
+* @return uint16_t 电压值，单位：mV
+* @note   none
+*/
+uint16_t Power_GetLDO33AConfigVoltage();
+
+/**
+ * @brief  config power LDO33D voltage
+ * @param  level: 0：2.7V  
+ *                1：2.8V
+ *                2：2.9V
+ *                3：3.0V
+ *                4：3.1V
+ *                5：3.2V
+ *                6：3.3V
+ * @return none
+ * @note   芯片个体之间会有稍许差异和偏差，偏差范围在0mV~50mV之间；其中2.9V和3.0V挡位偏差较大在80-180mV
  */
 void Power_LDO33DConfig(uint8_t level);
+
+/**
+* @brief  config power LDO33A voltage
+* @param  value: 0:3.1V
+                 1:3.2V 
+                 2:3.3V 
+                 3:3.4V  
+                 4:3.5V
+* @return void
+* @note  芯片个体之间会有稍许差异和偏差，偏差范围在0mV~30mV之间；
+*/
+void Power_LDO33AConfig(uint8_t level);
 
 /**
  * @brief  config power LDO33D high current limit

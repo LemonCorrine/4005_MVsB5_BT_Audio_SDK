@@ -21,7 +21,6 @@
 #include "main_task.h"
 #include "app_config.h"
 #include "communication.h"
-#include "otg_device_standard_request.h"
 #include "device_detect.h" 
 #include "audio_core_service.h"
 #include "audio_core_api.h"
@@ -149,21 +148,6 @@ static void AudioCoreServiceEntrance(void * param)
 			//audiocore 在转模式的时候可能暂停 Mark
 			AudioCoreRun();
 		}
-
-#ifdef CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN//usb path
-		if((GetSystemMode() != ModeIdle)
-		&& (GetSystemMode() != ModeUsbDevicePlay)
-		&& (GetSystemMode() != ModeUDiskAudioPlay)
-		)
-		{
-#ifdef CFG_COMMUNICATION_BY_USB
-			if(GetUSBDeviceInitState()) 	
-			{
-				OTG_DeviceRequestProcess();
-			}
-#endif
-		}
-#endif
 	}
 }
 

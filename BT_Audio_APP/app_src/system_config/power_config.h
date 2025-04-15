@@ -88,7 +88,7 @@
 	#define SYS_FLASH_FREQ_SELECT		((SYS_CORE_APLL_FREQ/3)*1000) 	//Hz
 
 	//“Ù∆µ ±÷”
-	#define	SYS_AUDIO_CLK_SELECT		APLL_CLK_MODE
+	#define	SYS_AUDIO_CLK_SELECT		PLL_CLK_MODE
 
 #else
 	#define	SYS_CORE_APLL_FREQ			240*1000		//kHZ

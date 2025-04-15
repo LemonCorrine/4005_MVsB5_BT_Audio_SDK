@@ -38,6 +38,7 @@
 #include "idle_mode.h"
 #include "flash_table.h"
 #include "sys_param.h"
+#include "pmu.h"
 
 #include "bt_em_config.h"
 
@@ -97,7 +98,9 @@ void OneMSTimer(void)
 #if defined(CFG_APP_IDLE_MODE_EN)&&defined(CFG_FUNC_REMIND_SOUND_EN)
 	gIdleRemindSoundTimeOutTimer++;
 #endif
-
+#ifdef CFG_FUNC_SILENCE_AUTO_POWER_OFF_EN
+	mainAppCt.Silence_Power_Off_Time++;
+#endif
 }
 
 void Timer2Interrupt(void)
@@ -280,7 +283,7 @@ int main(void)
 //#endif
 
 	//如果需要使用NVM内存时，需要调用该API，第一次系统上电需要清除对NVM内存清零操作，在breakpoint 内实施。
-	//PMU_NVMInit();//BACKUP_NVMInit();
+	PMU_NVMInit();
 
 	//Power_DeepSleepLDO12Config(1);//Power_LDO12Config(1250);	//使用320M主频时需要提升到1.25v，使用288M则可以屏蔽掉这行 //ZSQ
 

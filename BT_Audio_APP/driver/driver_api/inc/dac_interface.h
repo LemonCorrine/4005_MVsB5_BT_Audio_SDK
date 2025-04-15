@@ -25,6 +25,7 @@ typedef struct __DACParamCt
 	DAC_LoadStatus DACLoadStatus;
 	PVDD_Model PVDDModel;
 	DAC_EnergyModel DACEnergyModel;
+	DAC_VcomModel DACVcomModel;
 } DACParamCt;
 
 void AudioDAC_Init(DACParamCt *ct, uint32_t SampleRate, uint16_t BitWidth, void *Buf, uint16_t Len,  void *BufEXT, uint16_t LenEXT);

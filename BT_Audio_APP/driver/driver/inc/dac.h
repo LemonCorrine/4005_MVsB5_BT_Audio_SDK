@@ -101,6 +101,12 @@ typedef enum DAC_EnergyModel
 	DACCommonEnergy
 } DAC_EnergyModel;
 
+typedef enum DAC_VcomModel
+{
+	Disable = 0,
+	Direct     //vcom直驱耳机
+} DAC_VcomModel;
+
 /**
  * @brief  Audio DAC module enable
  * @param  DACModule which AudioDac you will use
@@ -211,6 +217,12 @@ void AudioDAC_DsmOutdisModeSet(DAC_MODULE DACModule,uint8_t mode);
  * @return NONE
  */
 void AudioDAC_ZeroNumSet(DAC_MODULE DACModule,uint8_t sel);
+
+/**
+ * @brief  Use optimized DSM
+ * @return NONE
+ */
+void AudioDAC_DsmOptimizeSet(void);
 
 /**
  * @brief  Audio DAC dither pow set
@@ -372,10 +384,11 @@ void AudioDAC_IBSelect(DAC_MODULE DACModule, uint8_t VrefpL, uint8_t VrefpR);
  * @param DAC_LoadStatus: DAC_NOLoad 不带负载，DAC_Load 带负载
  * @param PVDDModel：PVDD16 使用1.6V电源 ; PVDD33 使用3.3V电源
  * @param DACEnergyModel：LowEnergy 低功耗模式; CommonEnergy 普通功耗模式
+ * @param DACVcomModel：Direct Vcom直驱耳机模式; Disable：不使用Vcom
  * @note  使用PVDD16时不要使用单端模式
  * @return TRUE:sucess,FALSE:failure
  */
-bool AudioDAC_AllPowerOn(DAC_Model DACModel, DAC_LoadStatus DACLoadStatus, PVDD_Model PVDDModel, DAC_EnergyModel DACEnergyModel);
+bool AudioDAC_AllPowerOn(DAC_Model DACModel, DAC_LoadStatus DACLoadStatus, PVDD_Model PVDDModel, DAC_EnergyModel DACEnergyModel, DAC_VcomModel DACVcomModel);
 
 /**
  * @brief All Analog power Down DAC
@@ -405,17 +418,13 @@ void AudioDAC_SCFMute(DAC_MODULE DACModule, bool MuteL, bool MuteR);
  *  					EXTMODE3 = 3,//L=L_int+L_ext,R=R_int+0
  * @return NONE
  */
-void AudioDAC_EXTEnable(DMIX_MODE DMIXMODE, EXT_MODE EXTMODE);
+void AudioDAC_ExternalEnable(DMIX_MODE DMIXMODE,EXT_MODE EXTMODE);
 
 /**
  * @brief  Audio DAC mdac EXT path disable
  * @return NONE
  */
-void AudioDAC_EXTDisable(void);
-
-//From now on MDAC0_DSM_SEL will use 1
-void AudioDAC_DsmOptimizeSet(void);
-void AudioDAC_ExternalEnable(DMIX_MODE DMIXMODE,EXT_MODE EXTMODE);
+void AudioDAC_ExternalDisable(void);
 
 #ifdef  __cplusplus
 }

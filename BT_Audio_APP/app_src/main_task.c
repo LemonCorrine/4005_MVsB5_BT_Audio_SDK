@@ -35,6 +35,7 @@
 #include "idle_mode.h"
 #include "bt_app_connect.h"
 #include <components/soft_watchdog/soft_watch_dog.h>
+#include "can_func.h"
 
 MainAppContext	mainAppCt;
 #ifdef CFG_RES_IR_NUMBERKEY
@@ -219,7 +220,7 @@ static void SysVarInit(void)
 	#endif
 	
 	#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
-	mainAppCt.EffectMode = EFFECT_MODE_FLASH_Music;
+	mainAppCt.EffectMode = AudioEffect_GetFlashEffectMode();
 	#else
 #ifdef CFG_FUNC_EFFECT_BYPASS_EN
 	mainAppCt.EffectMode = EFFECT_MODE_BYPASS;
@@ -397,6 +398,9 @@ static void SystemInit(void)
 //IRKeyInit();//clkÔ´±»¸Ä£¿
 #endif
 
+#ifdef CFG_FUNC_CAN_DEMO_EN
+	CAN_FuncInit();
+#endif
 	DeviceServiceInit();
 	APP_DBG("MainApp:run\n");
 
@@ -471,27 +475,11 @@ static void PublicDetect(void)
 			break;
 		}
 
-		mainAppCt.Silence_Power_Off_Time++;
         if(mainAppCt.Silence_Power_Off_Time >= SILENCE_POWER_OFF_DELAY_TIME)
 		{
 			mainAppCt.Silence_Power_Off_Time = 0;
 			APP_DBG("Silence Power Off!!\n");
-
-			MessageContext		msgSend;
-#if	defined(CFG_IDLE_MODE_POWER_KEY) && (POWERKEY_MODE == POWERKEY_MODE_PUSH_BUTTON)
-			msgSend.msgId = MSG_POWERDOWN;
-			APP_DBG("msgSend.msgId = MSG_DEVICE_SERVICE_POWERDOWN\n");
-#elif defined(CFG_SOFT_POWER_KEY_EN)
-			msgSend.msgId = MSG_SOFT_POWER;
-			APP_DBG("msgSend.msgId = MSG_DEVICE_SERVICE_SOFT_POWEROFF\n");
-#elif defined(CFG_IDLE_MODE_DEEP_SLEEP)
-			msgSend.msgId = MSG_DEEPSLEEP;
-			APP_DBG("msgSend.msgId = MSG_DEVICE_SERVICE_DEEPSLEEP\n");
-#else
-			msgSend.msgId = MSG_POWER;
-			APP_DBG("msgSend.msgId = MSG_POWER\n");
-#endif
-			MessageSend(GetMainMessageHandle(), &msgSend);
+			PowerOffMessage();
         }
 #endif
 

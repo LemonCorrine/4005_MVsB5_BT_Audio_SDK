@@ -1,9 +1,9 @@
 /***************************************************
- * @file     Karaoke.h                      
+ * @file     user_effect_flow_Karaoke.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.7.0                 
+ * @author  ACPWorkbench: 3.8.12                 
  * @version V1.1.0                                  
- * @Created 2023-12-01T17:30:44                                      
+ * @Created 2024-02-06T16:47:59                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define KARAOKE_ROBOEFFECT_LIB_VER "2.14.0"
+#define KARAOKE_ROBOEFFECT_LIB_VER "2.15.0"
 
 typedef enum _KARAOKE_roboeffect_io_enum
 {
@@ -39,6 +39,7 @@ typedef enum _KARAOKE_roboeffect_io_enum
 
 typedef enum _KARAOKE_roboeffect_effect_list_enum{
     KARAOKE_START_ADDR = 0x80,
+    KARAOKE_silence_detector_music_ADDR,
     KARAOKE_gain_control0_ADDR,
     KARAOKE_noise_suppressor_expander0_ADDR,
     KARAOKE_compander0_ADDR,

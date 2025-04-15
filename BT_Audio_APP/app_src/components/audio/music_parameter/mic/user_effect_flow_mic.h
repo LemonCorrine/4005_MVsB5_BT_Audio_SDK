@@ -1,9 +1,9 @@
 /***************************************************
- * @file     mic.h                      
+ * @file     user_effect_flow_mic.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.7.0                 
+ * @author  ACPWorkbench: 3.8.12                 
  * @version V1.1.0                                  
- * @Created 2023-12-01T13:40:02                                      
+ * @Created 2024-02-06T16:37:36                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define MIC_ROBOEFFECT_LIB_VER "2.14.0"
+#define MIC_ROBOEFFECT_LIB_VER "2.15.0"
 
 typedef enum _MIC_roboeffect_io_enum
 {
@@ -35,11 +35,13 @@ typedef enum _MIC_roboeffect_io_enum
 
 typedef enum _MIC_roboeffect_effect_list_enum{
     MIC_START_ADDR = 0x80,
+    MIC_silence_detector_mic_ADDR,
     MIC_mic_eq0_ADDR,
     MIC_mic_ns_ADDR,
     MIC_mic_EQ_ADDR,
     MIC_mic_drc_ADDR,
     MIC_mic_gain_ADDR,
+    MIC_silence_detector_music_ADDR,
     MIC_gain_control0_ADDR,
     MIC_noise_suppressor_expander0_ADDR,
     MIC_gain_control2_ADDR,

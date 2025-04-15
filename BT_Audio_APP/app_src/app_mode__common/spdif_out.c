@@ -11,6 +11,7 @@
 #include "mcu_circular_buf.h"
 #include "spdif_mode.h"
 #include "spdif_out.h"
+#include "ctrlvars.h"
 
 #ifdef CFG_RES_AUDIO_SPDIFOUT_EN
 
@@ -38,6 +39,9 @@ void AudioSpdifOut_SampleRateChange(uint32_t SampleRate)
 
 void AudioSpdifOutParamsSet(void)
 {
+#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
+	SyncModule_Init();
+#endif
 	GPIO_PortAModeSet(GPIOA29, 0x0b);
 	Clock_SpdifClkSelect(PLL_CLK_MODE);//DPLL
 	SPDIF_TXInit(SPDIF_OUT_NUM,1, 1, 0, 10);
@@ -61,7 +65,9 @@ uint16_t AudioSpdifTXDataSet(void* Buf, uint16_t Len)
 #endif
 	DMA_CircularDataPut(SPDIF_OUT_DMA_ID, (void *)SpdifBuf, m & 0xFFFFFFFC);
 
-
+#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
+	SyncModule_Process();
+#endif
 	return 0;
 }
 

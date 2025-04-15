@@ -503,7 +503,7 @@ char *effect_lib_version_return(void)
 }
 
 const uint8_t effect_property_for_display[] = {
-0x02, 0x24, 0x00, //audio_effect_library@2.36.0
+0x02, 0x25, 0x00, //audio_effect_library@2.37.0
 ROBOEFFECT_TOTAL_MAX, //total effect number %d
 /*****auto_tune*****/
 0x14, 0x01, //item len=276
@@ -969,7 +969,7 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****drc end*****/
 /*****echo*****/
-0xDD, 0x00, //item len=221
+0xF6, 0x00, //item len=246
 0x02, 0x02, 0x00, //echo@2.2.0
 0x04, //effect name length
 0x65, 0x63, 0x68, 0x6F, 
@@ -1001,7 +1001,7 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x64, 0x65, 0x6C, 0x61, 0x79, 
 0x02, //value: value
 0x00, 0x00, //min 0
-0xE8, 0x03, //max 1000
+0xB8, 0x0B, //max 3000
 0x01, 0x00, //step 1
 0x90, 0x01, //default: 400
 0x00, 0x00, //method: METHOD_NONE
@@ -1058,7 +1058,8 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x6D, 0x73, 
 0x00, //fract 0
 0x01, 0x00, //ratio 1
-0x00, //tips length 0
+0x19, //tips length 25
+0x6E, 0x6F, 0x74, 0x20, 0x62, 0x69, 0x67, 0x67, 0x65, 0x72, 0x20, 0x74, 0x68, 0x61, 0x6E, 0x20, 0x6D, 0x61, 0x78, 0x20, 0x64, 0x65, 0x6C, 0x61, 0x79, 
 
 0x00, //max delay: spinbox
 0x02, //unit length 2
@@ -2404,10 +2405,10 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 /*****vocal_cut end*****/
 /*****reverb_pro*****/
 0xCD, 0x01, //item len=461
-0x01, 0x03, 0x01, //reverb_pro@1.3.1
+0x01, 0x04, 0x00, //reverb_pro@1.4.0
 0x0A, //effect name length
 0x72, 0x65, 0x76, 0x65, 0x72, 0x62, 0x5F, 0x70, 0x72, 0x6F, 
-0x00, //bits width is 16
+0x02, //bits width is 16/24
 0x02, //input1 channel is stereo
 0x00, //input2 channel is N/A
 0x02, //output channel is stereo
@@ -6075,7 +6076,7 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x03, //display: display
 0x80, 0x00, //min 128
 0x00, 0x02, //max 512
-0xB8, 0x01, //default: 440
+0xB9, 0x01, //default: 441
 0x01, 0x00, //method: METHOD_INIT
 
 0x00, //step_size: spinbox
@@ -6227,7 +6228,7 @@ USER_DEFINED_LIBS_DATA
 
 uint16_t sizeof_effect_property_for_display(void)
 {
-	return sizeof(effect_property_for_display);// 11847 bytes
+	return sizeof(effect_property_for_display);// 11872 bytes
 }
 
 int16_t *roboeffect_get_param_by_raw_data(uint8_t addr, uint8_t *enable, uint8_t *len, const uint8_t *parameters)

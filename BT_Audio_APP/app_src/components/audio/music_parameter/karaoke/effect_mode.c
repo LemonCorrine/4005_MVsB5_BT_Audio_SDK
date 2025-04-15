@@ -91,7 +91,7 @@ static const AUDIOEFFECT_EFFECT_PARA effect_para[] =
 	}
 };
 
-const AUDIOEFFECT_EFFECT_PARA_TABLE karaoke_node =
+const AUDIOEFFECT_EFFECT_PARA_TABLE karaoke_mode =
 {
 	//ROBOEFFECT effect ID 通过这个ID来搜索匹配
 	.effect_id    = EFFECT_MODE_HunXiang ,
@@ -105,6 +105,7 @@ const AUDIOEFFECT_EFFECT_PARA_TABLE karaoke_node =
 		.REVERBPLATE_ADDR = KARAOKE_reverb_plate0_ADDR,
 		.ECHO_ADDR = KARAOKE_echo0_ADDR,
 		.SILENCE_DETECTOR_ADDR = KARAOKE_silence_detector0_ADDR,
+		.SILENCE_DETECTOR_MUSIC_ADDR = KARAOKE_silence_detector_music_ADDR,
 		.VOICE_CHANGER_ADDR = KARAOKE_voice_changer0_ADDR,
 		.APP_SOURCE_GAIN_ADDR = KARAOKE_gain_control0_ADDR,
 		.MIC_SOURCE_GAIN_ADDR = KARAOKE_gain_control1_ADDR,

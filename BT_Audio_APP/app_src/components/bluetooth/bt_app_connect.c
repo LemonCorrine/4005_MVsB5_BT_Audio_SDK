@@ -80,8 +80,11 @@ void BtDisconnectCtrl(void)
 	{
 		if(btManager.btLinked_env[i].btLinkState)
 		{
-			BTDisconnect(i);
-			//BTHciDisconnectCmd(btManager.btLinked_env[i].remoteAddr);
+#ifdef BT_MULTI_LINK_SUPPORT
+			 BTHciDisconnectCmd(btManager.btLinked_env[i].remoteAddr);
+#else
+			 BTDisconnect(i);
+#endif
 		}
 	}
 	

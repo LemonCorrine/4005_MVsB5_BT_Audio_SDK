@@ -18,7 +18,7 @@ static const AUDIOEFFECT_EFFECT_PARA effect_para[] =
 	}
 };
 
-const AUDIOEFFECT_EFFECT_PARA_TABLE bypass_node =
+const AUDIOEFFECT_EFFECT_PARA_TABLE bypass_mode =
 {
 	//ROBOEFFECT effect ID 通过这个ID来搜索匹配
 	.effect_id    = EFFECT_MODE_BYPASS,

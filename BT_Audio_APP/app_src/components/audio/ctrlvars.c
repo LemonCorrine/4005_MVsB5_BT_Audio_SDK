@@ -27,6 +27,9 @@
 #include "user_effect_parameter.h"
 
 ControlVariablesContext gCtrlVars;
+#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
+SyncModuleContext gSyncModule;
+#endif
 
 const int16_t DigVolTab_16[16] =
 {
@@ -495,9 +498,16 @@ void DefaultParamgsInit(void)
 #endif
 #endif
 		}
+
 		para = get_user_effect_parameters(mainAppCt.EffectMode);
 		memcpy(&gCtrlVars.HwCt, para->user_module_parameters, sizeof(gCtrlVars.HwCt));
 	}
+#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
+		if (AudioEffect_GetFlashHwCfg(mainAppCt.EffectMode, &gCtrlVars.HwCt))
+		{
+			DBG("read HwCt from flash ok\n");
+		}
+#endif
 
     //system define
 	gCtrlVars.sample_rate		= CFG_PARA_SAMPLE_RATE;
@@ -632,3 +642,168 @@ void AudioCodecGainUpdata(void)
 		AudioDAC_DitherDisable(DAC0);
 	}
 }
+
+#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
+__attribute__((section(".driver.isr"))) void Timer4Interrupt(void)
+{
+	gSyncModule.gSyncTimerCnt++;
+	Timer_InterruptFlagClear(SYNC_TIMER_INDEX, UPDATE_INTERRUPT_SRC);
+	SyncModule_Get();
+}
+
+void SyncModule_Init(void)
+{
+	GIE_ENABLE();
+	NVIC_EnableIRQ(Timer4_IRQn);
+	gSyncModule.gSyncTimerCnt = 0;
+	gSyncModule.gRefreshFlag = 0;
+	gSyncModule.gClearDoneFlag = 0;
+	gSyncModule.dat = 0;
+	gSyncModule.clkRatio = 4;
+	Clock_SyncCtrl_Set(I2S_BCLK_SEL, 1);
+	Clock_SyncCtrl_Set(MDAC_MCLK_SEL, 1);
+	Timer_Config(SYNC_TIMER_INDEX, SYNC_TIMER_OUT_VALUE, 0);
+	Timer_InterrputSrcEnable(SYNC_TIMER_INDEX, UPDATE_INTERRUPT_SRC);
+	Timer_Start(SYNC_TIMER_INDEX);
+	Clock_SyncCtrl_Set(START_EN, 1);
+	Clock_SyncCtrl_Set(UPDATE_DONE_CLR, 1);
+}
+
+void SyncModule_Reset(void)
+{
+	uint32_t SampleRate = I2S_SampleRateGet(CFG_RES_I2S_MODULE);
+	if(IsSelectMclkClk1(SampleRate))
+	{
+		gSyncModule.clkRatio = (AUDIO_PLL_CLK1_FREQ * 4 / I2S_SampleRateGet(CFG_RES_I2S_MODULE)) / 64;
+	}
+	else
+	{
+		gSyncModule.clkRatio = (AUDIO_PLL_CLK2_FREQ * 4 / I2S_SampleRateGet(CFG_RES_I2S_MODULE)) / 64;
+	}
+	DBG("BCLK_MCLK_RATIO = %d\n", gSyncModule.clkRatio);
+	Clock_SyncCtrl_Set(I2S_BCLK_SEL, 0);
+	Clock_SyncCtrl_Set(MDAC_MCLK_SEL, 0);
+	Clock_SyncCtrl_Set(START_EN, 0);
+	Clock_SyncCtrl_Set(UPDATE_DONE_CLR, 0);
+	gSyncModule.gSyncTimerCnt = 0;
+	gSyncModule.gRefreshFlag = 0;
+	gSyncModule.gClearDoneFlag = 0;
+	gSyncModule.dat = 0;
+	Clock_SyncCtrl_Set(I2S_BCLK_SEL, 1);
+	Clock_SyncCtrl_Set(MDAC_MCLK_SEL, 1);
+	Clock_SyncCtrl_Set(START_EN, 1);
+	Clock_SyncCtrl_Set(UPDATE_DONE_CLR, 1);
+}
+
+void SyncModule_Get(void)
+{
+	if(gSyncModule.gRefreshFlag)//上次处理还没有处理完，这次不再使用，准备使用下次
+		return;
+
+	//如果再次进来后，还是没清除，则这次结果不用
+//	if(SREG_CLK_SYNC_CTRL.CLK_SYNC_CNT_UPDATE_DONE)
+//	{
+//		gClearDoneFlag = 1;
+//		return;
+//	}
+	Clock_SyncCtrl_Set(UPDATE_EN, 1);
+	WaitUs(3);
+	gSyncModule.gI2sBclkCnt = Clock_ClkCnt_Get(I2S_BCLK_CNT1);
+	gSyncModule.gI2sBclkCnt = (gSyncModule.gI2sBclkCnt << 32)  + Clock_ClkCnt_Get(I2S_BCLK_CNT0);
+	gSyncModule.gDacMclkCnt = Clock_ClkCnt_Get(MDAC_MCLK_CNT1);
+	gSyncModule.gDacMclkCnt = (gSyncModule.gDacMclkCnt << 32)  + Clock_ClkCnt_Get(MDAC_MCLK_CNT0);
+	gSyncModule.gRefreshFlag = 1;
+}
+
+void SyncModule_Process(void)
+{
+	if(gSyncModule.gRefreshFlag || gSyncModule.gClearDoneFlag)
+	{
+		uint16_t defVal;
+
+		if(gSyncModule.gRefreshFlag)
+		{
+			gSyncModule.gMClkFromBCLK = gSyncModule.gI2sBclkCnt  * 1000000 / SYNC_TIMER_OUT_VALUE * gSyncModule.clkRatio / gSyncModule.gSyncTimerCnt;
+			gSyncModule.gMClkFromDPLL = gSyncModule.gDacMclkCnt  * 1000000 / SYNC_TIMER_OUT_VALUE / gSyncModule.gSyncTimerCnt;
+//			DBG("gMClkFromBCLK = %f, gMClkFromDPLL = %f,  ", gSyncModule.gMClkFromBCLK*1.0, gSyncModule.gMClkFromDPLL*1.0);
+
+			if(gSyncModule.gMClkFromBCLK > gSyncModule.gMClkFromDPLL)
+			{
+				defVal = gSyncModule.gMClkFromBCLK - gSyncModule.gMClkFromDPLL;
+				if(defVal > 100)
+				{
+					gSyncModule.dat = 10;
+					*(uint32_t *)0x40026008 += gSyncModule.dat;//defVal/10 * 5 + 1;
+				}
+				else
+				{
+					gSyncModule.dat = 5;
+					if(defVal > 50)
+					{
+						if(defVal <= gSyncModule.defVal_bak)
+						{
+							gSyncModule.dat = 0;
+						}
+					}
+					else if(defVal < 50)
+					{
+						if(defVal <= gSyncModule.defVal_bak)
+						{
+							gSyncModule.dat = 0;
+						}
+						else
+						{
+							gSyncModule.dat = 1;
+						}
+					}
+					*(uint32_t *)0x40026008 += gSyncModule.dat;
+				}
+
+				gSyncModule.defVal_bak = defVal;
+				//DBG("+%d, +%d, 0x%08x\n", defVal, defVal > 50?10:1, *(uint32_t *)0x40026008);
+//				DBG("+%d, +%d, 0x%08x\n", defVal, gSyncModule.dat, *(uint32_t *)0x40026008);
+			}
+			else if(gSyncModule.gMClkFromBCLK < gSyncModule.gMClkFromDPLL)
+			{
+				defVal = gSyncModule.gMClkFromDPLL - gSyncModule.gMClkFromBCLK;
+				gSyncModule.dat = 0;
+				if(defVal > 100)
+				{
+					gSyncModule.dat = 10;
+					*(uint32_t *)0x40026008 -= gSyncModule.dat;//defVal/10 * 5 + 1;
+				}
+				else
+				{
+					gSyncModule.dat = 5;
+					if(defVal > 50)
+					{
+						if(defVal <= gSyncModule.defVal_bak)
+						{
+							gSyncModule.dat = 0;
+						}
+					}
+					else if(defVal < 50)
+					{
+						if(defVal <= gSyncModule.defVal_bak)
+						{
+							gSyncModule.dat = 0;
+						}
+						else
+						{
+							gSyncModule.dat = 1;
+						}
+					}
+					*(uint32_t *)0x40026008 -= gSyncModule.dat;
+				}
+				gSyncModule.defVal_bak = defVal;
+				//DBG("-%d, -%d, 0x%08x\n", defVal, defVal > 50?10:1, *(uint32_t *)0x40026008);
+//				DBG("-%d, -%d, 0x%08x\n", defVal, gSyncModule.dat, *(uint32_t *)0x40026008);
+			}
+		}
+
+//		DBG("\n");
+		gSyncModule.gRefreshFlag = 0;
+		gSyncModule.gClearDoneFlag = 0;
+	}
+}
+#endif

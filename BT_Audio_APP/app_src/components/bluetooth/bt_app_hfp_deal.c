@@ -281,7 +281,7 @@ void BtHfpScoLinkConnected(BT_HFP_CALLBACK_PARAMS * param)
 	else if(btManager.HfpCurIndex != param->index)
 	{
 		FirstTalkingPhoneIndexSet(btManager.HfpCurIndex);
-		SetHfpState(btManager.HfpCurIndex, BT_HFP_STATE_ACTIVE);
+		SetHfpState(btManager.HfpCurIndex, BT_HFP_STATE_ACTIVE);//此处为什么要设置 HfpCurIndex
 		return;
 	}
 	//Set_Current_SCO_ID(0);
@@ -548,6 +548,29 @@ void BtHfpCallSetupNone(BT_HFP_CALLBACK_PARAMS * param)
 		FirstTalkingPhoneIndexSet(0xff);
 		BtHfModeExit();
 		btManager.HfpCurIndex = 0xff;
+	}
+	else if(btManager.HfpCurIndex != param->index && btManager.HfpCurIndex != 0xff)//仅更新状态
+	{
+		switch(GetHfpState(param->index))
+		{
+			case BT_HFP_STATE_3WAY_INCOMING_CALL:
+			case BT_HFP_STATE_3WAY_OUTGOING_CALL:
+				APP_DBG("3way calling,\n");
+				SetHfpState(param->index, BT_HFP_STATE_3WAY_ATCTIVE_CALL);
+				break;
+
+			case BT_HFP_STATE_INCOMING:
+			case BT_HFP_STATE_OUTGOING:
+			case BT_HFP_STATE_ACTIVE:
+				SetHfpState(param->index, BT_HFP_STATE_CONNECTED);
+				break;
+			case BT_HFP_STATE_3WAY_ATCTIVE_CALL:
+				break;
+
+			default:
+				break;
+		}
+		return ;
 	}
 	#endif
 

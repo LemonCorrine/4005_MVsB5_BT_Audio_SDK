@@ -58,14 +58,6 @@
 //sbc receive fifo
 #define BT_SBC_RECV_FIFO_SIZE		(60*6)
 
-
-//AEC
-#define FRAME_SIZE					BLK_LEN
-#define AEC_SAMPLE_RATE				16000
-#define LEN_PER_SAMPLE				2 //mono
-#define MAX_DELAY_BLOCK				BT_HFP_AEC_MAX_DELAY_BLK
-#define DEFAULT_DELAY_BLK			BT_HFP_AEC_DELAY_BLK
-
 //PITCH SHIFTER
 #define MAX_PITCH_SHIFTER_STEP		25
 
@@ -138,11 +130,6 @@ typedef struct _btHfContext
 	uint8_t					CvsdInitFlag;
 	uint8_t					MsbcInitFlag;
 	
-	//aec
-	uint8_t					AecDelayBuf[AEC_BLK_LEN*LEN_PER_SAMPLE*MAX_DELAY_BLOCK];		//BLK_LEN*LEN_PER_SAMPLE*MAX_DELAY_BLOCK
-	MemHandle				AecDelayRingBuf;
-	uint16_t				SourceBuf_Aec[CFG_BTHF_PARA_SAMPLES_PER_FRAME * 2];
-
 	uint8_t					btHfResumeCnt;
 	uint8_t					btPhoneCallRing; //0=本地铃声  1=手机铃声
 

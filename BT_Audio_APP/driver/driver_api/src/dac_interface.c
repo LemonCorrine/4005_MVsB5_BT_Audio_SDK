@@ -14,8 +14,13 @@ static uint8_t DAC_BitWidth = 24;
 
 void AudioDAC_Init(DACParamCt *ct, uint32_t SampleRate, uint16_t BitWidth, void *Buf, uint16_t Len,  void *BufEXT, uint16_t LenEXT)
 {
+#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
+	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ * 4);
+	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ * 4);
+#else
 	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
 	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ);
+#endif
 
 	if(IsSelectMclkClk1(SampleRate))
 	{
@@ -33,6 +38,7 @@ void AudioDAC_Init(DACParamCt *ct, uint32_t SampleRate, uint16_t BitWidth, void 
     AudioDAC_ScrambleModeSet(DAC0, POS_NEG);
     AudioDAC_DsmOutdisModeSet(DAC0, 1);
     AudioDAC_DsmOptimizeSet();
+	AudioDAC_ZeroNumSet(DAC0, 7);
     if(BitWidth == 16)
     {
         AudioDAC_DoutModeSet(DAC0, MODE1, WIDTH_16_BIT); // WIDTH_24_BIT_1, WIDTH_24_BIT_2, WIDTH_16_BIT
@@ -72,7 +78,7 @@ void AudioDAC_Init(DACParamCt *ct, uint32_t SampleRate, uint16_t BitWidth, void 
 //	AudioDAC_Enable(DAC0);//使能放在模拟上电部分 避免上电pop声
 	AudioDAC_Reset(DAC0);
 	AudioDAC_SoftMute(DAC0,FALSE, FALSE);
-	AudioDAC_AllPowerOn(ct->DACModel, ct->DACLoadStatus, ct->PVDDModel, ct->DACEnergyModel);
+	AudioDAC_AllPowerOn(ct->DACModel, ct->DACLoadStatus, ct->PVDDModel, ct->DACEnergyModel, ct->DACVcomModel);
 }
 
 
