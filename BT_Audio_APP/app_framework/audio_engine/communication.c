@@ -94,10 +94,11 @@ bool roboeffect_effect_update_params_entrance(uint8_t addr, uint8_t *buf, uint32
 	tx_buf[0] = 0xA5;
 	tx_buf[1] = 0x5A;
 	tx_buf[2] = addr;
+
 	if(len == 0)//require parameters
 	{
         const int16_t *params;
-        if((params = roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, addr, 0xff)) != NULL)
+        if(((params = roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, addr, 0xff)) != NULL) && (gCtrlVars.AutoRefresh != AutoRefresh_ALL_PARA))
         {
             int16_t len = roboeffect_get_effect_parameter_count(AudioCore.Audioeffect.context_memory, addr);
             if(len >= 0)//= 0 when only enable/disable existed
@@ -121,6 +122,9 @@ bool roboeffect_effect_update_params_entrance(uint8_t addr, uint8_t *buf, uint32
         }
         else
         {
+    		gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
+    		extern void Communication_Effect_0x02(void);
+    		Communication_Effect_0x02();
             return FALSE;
         }
 	}
@@ -131,8 +135,9 @@ bool roboeffect_effect_update_params_entrance(uint8_t addr, uint8_t *buf, uint32
 			int16_t enable = buf[1];//[1] is enable/disable
 			uint8_t *params = (uint8_t *)&buf[3];//[3] is parameters beginning
 
-			uint8_t *effectParams = AudioCore.Audioeffect.user_effect_parameters + 5;
-			uint16_t data_len = *(uint16_t *)AudioCore.Audioeffect.user_effect_parameters - 5;
+			EffectValidParamUnit unit = AudioEffect_GetUserEffectValidParam(AudioCore.Audioeffect.user_effect_parameters);
+			uint8_t *effectParams =  unit.params_first_address;
+			uint16_t data_len = unit.data_len;
 			uint8_t len = 0;
 
 			while(data_len)
@@ -155,7 +160,10 @@ bool roboeffect_effect_update_params_entrance(uint8_t addr, uint8_t *buf, uint32
 					effectParams++;
 					len = *effectParams;
 					effectParams += (len + 1);
-					data_len -= (len + 1);
+					if(data_len > (len + 1))
+						data_len -= (len + 1);
+					else
+						return FALSE;
 				}
 			}
 			if (addr == AudioCore.Audioeffect.effect_count || AudioCore.Audioeffect.reinit_done)

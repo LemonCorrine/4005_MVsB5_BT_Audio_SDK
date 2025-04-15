@@ -196,8 +196,6 @@ bool SpdifPlayInit(void)
 		return FALSE;
 	}
 	memset(SpdifPlayCt, 0, sizeof(SpdifPlayContext));
-
-	SpdifPlayCt->SampleRate = CFG_PARA_SAMPLE_RATE;
 	
 	SpdifPlayCt->SpdifPcmFifo = (uint32_t *)osPortMalloc(AudioCoreFrameSizeGet(DefaultNet) * sizeof(PCM_DATA_TYPE) * 2 * 2 * 2);//end bkd
 	if(SpdifPlayCt->SpdifPcmFifo == NULL)
@@ -258,7 +256,8 @@ bool SpdifPlayInit(void)
 	AudioIOSet.Depth = AudioCoreFrameSizeGet(DefaultNet) * 2;
 	AudioIOSet.LowLevelCent = 40;
 	AudioIOSet.HighLevelCent = 60;
-
+	
+	SpdifPlayCt->SampleRate = AudioCoreMixSampleRateGet(DefaultNet);
 	AudioIOSet.SampleRate = SpdifPlayCt->SampleRate;
 
 #ifdef	CFG_AUDIO_WIDTH_24BIT

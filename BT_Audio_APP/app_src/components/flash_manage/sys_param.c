@@ -190,10 +190,27 @@ void FlashParamUsb_HandshakeACK(bool ack)
 	}
 	else
 	{
+		uint32_t addr = get_sys_parameter_addr();
+		uint8_t  check,i;
+
+		memset(&FlashParam->hid_tx[0],0,sizeof(FlashParam->hid_tx));
+
 		SET_HID_SEND_CMD(FlashParam->hid_tx,FLASH_PARAMETER_TUNING_HANDSHAKE_ACK);
 		FlashParam->hid_tx[4] = 'O';
 		FlashParam->hid_tx[5] = 'K';
 		FlashParam->hid_tx[6] = 0;
+
+		FlashParam->hid_tx[7] = CFG_SDK_VER_CHIPID;
+		FlashParam->hid_tx[8] = addr>>24;
+		FlashParam->hid_tx[9] = addr>>16;
+		FlashParam->hid_tx[10] = addr>>8;
+		FlashParam->hid_tx[11] = addr;
+
+		check = FlashParam->hid_tx[3]; //不算帧头+控制字
+		for(i=4;i<sizeof(FlashParam->hid_tx)-1;i++)
+			check += FlashParam->hid_tx[i];
+
+		FlashParam->hid_tx[sizeof(FlashParam->hid_tx)-1] = check;
 	}
 	hid_tx_flag = TRUE;
 }
@@ -275,11 +292,6 @@ void FlashParamUsb_Rx(uint8_t *buf,uint16_t buf_len)
 			for(i=1;i<buf_len-1;i++)
 				check += buf[i];
 
-			if(buf[buf_len-1] == check)
-			{
-
-			}
-
 			offset = buf[1];
 			offset <<= 8;
 			offset |= buf[2];
@@ -291,6 +303,12 @@ void FlashParamUsb_Rx(uint8_t *buf,uint16_t buf_len)
 			len = buf[5];
 			len <<= 8;
 			len |= buf[6];
+
+//			if(buf[buf_len-1] != check)
+//			{
+//				//check sum通不过，不拷贝数据
+//				len = 0;
+//			}
 
 			if(offset >= sizeof(FlashParam->flash_param_buf)) //判断offset超过边界
 				len = 0;

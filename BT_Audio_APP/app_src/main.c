@@ -169,7 +169,7 @@ void SystemClockInit(bool FristPoweron)
 
 #ifndef USB_CRYSTA_FREE_EN
 	if(FristPoweron)
-		Clock_HOSCCurrentSet(9);
+		Clock_HOSCCurrentSet(15);
 #endif
 
 	SpiFlashInit(SYS_FLASH_FREQ_SELECT, MODE_4BIT, 0, SYS_FLASH_CLK_SELECT);

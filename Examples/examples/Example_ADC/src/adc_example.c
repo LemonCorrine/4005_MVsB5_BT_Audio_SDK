@@ -215,7 +215,7 @@ int main(void)
     Clock_Module3Enable(ALL_MODULE3_CLK_SWITCH);
     Clock_SysClkSelect(PLL_CLK_MODE);
     Clock_UARTClkSelect(PLL_CLK_MODE);
-    Clock_HOSCCurrentSet(9);
+    Clock_HOSCCurrentSet(15);
 
 	Clock_Timer3ClkSelect(SYSTEM_CLK_MODE);
 

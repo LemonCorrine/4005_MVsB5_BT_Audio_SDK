@@ -13,6 +13,7 @@ extern "C" {
 #include "roboeffect_api.h"
 #include "audio_effect_library.h"
 
+
 #define    AEC_ENABLE                                    (1)
 #define    AUTO_TUNE_ENABLE                              (1)
 #define    COMPANDER_ENABLE                              (1)
@@ -97,6 +98,7 @@ extern "C" {
 #define ROBOEFFECT_ROBOT_TONE_PARAM_LEN               1
 #define ROBOEFFECT_NOISE_GENERATOR_PARAM_LEN          2
 #define ROBOEFFECT_NOISE_SUPPRESSOR_BLUE_DUAL_PARAM_LEN 1
+#define ROBOEFFECT_PHASE_INVERTER_PARAM_LEN           1
 #define ROBOEFFECT_FADER_PARAM_LEN                    3
 #define ROBOEFFECT_DOWNMIX_2TO1_PARAM_LEN             0
 #define ROBOEFFECT_UPMIX_1TO2_PARAM_LEN               0
@@ -440,6 +442,12 @@ bool roboeffect_noise_suppressor_blue_dual_init_if(void *node);
 bool roboeffect_noise_suppressor_blue_dual_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
 bool roboeffect_noise_suppressor_blue_dual_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
 int32_t roboeffect_noise_suppressor_blue_dual_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
+
+//phase_inverter interface
+bool roboeffect_phase_inverter_init_if(void *node);
+bool roboeffect_phase_inverter_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
+bool roboeffect_phase_inverter_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
+int32_t roboeffect_phase_inverter_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
 
 //fader interface
 bool roboeffect_fader_init_if(void *node);

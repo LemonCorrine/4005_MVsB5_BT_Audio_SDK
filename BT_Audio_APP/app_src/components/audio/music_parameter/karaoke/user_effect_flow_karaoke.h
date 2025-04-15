@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define KARAOKE_ROBOEFFECT_LIB_VER "2.16.2"
+#define KARAOKE_ROBOEFFECT_LIB_VER "2.17.2"
 
 typedef enum _KARAOKE_roboeffect_io_enum
 {

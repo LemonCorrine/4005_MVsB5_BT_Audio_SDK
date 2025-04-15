@@ -72,30 +72,43 @@ void UsbDevicePlayResRelease(void)
 
 bool UsbDevicePlayResMalloc(uint16_t SampleLen)
 {
+	uint32_t sampleRate  = AudioCoreMixSampleRateGet(DefaultNet);
+	uint32_t buf_len;
+
 	APP_DBG("UsbDevicePlayResMalloc %u\n", SampleLen);
 //pc->chip
 #ifdef CFG_OTG_MODE_AUDIO_EN
 	//Speaker FIFO
-	UsbAudioSpeaker.PCMBuffer = osPortMalloc(SampleLen * 16 * (USBD_AUDIO_FREQ / CFG_PARA_SAMPLE_RATE));
+	if(USBD_AUDIO_FREQ > sampleRate)
+		buf_len = SampleLen * 16 * (USBD_AUDIO_FREQ / sampleRate);
+	else
+		buf_len = SampleLen * 16 * (sampleRate / USBD_AUDIO_FREQ);
+
+	UsbAudioSpeaker.PCMBuffer = osPortMalloc(buf_len);
 	if(UsbAudioSpeaker.PCMBuffer == NULL)
 	{
 		APP_DBG("UsbAudioSpeaker.PCMBuffer memory error\n");
 		return FALSE;
 	}
-	memset(UsbAudioSpeaker.PCMBuffer, 0, SampleLen * 16 * (USBD_AUDIO_FREQ / CFG_PARA_SAMPLE_RATE));
-	MCUCircular_Config(&UsbAudioSpeaker.CircularBuf, UsbAudioSpeaker.PCMBuffer, SampleLen * 16  * (USBD_AUDIO_FREQ / CFG_PARA_SAMPLE_RATE));
+	memset(UsbAudioSpeaker.PCMBuffer, 0, buf_len);
+	MCUCircular_Config(&UsbAudioSpeaker.CircularBuf, UsbAudioSpeaker.PCMBuffer, buf_len);
 #endif//end of CFG_RES_USB_IN_EN
 
 #ifdef CFG_OTG_MODE_MIC_EN
 	//MIC FIFO
-	UsbAudioMic.PCMBuffer = osPortMalloc(SampleLen * 16 * (USBD_AUDIO_MIC_FREQ / CFG_PARA_SAMPLE_RATE));
+	if(USBD_AUDIO_MIC_FREQ > sampleRate)
+		buf_len = SampleLen * 16 * (USBD_AUDIO_MIC_FREQ / sampleRate);
+	else
+		buf_len = SampleLen * 16 * (sampleRate / USBD_AUDIO_MIC_FREQ);
+
+	UsbAudioMic.PCMBuffer = osPortMalloc(buf_len);
 	if(UsbAudioMic.PCMBuffer == NULL)
 	{
 		APP_DBG("UsbAudioMic.PCMBuffer memory error\n");
 		return FALSE;
 	}
-	memset(UsbAudioMic.PCMBuffer, 0, SampleLen * 16 * (USBD_AUDIO_MIC_FREQ / CFG_PARA_SAMPLE_RATE));
-	MCUCircular_Config(&UsbAudioMic.CircularBuf, UsbAudioMic.PCMBuffer, SampleLen * 16 * (USBD_AUDIO_MIC_FREQ / CFG_PARA_SAMPLE_RATE));
+	memset(UsbAudioMic.PCMBuffer, 0, buf_len);
+	MCUCircular_Config(&UsbAudioMic.CircularBuf, UsbAudioMic.PCMBuffer,buf_len);
 #endif///end of CFG_REGS_AUDIO_USB_OUT_EN
 
 	return TRUE;
@@ -134,7 +147,7 @@ bool UsbDevicePlayResInit(void)
 	}
 	else
 	{
-		AudioIOSet.SampleRate = CFG_PARA_SAMPLE_RATE;//初始值
+		AudioIOSet.SampleRate = AudioCoreMixSampleRateGet(DefaultNet);//初始值
 	}
 #ifdef CFG_AUDIO_OUT_AUTO_SAMPLE_RATE_44100_48000
 	AudioOutSampleRateSet(AudioIOSet.SampleRate);

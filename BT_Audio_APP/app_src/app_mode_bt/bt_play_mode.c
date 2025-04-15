@@ -153,7 +153,7 @@ static bool BtPlayInitRes(void)
 	AudioIOSet.Net = DefaultNet;
 	AudioIOSet.DataIOFunc = A2DPDataGet;
 	AudioIOSet.LenGetFunc = A2DPDataLenGet;
-	AudioIOSet.SampleRate = CFG_PARA_SAMPLE_RATE;//初始值,待解码数据后更新
+	AudioIOSet.SampleRate =  AudioCoreMixSampleRateGet(DefaultNet);//初始值,待解码数据后更新
 #ifdef BT_AUDIO_AAC_ENABLE
 	AudioIOSet.Depth = DECODER_FIFO_SIZE_FOR_MP3/2;//AudioCoreFrameSizeGet(DefaultNet) * 2;
 #else
@@ -558,16 +558,6 @@ bool BtPlayDeinit(void)
 	AudioCoreSourceDeinit(BT_PLAY_DECODER_SOURCE_NUM);
 	ModeCommonDeinit();//通路全部释放
 	//AudioCoreSourceUnmute(BT_PLAY_DECODER_SOURCE_NUM, 1, 1);
-
-#ifndef CFG_FUNC_MIXER_SRC_EN
-#ifdef CFG_RES_AUDIO_DACX_EN
-	AudioDAC_SampleRateChange(ALL, CFG_PARA_SAMPLE_RATE);//恢复
-#endif
-#ifdef CFG_RES_AUDIO_DAC0_EN
-	AudioDAC_SampleRateChange(DAC0, CFG_PARA_SAMPLE_RATE);//恢复
-#endif
-#endif
-	
 	//ModeCommonDeinit(); 通路清理 待下一个模式重配
 	
 	osMutexLock(SbcDecoderMutex);

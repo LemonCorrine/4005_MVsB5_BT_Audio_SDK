@@ -272,7 +272,7 @@ const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
 
 0x02, 0x26, 0x00, /*Effect Version*/
 
-0x02, 0x10, 0x02, /* Roboeffect Version*/
+0x02, 0x11, 0x02, /* Roboeffect Version*/
 
 0x01, 0x00, /*3rd part data total length  */
 0x00, /*number of 3rd part items*/
@@ -1134,7 +1134,7 @@ const unsigned char user_effect_parameters_Karaoke_DianYin[] = {
 
 0x02, 0x26, 0x00, /*Effect Version*/
 
-0x02, 0x10, 0x02, /* Roboeffect Version*/
+0x02, 0x11, 0x02, /* Roboeffect Version*/
 
 0x01, 0x00, /*3rd part data total length  */
 0x00, /*number of 3rd part items*/
@@ -1996,7 +1996,7 @@ const unsigned char user_effect_parameters_Karaoke_MoYin[] = {
 
 0x02, 0x26, 0x00, /*Effect Version*/
 
-0x02, 0x10, 0x02, /* Roboeffect Version*/
+0x02, 0x11, 0x02, /* Roboeffect Version*/
 
 0x01, 0x00, /*3rd part data total length  */
 0x00, /*number of 3rd part items*/
@@ -2858,7 +2858,7 @@ const unsigned char user_effect_parameters_Karaoke_HanMai[] = {
 
 0x02, 0x26, 0x00, /*Effect Version*/
 
-0x02, 0x10, 0x02, /* Roboeffect Version*/
+0x02, 0x11, 0x02, /* Roboeffect Version*/
 
 0x01, 0x00, /*3rd part data total length  */
 0x00, /*number of 3rd part items*/
@@ -3720,7 +3720,7 @@ const unsigned char user_effect_parameters_Karaoke_NanBianNv[] = {
 
 0x02, 0x26, 0x00, /*Effect Version*/
 
-0x02, 0x10, 0x02, /* Roboeffect Version*/
+0x02, 0x11, 0x02, /* Roboeffect Version*/
 
 0x01, 0x00, /*3rd part data total length  */
 0x00, /*number of 3rd part items*/
@@ -4582,7 +4582,7 @@ const unsigned char user_effect_parameters_Karaoke_NvBianNan[] = {
 
 0x02, 0x26, 0x00, /*Effect Version*/
 
-0x02, 0x10, 0x02, /* Roboeffect Version*/
+0x02, 0x11, 0x02, /* Roboeffect Version*/
 
 0x01, 0x00, /*3rd part data total length  */
 0x00, /*number of 3rd part items*/
@@ -5444,7 +5444,7 @@ const unsigned char user_effect_parameters_Karaoke_WaWaYin[] = {
 
 0x02, 0x26, 0x00, /*Effect Version*/
 
-0x02, 0x10, 0x02, /* Roboeffect Version*/
+0x02, 0x11, 0x02, /* Roboeffect Version*/
 
 0x01, 0x00, /*3rd part data total length  */
 0x00, /*number of 3rd part items*/

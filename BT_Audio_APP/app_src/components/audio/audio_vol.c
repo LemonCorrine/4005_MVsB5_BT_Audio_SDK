@@ -104,7 +104,7 @@ void AudioPlayerMenu(void)
 
 	for(i=0; i<AUDIO_CORE_SOURCE_MAX_NUM; i++)
 	{
-		if(mainAppCt.AudioCore->AudioSource[i].Enable)
+		if(AudioCoreSourceIsEnable(i))
 		{
 			ChannelValid[ValidNum] =  i;
 			ValidNum++;
@@ -112,7 +112,7 @@ void AudioPlayerMenu(void)
 	}
 	for(i=0; i<AUDIO_CORE_SINK_MAX_NUM; i++)
 	{
-		if(mainAppCt.AudioCore->AudioSink[i].Enable)
+		if(AudioCoreSinkIsEnable(i))
 		{
 			ChannelValid[ValidNum] = AUDIO_CORE_SOURCE_MAX_NUM + i;//VOL_SET_CHANNEL_BASE_SINK
 			ValidNum++;

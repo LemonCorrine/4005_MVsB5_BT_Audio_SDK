@@ -19,7 +19,7 @@ void ModeCommonDeinit(void);
 //各模式下的通用消息处理
 void CommonMsgProccess(uint16_t Msg);
 
-bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain);
+bool AudioIoCommonForHfp(uint16_t gain);
 
 void tws_device_close(void);
 

@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define BYPASS_ROBOEFFECT_LIB_VER "2.16.2"
+#define BYPASS_ROBOEFFECT_LIB_VER "2.17.2"
 
 typedef enum _BYPASS_roboeffect_io_enum
 {

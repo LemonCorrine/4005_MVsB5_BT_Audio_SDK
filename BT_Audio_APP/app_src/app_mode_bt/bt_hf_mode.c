@@ -444,7 +444,7 @@ static void BtHfModeRunningConfig(void)
 	}
 	else
 	{
-		AudioIOSet.SampleRate = CFG_BTHF_PARA_SAMPLE_RATE;
+		AudioIOSet.SampleRate = BTHF_MSBC_SAMPLE_RATE;
 #if defined(CFG_PARA_HFP_SYNC) && !defined(CFG_PARA_HFP_FREQ_ADJUST)
 		AudioIOSet.Depth = DECODER_FIFO_SIZE_FOR_SBC / 2; //
 #endif
@@ -510,7 +510,6 @@ bool BtHfInit(void)
 	DMA_ChannelAllocTableSet((uint8_t *)DmaChannelMap);
 
 	AudioCoreFrameSizeSet(DefaultNet, CFG_BTHF_PARA_SAMPLES_PER_FRAME);
-	AudioCoreMixSampleRateSet(DefaultNet, CFG_BTHF_PARA_SAMPLE_RATE);
 	
 	//Task & App Config
 	gBtHfCt = (BtHfContext*)osPortMalloc(sizeof(BtHfContext));
@@ -523,7 +522,7 @@ bool BtHfInit(void)
 	gBtHfCt->SystemEffectMode = mainAppCt.EffectMode;	//保存EffectMode，退出HFP模式以后需要恢复
 	mainAppCt.EffectMode = EFFECT_MODE_HFP_AEC;
 
-	if(!AudioIoCommonForHfp(CFG_BTHF_PARA_SAMPLE_RATE, BT_HFP_MIC_PGA_GAIN))
+	if(!AudioIoCommonForHfp(BT_HFP_MIC_PGA_GAIN))
 	{
 		DBG("Mic and Dac set error\n");
 	}
@@ -585,7 +584,7 @@ bool BtHfInit(void)
 	}
 	else
 	{
-		AudioIOSet.SampleRate = CFG_BTHF_PARA_SAMPLE_RATE;
+		AudioIOSet.SampleRate = BTHF_MSBC_SAMPLE_RATE;
 	}
 
 #ifdef	CFG_AUDIO_WIDTH_24BIT
@@ -906,8 +905,6 @@ bool BtHfDeinit(void)
 
 	ModeCommonDeinit();//mic dac 清理 等待下一个模式重配
 	mainAppCt.EffectMode = gBtHfCt->SystemEffectMode;	//恢复EffectMode
-
-	AudioCoreMixSampleRateSet(DefaultNet, CFG_PARA_SAMPLE_RATE);
 
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 	BtHfRingRemindNumberInit();

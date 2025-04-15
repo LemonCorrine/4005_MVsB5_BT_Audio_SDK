@@ -46,7 +46,6 @@ typedef struct _SysVolContext
 
 typedef struct _MainAppContext
 {
-	xTaskHandle			taskHandle;
 	MessageHandle		msgHandle;
 	TaskState			state;
 
@@ -82,13 +81,6 @@ typedef struct _MainAppContext
 
 	uint32_t			*ADCFIFO;
 /******************************************************************/
-
-	AudioCoreContext 	*AudioCore;
-	uint16_t			SourcesMuteState;//纪录source源mute使能情况,目前只判断left
-
-	uint32_t 			SampleRate;
-
-	bool				AudioCoreSync;
 //#ifdef CFG_FUNC_DISPLAY_EN
 //	bool				DisplaySync;
 //#endif
@@ -141,7 +133,7 @@ typedef struct _MainAppContext
 	uint32_t            aux_out_dyn_gain;
 	uint32_t            remind_out_dyn_gain;
 #endif
-	bool	    muteFlagPre;
+
 #ifdef CFG_FUNC_SILENCE_AUTO_POWER_OFF_EN
 	uint32_t    Silence_Power_Off_Time;
 #endif

@@ -124,7 +124,7 @@ const unsigned char user_effect_parameters_hfp_Hfp[] = {
 
 0x02, 0x26, 0x00, /*Effect Version*/
 
-0x02, 0x10, 0x02, /* Roboeffect Version*/
+0x02, 0x11, 0x02, /* Roboeffect Version*/
 
 0x01, 0x00, /*3rd part data total length  */
 0x00, /*number of 3rd part items*/
@@ -141,7 +141,7 @@ const unsigned char user_effect_parameters_hfp_Hfp[] = {
 0x83, /*noise_suppressor_blue0*/
 0x03,/*length*/
 0x00, /*enable*/
-0x6c, 0xee, /*level*/
+0x05, 0x00, /*level*/
 
 0x84, /*mic_EQ*/
 0x69,/*length*/
@@ -380,10 +380,10 @@ const unsigned char user_module_parameters_hfp_Hfp[] = {
 
 0x07, /*ADC1 DIGITAL CONTROL*/
 0x14, /*length*/
-0x00, 0x00, /*enable*/
+0x03, 0x00, /*enable*/
 0x00, 0x00, /*mute*/
-0x00, 0x00, /*left_volume*/
-0x00, 0x00, /*right_volume*/
+0x00, 0x10, /*left_volume*/
+0x00, 0x10, /*right_volume*/
 0x07, 0x00, /*sample_rate*/
 0x00, 0x00, /*LR_swap*/
 0x00, 0x00, /*hpc*/

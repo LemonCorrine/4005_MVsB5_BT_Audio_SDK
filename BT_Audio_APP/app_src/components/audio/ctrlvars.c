@@ -514,7 +514,7 @@ void DefaultParamgsInit(void)
 #endif
 
     //system define
-	gCtrlVars.sample_rate		= CFG_PARA_SAMPLE_RATE;
+	gCtrlVars.sample_rate		= AudioCoreMixSampleRateGet(DefaultNet);
 	gCtrlVars.sample_rate_index = SampleRateIndexGet(gCtrlVars.sample_rate);
 
 	//scramble默认开启，设置成POS_NEG
