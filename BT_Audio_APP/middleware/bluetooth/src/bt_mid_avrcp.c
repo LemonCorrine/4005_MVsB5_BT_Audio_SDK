@@ -76,20 +76,16 @@ void BtAvrcpCallback(BT_AVRCP_CALLBACK_EVENT event, BT_AVRCP_CALLBACK_PARAMS * p
 			break;
 		}
 		case BT_STACK_EVENT_AVRCP_ADV_PLAY_STATUS:
-#if (BT_AVRCP_SONG_PLAY_STATE == ENABLE)
+#if (BT_AVRCP_SONG_PLAY_STATE)
 			BtAvrcpPlayStatus(param);
 #endif
 			break;
 
 		case BT_STACK_EVENT_AVRCP_ADV_TRACK_INFO:
 			//APP_DBG("TRACK_INFO\n");
-			/*{
-				APP_DBG("Playing > %02d:%02d / %02d:%02d \n",
-            		(param->params.avrcpAdv.avrcpAdvTrack.ms/1000)/60,
-            		(param->params.avrcpAdv.avrcpAdvTrack.ms/1000)%60,
-            		(param->params.avrcpAdv.avrcpAdvTrack.ls/1000)/60,
-            		(param->params.avrcpAdv.avrcpAdvTrack.ls/1000)%60);
-			}*/
+#if (BT_AVRCP_SONG_TRACK_INFOR)
+			btManager.avrcpMediaInforFlag = 1;
+#endif
 			break;
 
 		case BT_STACK_EVENT_AVRCP_ADV_ADDRESSED_PLAYERS:
@@ -106,7 +102,7 @@ void BtAvrcpCallback(BT_AVRCP_CALLBACK_EVENT event, BT_AVRCP_CALLBACK_PARAMS * p
 			break;
 
 		case BT_STACK_EVENT_AVRCP_ADV_GET_PLAYER_SETTING_VALUE:
-#if (BT_AVRCP_PLAYER_SETTING == ENABLE)
+#if (BT_AVRCP_PLAYER_SETTING)
 			APP_DBG("attrId:%x, ", param->params.avrcpAdv.avrcpAdvPlayerettingValue.attrMask);
 			if(param->params.avrcpAdv.avrcpAdvPlayerettingValue.attrMask == AVRCP_ENABLE_PLAYER_EQ_STATUS)
 				APP_DBG("EQ:%x\n", param->params.avrcpAdv.avrcpAdvPlayerettingValue.eq);
@@ -119,7 +115,7 @@ void BtAvrcpCallback(BT_AVRCP_CALLBACK_EVENT event, BT_AVRCP_CALLBACK_PARAMS * p
 #endif
 			break;
 
-#if (BT_AVRCP_VOLUME_SYNC == ENABLE)
+#if (BT_AVRCP_VOLUME_SYNC)
 		case BT_STACK_EVENT_AVRCP_ADV_VOLUME_CHANGE:
 			//APP_DBG("BTVOL_CHANGE = [%d]\n", param->params.avrcpAdv.avrcpAdvVolumePercent);
 #if (BT_LINK_DEV_NUM == 2)
@@ -129,7 +125,7 @@ void BtAvrcpCallback(BT_AVRCP_CALLBACK_EVENT event, BT_AVRCP_CALLBACK_PARAMS * p
 			break;
 #endif
 
-#if (BT_AVRCP_SONG_TRACK_INFOR == ENABLE)
+#if (BT_AVRCP_SONG_TRACK_INFOR)
 		case BT_STACK_EVENT_AVRCP_ADV_MEDIA_INFO:
 			APP_DBG("AVRCP Event: BT_STACK_EVENT_AVRCP_ADV_MEDIA_INFO\n");
 			if(GetMediaInfo)
@@ -137,7 +133,7 @@ void BtAvrcpCallback(BT_AVRCP_CALLBACK_EVENT event, BT_AVRCP_CALLBACK_PARAMS * p
 			break;
 #endif
 
-#if BT_AVRCP_VOLUME_SYNC
+#if (BT_AVRCP_VOLUME_SYNC  | (BT_SOURCE_SUPPORT))
 			case BT_STACK_EVENT_AVRCP_PANEL_RELEASE:
 				BtMidMessageSend(MSG_BT_MID_AVRCP_PANEL_KEY, (uint8_t)param->params.panelKey);
 			break;

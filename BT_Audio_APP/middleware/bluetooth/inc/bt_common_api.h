@@ -29,15 +29,15 @@
 #define _BT_COMMON_API_H_
 
 #include "type.h"
-#ifdef CFG_APP_CONFIG
-#include "app_config.h"
-#endif
 #include "bt_config.h"
-#include "bt_manager.h"
 #include "bt_hfp_api.h"
 #include "bt_a2dp_api.h"
 #include "bt_avrcp_api.h"
 #include "bt_spp_api.h"
+
+#if BT_SOURCE_SUPPORT 
+#include "bt_hfg_api.h"
+#endif
 
 /*---------------------------------------------------------------------------
  * BtClassOfDevice type
@@ -110,9 +110,14 @@ typedef uint32_t BtClassOfDevice;
 #define BT_PROFILE_SUPPORTED_OBEX				0x0020
 #define BT_PROFILE_SUPPORTED_HID				0x0040
 #define BT_PROFILE_SUPPORTED_PBAP				0x0080
+#define BT_PROFILE_SUPPORTED_HFG				0x0100
 #define BT_PROFILE_SUPPORTED_TWS				0x8000
 
+#if (BT_SOURCE_SUPPORT)
+#define BT_PROFILE_SUPPORT_GENERAL				(BT_PROFILE_SUPPORTED_A2DP|BT_PROFILE_SUPPORTED_AVRCP|BT_PROFILE_SUPPORTED_HFP|BT_PROFILE_SUPPORTED_HFG)
+#else
 #define BT_PROFILE_SUPPORT_GENERAL				(BT_PROFILE_SUPPORTED_A2DP|BT_PROFILE_SUPPORTED_AVRCP|BT_PROFILE_SUPPORTED_HFP)
+#endif
 
 /*******************************************************************************
 *
@@ -127,10 +132,12 @@ typedef uint8_t					BTInquiryMode;
 
 typedef struct _InquriyResultParam
 {
-	uint8_t	*addr;
+	uint8_t			*addr;
 	signed short	rssi;
-	uint8_t	*extResp;
-	uint16_t extRespLen;
+	uint8_t			*extResp;
+	uint16_t		extRespLen;
+	uint8_t			classOfDev[3];
+	uint8_t			inquiryMode;
 }InquriyResultParam;
 
 
@@ -436,6 +443,32 @@ typedef enum
 	BT_STACK_EVENT_SETTING_ACCESS_MODE,
 
     BT_STACK_EVENT_COMMON_LINK_DISCON_LOCAL,
+	
+	/**
+	 *@brief
+	 * get the name of a remote device timeout
+	 *
+	 *@note
+	 * params.remDevName is vaild
+	 */
+	BT_STACK_EVENT_COMMON_GET_REMDEV_NAME_TIMEOUT,	//获取名称超时EVENT
+	
+	/**
+	 *@brief
+	 * simple pairing failure.
+	 *
+	 *@note
+	 * params.bd_addr is vaild.
+	 */
+	 BT_STACK_EVENT_SIMPLE_PAIRING_FAILURE,
+	 
+	 BT_STACK_EVENT_COMMON_SETPINCODE_REQ,//source set pincode req
+	 
+	 BT_STACK_EVENT_COMMON_DISPLAY_NUMERIC,//display numeric
+	 
+	 BT_STACK_EVENT_COMMON_LINK_CONNECT_IND,
+
+	 BT_STACK_EVENT_COMMON_LINK_AUTH_FAILURE, //
 
 }BT_STACK_CALLBACK_EVENT;
 
@@ -459,6 +492,7 @@ typedef struct _BT_STACK_CALLBACK_PARAMS
 		ModeChange				modeChange;
 		RequestRemNameParam		remDevName;
 		BtAccessMode			accessMode;
+		uint32_t           		numeric;
 	}params;
 }BT_STACK_CALLBACK_PARAMS;
 
@@ -489,6 +523,14 @@ typedef struct _BtStackParams
 
 	/*AVRCP releated features*/
 	AvrcpAppFeatures	avrcpFeatures;
+	
+#if BT_SOURCE_SUPPORT 
+	uint32_t			sourcesupportProfiles;
+
+	/*HFG releated features*/
+	HfgAppFeatures		hfgFeatures;
+#endif
+	
 }BtStackParams;
 
 

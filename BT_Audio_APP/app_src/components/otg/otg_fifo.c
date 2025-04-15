@@ -9,6 +9,8 @@
 #include "otg_device_hcd.h"
 #include "otg_host_hcd.h"
 #include "otg_device_standard_request.h"
+#include "chip_info.h"
+
 #define  HOST_EP0_DEPTH    64
 #define  HOST_EP1_TX_DEPTH 128
 #define  HOST_EP1_RX_DEPTH 1024
@@ -35,22 +37,38 @@ extern uint8_t   *UsbEpFifo;
 
 void OTG_HostFifoInit(void)
 {
+	uint8_t xmem_index;
+
 	EP1_TX_FIFO_START_ADDRESS = (HOST_EP0_DEPTH);
 	EP1_RX_FIFO_START_ADDRESS = (HOST_EP0_DEPTH+HOST_EP1_TX_DEPTH);
 	EP2_TX_FIFO_START_ADDRESS = (HOST_EP0_DEPTH+HOST_EP1_TX_DEPTH+HOST_EP1_RX_DEPTH);
 	EP2_RX_FIFO_START_ADDRESS = (HOST_EP0_DEPTH+HOST_EP1_TX_DEPTH+HOST_EP1_RX_DEPTH+HOST_EP2_TX_DEPTH);
 	EP2_RX_FIFO_END_ADDRESS =   (HOST_EP0_DEPTH+HOST_EP1_TX_DEPTH+HOST_EP1_RX_DEPTH+HOST_EP2_TX_DEPTH+HOST_EP2_RX_DEPTH);
 	UsbEpFifo = (uint8_t *)UsbEpBuf;
+
+	xmem_index = ((uint32_t)UsbEpBuf - 0x20000000) / (64*1024);
+	if(xmem_index < 3)
+	{
+		Chip_MemARBSet(1 << xmem_index);
+	}
 }
 
 void OTG_DeviceFifoInit(void)
 {
+	uint8_t xmem_index;
+
 	EP1_TX_FIFO_START_ADDRESS = (DEVICE_EP0_DEPTH);
 	EP1_RX_FIFO_START_ADDRESS = (DEVICE_EP0_DEPTH+DEVICE_EP1_TX_DEPTH);
 	EP2_TX_FIFO_START_ADDRESS = (DEVICE_EP0_DEPTH+DEVICE_EP1_TX_DEPTH+DEVICE_EP1_RX_DEPTH);
 	EP2_RX_FIFO_START_ADDRESS = (DEVICE_EP0_DEPTH+DEVICE_EP1_TX_DEPTH+DEVICE_EP1_RX_DEPTH+DEVICE_EP2_TX_DEPTH);
 	EP2_RX_FIFO_END_ADDRESS =   (DEVICE_EP0_DEPTH+DEVICE_EP1_TX_DEPTH+DEVICE_EP1_RX_DEPTH+DEVICE_EP2_TX_DEPTH+DEVICE_EP2_RX_DEPTH);
 	UsbEpFifo = (uint8_t *)UsbEpBuf;
+
+	xmem_index = ((uint32_t)UsbEpBuf - 0x20000000) / (64*1024);
+	if(xmem_index < 3)
+	{
+		Chip_MemARBSet(1 << xmem_index);
+	}
 }
 
 

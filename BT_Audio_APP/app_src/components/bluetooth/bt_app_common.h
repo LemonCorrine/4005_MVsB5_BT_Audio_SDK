@@ -34,10 +34,6 @@ void BtPairingFail(void);
 
 void BtDevConnectionLinkLoss(BT_STACK_CALLBACK_PARAMS * param);
 
-void BtTwsConnectionLinkLoss(void);
-
-void BtTwsPairingTimeout(void);
-
 void BtAccessModeSetting(void);
 
 uint32_t GetSupportProfiles(void);

@@ -53,7 +53,9 @@ uint16_t RemindDataLenGet(void);
 void RemindSoundAudioPlayEnd(void);
 bool RemindSoundWaitingPlay(void);
 void RemindSoundItemRequestDisable(void);
-
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+bool RemindServiceItemReplaying();
+#endif
 #ifndef SOUND_REMIND_0
 	#define SOUND_REMIND_0 NULL
 #endif

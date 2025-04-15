@@ -27,7 +27,7 @@
 #include "bt_play_mode.h"
 #include "remind_sound.h"
 #include "bt_app_avrcp_deal.h"
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 #include "bt_hf_mode.h"
 #include "bt_hf_api.h"
 #endif
@@ -195,7 +195,7 @@ void AudioMusicVolUp(void)
 		HardWareMuteOrUnMute();
 	}
 	
-#if (defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE))
+#if (defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT))
 	if(GetSystemMode() == ModeBtHfPlay)
 	{
 		if(mainAppCt.HfVolume < CFG_PARA_MAX_VOLUME_NUM)
@@ -226,7 +226,7 @@ void AudioMusicVolUp(void)
 	}
 	
 	APP_DBG("APP_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
-	AudioCoreSourceVolSet(APP_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]));
+	AudioEffect_SourceGain_Update(APP_SOURCE_NUM);
 
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 	#if CFG_PARAM_FIXED_REMIND_VOL
@@ -235,16 +235,16 @@ void AudioMusicVolUp(void)
 	mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM] = mainAppCt.MusicVolume;
 	#endif
 	APP_DBG("REMIND_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]);
-	AudioCoreSourceVolSet(REMIND_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]));
+	AudioEffect_SourceGain_Update(REMIND_SOURCE_NUM);
 #endif
 #ifdef CFG_FUNC_RECORDER_EN
 	mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM] = mainAppCt.MusicVolume;
 	APP_DBG("PLAYBACK_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]);
-	AudioCoreSourceVolSet(PLAYBACK_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]));
+	AudioEffect_SourceGain_Update(PLAYBACK_SOURCE_NUM);
 #endif
 
 #ifdef CFG_APP_BT_MODE_EN
-#if (BT_AVRCP_VOLUME_SYNC == ENABLE)
+#if (BT_AVRCP_VOLUME_SYNC)
 	//add volume sync(bluetooth play mode)
 	if(GetSystemMode() == ModeBtAudioPlay)
 	{
@@ -257,7 +257,7 @@ void AudioMusicVolUp(void)
 	}
 #endif
 
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 	if(GetSystemMode() == ModeBtHfPlay)
 	{
 		SetBtHfSyncVolume(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
@@ -280,7 +280,7 @@ void AudioMusicVolDown(void)
 		HardWareMuteOrUnMute();
 	}
 	
-#if (defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE))
+#if (defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT))
 	if(GetSystemMode() == ModeBtHfPlay)
 	{
 		if(mainAppCt.HfVolume > 0)
@@ -306,7 +306,7 @@ void AudioMusicVolDown(void)
 	}
 	
 	APP_DBG("APP_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
-	AudioCoreSourceVolSet(APP_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]));
+	AudioEffect_SourceGain_Update(APP_SOURCE_NUM);
 
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 	#if CFG_PARAM_FIXED_REMIND_VOL
@@ -315,16 +315,16 @@ void AudioMusicVolDown(void)
 	mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM] = mainAppCt.MusicVolume;
 	#endif
 	APP_DBG("REMIND_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]);
-	AudioCoreSourceVolSet(REMIND_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]));
+	AudioEffect_SourceGain_Update(REMIND_SOURCE_NUM);
 #endif
 #ifdef CFG_FUNC_RECORDER_EN
 	mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM] = mainAppCt.MusicVolume;
 	APP_DBG("PLAYBACK_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]);
-	AudioCoreSourceVolSet(PLAYBACK_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]));
+	AudioEffect_SourceGain_Update(PLAYBACK_SOURCE_NUM);
 #endif
 
 #ifdef CFG_APP_BT_MODE_EN
-#if (BT_AVRCP_VOLUME_SYNC == ENABLE)
+#if (BT_AVRCP_VOLUME_SYNC)
 	//add volume sync(bluetooth play mode)
 	if(GetSystemMode() == ModeBtAudioPlay)
 	{
@@ -337,7 +337,7 @@ void AudioMusicVolDown(void)
 	}
 #endif
 
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 	if(GetSystemMode() == ModeBtHfPlay)
 	{
 		SetBtHfSyncVolume(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
@@ -369,7 +369,7 @@ void AudioMusicVol(uint8_t musicVol)
 #endif
 	APP_DBG("APP_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
 
-	AudioCoreSourceVolSet(APP_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]));
+	AudioEffect_SourceGain_Update(APP_SOURCE_NUM);
 }
 
 void AudioMusicVolSet(uint8_t musicVol)
@@ -397,7 +397,7 @@ void AudioHfVolSet(uint8_t HfVol)
 	mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM] = mainAppCt.HfVolume;
 	
 	APP_DBG("source1 vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
-	AudioCoreSourceVolSet(APP_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]));
+	AudioEffect_SourceGain_Update(APP_SOURCE_NUM);
 }
 #endif
 
@@ -418,7 +418,7 @@ void AudioMicVolUp(void)
 	}
     mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM] = mainAppCt.MicVolume;
 	APP_DBG("MIC_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]);
-	AudioCoreSourceVolSet(MIC_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]));
+	AudioEffect_SourceGain_Update(MIC_SOURCE_NUM);
 }
 
 void AudioMicVolDown(void)
@@ -437,7 +437,7 @@ void AudioMicVolDown(void)
 	}
     mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM] = mainAppCt.MicVolume;
 	APP_DBG("MIC_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]);
-	AudioCoreSourceVolSet(MIC_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]));
+	AudioEffect_SourceGain_Update(MIC_SOURCE_NUM);
 }
 #endif
 
@@ -465,7 +465,7 @@ void SystemVolUp(void)
 				}
 
 				APP_DBG("dac 0sink0 vol = %d\n", mainAppCt.gSysVol.AudioSinkVol[AUDIO_DAC0_SINK_NUM]);
-				AudioCoreSinkVolSet(AUDIO_DAC0_SINK_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DAC0_SINK_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DAC0_SINK_NUM]));
+				AudioEffect_SinkGain_Update(AUDIO_DAC0_SINK_NUM);
 				break;
 #ifdef CFG_FUNC_RECORDER_EN
 			case AUDIO_RECORDER_SINK_NUM + AUDIO_CORE_SOURCE_MAX_NUM://sink1
@@ -475,7 +475,7 @@ void SystemVolUp(void)
 				}
 
 				APP_DBG("rec sink1 vol = %d\n", mainAppCt.gSysVol.AudioSinkVol[AUDIO_RECORDER_SINK_NUM]);
-				AudioCoreSinkVolSet(AUDIO_RECORDER_SINK_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_RECORDER_SINK_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_RECORDER_SINK_NUM]));
+				AudioEffect_SinkGain_Update(AUDIO_RECORDER_SINK_NUM);
 				break;
 #endif
 #if defined(CFG_RES_AUDIO_DACX_EN )
@@ -486,7 +486,7 @@ void SystemVolUp(void)
 				}
 
 				APP_DBG("dacx sink2 vol = %d\n", mainAppCt.gSysVol.AudioSinkVol[AUDIO_DACX_SINK_NUM]);
-				AudioCoreSinkVolSet(AUDIO_DACX_SINK_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DACX_SINK_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DACX_SINK_NUM]));
+				AudioEffect_SinkGain_Update(AUDIO_DACX_SINK_NUM);
 				break;
 #endif
 			case MIC_SOURCE_NUM://source0
@@ -496,7 +496,7 @@ void SystemVolUp(void)
 				}
 
 				APP_DBG("MIC_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]);
-				AudioCoreSourceVolSet(MIC_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]));
+				AudioEffect_SourceGain_Update(MIC_SOURCE_NUM);
 				break;
 			case APP_SOURCE_NUM://source1
 				if(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM] < CFG_PARA_MAX_VOLUME_NUM)
@@ -506,10 +506,10 @@ void SystemVolUp(void)
 
 				APP_DBG("APP_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
 
-				AudioCoreSourceVolSet(APP_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]));
+				AudioEffect_SourceGain_Update(APP_SOURCE_NUM);
 
 #ifdef CFG_APP_BT_MODE_EN
-#if (BT_AVRCP_VOLUME_SYNC == ENABLE)
+#if (BT_AVRCP_VOLUME_SYNC)
 				//add volume sync(bluetooth play mode)
 				if(GetSystemMode() == ModeBtAudioPlay)
 				{
@@ -522,7 +522,7 @@ void SystemVolUp(void)
 				}
 #endif
 
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 				if(GetSystemMode() == ModeBtHfPlay)
 				{
 					SetBtHfSyncVolume(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
@@ -538,7 +538,7 @@ void SystemVolUp(void)
 				}
 
 				APP_DBG("REMIND_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]);
-				AudioCoreSourceVolSet(REMIND_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]));
+				AudioEffect_SourceGain_Update(REMIND_SOURCE_NUM);
 				break;
 #endif
 #ifdef CFG_FUNC_RECORDER_EN
@@ -549,20 +549,9 @@ void SystemVolUp(void)
 				}
 
 				APP_DBG("PLAYBACK_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]);
-				AudioCoreSourceVolSet(PLAYBACK_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]));
+				AudioEffect_SourceGain_Update(PLAYBACK_SOURCE_NUM);
 				break;
 #endif
-/*
-			case VOL_SET_CHANNEL_SOURCE4://source3
-				if(mainAppCt.gSysVol.AudioSourceVol[4] < CFG_PARA_MAX_VOLUME_NUM)
-				{
-					mainAppCt.gSysVol.AudioSourceVol[4]++;
-				}
-
-				APP_DBG("source4 vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[4]);
-				AudioCoreSourceVolSet(4, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[4]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[4]));
-				break;
-*/
 			default:
 			break;
 		}
@@ -596,7 +585,7 @@ void SystemVolDown(void)
 				}
 
 				APP_DBG("dac0 sink vol = %d\n", mainAppCt.gSysVol.AudioSinkVol[AUDIO_DAC0_SINK_NUM]);
-				AudioCoreSinkVolSet(AUDIO_DAC0_SINK_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DAC0_SINK_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DAC0_SINK_NUM]));
+				AudioEffect_SinkGain_Update(AUDIO_DAC0_SINK_NUM);
 				break;
 #ifdef CFG_FUNC_RECORDER_EN
 			case AUDIO_RECORDER_SINK_NUM + AUDIO_CORE_SOURCE_MAX_NUM://sink1
@@ -606,7 +595,7 @@ void SystemVolDown(void)
 				}
 
 				APP_DBG("rec sink vol = %d\n", mainAppCt.gSysVol.AudioSinkVol[AUDIO_RECORDER_SINK_NUM]);
-				AudioCoreSinkVolSet(AUDIO_RECORDER_SINK_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_RECORDER_SINK_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_RECORDER_SINK_NUM]));
+				AudioEffect_SinkGain_Update(AUDIO_RECORDER_SINK_NUM);
 				break;
 #endif
 #if defined(CFG_RES_AUDIO_DACX_EN )
@@ -617,7 +606,7 @@ void SystemVolDown(void)
 				}
 				
 				APP_DBG("dacx sink vol = %d\n", mainAppCt.gSysVol.AudioSinkVol[AUDIO_DACX_SINK_NUM]);
-				AudioCoreSinkVolSet(AUDIO_DACX_SINK_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DACX_SINK_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DACX_SINK_NUM]));
+				AudioEffect_SinkGain_Update(AUDIO_DACX_SINK_NUM);
 				break;
 #endif
 
@@ -628,7 +617,7 @@ void SystemVolDown(void)
 				}
 
 				APP_DBG("MIC_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]);
-				AudioCoreSourceVolSet(MIC_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]));
+				AudioEffect_SourceGain_Update(MIC_SOURCE_NUM);
 				break;
 			case APP_SOURCE_NUM://source1
 				if(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM] > 0)
@@ -637,10 +626,10 @@ void SystemVolDown(void)
 				}
 
 				APP_DBG("APP_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
-				AudioCoreSourceVolSet(APP_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]));
+				AudioEffect_SourceGain_Update(APP_SOURCE_NUM);
 
 #ifdef CFG_APP_BT_MODE_EN
-#if (BT_AVRCP_VOLUME_SYNC == ENABLE)
+#if (BT_AVRCP_VOLUME_SYNC)
 				//add volume sync(bluetooth play mode)
 				if(GetSystemMode() == ModeBtAudioPlay)
 				{
@@ -653,7 +642,7 @@ void SystemVolDown(void)
 				}
 #endif
 
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 				if(GetSystemMode() == ModeBtHfPlay)
 				{
 					SetBtHfSyncVolume(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
@@ -669,7 +658,7 @@ void SystemVolDown(void)
 				}
 
 				APP_DBG("REMIND_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]);
-				AudioCoreSourceVolSet(REMIND_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]));
+				AudioEffect_SourceGain_Update(REMIND_SOURCE_NUM);
 				break;
 #endif
 #ifdef CFG_FUNC_RECORDER_EN
@@ -680,7 +669,7 @@ void SystemVolDown(void)
 				}
 
 				APP_DBG("PLAYBACK_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]);
-				AudioCoreSourceVolSet(PLAYBACK_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]));
+				AudioEffect_SourceGain_Update(PLAYBACK_SOURCE_NUM);
 				break;
 #endif
 
@@ -701,20 +690,11 @@ void SystemVolSet(void)
 	
 	for(i=0; i<AUDIO_CORE_SOURCE_MAX_NUM; i++)
 	{
-		AudioCoreSourceVolSet(i, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[i]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[i]));
+		AudioEffect_SourceGain_Update(i);
 	}
 	for(i=0; i<AUDIO_CORE_SINK_MAX_NUM; i++)
 	{
-#ifdef CFG_FUNC_RECORDER_EN
-		if(i == AUDIO_RECORDER_SINK_NUM)
-		{
-			AudioCoreSinkVolSet(AUDIO_RECORDER_SINK_NUM, CFG_PARA_REC_GAIN, CFG_PARA_REC_GAIN);
-		}
-		else
-#endif
-		{
-			AudioCoreSinkVolSet(i, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[i]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[i]));
-		}
+		AudioEffect_SinkGain_Update(i);
 	}
 #ifdef CFG_FUNC_SHUNNING_EN
 	mainAppCt.aux_out_dyn_gain = mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM];
@@ -758,7 +738,7 @@ void AdcLevelMsgProcess(uint16_t Msg)//Sliding resistance
 				APP_DBG("MicVolumeBak = %d\n", mainAppCt.MicVolumeBak);
 			    //mainAppCt.gSysVol.AudioSourceVol[0] = mainAppCt.MicVolume = AdcValue;
 				//APP_DBG("source0 vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[0]);
-				//AudioCoreSourceVolSet(0, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[0]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[0]));
+				//AudioEffect_SourceGain_Update(0);
 				#endif
 				break;
 				

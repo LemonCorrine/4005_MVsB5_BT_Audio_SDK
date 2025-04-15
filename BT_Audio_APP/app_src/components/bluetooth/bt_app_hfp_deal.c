@@ -25,7 +25,7 @@
 #include "bt_app_connect.h"
 #include "main_task.h"
 
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 #ifdef CFG_FUNC_POWER_MONITOR_EN
 #include "power_monitor.h"
 #ifdef BT_HFP_BATTERY_SYNC
@@ -107,35 +107,74 @@ void BtHfpConnectedDev(BT_HFP_CALLBACK_PARAMS * param)
 			(param->params.bd_addr)[5]);
 
 #if (BT_LINK_DEV_NUM == 2)
-	for(ConnectIndex = 0; ConnectIndex < BT_LINK_DEV_NUM; ConnectIndex++)
-	{
-		if(memcmp(param->params.bd_addr,btManager.btLinked_env[ConnectIndex].remoteAddr,BT_ADDR_SIZE) == 0)
+#if 1
+		if(param->index >= BT_LINK_DEV_NUM)
 		{
-			break;
+			APP_DBG("hfp link full\n");
+			BTHciDisconnectCmd(param->params.bd_addr);//连接出现异常直接断开蓝牙
+			if(btManager.btLinked_env[0].btLinkState)
+			{
+				btManager.btLinked_env[1].avrcpState = BT_AVRCP_STATE_NONE;
+				btManager.btLinked_env[1].a2dpState = BT_A2DP_STATE_NONE;
+				btManager.btLinked_env[1].hfpState = BT_HFP_STATE_NONE;
+				btManager.btLinked_env[1].btLinkState = 0;
+				APP_DBG("BtLink[1] DisConnect\n");
+			}
+			else
+			{
+				btManager.btLinked_env[0].avrcpState = BT_AVRCP_STATE_NONE;
+				btManager.btLinked_env[0].a2dpState = BT_A2DP_STATE_NONE;
+				btManager.btLinked_env[0].hfpState = BT_HFP_STATE_NONE;
+				btManager.btLinked_env[0].btLinkState = 0;
+				APP_DBG("BtLink[0] DisConnect\n");
+			}
+			return;
 		}
-	}
-	if(ConnectIndex >= BT_LINK_DEV_NUM)
-	{
-		for(ConnectIndex = 0; ConnectIndex < BT_LINK_DEV_NUM; ConnectIndex++)
+		else
 		{
-			if(!(btManager.btLinked_env[ConnectIndex].btLinkedProfile & BT_CONNECTED_A2DP_FLAG)
-					&& !(btManager.btLinked_env[ConnectIndex].btLinkedProfile & BT_CONNECTED_AVRCP_FLAG)
-			#if(BT_HFP_SUPPORT == ENABLE)
-					&& !(btManager.btLinked_env[ConnectIndex].btLinkedProfile & BT_CONNECTED_HFP_FLAG)
+			if((btManager.btLinked_env[param->index].btLinkedProfile & BT_CONNECTED_A2DP_FLAG)
+					&& (btManager.btLinked_env[param->index].btLinkedProfile & BT_CONNECTED_AVRCP_FLAG)
+			#if(BT_HFP_SUPPORT)
+					&& (btManager.btLinked_env[param->index].btLinkedProfile & BT_CONNECTED_HFP_FLAG)
 			#endif
 				)
+			{
+				APP_DBG("hfp link error \n");
+				return;
+			}
+
+			ConnectIndex = param->index;
+		}
+#else
+		for(ConnectIndex = 0; ConnectIndex < BT_LINK_DEV_NUM; ConnectIndex++)
+		{
+			if(memcmp(param->params.bd_addr,btManager.btLinked_env[ConnectIndex].remoteAddr,BT_ADDR_SIZE) == 0)
 			{
 				break;
 			}
 		}
-	}
+		if(ConnectIndex >= BT_LINK_DEV_NUM)
+		{
+			for(ConnectIndex = 0; ConnectIndex < BT_LINK_DEV_NUM; ConnectIndex++)
+			{
+				if(!(btManager.btLinked_env[ConnectIndex].btLinkedProfile & BT_CONNECTED_A2DP_FLAG)
+						&& !(btManager.btLinked_env[ConnectIndex].btLinkedProfile & BT_CONNECTED_AVRCP_FLAG)
+				#if(BT_HFP_SUPPORT)
+						&& !(btManager.btLinked_env[ConnectIndex].btLinkedProfile & BT_CONNECTED_HFP_FLAG)
+				#endif
+					)
+				{
+					break;
+				}
+			}
+		}
 	if(ConnectIndex >=BT_LINK_DEV_NUM)
 	{
 		APP_DBG("hfp link full, disconnect hfp.\n");
 		BTHciDisconnectCmd(param->params.bd_addr);//连接出现异常直接断开蓝牙
 		return;
 	}
-
+#endif
 	if(ConnectIndex == 0)
 	{
 		if((btManager.btLinkState == 0)&&(BtReconnectDevIsExcute()))
@@ -281,7 +320,7 @@ void BtHfpScoLinkConnected(BT_HFP_CALLBACK_PARAMS * param)
 	else if(btManager.HfpCurIndex != param->index)
 	{
 		FirstTalkingPhoneIndexSet(btManager.HfpCurIndex);
-		SetHfpState(btManager.HfpCurIndex, BT_HFP_STATE_ACTIVE);//此处为什么要设置 HfpCurIndex
+		//SetHfpState(btManager.HfpCurIndex, BT_HFP_STATE_ACTIVE);//此处为什么要设置 HfpCurIndex
 		return;
 	}
 	//Set_Current_SCO_ID(0);
@@ -559,11 +598,11 @@ void BtHfpCallSetupNone(BT_HFP_CALLBACK_PARAMS * param)
 				SetHfpState(param->index, BT_HFP_STATE_3WAY_ATCTIVE_CALL);
 				break;
 
-			case BT_HFP_STATE_INCOMING:
-			case BT_HFP_STATE_OUTGOING:
-			case BT_HFP_STATE_ACTIVE:
-				SetHfpState(param->index, BT_HFP_STATE_CONNECTED);
-				break;
+//			case BT_HFP_STATE_INCOMING:
+//			case BT_HFP_STATE_OUTGOING:
+//			case BT_HFP_STATE_ACTIVE:
+//				SetHfpState(param->index, BT_HFP_STATE_CONNECTED);
+//				break;
 			case BT_HFP_STATE_3WAY_ATCTIVE_CALL:
 				break;
 
@@ -1005,7 +1044,7 @@ void BtHfpVoiceRecognition(BT_HFP_CALLBACK_PARAMS * param)
 	{
 		APP_DBG("Hfp vocie recognition TRUE\n");
 		SetHfpState(param->index, BT_HFP_STATE_ACTIVE);
-		#if(BT_HFP_SUPPORT == ENABLE)
+		#if(BT_HFP_SUPPORT)
 		DelayExitBtHfModeCancel();
 		#endif
 	}
@@ -1022,7 +1061,7 @@ void BtHfpVoiceRecognition(BT_HFP_CALLBACK_PARAMS * param)
 			{
 				//解决双手机连接时,先操作siri,退出siri未清理index,导致另外个手机打电话index不对而进入不了通话的问题
 				btManager.HfpCurIndex = 0xff;
-				#if(BT_HFP_SUPPORT == ENABLE)
+				#if(BT_HFP_SUPPORT)
 				DelayExitBtHfModeSet();
 				#endif
 			}

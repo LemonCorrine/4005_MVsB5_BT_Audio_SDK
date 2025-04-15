@@ -22,61 +22,50 @@
 /*****************************************************************
  * ram config
  *****************************************************************/
-#define BT_BASE_MEM_SIZE			(8000) //common
+typedef struct _BT_STACK_MEM_ALLOC_
+{
+	uint8_t	BtBaseMem[9000]; //common
 
-#if (BT_A2DP_SUPPORT == ENABLE)		//a2dp+avrcp
-#define BT_A2DP_MEM_SIZE			(15500)
-#else
-#define BT_A2DP_MEM_SIZE			0
+#if (BT_A2DP_SUPPORT)		//a2dp+avrcp
+	uint8_t	BtA2DPMem[15500];
 #endif
 
-#if (BLE_SUPPORT == ENABLE)
-#define BT_BLE_MEM_SIZE				2400
-#else
-#define BT_BLE_MEM_SIZE				0
+#if (BLE_SUPPORT)
+	uint8_t	BtBleMem[2400];
 #endif
 
 #ifdef BT_AUDIO_AAC_ENABLE
-#define BT_AUDIO_AAC_MEM_SIZE		900
-#else
-#define BT_AUDIO_AAC_MEM_SIZE		0
+	uint8_t	BtAacMem[900];
 #endif
 
-#if ((BT_AVRCP_VOLUME_SYNC == ENABLE)||(BT_AVRCP_PLAYER_SETTING == ENABLE))
-#define BT_AVRCP_TG_MEM_SIZE		(6300)
-#else
-#define BT_AVRCP_TG_MEM_SIZE		0
+#if ((BT_AVRCP_VOLUME_SYNC) || (BT_AVRCP_PLAYER_SETTING) ||(BT_SOURCE_SUPPORT))
+	uint8_t	BtAvrcpTGMem[6300];
 #endif
 
-#if (BT_HFP_SUPPORT == ENABLE)
-#define BT_HFP_MEM_SIZE				(5800)
-#else
-#define BT_HFP_MEM_SIZE				0
+#if (BT_HFP_SUPPORT)
+	uint8_t	BtHfpMem[5800];
 #endif
 
-#if (BT_SPP_SUPPORT == ENABLE ||(defined(CFG_FUNC_BT_OTA_EN)))
-#define BT_SPP_MEM_SIZE				700
-#else
-#define BT_SPP_MEM_SIZE				0
+#if (BT_SPP_SUPPORT ||(defined(CFG_FUNC_BT_OTA_EN)))
+	uint8_t	BtSppMem[700];
 #endif
 
-#if (BT_OBEX_SUPPORT == ENABLE)
-#define BT_OBEX_MEM_SIZE			400
-#else
-#define BT_OBEX_MEM_SIZE			0
+#if BT_SOURCE_SUPPORT
+	uint8_t	BtSourceMem[400];
 #endif
 
-#if (BT_PBAP_SUPPORT == ENABLE)
-#define BT_PBAP_MEM_SIZE			(1112)
-#else
-#define BT_PBAP_MEM_SIZE			0
+#if (BT_HFG_SUPPORT)
+	uint8_t	BtHFGMem[1024];
 #endif
 
-#define BT_TWS_MEM_SIZE				0
+#if (BT_OBEX_SUPPORT)
+	uint8_t	BtOBEXMem[400];
+#endif
 
-#define BT_STACK_MEM_SIZE	(BT_BASE_MEM_SIZE + BT_A2DP_MEM_SIZE + BT_AUDIO_AAC_MEM_SIZE + BT_AVRCP_TG_MEM_SIZE + \
-							BT_HFP_MEM_SIZE + BT_SPP_MEM_SIZE + BT_BLE_MEM_SIZE + BT_OBEX_MEM_SIZE + \
-							BT_PBAP_MEM_SIZE + BT_TWS_MEM_SIZE )
+}BT_STACK_MEM_ALLOC;
+
+
+#define BT_STACK_MEM_SIZE		sizeof(BT_STACK_MEM_ALLOC)
 
 #endif //__BT_STACK_MEMORY_H__
 

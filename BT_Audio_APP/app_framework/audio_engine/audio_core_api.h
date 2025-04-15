@@ -16,37 +16,36 @@
 #define __AUDIO_CORE_API_H__
 
 #include "audio_core_adapt.h"
-#include "roboeffect_api.h"
 #include "resampler.h"
+#include "audio_core_effect.h"
 #include "bt_config.h"
 enum
 {
 	MIC_SOURCE_NUM,			//麦克风通路
 	APP_SOURCE_NUM,			//app主要音源通道,配music音效
 	REMIND_SOURCE_NUM,	 	//提示音使用固定混音通道 无音效
-#ifdef BT_TWS_SUPPORT
-	TWS_SOURCE_NUM,
-#endif
 	PLAYBACK_SOURCE_NUM,	//flashfs 录音回放通道		无音效
 	I2S_MIX_SOURCE_NUM,         //I2S MIX通道
 	USB_SOURCE_NUM,             //USB MIX通道
 	LINEIN_MIX_SOURCE_NUM,      //Line in MIX通道
 	AUDIO_CORE_SOURCE_MAX_NUM,
 };
+
 //不会并存的通路可以合并，特别是sink通路
-#ifdef CFG_FUNC_MIC_KARAOKE_EN
-#define USB_AUDIO_SOURCE_NUM	USB_SOURCE_NUM
+#ifdef CFG_FUNC_USB_AUDIO_MIX_MODE  //USB MIX通道，使用 USB_SOURCE_NUM
+	extern 	uint32_t				UsbAudioSourceNum;
+	#define USB_AUDIO_SOURCE_NUM	UsbAudioSourceNum //USB_SOURCE_NUM
 #else
-#define USB_AUDIO_SOURCE_NUM	APP_SOURCE_NUM
+	#define USB_AUDIO_SOURCE_NUM	APP_SOURCE_NUM
 #endif
-#define USB_AUDIO_SOURCE1_NUM	APP_SOURCE_NUM
+
 enum
 {
 	AUDIO_DAC0_SINK_NUM,		//主音频输出在audiocore Sink中的通道，必须配置，audiocore借用此通道buf处理数据	
 #ifdef CFG_FUNC_RECORDER_EN
 	AUDIO_RECORDER_SINK_NUM,	//录音专用通道		 不叠加提示音音源。
 #endif
-#if	(defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE)) || defined(CFG_APP_USB_AUDIO_MODE_EN)
+#if	(defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT)) || defined(CFG_APP_USB_AUDIO_MODE_EN)
 	AUDIO_APP_SINK_NUM,
 #endif
 #if defined(CFG_RES_AUDIO_I2SOUT_EN)
@@ -58,8 +57,8 @@ enum
 #ifdef CFG_RES_AUDIO_SPDIFOUT_EN
 	AUDIO_SPDIF_SINK_NUM,
 #endif
-#ifdef BT_TWS_SUPPORT
-	TWS_SINK_NUM,				//缓冲
+#if BT_SOURCE_SUPPORT
+	AUDIO_BT_SOURCE_SINK_NUM,
 #endif
 	AUDIO_CORE_SINK_MAX_NUM,
 };
@@ -99,7 +98,7 @@ typedef struct _AudioCoreSource
 	uint8_t						Channels;
 	bool						LeftMuteFlag;//静音标志
 	bool						RightMuteFlag;//静音标志
-	uint32_t					MutedCount;//mute持续计数器，表征muted数据量。
+	bool						MuteFlagbk;//静音标志
 	bool						Active;//混音组合的数据/空间帧完备，发起AudioProcessMain，此通路激活。
 	MIX_NET						Net;//缺省DefaultNet/0,  使能条件下同步帧输入和输出
 	AUDIO_ADAPT					Adapt;//缺省:STD,通路采样和微调功能设置
@@ -111,11 +110,6 @@ typedef struct _AudioCoreSource
 	PCM_DATA_WIDTH				BitWidth;//输入音频位宽，0,16bit，1,24bit
 	bool						BitWidthConvFlag;//输入音频位宽，是否需要扩充到24bit
 #endif
-	int16_t						PreGain;
-	int16_t						LeftVol;	//音量
-	int16_t						RightVol;	//音量
-	int16_t						LeftCurVol;	//当前音量
-	int16_t						RightCurVol;//当前音量
 	SRC_ADAPTER					*SrcAdapter; //转采样适配器
 	void						*AdjAdapter;//微调适配器
 }AudioCoreSource;
@@ -131,7 +125,7 @@ typedef struct _AudioCoreSink
 	AUDIO_ADAPT						Adapt;//缺省:STD,通路采样和微调功能设置
 	bool							LeftMuteFlag;//静音标志
 	bool							RightMuteFlag;//静音标志
-	uint32_t						MutedCount;//mute持续计数器，表征muted数据量。
+	bool							MuteFlagbk;//静音标志
 	AudioCoreDataSetFunc			DataSetFunc;//推流入口 内buf->外缓冲搬移函数
 	AudioCoreSpaceLenFunc			SpaceLenFunc;//数据填充空间sample数 函数
 	uint32_t						Depth;//LenGetFunc()最大采样点深度，用于计算存留数据量
@@ -141,51 +135,10 @@ typedef struct _AudioCoreSink
 	PCM_DATA_WIDTH					BitWidth;//输入音频位宽，0,16bit，1,24bit
 	bool							BitWidthConvFlag;//输入音频位宽，是否需要位宽转换 24bit <--> 16bit
 #endif
-	int16_t							LeftVol;	//音量
-	int16_t							RightVol;	//音量
-	int16_t							LeftCurVol;	//当前音量
-	int16_t							RightCurVol;//当前音量
 	void							*AdjAdapter; //微调适配器
 	SRC_ADAPTER						*SrcAdapter; //转采样适配器
 }AudioCoreSink;
 
-/**
- * @brief Effect parameters for roboeffect engine
- */
-typedef struct _AUDIOEFFECT_EFFECT_PARA
-{
-	roboeffect_effect_list_info 	*user_effect_list;
-	roboeffect_effect_steps_table 	*user_effect_steps;
-	uint8_t 						*user_effects_script;
-	uint8_t 						*user_effect_name;
-
-	uint8_t 						*user_effect_parameters;
-	uint8_t 						*user_module_parameters;
-	uint32_t 						(*get_user_effects_script_len)(void);
-}AUDIOEFFECT_EFFECT_PARA;
-
-typedef struct _AudioeffectContext
-{
-	uint8_t *context_memory;
-	AUDIOEFFECT_EFFECT_PARA *cur_effect_para;
-	uint8_t *user_effect_parameters;
-	uint16_t user_effects_script_len;
-	int32_t audioeffect_memory_size;
-	uint32_t audioeffect_frame_size;
-	uint8_t effect_mode_expected;
-	uint8_t effect_count;
-	uint8_t effect_addr;
-	uint8_t effect_enable;
-	uint8_t reinit_done;
-#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
-	bool	EffectFlashUseFlag;
-#endif
-	//ROBOEFFECT_ERROR_CODE roboeffect_ret;
-}AudioeffectContext;
-
-#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
-	#define	EFFECT_FLASH_MODE_NAME	"Flash_"
-#endif
 
 typedef struct _AudioCoreContext
 {
@@ -198,7 +151,6 @@ typedef struct _AudioCoreContext
 	AudioCoreSource AudioSource[AUDIO_CORE_SOURCE_MAX_NUM];
 	AudioCoreProcessFunc AudioEffectProcess;			//****流处理入口
 	AudioCoreSink   AudioSink[AUDIO_CORE_SINK_MAX_NUM];
-	AudioeffectContext 	Audioeffect;
 }AudioCoreContext;
 
 extern AudioCoreContext		AudioCore;
@@ -233,10 +185,6 @@ void AudioCoreSourceMute(uint8_t Index, bool IsLeftMute, bool IsRightMute);
 
 void AudioCoreSourceUnmute(uint8_t Index, bool IsLeftUnmute, bool IsRightUnmute);
 
-void AudioCoreSourceVolSet(uint8_t Index, uint16_t LeftVol, uint16_t RightVol);
-
-void AudioCoreSourceVolGet(uint8_t Index, uint16_t* LeftVol, uint16_t* RightVol);
-
 void AudioCoreSourceConfig(uint8_t Index, AudioCoreSource* Source);
 
 void AudioCoreSinkEnable(uint8_t Index);
@@ -244,14 +192,6 @@ void AudioCoreSinkEnable(uint8_t Index);
 void AudioCoreSinkDisable(uint8_t Index);
 
 bool AudioCoreSinkIsEnable(uint8_t Index);
-
-void AudioCoreSinkMute(uint8_t Index, bool IsLeftMute, bool IsRightMute);
-
-void AudioCoreSinkUnmute(uint8_t Index, bool IsLeftUnmute, bool IsRightUnmute);
-
-void AudioCoreSinkVolSet(uint8_t Index, uint16_t LeftVol, uint16_t RightVol);
-
-void AudioCoreSinkVolGet(uint8_t Index, uint16_t* LeftVol, uint16_t* RightVol);
 
 void AudioCoreSinkConfig(uint8_t Index, AudioCoreSink* Sink);
 
@@ -263,6 +203,9 @@ bool AudioCoreInit(void);
 void AudioCoreDeinit(void);
 
 void AudioCoreRun(void);
+
+void AudioCoreSourceMuteApply(void);
+void AudioCoreSinkMuteApply(void);
 
 #ifdef	CFG_AUDIO_WIDTH_24BIT
 PCM_DATA_WIDTH AudioCoreSourceBitWidthGet(uint8_t Index);

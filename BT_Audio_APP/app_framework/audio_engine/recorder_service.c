@@ -19,6 +19,7 @@
 #include "debug.h"
 #include "gpio.h"
 #include "mp3enc_api.h"
+#include "mp2enc_api.h"
 //#include "mode_switch_api.h"
 #include "media_play_api.h"
 #include "audio_core_api.h"
@@ -39,11 +40,25 @@
 #include <nds32_intrinsic.h>
 //#include "device_service.h"
 #ifdef	CFG_FUNC_RECORDER_EN
+#include "rom.h"
+
+#define CFG_FUNC_RECORDER_ADD_FADOUT_EN				//录音结束增加Fadout处理
 
 //static uint32_t sRecSamples    = 0;
 //#define	MEDIA_RECORDER_FILE_SECOND			30	//自动截断文件再建立新文件，屏蔽后录成单个文件。
+bool MediaRecorderServiceInit(MessageHandle parentMsgHandle);
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+static struct
+{
+	REC_EXTFLASH_HEAD	RecHead;
+	uint8_t 			RecIndex;
+	uint32_t			RecAddr;
+}ExFlashRec = {0};
+
+#endif
 
 #define ENCODER_MP3_OUT_BUF_SIZE			MP3_ENCODER_OUTBUF_CAPACITY//((RecorderCt->SamplePerFrame * MEDIA_RECORDER_BITRATE * 1000 / 8) / CFG_PARA_SAMPLE_RATE + 1100)//单次编码帧（576/1152)输出的size，8为防溢出。
+#define ENCODER_MP2_OUT_BUF_SIZE			MP2_ENCODER_OUTBUF_CAPACITY
 #if FILE_WRITE_FIFO_LEN <= 2048
 #define FILE_WRITE_BUF_LEN					(512)
 #else
@@ -57,10 +72,6 @@
 
 #define MEDIA_RECORDER_NUM_MESSAGE_QUEUE	10
 
-#define RECORDE_GO 0
-#define RECORDE_PAUSE 1
-static uint32_t sRecState=RECORDE_PAUSE;
-
 typedef enum
 {
 	RecorderStateNone = 0,
@@ -70,6 +81,16 @@ typedef enum
 
 }RecorderState;
 
+#ifdef CFG_FUNC_RECORDER_ADD_FADOUT_EN
+typedef enum
+{
+	RecorderFadoutNone = 0,
+	RecorderFadoutBegin,
+	RecorderFadoutFrame,	//fadout处理
+	RecorderFadoutMute,		//
+	RecorderFadoutWaitSaveFile
+}RecorderFadoutState;
+#endif
 
 typedef struct _MediaRecorderContext
 {
@@ -86,8 +107,13 @@ typedef struct _MediaRecorderContext
 	/* for Encoder */
 	uint16_t 			RemainSample;//编码buf当前采样点数
 	int16_t				*EncodeBuf;
+#ifdef MEDIA_RECORDER_ENC_FORMAT_MP2
+	MP2EncoderContext	*Mp2EncCon;
+	uint8_t				*Mp2OutBuf;
+#else
 	MP3EncoderContext	*Mp3EncCon;
 	uint8_t				*Mp3OutBuf;
+#endif
 	int32_t				SamplePerFrame;
 	
 	/* for file */
@@ -122,6 +148,10 @@ typedef struct _MediaRecorderContext
 #endif
 
 	uint16_t 			SendAgainID;
+#ifdef CFG_FUNC_RECORDER_ADD_FADOUT_EN
+	uint16_t				fadout_delay_cnt;
+	RecorderFadoutState		fadout_state;
+#endif
 }MediaRecorderContext;
 
 static  MediaRecorderContext*		RecorderCt = NULL;
@@ -335,6 +365,9 @@ static bool MediaRecorderOpenDataFile(void)//uint8_t SongType)
 		return TRUE;
 	}
 #endif
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+	return TRUE;
+#endif
 }
 
 
@@ -373,6 +406,9 @@ uint16_t MediaRecorderDataSet(void* Buf, uint16_t Len)
 bool encoder_init(int32_t num_channels, int32_t sample_rate, int32_t *samples_per_frame)
 {
 	*samples_per_frame = (sample_rate > 32000)?(1152):(576);
+#ifdef MEDIA_RECORDER_ENC_FORMAT_MP2
+	return mp2_encoder_initialize(RecorderCt->Mp2EncCon, num_channels, sample_rate, MEDIA_RECORDER_BITRATE);
+#else
 	if(sample_rate < 24000)
 	{
 		return mp3_encoder_initialize(RecorderCt->Mp3EncCon, num_channels, sample_rate, MEDIA_RECORDER_BITRATE, 0);
@@ -381,17 +417,22 @@ bool encoder_init(int32_t num_channels, int32_t sample_rate, int32_t *samples_pe
 	{
 		return mp3_encoder_initialize(RecorderCt->Mp3EncCon, num_channels, sample_rate, MEDIA_RECORDER_BITRATE, 12000);
 	}
+#endif
 }
 
 bool encoder_encode(int16_t *pcm_in, uint8_t *data_out, uint32_t *plength)
 {
+#ifdef MEDIA_RECORDER_ENC_FORMAT_MP2
+	return mp2_encoder_encode(RecorderCt->Mp2EncCon, pcm_in, data_out, plength);
+#else
 	return mp3_encoder_encode(RecorderCt->Mp3EncCon, pcm_in, data_out, plength);
+#endif
 }
 
 void MediaRecorderEncode(void)
 {
 	uint32_t Len;
-	if(RecorderCt != NULL && RecorderCt->RecorderOn && sRecState == RECORDE_GO && AudioCore.AudioSink[AUDIO_RECORDER_SINK_NUM].Enable)
+	if(RecorderCt != NULL && RecorderCt->RecorderOn && AudioCoreSinkIsEnable(AUDIO_RECORDER_SINK_NUM))
 	{
 		RecorderCt->EncodeOn = TRUE;
 		Len = MCUCircular_GetDataLen(&RecorderCt->Sink1FifoCircular);
@@ -401,16 +442,59 @@ void MediaRecorderEncode(void)
 			MCUCircular_GetData(&RecorderCt->Sink1FifoCircular, 
 							RecorderCt->EncodeBuf + RecorderCt->RemainSample * MEDIA_RECORDER_CHANNEL,
 							(RecorderCt->SamplePerFrame - RecorderCt->RemainSample) * MEDIA_RECORDER_CHANNEL * 2);
+#ifdef CFG_FUNC_RECORDER_ADD_FADOUT_EN
+			if(RecorderCt->fadout_state == RecorderFadoutBegin || RecorderCt->fadout_state == RecorderFadoutFrame)
+			{
+				uint32_t i;
+				uint16_t Vol, VolStep = 4096 / (RecorderCt->SamplePerFrame) + 1;
+				if(RecorderCt->fadout_state == RecorderFadoutFrame)
+				{
+					Vol = 0;
+					RecorderCt->fadout_state = RecorderFadoutMute;
+				}
+				else
+				{
+					Vol = 4096;
+					RecorderCt->fadout_state = RecorderFadoutFrame;
+				}
+				for(i=0;i< RecorderCt->SamplePerFrame * MEDIA_RECORDER_CHANNEL;i++)
+				{
+					if(i!= 0 && (i%MEDIA_RECORDER_CHANNEL) == 0)
+					{
+						if(Vol > VolStep)
+							Vol -= VolStep;
+						else
+							Vol = 0;
+					}
+					RecorderCt->EncodeBuf[i]  = __nds32__clips(((((int32_t)RecorderCt->EncodeBuf[i]) * Vol + 2048) >> 12), (16)-1);
+				}
+			}
+#endif
+#ifdef MEDIA_RECORDER_ENC_FORMAT_MP2
+			if(!encoder_encode(RecorderCt->EncodeBuf, RecorderCt->Mp2OutBuf, &Len))
+#else
 			if(!encoder_encode(RecorderCt->EncodeBuf, RecorderCt->Mp3OutBuf, &Len))// len=313
+#endif
 			{
 				if(MCUCircular_GetSpaceLen(&RecorderCt->FileWCircularBuf) < Len)
 				{
 					APP_DBG("Encoder:fifo Error!\n");//兼容性错误警告。录音丢数据了，FILE_WRITE_FIFO_LEN不适配。
 				}
 				osMutexLock(RecorderCt->FifoMutex);
+#ifdef CFG_FUNC_RECORDER_ADD_FADOUT_EN
+				if(RecorderCt->fadout_state < RecorderFadoutWaitSaveFile)
+#endif
+#ifdef MEDIA_RECORDER_ENC_FORMAT_MP2
+				MCUCircular_PutData(&RecorderCt->FileWCircularBuf, RecorderCt->Mp2OutBuf, Len);
+#else
 				MCUCircular_PutData(&RecorderCt->FileWCircularBuf, RecorderCt->Mp3OutBuf, Len);
+#endif
 				osMutexUnlock(RecorderCt->FifoMutex);
 				RecorderCt->sRecSamples += RecorderCt->SamplePerFrame;
+#ifdef CFG_FUNC_RECORDER_ADD_FADOUT_EN
+				if(RecorderCt->fadout_state == RecorderFadoutMute)
+					RecorderCt->fadout_state = RecorderFadoutWaitSaveFile;
+#endif
 				//APP_DBG("RecorderCt->RecSampleS = %d\n", RecorderCt->sRecSamples);
 			}
 			else
@@ -431,6 +515,49 @@ void MediaRecorderEncode(void)
 		RecorderCt->EncodeOn = FALSE;
 	}
 }
+
+
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+extern uint32_t	rec_addr_start;
+void ExFlashRecorderSaveHead(void)
+{
+	uint32_t addr;
+	if(ExFlashRec.RecIndex <= CFG_PARA_RECORDS_INDEX && ExFlashRec.RecIndex > 0)
+	{
+		addr = rec_addr_start + CFG_PARA_RECORDS_MAX_SIZE * (ExFlashRec.RecIndex - 1);
+		DBG("[HHH]ExFlashRecorderSaveHead: FileSize=%d,Crc=%x\n", ExFlashRec.RecHead.RecSize,ExFlashRec.RecHead.RecCrc);
+		SpiWrite(addr, &ExFlashRec.RecHead, sizeof(REC_EXTFLASH_HEAD));
+	}
+	memset(&ExFlashRec,0,sizeof(ExFlashRec));
+}
+
+bool IsRecorderRunning(void)
+{
+	return RecorderCt != NULL;
+}
+
+void DelExFlashRecFile(uint8_t index)
+{
+	uint32_t size_4k;
+	if(index <= CFG_PARA_RECORDS_INDEX && index > 0)
+	{
+		size_4k = rec_addr_start+ CFG_PARA_RECORDS_MAX_SIZE * (index - 1);
+		SpiErase(size_4k/4096);
+	}
+}
+
+void ExFlashRecorderStartIndex(MessageHandle parentMsgHandle,uint8_t index)
+{
+	if(index <= CFG_PARA_RECORDS_INDEX && index > 0)
+	{
+		DBG("[HHH]ExFlash Recorder the %d voice\n",index);
+		memset(&ExFlashRec,0,sizeof(ExFlashRec));
+		DelExFlashRecFile(ExFlashRec.RecIndex);	// 录音前删除之前的录音文件
+		ExFlashRec.RecIndex = index;
+		MediaRecorderServiceInit(parentMsgHandle);
+	}
+}
+#endif
 
 void MediaRecorderStopProcess(void)
 {
@@ -489,6 +616,10 @@ void MediaRecorderStopProcess(void)
 	RecorderCt->state = TaskStatePaused;
 	msgSend.msgId = MSG_MEDIA_RECORDER_STOPPED;
 	MessageSend(RecorderCt->parentMsgHandle, &msgSend);
+
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+	ExFlashRecorderSaveHead();
+#endif
 //	SoftFlagDeregister(SoftFlagRecording);//清理
 }
 
@@ -501,16 +632,6 @@ bool RecordDiskMount(void)
 #ifdef CFG_FUNC_UDISK_DETECT
 	if(GetSysModeState(ModeUDiskAudioPlay)!=ModeStateSusend)
 	{
-		if(!SoftFlagGet(SoftFlagUDiskEnum))
-		{
-			OTG_HostFifoInit();
-			if(!OTG_HostInit())
-			{
-				ret = FALSE;
-			}
-			APP_DBG("SoftFlagGet(SoftFlagUDiskEnum)\n");
-		}
-		SoftFlagRegister(SoftFlagUDiskEnum);
 		APP_DBG("枚举MASSSTORAGE接口OK\n");
 		if(ret == TRUE)
 		{
@@ -607,16 +728,6 @@ bool RecordDiskMount(void)
 		ret = TRUE;
 		if(ResourceValue(AppResourceUDisk))
 		{
-			if(SoftFlagGet(SoftFlagUDiskEnum))
-			{
-				OTG_HostFifoInit();
-				if(!OTG_HostInit())
-				{
-					ret = FALSE;
-				}				
-			}
-			SoftFlagRegister(SoftFlagUDiskEnum);
-			APP_DBG("枚举MASSSTORAGE接口OK\n");
 			if(ret == TRUE)
 			{
 				if(f_mount(&RecorderCt->MediaFatfs, MEDIA_VOLUME_STR_U, 1) == 0)
@@ -658,6 +769,13 @@ static bool MediaRecorderDataProcess(void)
 				RecorderCt->WriteBuf = &RecorderCt->FileWCircularBuf.CircularBuf[RecorderCt->FileWCircularBuf.R];
 				Len = RecorderCt->FileWCircularBuf.BufDepth - RecorderCt->FileWCircularBuf.R;
 			}
+#ifdef CFG_FUNC_RECORDER_ADD_FADOUT_EN
+			else if(RecorderCt->fadout_state == RecorderFadoutWaitSaveFile)
+			{
+				RecorderCt->WriteBuf = &RecorderCt->FileWCircularBuf.CircularBuf[RecorderCt->FileWCircularBuf.R];
+				Len = RecorderCt->FileWCircularBuf.W - RecorderCt->FileWCircularBuf.R;
+			}
+#endif
 			else if((LenFile = MCUCircular_GetDataLen(&RecorderCt->FileWCircularBuf)) < FILE_WRITE_BUF_LEN)
 			{
 				osMutexUnlock(RecorderCt->FifoMutex);
@@ -677,6 +795,28 @@ static bool MediaRecorderDataProcess(void)
 			if((Ret != FR_OK) || (Ret == FR_OK && Len != RetLen))
 #elif defined(CFG_FUNC_RECORD_FLASHFS)
 			if(!Fwrite(RecorderCt->WriteBuf, Len, 1, RecorderCt->RecordFile))
+#elif defined(CFG_FUNC_RECORD_EXTERN_FLASH_EN)
+			{
+				uint16_t SECTOR1,SECTOR2;
+
+				SECTOR1 = ExFlashRec.RecAddr / 4096;
+				SECTOR2 = (ExFlashRec.RecAddr+Len) / 4096;
+
+				for(SECTOR1 += 1; SECTOR1 <= SECTOR2; SECTOR1++)
+				{
+					//APP_DBG("SECTOR1:%d\n", SECTOR1);
+					SpiErase(SECTOR1);
+				}	
+			}
+			//APP_DBG("Len:%d\n", Len);
+			if(FLASH_NONE_ERR != SpiWrite(ExFlashRec.RecAddr, RecorderCt->WriteBuf, Len))
+			{
+				//APP_DBG("FLASH_NONE_ERR!\n");
+			}
+			ExFlashRec.RecHead.RecCrc = ROM_CRC16(RecorderCt->WriteBuf, Len,ExFlashRec.RecHead.RecCrc);
+			ExFlashRec.RecAddr += Len;
+			ExFlashRec.RecHead.RecSize += Len;
+			if(0)
 #endif
 			{
 				APP_DBG("File Write Error!\n");
@@ -701,7 +841,17 @@ static bool MediaRecorderDataProcess(void)
 			RecorderCt->sRecordingTime=((uint64_t)RecorderCt->sRecSamples * 1000) / RecorderCt->SampleRate;
 			//if(GetRecEncodeState()!=TaskStatePausing)
 			ShowRecordingTime();
-			
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+			if(((RecorderCt->sRecordingTime / 1000) > EXTERN_FLASH_RECORDER_FILE_SECOND)
+				|| ExFlashRec.RecHead.RecSize >= (CFG_PARA_RECORDS_MAX_SIZE-CFG_PARA_RECORDS_INFO_SIZE-ENCODER_MP2_OUT_BUF_SIZE*2))
+			{
+				DBG("ExFlash size out!\n");
+				MessageContext		msgSend;
+				msgSend.msgId		= MSG_MEDIA_RECORDER_ERROR;
+				MessageSend(RecorderCt->parentMsgHandle, &msgSend);
+				return FALSE;//写入错误，停止，应该加上磁盘信息。比如空间满。
+			}
+#endif
 			//存盘处理
 			//此处设置2秒钟同步一次文件，以防突然拔卡操作/断电。
 			if(((uint64_t)RecorderCt->sRecSamples * 1000) / RecorderCt->SampleRate - RecorderCt->SyncFileMs >= 2000
@@ -760,14 +910,6 @@ static void MediaRecorderServiceStopProcess(void)
 	}
 }
 
-void SetRecState(uint32_t state)//0: go 1:pause
-{
-	sRecState = state;
-}
-uint32_t GetRecState(void)//0: go 1:pause
-{
-	return sRecState;
-}
 /**
  * @func        MediaRecorder_Init
  * @brief       MediaRecorder模式参数配置，资源初始化
@@ -800,11 +942,19 @@ static bool MediaRecorder_Init(MessageHandle parentMsgHandle)
 	RecorderCt->EncodeOn = FALSE;
 
 	//编码控制 句柄
+#ifdef MEDIA_RECORDER_ENC_FORMAT_MP2
+	RecorderCt->Mp2EncCon = (MP2EncoderContext*)osPortMalloc(sizeof(MP2EncoderContext));
+	if(RecorderCt->Mp2EncCon  == NULL)
+	{
+		return FALSE;
+	}
+#else
 	RecorderCt->Mp3EncCon = (MP3EncoderContext*)osPortMalloc(sizeof(MP3EncoderContext));
 	if(RecorderCt->Mp3EncCon  == NULL)
 	{
 		return FALSE;
 	}
+#endif
 //	if((RecorderCt->Mp3EncCon = (MP3EncoderContext*)osPortMalloc(sizeof(MP3EncoderContext))) == NULL)
 //	{
 //		return FALSE;
@@ -865,11 +1015,19 @@ static bool MediaRecorder_Init(MessageHandle parentMsgHandle)
 //		}
 	}
 	//编码输出buf
+#ifdef MEDIA_RECORDER_ENC_FORMAT_MP2
+	RecorderCt->Mp2OutBuf = osPortMalloc(ENCODER_MP2_OUT_BUF_SIZE);
+	if(RecorderCt->Mp2OutBuf == NULL)
+	{
+		return FALSE;
+	}
+#else
 	RecorderCt->Mp3OutBuf = osPortMalloc(ENCODER_MP3_OUT_BUF_SIZE);
 	if(RecorderCt->Mp3OutBuf == NULL)
 	{
 		return FALSE;
 	}
+#endif
 
 //	if((RecorderCt->Mp3OutBuf = osPortMalloc(ENCODER_MP3_OUT_BUF_SIZE)) == NULL)
 //	{
@@ -912,9 +1070,29 @@ static void MediaRecorderEntrance(void * param)
 {
 	APP_DBG("MediaRecorder Service\n");
 	SoftFlagRegister(SoftFlagRecording);//登记录音状态，用于屏蔽后插先播
-	SetRecState(RECORDE_GO);
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+	if(ExFlashRec.RecIndex <= CFG_PARA_RECORDS_INDEX && ExFlashRec.RecIndex > 0)
+	{
+		ExFlashRec.RecAddr = rec_addr_start + CFG_PARA_RECORDS_INFO_SIZE + CFG_PARA_RECORDS_MAX_SIZE * (ExFlashRec.RecIndex - 1);
+		DBG("[HHH]DelExFlashRecFile:%d,addr:0x%x\n",ExFlashRec.RecIndex,ExFlashRec.RecAddr);
+		DelExFlashRecFile(ExFlashRec.RecIndex);	// 录音前删除之前的录音文件
+	}
+#endif
 	while(1)
 	{
+#ifdef CFG_FUNC_RECORDER_ADD_FADOUT_EN
+		if(RecorderCt->fadout_state !=RecorderFadoutNone)
+		{
+			RecorderCt->fadout_delay_cnt++;
+			if(RecorderCt->fadout_delay_cnt > 100	//超时退出
+			 || (RecorderCt->fadout_state == RecorderFadoutWaitSaveFile && MCUCircular_GetDataLen(&RecorderCt->FileWCircularBuf) < 10))
+			{
+				RecServierToParent(MSG_STOP_REC);
+				RecorderCt->fadout_delay_cnt 	= 0;
+				RecorderCt->fadout_state 		= RecorderFadoutNone;
+			}
+		}
+#endif
 		if(!RecorderCt->RecorderOn)
 		{
 #ifdef CFG_FUNC_RECORD_SD_UDISK
@@ -979,6 +1157,19 @@ void RecServierToParentAgain(uint16_t id)
 	if(RecorderCt)
 		RecorderCt->SendAgainID = id;
 }
+
+#ifdef CFG_FUNC_RECORDER_ADD_FADOUT_EN
+bool RecServierFadoutBegin(void)
+{
+	if(RecorderCt && RecorderCt->fadout_state == RecorderFadoutNone)
+	{
+		RecorderCt->fadout_delay_cnt = 0;
+		RecorderCt->fadout_state = RecorderFadoutBegin;
+		return TRUE;
+	}
+	return FALSE;
+}
+#endif
 /***************************************************************************************
  *
  * APIs
@@ -1054,6 +1245,23 @@ bool MediaRecorderServiceKill(void)
 
 	AudioCoreSinkDeinit(AUDIO_RECORDER_SINK_NUM);
 	//PortFree
+#ifdef MEDIA_RECORDER_ENC_FORMAT_MP2
+		if(RecorderCt->Mp2EncCon != NULL)
+		{
+			osPortFree(RecorderCt->Mp2EncCon);
+			RecorderCt->Mp2EncCon = NULL;
+		}
+		if(RecorderCt->EncodeBuf != NULL)
+		{
+			osPortFree(RecorderCt->EncodeBuf);
+			RecorderCt->EncodeBuf = NULL;
+		}
+		if(RecorderCt->Mp2OutBuf != NULL)
+		{
+			osPortFree(RecorderCt->Mp2OutBuf);
+			RecorderCt->Mp2OutBuf = NULL;
+		}
+#else
 	if(RecorderCt->Mp3EncCon != NULL)
 	{
 		osPortFree(RecorderCt->Mp3EncCon);
@@ -1069,6 +1277,7 @@ bool MediaRecorderServiceKill(void)
 		osPortFree(RecorderCt->Mp3OutBuf);
 		RecorderCt->Mp3OutBuf = NULL;
 	}
+#endif
 //	if(RecorderCt->WriteBuf != NULL)
 //	{
 //		osPortFree(RecorderCt->WriteBuf);
@@ -1134,6 +1343,13 @@ void ShowRecordingTime(void)
 	 {
 	  APP_DBG("%u.mp3 Recording(%lds)\n",RecorderCt->FileIndex,RecorderCt->sRecordingTime / 1000);//can use IntToStrMP3Name()
 	  RecorderCt->sRecordingTimePre = RecorderCt->sRecordingTime;
+	 }
+#endif
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+ 	 if((RecorderCt->sRecordingTime / 1000 - RecorderCt->sRecordingTimePre / 1000 >= 1))
+	 {
+ 		 APP_DBG("ExFlashRecording %u(%lds)\n",ExFlashRec.RecIndex,RecorderCt->sRecordingTime / 1000);//can use IntToStrMP3Name()
+ 		 RecorderCt->sRecordingTimePre = RecorderCt->sRecordingTime;
 	 }
 #endif 
 }
@@ -1215,16 +1431,14 @@ void RecServicePause(void)
 	{
 		if(IsRecoding())
 		{
-			if(sRecState == RECORDE_GO)
+			if(AudioCoreSinkIsEnable(AUDIO_RECORDER_SINK_NUM))
 			{
 				AudioCoreSinkDisable(AUDIO_RECORDER_SINK_NUM);
-				sRecState=RECORDE_PAUSE;
 				APP_DBG("rec pasue \n");
 			}
 			else
 			{
 				AudioCoreSinkEnable(AUDIO_RECORDER_SINK_NUM);
-				sRecState=RECORDE_GO;
 				APP_DBG("rec GO \n");
 			}
 		}
@@ -1266,6 +1480,13 @@ void RecServierMsg(uint32_t *msg)
 				}
 				else if(GetMediaRecorderState() == TaskStateRunning)//再按录音键 停止
 				{
+#ifdef CFG_FUNC_RECORDER_ADD_FADOUT_EN
+					if(RecServierFadoutBegin())
+					{
+						APP_DBG("RecServierFadoutBegin!!\n");
+						break;
+					}
+#endif
 					APP_DBG("SOUND_REMIND_STOPREC\n");
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 					RemindSoundServiceItemRequest(SOUND_REMIND_STOPREC, REMIND_PRIO_NORMAL);
@@ -1280,6 +1501,21 @@ void RecServierMsg(uint32_t *msg)
 			}
 
 		break;
+
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+		case MSG_REC1:
+		case MSG_REC2:
+			APP_DBG("MSG_REC1!!!\n");
+			if(!IsRecorderRunning() && (GetMediaRecorderState() == TaskStateNone))
+			{
+				ExFlashRecorderStartIndex(GetSysModeMsgHandle(),*msg - MSG_REC1 + 1);
+			}
+			else if(GetMediaRecorderState() == TaskStateRunning)//再按录音键 停止
+			{
+				MediaRecorderServiceDeinit();
+			}
+			break;
+#endif
 		case MSG_REC_PLAYBACK:
 			APP_DBG("MSG_REC_PLAYBACK\n");
 			if(GetSysModeState(ModeUDiskPlayBack) == ModeStateRunning)
@@ -1323,6 +1559,28 @@ void RecServierMsg(uint32_t *msg)
 #endif
 #endif
 			break;
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+			case MSG_REC1_PLAYBACK:
+			case MSG_REC2_PLAYBACK:
+				RemindServiceItemRequestExt(*msg - MSG_REC1_PLAYBACK + 1);
+			break;
+
+			case MSG_DEL_ALL_REC:
+			{
+				if(RemindServiceItemReplaying() || (GetMediaRecorderState() == TaskStateRunning))
+				{
+					APP_DBG("replaying not clear\n");
+				}else{
+					APP_DBG("clear all rec file\n");
+					uint8_t i;
+					extern void DelExFlashRecFile(uint8_t index);
+					for(i = 1;i <= CFG_PARA_RECORDS_INDEX; i++)
+						DelExFlashRecFile(i);
+				}
+				
+			}
+			break;
+#endif
 #ifdef DEL_REC_FILE_EN
 		case MSG_REC_FILE_DEL:
 			if(GetSystemMode() == ModeCardPlayBack || GetSystemMode() == ModeUDiskPlayBack)// || GetSystemMode() == AppModeFlashFsPlayBack)
@@ -1347,7 +1605,7 @@ void RecServierMsg(uint32_t *msg)
 		case MSG_PLAY_PAUSE:
 			if(GetMediaRecorderTaskHandle() != NULL)
 			{
-				APP_DBG("RECORDER_GO_PAUSED\n");
+//				APP_DBG("RECORDER_GO_PAUSED\n");
 				RecServicePause();
 				*msg = MSG_NONE;
 			}

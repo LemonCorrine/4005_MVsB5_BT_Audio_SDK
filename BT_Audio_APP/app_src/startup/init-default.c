@@ -296,7 +296,8 @@ __asm__ __volatile__(
 			M(CFG_SDK_MINOR_VERSION)//0xBA	
 			M(CFG_SDK_PATCH_VERSION)//0xBB
     		".long 0xFFFFFFFF \n\n"	//0xBC code crc
-    		".long 0xB0BEBDC9 \n\n"	//0xC0 magic number
+//    		".long 0xB0BEBDC9 \n\n"	//0xC0 magic number
+			MMM(CFG_SDK_MAGIC_NUMBER)//0xC0 magic number
     		".long 0x00000706 \n\n"	//0xC4 32KHz external oscillator input/output capacitance calibration value
     		".long 0xFFFFFFFF \n\n"	//0xC8 fast code crc	@ 0xA4
     		".long 0xFFFFFFFF \n\n"	//0xCC fast code crc	@ 0xA4

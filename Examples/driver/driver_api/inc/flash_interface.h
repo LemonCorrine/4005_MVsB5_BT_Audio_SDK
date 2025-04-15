@@ -103,4 +103,24 @@ SPI_FLASH_INFO* SpiFlashInfoGetWpr(void);
  */
 SPI_FLASH_ERR_CODE SpiFlashResumDelaySetWpr(uint32_t time);
 
+/**
+ * @brief	读取flash 唯一序列号到内存缓冲区
+ * @param	Buffer    内存缓冲区地址
+ * @param	BufLen    缓冲区长度
+ * @return	DATALEN_LESS_THEN_ZERO_ERR-缓冲区长度错误       ; FLASH_NONE_ERR-成功
+ * @note
+ */
+SPI_FLASH_ERR_CODE SpiFlashReadUniqueIDWpr(uint8_t* Buffer, uint8_t BufLen);
+
+
+/**
+ * @brief   flash擦除扩展
+ * @param   Offset      擦除地址, 必须4KB对齐
+ * @param   Size        擦除size, 必须4KB对齐
+ * @param   IsSuspend   擦除过程中，是否使用suspend/resume机制响应中断
+ * @return  ERASE_FLASH_ERR-擦除失败	; LASH_NONE_ERR-擦出成功
+ * @note    此API会检查Offset/Size是否4KB对齐, 不对齐则返回错误
+ */
+SPI_FLASH_ERR_CODE FlashEraseExt(uint32_t Offset, uint32_t Size, bool IsSuspend);
+
 #endif /* SRC_FLASH_INTERFACE_H_ */

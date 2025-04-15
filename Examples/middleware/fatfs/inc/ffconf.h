@@ -9,9 +9,8 @@
 */
 #ifdef CFG_APP_CONFIG
 #include "app_config.h"
-#endif
-
 #define FUNCTION_FILE_SYSTEM_REENTRY
+#endif
 
 #define FFCONF_DEF	80196	/* Revision ID */
 

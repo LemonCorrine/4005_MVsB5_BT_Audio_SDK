@@ -1,10 +1,6 @@
 #include "user_effect_flow_music.h"
 #include "user_effect_parameter.h"
 
-extern uint32_t get_user_effects_script_len_music(void);
-extern const unsigned char user_effect_parameters_music_music[];
-extern const unsigned char user_module_parameters_music_music[];
-
 static const AUDIOEFFECT_EFFECT_PARA effect_para[] =
 {
 	{

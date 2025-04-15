@@ -54,14 +54,23 @@ typedef enum
 
 #define CFG_PARA_MAX_SAMPLES_PER_FRAME		(512)//(512)
 
-#define DECODER_BUF_SIZE   					(1024 * 28)	//解码器开销，Unit:  BYTE，需充分测试。
+#ifdef LOSSLESS_DECODER_HIGH_RESOLUTION
+	#define DECODER_BUF_SIZE   					(1024 * 42)	//解码器开销，Unit:  BYTE，需充分测试。
+#else
+	#define DECODER_BUF_SIZE   					(1024 * 28)	//解码器开销，Unit:  BYTE，需充分测试。
+#endif
+
 #define DECODER_BUF_SIZE_MP3				(1024 * 19)
 #define DECODER_BUF_SIZE_SBC				(1024 * 7)
 
 //WMA:28536,AAC:28444,APE:25340,FLA:22580,MP3:19136,AIF:11236,WAV:11228,SBC:5624,实际块大小会变，比如adpcm的wav。
 
 #define DECODER_FIFO_SIZE_MIN				(CFG_PARA_MAX_SAMPLES_PER_FRAME * 4)//最小 fifo 设置
-#define DECODER_FIFO_SIZE_FOR_PLAYER 		(CFG_PARA_MAX_SAMPLES_PER_FRAME * 24)	//无损读取、高压缩解码阻塞情况，要求大缓冲。如：Flac24bit 1.5Mbps要改为*20;1.7Mbps要改为*24
+#ifdef LOSSLESS_DECODER_HIGH_RESOLUTION
+	#define DECODER_FIFO_SIZE_FOR_PLAYER 		(CFG_PARA_MAX_SAMPLES_PER_FRAME * 24 * 4)	//无损读取、高压缩解码阻塞情况，要求大缓冲。如：Flac24bit 1.5Mbps要改为*20;1.7Mbps要改为*24
+#else
+	#define DECODER_FIFO_SIZE_FOR_PLAYER 		(CFG_PARA_MAX_SAMPLES_PER_FRAME * 24)	//无损读取、高压缩解码阻塞情况，要求大缓冲。如：Flac24bit 1.5Mbps要改为*20;1.7Mbps要改为*24
+#endif
 #define	DECODER_FIFO_SIZE_FOR_SBC			(CFG_PARA_MAX_SAMPLES_PER_FRAME * 6)
 #define DECODER_FIFO_SIZE_FOR_MP3			(CFG_PARA_MAX_SAMPLES_PER_FRAME * 8)
 
@@ -112,7 +121,7 @@ uint8_t DecoderSourceNumGet(DecoderChannels DecoderChannel);
 
 //解码器输出在audiocore source通路中配置的Num号
 void DecoderSourceNumSet(uint8_t Num,DecoderChannels DecoderChannel);
-bool DecoderServiceInit(MessageHandle ParentMsgHandle, DecoderChannels DecoderChannel,uint32_t BufSize, uint16_t FifoSize);
+bool DecoderServiceInit(MessageHandle ParentMsgHandle, DecoderChannels DecoderChannel,uint32_t BufSize, uint32_t FifoSize);
 void RemindDecodeProcess(void);
 void ModeDecodeProcess(void);
 uint16_t ModeDecoderPcmDataGet(void * pcmData,uint16_t sampleLen);// call by audio core one by one

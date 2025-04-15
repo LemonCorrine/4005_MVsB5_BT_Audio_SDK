@@ -25,7 +25,7 @@
 #include "bt_obex_api.h"
 #include "app_message.h"
 
-#if(BT_OBEX_SUPPORT == ENABLE)
+#if(BT_OBEX_SUPPORT)
 
 #ifdef MVA_BT_OBEX_UPDATE_FUNC_SUPPORT
 #include "bt_obex_upgrade.h"

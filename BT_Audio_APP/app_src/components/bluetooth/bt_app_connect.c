@@ -65,11 +65,25 @@ void BtConnectCtrl(void)
 }
 
 /*****************************************************************************************
- * 
+ * OnlyDisconnect = TRUE, 直接断开，不判断条件,不终止回连行为
  ****************************************************************************************/
-void BtDisconnectCtrl(void)
+void BtDisconnectCtrl(bool OnlyDisconnect)
 {
 	uint8_t i;
+
+	if(OnlyDisconnect)
+	{
+		//直接断开，不判断条件,不终止回连行为
+		for(i=0; i<BT_LINK_DEV_NUM;i++)
+		{
+			BTDisconnect(i);
+	#ifdef BT_MULTI_LINK_SUPPORT
+			btManager.btLinked_env[i].btLinkDisconnFlag = 1;//防止双手机时，回连异常
+	#endif
+		}
+		return;
+	}
+
 	APP_DBG("bt disconnect ctrl\n");
 
 	//1.终止回连行为
@@ -81,10 +95,9 @@ void BtDisconnectCtrl(void)
 		if(btManager.btLinked_env[i].btLinkState)
 		{
 #ifdef BT_MULTI_LINK_SUPPORT
-			 BTHciDisconnectCmd(btManager.btLinked_env[i].remoteAddr);
-#else
-			 BTDisconnect(i);
+			btManager.btLinked_env[i].btLinkDisconnFlag = 1;//防止双手机时，回连异常
 #endif
+			BTDisconnect(btManager.btLinked_env[i].a2dp_index);//根据连接ID来断连
 		}
 	}
 	
@@ -113,14 +126,14 @@ void BtCancelConnect(void)
 	btManager.btReconPhoneSt.excute = NULL;
 	btManager.btReconPhoneSt.ConnectionTimer.timerFlag = TIMER_UNUSED;
 	btManager.btReconPhoneSt.profile = 0;
-	#ifdef BT_REAL_STATE
 	if (GetBtManager()->btAccessModeEnable != BT_ACCESSBLE_GENERAL)
 	{
 		SetBtUserState(BT_USER_STATE_NONE);
-	}else{
+	}
+	else
+	{
 		SetBtUserState(BT_USER_STATE_PREPAIR);
 	}	
-	#endif
 }
 
 /*****************************************************************************************
@@ -175,6 +188,12 @@ void BtReconnectDevExcute(void)
 {
 	printf("BtReconnectDevExcute, %d\n", btManager.btReconPhoneSt.TryCount);
 	uint8_t i;
+
+#if BT_SOURCE_SUPPORT
+	if(BtSourceReconnectDevExcute())
+		return;
+#endif
+	
 	for(i=0;i<BT_LINK_DEV_NUM;i++)
 	{
 		if(memcmp(btManager.btDdbLastAddr, btManager.btLinked_env[i].remoteAddr, 6)==0)
@@ -184,7 +203,7 @@ void BtReconnectDevExcute(void)
 	if(i<BT_LINK_DEV_NUM)
 	{
 			if((GetA2dpState(i) == BT_A2DP_STATE_NONE)&&(GetAvrcpState(i) == BT_AVRCP_STATE_NONE)
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 			&&(GetHfpState(i) == BT_HFP_STATE_NONE)
 #endif
 			)
@@ -237,7 +256,7 @@ void BtReconnectDevExcute(void)
 	//在回连手机时,打开手机蓝牙功能;安卓手机会自动回连;
 	//某些安卓手机回连非常快,会导致sdp channel复用,导致异常;
 	//在发起回连时,确定sdp server是不是被使用,未使用则开始进行回连
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 	if((btManager.btReconPhoneSt.profile & BT_PROFILE_SUPPORTED_HFP)&&(GetHfpState(BtCurIndex_Get()) < BT_HFP_STATE_CONNECTED))
 	{
 		signed char status = 0;
@@ -315,11 +334,17 @@ void BtReconnectDevCreate(uint8_t *addr, uint8_t tryCount, uint8_t interval, uin
 		APP_DBG("BtReconnectDevCreate fail, count = 0\n");
 		return;
     }
+
+	if(((addr[0]==0)&&(addr[1]==0)&&(addr[2]==0)&&(addr[3]==0)&&(addr[4]==0)&&(addr[5]==0))
+		||
+		((addr[0]==0xff)&&(addr[1]==0xff)&&(addr[2]==0xff)&&(addr[3]==0xff)&&(addr[4]==0xff)&&(addr[5]==0xff)))
+	{
+		APP_DBG("addr == null\n");
+		return;
+	}
 	
 	APP_DBG("BtReconnectDevCreate\n");
-#ifdef BT_REAL_STATE
 	SetBtUserState(BT_USER_STATE_RECON);
-#endif
 	btManager.btReconPhoneSt.ConnectionTimer.timerFlag = TIMER_UNUSED;
 	memcpy(btManager.btReconPhoneSt.RemoteDevAddr, addr, BT_ADDR_SIZE);
 	btManager.btReconPhoneSt.TryCount = tryCount;
@@ -425,31 +450,6 @@ void BtReconnectDevAgain(uint32_t delay)
 	}
 }
 
-/*****************************************************************************************
- * 
- ****************************************************************************************/
-//1.在连接设备成功后，需要停止回连
-//2.在连接次数超时后，需要停止回连
-//3.在有其他设备连接成功后，停止回连
-void BtReconnectTwsStop(void)
-{
-	APP_DBG("BtReconnectTwsStop\n");
-	
-	//正在处理中,立即停止
-	if(btManager.btReconExcuteSt == (&btManager.btReconTwsSt))
-	{
-		btManager.btReconExcuteSt = NULL;
-	}
-	else
-	{
-		//从链表中移除
-		btstack_list_remove(&btManager.btReconHandle, &btManager.btReconTwsSt.item);
-	}
-	btManager.btReconTwsSt.excute = NULL;
-	btManager.btReconTwsSt.ConnectionTimer.timerFlag = TIMER_UNUSED;
-	btManager.btReconTwsSt.profile = 0;
-}
-
 uint32_t delay_time = 0;
 /***********************************************************************************
  * @breif  : bt reconnect process
@@ -459,7 +459,7 @@ void BtReconnectProcess(void)
 {
 	if(btManager.btReconStopDelay > 0)
 		btManager.btReconStopDelay--;
-	//执行当前回连的流程 phone or tws
+	//执行当前回连的流程 phone
 	if(btManager.btReconExcuteSt)
 	{
 		if(btManager.btReconExcuteSt->ConnectionTimer.timerFlag == TIMER_UNUSED)
@@ -493,15 +493,12 @@ void BtReconnectProcess(void)
 				else
 				{
 					btManager.btReconExcuteSt = NULL;
-					#ifdef BT_REAL_STATE
 					if (GetBtManager()->btAccessModeEnable != BT_ACCESSBLE_GENERAL)
 					{
 						SetBtUserState(BT_USER_STATE_NONE);
 					}else{
 						SetBtUserState(BT_USER_STATE_PREPAIR);
 					}
-					#endif
-					//APP_DBG("reconnect: end\n");
 				}
 			}
 		}
@@ -593,7 +590,7 @@ void BtScanPageStateCheck(void)
 				// If there is a bt link, disconnect it
 				if(GetBtCurConnectFlag())
 				{
-					BtDisconnectCtrl();
+					BtDisconnectCtrl(FALSE);
 					BtScanPageStateSet(BT_SCAN_PAGE_STATE_DISCONNECTING);
 					g_bt_discon_fail_cnt = 0;
 					break;
@@ -628,7 +625,7 @@ void BtScanPageStateCheck(void)
 						if(g_bt_discon_fail_cnt >= 5)
 							BTHciDisconnectCmd(btManager.btDdbLastAddr);
 						else
-							BtDisconnectCtrl();
+							BtDisconnectCtrl(FALSE);
 						BtScanPageStateSet(BT_SCAN_PAGE_STATE_DISCONNECTING);
 					}
 				}
@@ -644,7 +641,7 @@ void BtScanPageStateCheck(void)
 				// double check wether there is a bt link, if any, disconnect again
 				if(GetBtCurConnectFlag())
 				{
-					BtDisconnectCtrl();
+					BtDisconnectCtrl(FALSE);
 					BtScanPageStateSet(BT_SCAN_PAGE_STATE_DISCONNECTING);
 				}
 			}
@@ -656,60 +653,12 @@ void BtScanPageStateCheck(void)
 
 			btManager.BtPowerOnFlag = 0;
 
-#if ((CFG_TWS_ONLY_IN_BT_MODE == ENABLE) || defined(TWS_SLAVE_MODE_SWITCH_EN))
-		#if ((TWS_PAIRING_MODE == CFG_TWS_PEER_MASTER)||(TWS_PAIRING_MODE == CFG_TWS_ROLE_RANDOM))
-			if(sys_parameter.bt_TwsReconnectionEnable && btManager.twsFlag)
-			{
-				btManager.btConStateProtectCnt = 1;
-				if(btManager.twsRole == BT_TWS_SLAVE)
-				{
-					BtReconnectTws_Slave();
-				}
-				else
-				{
-					BtReconnectTws();
-				}
-			}
 			if(sys_parameter.bt_ReconnectionEnable)
 			{
-				BtReconnectDevice();
+				//BtReconnectDevice();
+				GetBtManager()->btReconnectDelayCount = 1;
 			}
 
-			BtSetAccessMode_select();
-			break;
-		#endif
-#else
-		#if ((TWS_PAIRING_MODE == CFG_TWS_ROLE_MASTER)||(TWS_PAIRING_MODE == CFG_TWS_PEER_SLAVE))
-			if(sys_parameter.bt_ReconnectionEnable)
-			{
-				//BtReconnectDevice();
-				GetBtManager()->btReconnectDelayCount = 1;
-			}
-		#elif (TWS_PAIRING_MODE != CFG_TWS_ROLE_SLAVE)
-			if(sys_parameter.bt_TwsReconnectionEnable && btManager.twsFlag)
-			{
-				if(btManager.twsRole == BT_TWS_SLAVE)
-				{
-			#ifndef CFG_AUTO_ENTER_TWS_SLAVE_MODE
-					BtReconnectTws_Slave();
-					BtSetAccessModeApi(BtAccessModeNotAccessible);
-					break;
-			#endif
-            
-					if(sys_parameter.bt_ReconnectionEnable && GetCurTotaBtRecNum())
-					{
-						BtReconnectDevice();
-						break;
-					}
-				}
-			}
-			if(sys_parameter.bt_ReconnectionEnable)
-			{
-				//BtReconnectDevice();
-				GetBtManager()->btReconnectDelayCount = 1;
-			}
-		#endif
-#endif
 //			if(btManager.btConStateProtectCnt)
 //				BtSetAccessModeApi(BtAccessModeNotAccessible);
 //			else

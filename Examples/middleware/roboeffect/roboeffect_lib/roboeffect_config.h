@@ -13,33 +13,63 @@ extern "C" {
 #include "roboeffect_api.h"
 #include "audio_effect_library.h"
 
-#define    AEC_ENABLE                                    (1)
-#define    AUTO_TUNE_ENABLE                              (1)
-#define    COMPANDER_ENABLE                              (1)
-#define    DOWNMIX_2TO1_ENABLE                           (1)
-#define    DRC_ENABLE                                    (1)
-#define    ECHO_ENABLE                                   (1)
-#define    EQ_ENABLE                                     (1)
-#define    FREQ_SHIFTER_ENABLE                           (1)
-#define    GAIN_CONTROL_ENABLE                           (1)
-#define    HARMONIC_EXCITER_ENABLE                       (1)
-#define    HOWLING_SUPPRESSOR_ENABLE                     (1)
-#define    HOWLING_SUPPRESSOR_FINE_ENABLE                (1)
-#define    LOW_LEVEL_COMPRESSOR_ENABLE                   (1)
-#define    NOISE_SUPPRESSOR_BLUE_ENABLE                  (1)
-#define    NOISE_SUPPRESSOR_EXPANDER_ENABLE              (1)
-#define    PCM_DELAY_ENABLE                              (1)
-#define    PITCH_SHIFTER_ENABLE                          (1)
-#define    PITCH_SHIFTER_PRO_ENABLE                      (1)
-#define    REVERB_ENABLE                                 (1)
-#define    REVERB_PLATE_ENABLE                           (1)
-#define    SILENCE_DETECTOR_ENABLE                       (1)
-#define    STEREO_WIDENER_ENABLE                         (1)
-#define    THREE_D_ENABLE                                (1)
-#define    UPMIX_1TO2_ENABLE                             (1)
-#define    VIRTUAL_BASS_ENABLE                           (1)
-#define    VOICE_CHANGER_ENABLE                          (1)
-#define    VOICE_CHANGER_PRO_ENABLE                      (1)
+
+#define AEC_ENABLE                         (1)
+#define AUTO_TUNE_ENABLE                   (1)
+#define AUTO_WAH_ENABLE                    (0)
+#define BEAMFORMING_ENABLE                 (0)
+#define BEAT_TRACKER_ENABLE                (0)
+#define BIQUAD_ENABLE                      (0)
+#define CHORUS_ENABLE                      (0)
+#define CHORUS2_ENABLE                     (0)
+#define COMPANDER_ENABLE                   (1)
+#define DC_BLOCKER_ENABLE                  (0)
+#define DISTORTION_DS1_ENABLE              (0)
+#define DRC_ENABLE                         (1)
+#define ECHO_ENABLE                        (1)
+#define ENGINE_SOUND_ENABLE                (0)
+#define EQ_ENABLE                          (1)
+#define EQ_DRC_ENABLE                      (0)
+#define FLANGER_ENABLE                     (0)
+#define FREQ_SHIFTER_ENABLE                (1)
+#define FREQ_SHIFTER_FINE_ENABLE           (0)
+#define GAIN_CONTROL_ENABLE                (1)
+#define HARMONIC_EXCITER_ENABLE            (1)
+#define HOWLING_GUARD_ENABLE               (0)
+#define HOWLING_SUPPRESSOR_ENABLE          (1)
+#define HOWLING_SUPPRESSOR_FINE_ENABLE     (1)
+#define LOW_LEVEL_COMPRESSOR_ENABLE        (1)
+#define NOISE_GATE_ENABLE                  (1)
+#define NOISE_GENERATOR_ENABLE             (1)
+#define NOISE_SUPPRESSOR_BLUE_ENABLE       (1)
+#define NOISE_SUPPRESSOR_BLUE_DUAL_ENABLE  (0)
+#define NOISE_SUPPRESSOR_EXPANDER_ENABLE   (1)
+#define OVER_DRIVE_ENABLE                  (0)
+#define OVER_DRIVE_PLOY_ENABLE             (0)
+#define PCM_DELAY_ENABLE                   (1)
+#define PHASE_CONTROL_ENABLE               (0)
+#define PHASE_INVERTER_ENABLE              (0)
+#define PINGPONG_ENABLE                    (0)
+#define PITCH_SHIFTER_ENABLE               (1)
+#define PITCH_SHIFTER_PRO_ENABLE           (1)
+#define REVERB_ENABLE                      (1)
+#define REVERB_PLATE_ENABLE                (1)
+#define REVERB_PRO_ENABLE                  (0)
+#define ROBOT_TONE_ENABLE                  (0)
+#define SILENCE_DETECTOR_ENABLE            (1)
+#define SINE_GENERATOR_ENABLE              (0)
+#define STEREO_WIDENER_ENABLE              (1)
+#define THREE_D_ENABLE                     (1)
+#define THREE_D_PLUS_ENABLE                (0)
+#define TREMOLO_ENABLE                     (0)
+#define VIRTUAL_BASS_ENABLE                (1)
+#define VIRTUAL_BASS_CLASSIC_ENABLE        (1)
+#define VIRTUAL_BASS_TD_ENABLE             (0)
+#define VIRTUAL_SURROUND_2CH_ENABLE        (0)
+#define VOCAL_CUT_ENABLE                   (0)
+#define VOCAL_REMOVER_ENABLE               (0)
+#define VOICE_CHANGER_ENABLE               (1)
+#define VOICE_CHANGER_PRO_ENABLE           (1)
 
 //effects parameters length
 #define ROBOEFFECT_AUTO_TUNE_PARAM_LEN                3
@@ -97,6 +127,7 @@ extern "C" {
 #define ROBOEFFECT_ROBOT_TONE_PARAM_LEN               1
 #define ROBOEFFECT_NOISE_GENERATOR_PARAM_LEN          2
 #define ROBOEFFECT_NOISE_SUPPRESSOR_BLUE_DUAL_PARAM_LEN 1
+#define ROBOEFFECT_PHASE_INVERTER_PARAM_LEN           1
 #define ROBOEFFECT_FADER_PARAM_LEN                    3
 #define ROBOEFFECT_DOWNMIX_2TO1_PARAM_LEN             0
 #define ROBOEFFECT_UPMIX_1TO2_PARAM_LEN               0
@@ -440,6 +471,12 @@ bool roboeffect_noise_suppressor_blue_dual_init_if(void *node);
 bool roboeffect_noise_suppressor_blue_dual_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
 bool roboeffect_noise_suppressor_blue_dual_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
 int32_t roboeffect_noise_suppressor_blue_dual_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
+
+//phase_inverter interface
+bool roboeffect_phase_inverter_init_if(void *node);
+bool roboeffect_phase_inverter_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
+bool roboeffect_phase_inverter_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
+int32_t roboeffect_phase_inverter_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
 
 //fader interface
 bool roboeffect_fader_init_if(void *node);

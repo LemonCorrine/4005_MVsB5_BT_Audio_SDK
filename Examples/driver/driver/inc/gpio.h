@@ -679,7 +679,36 @@ typedef enum
 
 
 
+typedef enum _GEN_PIN_FEATURE
+{
+    DIGITAL_IN = 0,
+    DIGITAL_OUT,
 
+} GEN_PIN_FEATURE;
+
+typedef enum _GPIOC0_REG
+{
+	GPIO_C0_REG_IE = 0,
+	GPIO_C0_REG_OE = 1,
+	GPIO_C0_REG_DS = 2,
+	GPIO_C0_REG_PD = 3,
+} GPIOC0_REG;
+
+typedef enum _GPIOC0_MODE
+{
+	GPIO_C0_MODE_GPIO = 0,			//4'b0000:gpio default register value
+	GPIO_C0_MODE_WAKEUP_IN,			//4'b0001:wkup_in(i)
+	GPIO_C0_MODE_PMU_DIS,			//4'b0010:board_pmu_dis(o)
+	GPIO_C0_MODE_LONG_PRESS_RST,	//4'b0011:long_press_rst_n(o)
+	GPIO_C0_MODE_PMU_32K,			//4'b0100:pmu_32k_clk(o)
+	GPIO_C0_MODE_CORE_POR_N,		//4'b0101:CORE_POR_N(o)
+	GPIO_C0_MODE_POWERKET,			//4'b0110:POWERKEY(o)
+	GPIO_C0_MODE_PMU_CHARGER_TRKLN,	//4'b0111:PMU_CHARGER_TRKLN(o)
+	GPIO_C0_MODE_PMU_CHARGER_FULL,	//4'b1000:PMU_CHARGER_FULL(o)
+	GPIO_C0_MODE_PMU_CHARGER_PWR38,	//4'b1001:PMU_CHARGER_PWR38(o)
+	GPIO_C0_MODE_PMU_CHARGER_PWR21,	//4'b1010:PMU_CHARGER_PWR21(o)
+	GPIO_C0_MODE_PMU_CHARGER_PWR12	//4'b1011:PMU_CHARGER_PWR12(o)
+}GPIOC0_MODE;
 
 /**************************************************************************************************
                                  通用GPIO设置或获取状态部分
@@ -984,6 +1013,71 @@ void GPIO_PortA10KPullupSet( GPIO_PortA PortAGpioIndex,  GPIO_10K_PULLUP_MODE en
  *                              ENABLE_10K_OHMS_PULL_UP
  */
 void GPIO_PortB10KPullupSet( GPIO_PortB PortBGpioIndex,  GPIO_10K_PULLUP_MODE enable);
+
+/**
+ * @brief      GPIOC0配成输入或输出模式
+ *
+ * @param[in]  pin_feature:  GPIOC0模式：
+ * 							DIGITAL_IN  ： 输入模式
+ * 							DIGITAL_OUT ： 输出模式
+ * @return     NONE
+ */
+void GPIO_ConfigGpioC0GeneralPin(GEN_PIN_FEATURE pin_feature);
+
+/**
+ * @brief      GPIOC0输出高电平
+ *
+ * @param[in]  NONE
+ *
+ * @return     NONE
+ */
+void GPIO_ConfigGpioC0High(void);
+
+/**
+ * @brief	   GPIOC0输出低电平
+ *
+ * @param[in]  NONE
+ *
+ * @return     NONE
+ */
+void GPIO_ConfigGpioC0Low(void);
+
+/**
+ * @brief      获取GPIOC0电平
+ *
+ * @param[in]  NONE
+ *
+ * @return     1:高电平
+ *             0:低电平
+ */
+uint32_t GPIO_GetGpioC0(void);
+
+/**
+ * @brief      将相应的寄存器置1
+ *
+ * @param[in]  RegIndex: GPIOC0寄存器索引
+ *
+ * @return     无
+ */
+void GPIO_RegGpioC0Set(GPIOC0_REG RegIndex);
+
+/**
+ * @brief      将相应的寄存器清0
+ *
+ * @param[in]  RegIndex: GPIOC0寄存器索引
+ *
+ * @return     无
+ */
+void GPIO_RegGpioC0Clear(GPIOC0_REG RegIndex);
+
+/**
+ * @brief      GPIOC0复用关系
+ *
+ * @param[in]  Mode: 复用关系
+ *
+ * @return     无
+ */
+void GPIO_GpioC0ModeSet(GPIOC0_MODE Mode);
 
 #ifdef __cplusplus
 }

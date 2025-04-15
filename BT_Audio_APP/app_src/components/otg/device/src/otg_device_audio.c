@@ -264,19 +264,15 @@ void OnDeviceAudioSendIsoPacket(void)
 	uint32_t RealLen = 0;
 
 	UsbAudioMic.FramCount++;
-	RealLen = 44;
-	if(UsbAudioMic.AudioSampleRate == 44100)
+
+	RealLen = UsbAudioMic.AudioSampleRate/1000;
+	UsbAudioMic.Accumulator += UsbAudioMic.AudioSampleRate%1000;
+	if(UsbAudioMic.Accumulator > 1000)
 	{
-		RealLen = 44;
-		if((UsbAudioMic.FramCount%10) == 0)
-		{
-			RealLen = 45;
-		}
+		UsbAudioMic.Accumulator -= 1000;
+		RealLen += 1;
 	}
-	else
-	{
-		RealLen = UsbAudioMic.AudioSampleRate/1000;
-	}
+
 	if(UsbAudioMic.FramCount < (UsbAudioMic.AudioSampleRate/AudioCoreMixSampleRateGet(DefaultNet))*10)
 	{
 		memset(iso_buf,0,RealLen*sizeof(PCM_DATA_TYPE)*channel);
@@ -895,7 +891,7 @@ void UsbAudioTimer1msProcess(void)
 			if(UsbAudioSpeaker.FramCount != UsbAudioSpeaker.TempFramCount)
 			{
 				UsbAudioSpeaker.TempFramCount = UsbAudioSpeaker.FramCount;
-				if(AudioCore.AudioSource[USB_AUDIO_SOURCE_NUM].Enable == FALSE)
+				if(!AudioCoreSourceIsEnable(USB_AUDIO_SOURCE_NUM))
 				{
 					AudioCoreSourceEnable(USB_AUDIO_SOURCE_NUM);
 				}
@@ -935,7 +931,7 @@ void UsbAudioTimer1msProcess(void)
 			if(UsbAudioMic.FramCount != UsbAudioMic.TempFramCount)
 			{
 				UsbAudioMic.TempFramCount = UsbAudioMic.FramCount;
-				if(AudioCore.AudioSink[USB_AUDIO_SINK_NUM].Enable == FALSE)
+				if(!AudioCoreSinkIsEnable(USB_AUDIO_SINK_NUM))
 				{
 					AudioCoreSinkEnable(USB_AUDIO_SINK_NUM);
 				}
@@ -944,6 +940,7 @@ void UsbAudioTimer1msProcess(void)
 	}
 	else
 	{
+		UsbAudioMic.Accumulator = 0;
 		UsbAudioMic.FramCount = 0;
 		UsbAudioMic.TempFramCount = 0;
 		AudioCoreSinkDisable(USB_AUDIO_SINK_NUM);

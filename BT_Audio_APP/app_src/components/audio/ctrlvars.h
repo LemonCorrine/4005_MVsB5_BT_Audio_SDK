@@ -26,6 +26,7 @@ extern "C" {
 #include "clk.h"
 #include "timer.h"
 #include "irqn.h"
+#include "i2s_interface.h"
 
 #define  MIN_BASS_TREB_GAIN             (0)
 #define  MAX_BASS_TREB_GAIN             (15)
@@ -66,7 +67,7 @@ typedef enum _EFFECT_MODE
 } EFFECT_MODE;
 
 //实际有效的音效轮转模式数量
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 #define	EFFECT_MODE_NUM_ACTIVCE 	2
 #else
 #define	EFFECT_MODE_NUM_ACTIVCE 	1

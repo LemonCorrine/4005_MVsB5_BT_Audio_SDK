@@ -13,7 +13,7 @@
 #define __ROBOEFFECT_API_H__
 
 /*Roboeffect Library version*/
-#define ROBOEFFECT_LIB_VER "2.17.2"
+#define ROBOEFFECT_LIB_VER "2.17.10"
 
 #include <stdio.h>
 #include <nds32_intrinsic.h>
@@ -487,7 +487,8 @@ int16_t roboeffect_get_effect_parameter_count(void *main_context, uint8_t addres
  * @param operation : 1 for increasing node, -1 for decreasing node.
  * @return error if 0 
  */
-uint32_t roboeffect_get_frame_size_after_effect_change(void *main_contex, uint32_t target_frame_size, uint8_t address, int8_t operation);
+
+uint32_t roboeffect_recommend_frame_size_upon_effect_change(void *main_contex, uint32_t target_frame_size, uint8_t address, int8_t operation);
 /**
  * @brief Get effect type name.
  * 

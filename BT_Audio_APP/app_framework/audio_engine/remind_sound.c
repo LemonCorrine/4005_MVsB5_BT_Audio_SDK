@@ -32,6 +32,7 @@
 #include "remind_sound.h"
 #include "flash_table.h"
 #include "delay.h"
+#include "recorder_service.h"
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 
 #define CFG_DBUS_ACCESS_REMIND_SOUND_DATA  	//开启宏则使用DBUS从flash中获取提示音数据
@@ -95,6 +96,10 @@ typedef struct _RemindSoundContext
 	bool					Disable;
 	bool 					NeedUnmute;
 //	bool                    NeedSync;
+	#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+	bool                    Isflash;
+	uint8_t 				Idflash;
+	#endif
 }RemindSoundContext;
 
 
@@ -183,29 +188,58 @@ static uint16_t RemindSountItemFind(uint8_t *RemindItem)
 	}
 	return SOUND_REMIND_TOTAL;
 }
-
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+extern uint32_t	rec_addr_start;
+#endif
 //根据flash驱动设计，最大支持255条提示音。
 static bool	RemindSoundReadItemInfo(uint16_t ItemRef)
 {
 	uint16_t j;
 	SongClipsEntry SongClips;
 
-	if(ItemRef >= SOUND_REMIND_TOTAL)
-		return FALSE;
-
-	if(RemindDataRead(REMIND_FLASH_ADDR(ItemRef), &SongClips, sizeof(SongClipsEntry)))
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+	REC_EXTFLASH_HEAD rec_msg;
+	if(!RemindSoundCt.Isflash)
+#endif
 	{
-		return FALSE;
+		if(ItemRef >= SOUND_REMIND_TOTAL)
+			return FALSE;	
 	}
-	RemindSoundCt.ConstDataOffset = 0;
-	RemindSoundCt.ConstDataAddr = SongClips.offset + REMIND_FLASH_STORE_BASE; //工具制作提示音bin 使用相对地址
-	RemindSoundCt.ConstDataSize = SongClips.size;
 
-	REMIND_DBG("play: ");
-	for(j=0;j<sizeof(SongClips.id);j++)
-		REMIND_DBG("%c",SongClips.id[j]);
-	REMIND_DBG("\n");
-	
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+	if(RemindSoundCt.Isflash)
+	{
+		SpiRead(rec_addr_start + CFG_PARA_RECORDS_MAX_SIZE *(RemindSoundCt.Idflash -1),&rec_msg,sizeof(REC_EXTFLASH_HEAD));//读取flash
+	}
+	else	
+#endif
+	{
+		if(RemindDataRead(REMIND_FLASH_ADDR(ItemRef), &SongClips, sizeof(SongClipsEntry)))
+		{
+			return FALSE;
+		}
+	}
+
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+	if(RemindSoundCt.Isflash)
+	{
+		RemindSoundCt.ConstDataOffset   = 0;//CFG_PARA_RECORDS_INFO_SIZE;
+		RemindSoundCt.ConstDataAddr 	= rec_addr_start + CFG_PARA_RECORDS_MAX_SIZE *(RemindSoundCt.Idflash - 1)+CFG_PARA_RECORDS_INFO_SIZE;
+		RemindSoundCt.ConstDataSize 	= rec_msg.RecSize;
+		printf("rec_msg.RecSize:%d\n",rec_msg.RecSize);
+	}
+	else
+#endif
+	{
+		RemindSoundCt.ConstDataOffset = 0;
+		RemindSoundCt.ConstDataAddr = SongClips.offset + REMIND_FLASH_STORE_BASE; //工具制作提示音bin 使用相对地址
+		RemindSoundCt.ConstDataSize = SongClips.size;
+
+		REMIND_DBG("play: ");
+		for(j=0;j<sizeof(SongClips.id);j++)
+			REMIND_DBG("%c",SongClips.id[j]);
+		REMIND_DBG("\n");
+	}
 	return TRUE;
 }
 
@@ -308,9 +342,18 @@ static void mp2_play_init(void)
 {
 	MP2_decode_init(&Mp2Decode->dec_cnt);
 
-	if(RemindDataRead(RemindSoundCt.ConstDataAddr, Mp2Decode->dec_buf, 4))
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+	if(RemindSoundCt.Isflash)
 	{
-		return;
+		SpiRead(RemindSoundCt.ConstDataAddr, Mp2Decode->dec_buf, 4);
+	}
+	else
+#endif
+	{
+		if(RemindDataRead(RemindSoundCt.ConstDataAddr, Mp2Decode->dec_buf, 4))
+		{
+			return;
+		}
 	}
 	//读取4个字节确定帧长
 	if(!decode_header((Mp2Decode->dec_buf[0] << 24) | (Mp2Decode->dec_buf[1] << 16) | (Mp2Decode->dec_buf[2] << 8) | Mp2Decode->dec_buf[3]))
@@ -336,6 +379,9 @@ void RemindSoundAudioPlayEnd(void)
 	//REMIND_DBG("remind audio close!\n");
 #ifdef CFG_REMIND_SOUND_DECODING_USE_LIBRARY
 	DecoderStop(DECODER_REMIND_CHANNEL);
+#endif
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+	RemindSoundCt.Isflash = FALSE;
 #endif
 }
 
@@ -411,9 +457,21 @@ void RemindMp2Decode(void)
 		uint8_t *p = (uint8_t*)Mp2Decode->dec_fifo;
 		if(Mp2Decode->dec_last_len < AudioCoreFrameSizeGet(DefaultNet))
 		{
-			if(RemindDataRead(RemindSoundCt.ConstDataAddr+RemindSoundCt.ConstDataOffset, Mp2Decode->dec_buf, 4))
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+			if(RemindSoundCt.Isflash)
 			{
+				if(FLASH_NONE_ERR != SpiRead(RemindSoundCt.ConstDataAddr+RemindSoundCt.ConstDataOffset, Mp2Decode->dec_buf, 4))
+				{
+					//APP_DBG("FLASH_NONE_ERR!!!\n");
+				}
+			}
+			else
+#endif
+			{
+				if(RemindDataRead(RemindSoundCt.ConstDataAddr+RemindSoundCt.ConstDataOffset, Mp2Decode->dec_buf, 4))
+				{
 
+				}	
 			}
 
 			if(!decode_header((Mp2Decode->dec_buf[0] << 24) | (Mp2Decode->dec_buf[1] << 16) | (Mp2Decode->dec_buf[2] << 8) | Mp2Decode->dec_buf[3]))
@@ -426,9 +484,22 @@ void RemindMp2Decode(void)
 				return;
 			}
 			RemindSoundCt.FramSize = Mp2Decode->dec_cnt.frame_size;
-			if(RemindDataRead(RemindSoundCt.ConstDataAddr+RemindSoundCt.ConstDataOffset, Mp2Decode->dec_buf, RemindSoundCt.FramSize))
-			{
 
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+			if(RemindSoundCt.Isflash)
+			{
+				if(FLASH_NONE_ERR != SpiRead(RemindSoundCt.ConstDataAddr+RemindSoundCt.ConstDataOffset, Mp2Decode->dec_buf, RemindSoundCt.FramSize))
+				{
+					//APP_DBG("FLASH_NONE_ERR!!!\n");
+				}
+			}
+			else
+#endif
+			{
+				if(RemindDataRead(RemindSoundCt.ConstDataAddr+RemindSoundCt.ConstDataOffset, Mp2Decode->dec_buf, RemindSoundCt.FramSize))
+				{
+
+				}	
 			}
 			//REMIND_DBG("RemindSoundCt.FramSize:%u %08X\n",RemindSoundCt.FramSize,RemindSoundCt.ConstDataAddr+RemindSoundCt.ConstDataOffset);
 			RemindSoundCt.ConstDataOffset += RemindSoundCt.FramSize;
@@ -786,7 +857,11 @@ bool RemindSoundRun(SysModeState ModeState)
 		case REMIND_ITEM_IDLE:
 			if(RemindSoundCt.EmptyIndex && ModeState == ModeStateRunning)
 			{
-				if(!RemindSoundCt.RequestUpdate && (RemindSoundCt.Request[0].Attr & REMIND_ATTR_CLEAR) == 0)
+				#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+				if((!RemindSoundCt.RequestUpdate && (RemindSoundCt.Request[0].Attr & REMIND_ATTR_CLEAR) == 0) || RemindSoundCt.Isflash)
+				#else
+				if((!RemindSoundCt.RequestUpdate && (RemindSoundCt.Request[0].Attr & REMIND_ATTR_CLEAR) == 0))
+				#endif
 				{
 					if(RemindSoundReadItemInfo(RemindSoundCt.Request[0].ItemRef))
 					{
@@ -824,9 +899,16 @@ bool RemindSoundRun(SysModeState ModeState)
 //					AudioCoreSourceDisable(REMIND_SOURCE_NUM);
 //			}
 		case REMIND_ITEM_PLAY:
+			#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+			if(RemindSoundCt.Request[0].Attr & REMIND_ATTR_CLEAR
+					&& RemindSoundCt.FramSize > 0
+					&& RemindSoundCt.ConstDataOffset + RemindSoundCt.FramSize * 2 < RemindSoundCt.ConstDataSize
+					&& !RemindSoundCt.Isflash)
+			#else
 			if(RemindSoundCt.Request[0].Attr & REMIND_ATTR_CLEAR
 					&& RemindSoundCt.FramSize > 0
 					&& RemindSoundCt.ConstDataOffset + RemindSoundCt.FramSize * 2 < RemindSoundCt.ConstDataSize)
+			#endif
 			{
 //				RemindSoundCt.ItemState = REMIND_ITEM_IDLE;
 //				AudioCoreSourceDisable(REMIND_SOURCE_NUM);
@@ -850,13 +932,33 @@ bool RemindSoundRun(SysModeState ModeState)
 			break;
 
 		case REMIND_ITEM_UNMUTE:
-			if((RemindSoundCt.Request[0].Attr & REMIND_ATTR_CLEAR) || (RemindSoundCt.ConstDataOffset >= RemindSoundCt.ConstDataSize))
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+			if(RemindSoundCt.Isflash)
 			{
-				AudioCoreSourceMute(REMIND_SOURCE_NUM, TRUE, TRUE);
-				DBG("Mute Remind\n");
-				RemindSoundCt.ItemState = REMIND_ITEM_MUTE;
+				if(RemindSoundCt.ConstDataOffset >= RemindSoundCt.ConstDataSize)
+				{
+					AudioCoreSourceMute(REMIND_SOURCE_NUM, TRUE, TRUE);
+					RemindSoundCt.Isflash = FALSE;
+					DBG("Mute Remind\n");
+					RemindSoundCt.ItemState = REMIND_ITEM_MUTE;
 
+				}
 			}
+			else
+#endif
+			{
+				if((RemindSoundCt.Request[0].Attr & REMIND_ATTR_CLEAR) || (RemindSoundCt.ConstDataOffset >= RemindSoundCt.ConstDataSize))
+				{
+					AudioCoreSourceMute(REMIND_SOURCE_NUM, TRUE, TRUE);
+					#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+					RemindSoundCt.Isflash = FALSE;
+					#endif
+					DBG("Mute Remind\n");
+					RemindSoundCt.ItemState = REMIND_ITEM_MUTE;
+
+				}	
+			}
+		
 			break;
 
 		case REMIND_ITEM_MUTE:
@@ -877,6 +979,7 @@ bool RemindSoundRun(SysModeState ModeState)
 #ifdef CFG_REMIND_SOUND_DECODING_USE_LIBRARY	
 	if(GetDecoderState(DECODER_REMIND_CHANNEL) != DecoderStateNone)
 		DecoderStop(DECODER_REMIND_CHANNEL);
+	DecoderSourceNumSet(REMIND_SOURCE_NUM,DECODER_REMIND_CHANNEL);
 	if(RemindMp3DataRead()) 
 		RemindSoundCt.player_init = MP2_DECODE_FRAME;
 	DecoderInit(&RemindDecoderInMemHandle,DECODER_REMIND_CHANNEL, (int32_t)IO_TYPE_MEMORY, MP3_DECODER);
@@ -1016,6 +1119,85 @@ uint32_t SoundRemindItemGet(void)
 void RemindSoundSyncEnable(void)
 {
 
+}
+#endif
+
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+#define MAX_READ_FLASH_LEN		256
+extern uint32_t	rec_addr_start;
+static uint32_t RemindCrcCheck(uint8_t index)
+{
+	uint8_t buf[MAX_READ_FLASH_LEN];
+	uint16_t crc = 0;
+	uint32_t offset,addr;
+	REC_EXTFLASH_HEAD rec_msg;
+
+	SpiRead(rec_addr_start + CFG_PARA_RECORDS_MAX_SIZE *(index -1),&rec_msg,sizeof(REC_EXTFLASH_HEAD));//读取flash
+
+	if(rec_msg.RecSize > CFG_PARA_RECORDS_MAX_SIZE)
+	{
+		DBG("[HHH]RecSize Error %u!\n", rec_msg.RecSize);
+		return 0;
+	}
+	offset = 0;
+	addr = rec_addr_start + CFG_PARA_RECORDS_MAX_SIZE *(index -1)+ CFG_PARA_RECORDS_INFO_SIZE;
+	while(offset < rec_msg.RecSize)
+	{
+		if((offset + MAX_READ_FLASH_LEN) < rec_msg.RecSize)
+		{
+			SpiRead(addr,&buf,MAX_READ_FLASH_LEN);//读取flash
+			offset += MAX_READ_FLASH_LEN;
+			addr += MAX_READ_FLASH_LEN;
+			crc = ROM_CRC16(buf, MAX_READ_FLASH_LEN, crc);
+		}
+		else
+		{
+			SpiRead(addr,&buf,rec_msg.RecSize - offset);//读取flash
+			crc = ROM_CRC16(buf, rec_msg.RecSize-offset, crc);
+			offset = rec_msg.RecSize;
+		}
+	}
+
+	DBG("[HHH]Crc= %x-%x,RecSize:%u\n", crc ,rec_msg.RecCrc,rec_msg.RecSize);
+	if(crc != rec_msg.RecCrc)
+	{
+		return 0;
+	}
+	return rec_msg.RecSize;
+}
+
+
+bool RemindServiceItemReplaying()
+{
+	return RemindSoundCt.Isflash;
+}
+
+void RemindServiceItemClear()
+{
+	if(RemindSoundCt.Isflash)
+	{
+		RemindSoundAudioPlayEnd();
+	}
+	RemindSoundCt.EmptyIndex = 0;
+	RemindSoundCt.Idflash = 0;
+}
+
+
+void RemindServiceItemRequestExt(uint8_t index)
+{
+	uint32_t RecFileSize;
+
+	if(index == 0 || index > CFG_PARA_RECORDS_INDEX)
+		return;
+	RemindServiceItemClear();
+	RecFileSize = RemindCrcCheck(index);
+	APP_DBG("RecFileSize:%d\n",RecFileSize);
+	if(RecFileSize)
+	{
+		RemindSoundCt.EmptyIndex = 1;
+		RemindSoundCt.Isflash = TRUE;
+		RemindSoundCt.Idflash = index;
+	}
 }
 #endif
 

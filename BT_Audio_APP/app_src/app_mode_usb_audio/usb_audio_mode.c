@@ -262,6 +262,7 @@ bool UsbDevicePlayInit(void)
 	//3st：配置系统标准通路
 	if(!ModeCommonInit())
 	{
+		ModeCommonDeinit();
 		return FALSE;
 	}
 	//4st：usb声卡通路资源申请及配置

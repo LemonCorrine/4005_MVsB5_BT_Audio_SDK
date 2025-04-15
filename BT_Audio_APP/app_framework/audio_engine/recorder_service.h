@@ -48,6 +48,15 @@ void RecServierMsg(uint32_t *msg);
 xTaskHandle GetMediaRecorderTaskHandle(void);
 bool MediaRecorderServiceDeinit(void);
 
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+typedef struct {
+	uint32_t RecSize;
+	uint16_t RecCrc;
+}REC_EXTFLASH_HEAD;
+bool IsRecorderRunning(void);
+void ExFlashRecorderStartIndex(MessageHandle parentMsgHandle,uint8_t index);
+void RemindServiceItemRequestExt(uint8_t index);
+#endif
 #ifdef __cplusplus
 }
 #endif // __cplusplus 

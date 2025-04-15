@@ -1,22 +1,6 @@
 #include "user_effect_flow_karaoke.h"
 #include "user_effect_parameter.h"
 
-extern uint32_t get_user_effects_script_len_Karaoke(void);
-extern const unsigned char user_effect_parameters_Karaoke_HunXiang[];
-extern const unsigned char user_module_parameters_Karaoke_HunXiang[];
-extern const unsigned char user_effect_parameters_Karaoke_DianYin[];
-extern const unsigned char user_module_parameters_Karaoke_DianYin[];
-extern const unsigned char user_effect_parameters_Karaoke_MoYin[];
-extern const unsigned char user_module_parameters_Karaoke_MoYin[];
-extern const unsigned char user_effect_parameters_Karaoke_HanMai[];
-extern const unsigned char user_module_parameters_Karaoke_HanMai[];
-extern const unsigned char user_effect_parameters_Karaoke_NanBianNv[];
-extern const unsigned char user_module_parameters_Karaoke_NanBianNv[];
-extern const unsigned char user_effect_parameters_Karaoke_NvBianNan[];
-extern const unsigned char user_module_parameters_Karaoke_NvBianNan[];
-extern const unsigned char user_effect_parameters_Karaoke_WaWaYin[];
-extern const unsigned char user_module_parameters_Karaoke_WaWaYin[];
-
 static const AUDIOEFFECT_EFFECT_PARA effect_para[] =
 {
 	 //HUNXIANG

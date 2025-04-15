@@ -24,6 +24,7 @@
 #include "device_detect.h"
 #include "otg_detect.h"
 #include "sadc_interface.h"
+#include "ctrlvars.h"
 //services
 #include "shell.h"
 #include "audio_core_service.h"
@@ -43,10 +44,11 @@ bool Number_select_flag = 0;
 uint16_t Number_value = 0;
 TIMER Number_selectTimer;
 #endif
+
+
 extern void CtrlVarsInit(void);
 extern void report_up_grate(void);
 extern volatile uint32_t gInsertEventDelayActTimer;
-extern void BtTwsDisconnectApi(void);
 #if FLASH_BOOT_EN
 void start_up_grate(uint32_t UpdateResource);
 #endif
@@ -183,6 +185,14 @@ static void SysVarInit(void)
 	mainAppCt.MicEffectDelayStepBak = mainAppCt.MicEffectDelayStep;
 	APP_DBG("MicEffectDelayStep:%d,%d\n", mainAppCt.MicEffectDelayStep, pBpSysInfo->MicEffectDelayStep);
 
+	mainAppCt.ReverbStep = pBpSysInfo->ReverbStep;
+    if((mainAppCt.ReverbStep > MAX_MIC_DIG_STEP) || (mainAppCt.ReverbStep <= 0))
+	{
+    	mainAppCt.ReverbStep = MAX_MIC_DIG_STEP;
+	}
+	mainAppCt.ReverbStepBak = mainAppCt.ReverbStep;
+	APP_DBG("ReverbStep:%d,%d\n", mainAppCt.ReverbStep, pBpSysInfo->ReverbStep);
+
 #ifdef CFG_FUNC_MIC_TREB_BASS_EN
     mainAppCt.MicBassStep = pBpSysInfo->MicBassStep;
     if((mainAppCt.MicBassStep > MAX_MUSIC_DIG_STEP) || (mainAppCt.MicBassStep <= 0))
@@ -316,7 +326,10 @@ void SystemTimerInit(void)
 
 static void SystemInit(void)
 {
+#ifndef LOSSLESS_DECODER_HIGH_RESOLUTION
+	//开启高采样率解码，去掉U盘读数据API里面的延迟
 	DelayMsFunc = (DelayMsFunction)vTaskDelay; //提高Os条件下驱动层延时函数精度，非OS默认使用DelayMs
+#endif
 	DMA_ChannelAllocTableSet((uint8_t*)DmaChannelMap);
 #ifdef CFG_DUMP_DEBUG_EN
 	DumpUartConfig(TRUE);
@@ -333,8 +346,6 @@ static void SystemInit(void)
 #else
 #if defined(CFG_FUNC_USB_DEVICE_DETECT)
  	OTG_PortSetDetectMode(0,1);
-#else
- 	OTG_PortSetDetectMode(0,0);
 #endif
 #endif
 
@@ -357,6 +368,8 @@ static void SystemInit(void)
 #endif
 	///////////////////////////////AudioCore/////////////////////////////////////////
 	memset((AudioCoreContext*)&AudioCore, 0, sizeof(AudioCoreContext));
+
+	memset((AudioCoreContext*)&AudioEffect, 0, sizeof(AudioEffectContext));
 
 	CtrlVarsInit();//音频系统硬件变量初始化，系统变量初始化
 	
@@ -552,7 +565,7 @@ static void PublicMsgPross(MessageContext msg)
 					DBG("Main task MSG_DEEPSLEEP\n");
 				}
 				SendEnterIdleModeMsg();
-			#if (defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE))
+			#if (defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT))
 				if(GetSystemMode() == ModeBtHfPlay)
 				{
 					BtHfModeExit();				
@@ -608,14 +621,6 @@ static void PublicMsgPross(MessageContext msg)
 			//发起回连
 			BtStackServiceMsgSend(MSG_BTSTACK_BB_ERROR_RESTART);
 
-			//如蓝牙模式处于slave模式,则退出tws slave模式
-			if(GetSystemMode() == ModeTwsSlavePlay)
-			{
-				MessageContext		msgSend;
-				APP_DBG("Exit Tws Slave Mode\n");
-				msgSend.msgId = MSG_DEVICE_SERVICE_TWS_SLAVE_DISCONNECT;
-				MessageSend(GetMainMessageHandle(), &msgSend);
-			}
 			break;
 #ifdef CFG_FUNC_BT_OTA_EN
 		case MSG_BT_START_OTA:
@@ -624,7 +629,7 @@ static void PublicMsgPross(MessageContext msg)
 			start_up_grate(SysResourceBtOTA);
 			break;
 #endif
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 			case MSG_DEVICE_SERVICE_ENTER_BTHF_MODE:
 			if(GetHfpState(BtCurIndex_Get()) >= BT_HFP_STATE_CONNECTED)
 			{
@@ -649,6 +654,11 @@ static void PublicMsgPross(MessageContext msg)
 			break;
 #endif
 #endif
+		default:
+#if	BT_SOURCE_SUPPORT
+			BtSourcePublicMsgPross(msg.msgId);
+#endif
+			break;
 	}		
 }
 
@@ -740,11 +750,6 @@ uint32_t IsBtHfMode(void)
 	return (GetSysModeState(ModeBtHfPlay) == ModeStateRunning);
 }
 
-uint32_t IsBtTwsSlaveMode(void)
-{
-	return (GetSysModeState(ModeTwsSlavePlay) == ModeStateRunning);
-}
-
 uint32_t IsIdleModeReady(void)
 {
 	if(GetModeDefineState(ModeIdle))
@@ -777,8 +782,6 @@ void PowerOffMessage(void)
 	MessageSend(GetMainMessageHandle(), &msgSend);
 }
 
-
-
 void BatteryLowMessage(void)
 {
 	MessageContext		msgSend;
@@ -786,34 +789,5 @@ void BatteryLowMessage(void)
 	APP_DBG("msgSend.msgId = MSG_DEVICE_SERVICE_BATTERY_LOW\n");
 	msgSend.msgId = MSG_DEVICE_SERVICE_BATTERY_LOW;
 	MessageSend(GetMainMessageHandle(), &msgSend);
-}
-
-void TwsSlaveModeSwitchDeal(SysModeNumber pre, SysModeNumber Cur)
-{
-#ifdef TWS_SLAVE_MODE_SWITCH_EN
-	//null
-	if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF)
-	{
-		if (pre == ModeTwsSlavePlay)
-		{
-			if((Cur != ModeBtAudioPlay)&&(Cur != ModeTwsSlavePlay))
-			{
-				BtFastPowerOff();
-				BtStackServiceWaitClear();
-			}
-			else
-			{
-				BtStackServiceWaitResume();
-			}
-		}
-	}
-	else if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_DISABLE)
-	{
-		if(Cur != ModeBtAudioPlay)
-		{
-			BtPowerOff();
-		}
-	}
-#endif	
 }
 

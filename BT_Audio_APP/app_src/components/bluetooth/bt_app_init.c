@@ -29,11 +29,15 @@
 #include "bt_spp_api.h"
 #include "bt_em_config.h"
 #include "bt_common_api.h"
-#if BT_OBEX_SUPPORT == ENABLE
+#if BT_OBEX_SUPPORT
 #include "bt_obex_api.h"
 #endif
-#if BT_PBAP_SUPPORT == ENABLE
+#if BT_PBAP_SUPPORT
 #include "bt_pbap_api.h"
+#endif
+
+#if BT_SOURCE_SUPPORT
+#include "bt_hfg_api.h"
 #endif
 
 extern BT_CONFIGURATION_PARAMS		*btStackConfigParams;
@@ -44,6 +48,28 @@ const BT_HOST_PARAM App_Bt_Host_config =
 	BT_DEVICE_NUMBER,
 	BT_SCO_NUMBER
 };
+
+#if BT_SOURCE_SUPPORT
+/***********************************************************************************
+ * 
+ **********************************************************************************/
+uint32_t GetSourceSupportProfiles(void)
+{
+	uint32_t		profiles = 0;
+
+#if BT_A2DP_SUPPORT
+	profiles = (BT_PROFILE_SUPPORTED_A2DP | BT_PROFILE_SUPPORTED_AVRCP);
+#endif
+
+#if BT_HFG_SUPPORT
+	profiles |= BT_PROFILE_SUPPORTED_HFG;
+#endif
+
+	return profiles;
+}
+
+#endif
+
 
 /***********************************************************************************
  *
@@ -246,6 +272,14 @@ void LoadBtConfigurationParams(void)
 		GetBtDefaultAddr(btStackConfigParams->bt_LocalDeviceAddr);
 	}
 	
+#if BT_SOURCE_SUPPORT
+	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
+	{
+		// source 和 sink使用不同的MAC
+		btStackConfigParams->bt_LocalDeviceAddr[5] = ~btStackConfigParams->bt_LocalDeviceAddr[5];
+	}
+#endif
+
 	//将ADDR进行反序操作:btStackConfigParams->bt_LocalDeviceAddr(NAP-UAP-LAP)->btManager.btDevAddr(LAP-UAP-NAP)
 	btManager.btDevAddr[5]=btStackConfigParams->bt_LocalDeviceAddr[0];
 	btManager.btDevAddr[4]=btStackConfigParams->bt_LocalDeviceAddr[1];
@@ -297,6 +331,15 @@ void LoadBtConfigurationParams(void)
 		btStackConfigParams->bt_trimValue = BT_DEFAULT_TRIM;
 	}
 	
+#if BT_SOURCE_SUPPORT	
+	btStackConfigParams->bt_source_SupportProfile =0;
+	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
+	{
+		btStackConfigParams->bt_SupportProfile = 0;
+		btStackConfigParams->bt_source_SupportProfile = GetSourceSupportProfiles();
+	}	
+#endif
+		
 	//蓝牙公共配置参数,暂时按照宏定义默认的参数进行配置 bt_config.h,频偏值保留flash中数据
 	//如后续有需要能动态调整,或者上位机工具修改的,就需要保存到flash中进行管理
 	btStackConfigParams->bt_TxPowerValue = sys_parameter.bt_TxPowerLevel;
@@ -375,6 +418,15 @@ static void ConfigBtStackParams(BtStackParams *stackParams)
 	/* Set support profiles */
 	stackParams->supportProfiles = GetSupportProfiles();
 
+#if BT_SOURCE_SUPPORT
+	stackParams->sourcesupportProfiles = 0 ;
+	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
+	{
+		stackParams->supportProfiles = 0;
+		stackParams->sourcesupportProfiles = GetSourceSupportProfiles();
+	}
+#endif
+
 	/* Set local device name */
 	stackParams->localDevName = (uint8_t *)btStackConfigParams->bt_LocalDeviceName;
 
@@ -411,21 +463,43 @@ static void ConfigBtStackParams(BtStackParams *stackParams)
 	//假如不需要HFP,客户不想手机连接时弹出电话本的权限获取,则需要配置为 HIFI audio
 	//pCod = COD_AUDIO | COD_MAJOR_AUDIO | COD_MINOR_AUDIO_HIFIAUDIO | COD_RENDERING;
 	
-#if (BT_HID_SUPPORT == ENABLE)
+#if (BT_HID_SUPPORT)
 	pCod |= (COD_MAJOR_PERIPHERAL | COD_MINOR_PERIPH_KEYBOARD);
 #endif
+
+#if	BT_SOURCE_SUPPORT
+	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)//source
+	{
+		//pCod &= 0xfffffbff;
+		pCod &= 0xfffffb00;
+		pCod |= 0x200;
+		if(BT_HFG_SUPPORT)
+		{
+			pCod |= COD_MINOR_AUDIO_HEADSET;
+		}
+		else
+		{
+			pCod |= COD_MINOR_AUDIO_HIFIAUDIO;
+		}
+	}
+#endif
+
 	SetBtClassOfDevice(pCod);
 
-#if BT_HFP_SUPPORT == ENABLE
+#if BT_HFP_SUPPORT
 	/* HFP features */
 	stackParams->hfpFeatures.wbsSupport = BT_HFP_SUPPORT_WBS;
-	stackParams->hfpFeatures.hfpAudioDataFormat = BT_HFP_AUDIO_DATA;
+#if (BT_HFP_SUPPORT_WBS)
+	stackParams->hfpFeatures.hfpAudioDataFormat = HFP_AUDIO_DATA_mSBC;
+#else
+	stackParams->hfpFeatures.hfpAudioDataFormat = HFP_AUDIO_DATA_PCM;
+#endif
 	stackParams->hfpFeatures.hfpAppCallback = BtHfpCallback;
 #else
 	stackParams->hfpFeatures.hfpAppCallback = NULL;
 #endif
 	
-#if BT_A2DP_SUPPORT == ENABLE
+#if BT_A2DP_SUPPORT
 	/* A2DP features */
 	//stackParams->a2dpFeatures.a2dpAudioDataFormat = BT_A2DP_AUDIO_DATA;
 #if (defined(BT_AUDIO_AAC_ENABLE) && defined(USE_AAC_DECODER))
@@ -437,7 +511,7 @@ static void ConfigBtStackParams(BtStackParams *stackParams)
 
 	/* AVRCP features */
 	stackParams->avrcpFeatures.supportAdvanced = 1;
-#if ((BT_AVRCP_PLAYER_SETTING == ENABLE)||(BT_AVRCP_VOLUME_SYNC == ENABLE))
+#if ((BT_AVRCP_PLAYER_SETTING)||(BT_AVRCP_VOLUME_SYNC))
 	stackParams->avrcpFeatures.supportTgSide = 1;
 #else
 	stackParams->avrcpFeatures.supportTgSide = 0;
@@ -446,11 +520,54 @@ static void ConfigBtStackParams(BtStackParams *stackParams)
 	stackParams->avrcpFeatures.supportPlayStatusInfo = BT_AVRCP_SONG_PLAY_STATE;
 	stackParams->avrcpFeatures.avrcpAppCallback = BtAvrcpCallback;
 
+
+#if	BT_SOURCE_SUPPORT
+	stackParams->a2dpFeatures.a2dpSourceAppCallback = BtA2dpSourceCallback;
+
+	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)//source
+	{
+		//A2DP
+		stackParams->a2dpFeatures.a2dp_sink_source_support = 0;
+		//AVRCP
+		stackParams->avrcpFeatures.source_or_sink = gSwitchSourceAndSink;//2:source avrcp  1:sink avrcp
+		stackParams->avrcpFeatures.supportTgSide  = 1;
+	}
+	else if(gSwitchSourceAndSink == A2DP_SET_SINK)//sink
+	{
+		//A2DP
+		stackParams->a2dpFeatures.a2dp_sink_source_support = 1;
+		//AVRCP
+		stackParams->avrcpFeatures.source_or_sink = gSwitchSourceAndSink;//2:source avrcp  1:sink avrcp
+		stackParams->avrcpFeatures.supportTgSide  = 0;
+	}
+	
+	APP_DBG("avrcp Features.supportTgSide [%d]\n", stackParams->avrcpFeatures.supportTgSide);
+	
+#ifdef CAR_AUTHENTICATED_LINK_KEY_FUNC	
+	extern void BtNumericalDisplayFuncEnable(uint8_t val);
+	extern void BtNumericalVerify(uint32_t val);
+	BtNumericalDisplayFuncEnable(1);
+	SEC_Confirm_Callback_Set(BtNumericalVerify);
+	APP_DBG("Bt Numerical Display Func enable\n");
+#else
+	APP_DBG("Bt Numerical Display Func disable\n");
+	extern void BtNumericalDisplayFuncEnable(uint8_t val);
+	BtNumericalDisplayFuncEnable(0);
+#endif
+	
+#endif
+
+
 #else
 	stackParams->a2dpFeatures.a2dpAppCallback = NULL;
 	stackParams->avrcpFeatures.avrcpAppCallback = NULL;
 #endif
 	
+#if BT_HFG_SUPPORT
+	stackParams->hfgFeatures.hfgAppCallback = BtHfgCallback;
+#else
+//	stackParams->hfgFeatures.hfgAppCallback = NULL;
+#endif
 }
 
 /***********************************************************************************
@@ -479,7 +596,7 @@ bool BtStackInit(void)
 		return FALSE;
 	}
 
-#if ( BT_A2DP_SUPPORT == ENABLE )
+#if ( BT_A2DP_SUPPORT )
 	retInit = A2dpAppInit(&stackParams.a2dpFeatures);
     if(retInit == 0)
 	{
@@ -496,7 +613,7 @@ bool BtStackInit(void)
 	
 #endif
 
-#if (BT_SPP_SUPPORT == ENABLE ||(defined(CFG_FUNC_BT_OTA_EN)))
+#if (BT_SPP_SUPPORT ||(defined(CFG_FUNC_BT_OTA_EN)))
 	retInit = SppAppInit(BtSppCallback);
 	if(retInit == 0)
 	{
@@ -505,7 +622,7 @@ bool BtStackInit(void)
 	}
 #endif
 
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 	retInit = HfpAppInit(&stackParams.hfpFeatures);
 	if(retInit == 0)
 	{
@@ -514,7 +631,7 @@ bool BtStackInit(void)
 	}
 #endif
 
-#if ( BT_OBEX_SUPPORT == ENABLE )
+#if ( BT_OBEX_SUPPORT )
 	retInit = ObexAppInit(BtObexCallback);
 	if(retInit == 0)
 	{
@@ -531,7 +648,7 @@ bool BtStackInit(void)
 	}
 #endif
 	
-#if ( BT_PBAP_SUPPORT == ENABLE )
+#if ( BT_PBAP_SUPPORT )
 	retInit = PbapAppInit(BtPbapCallback);
 	if(retInit == 0)
 	{
@@ -545,6 +662,16 @@ bool BtStackInit(void)
 			APP_DBG("pbap mtu size set error!\n");
 			return FALSE;
 		}
+	}
+#endif
+
+#if (BT_HFG_SUPPORT)
+#include "bt_hfg_api.h"
+	retInit = HfgAppInit(&stackParams.hfgFeatures);
+	if(retInit == 0)
+	{
+		APP_DBG("Hfg Init ErrCode [%x]\n", (int)retInit);
+		return FALSE;
 	}
 #endif
 

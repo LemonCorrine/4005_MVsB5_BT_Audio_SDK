@@ -43,6 +43,7 @@ typedef struct _UsbAudio
 	uint32_t				AudioSampleRate;
 	uint32_t				FramCount;
 	uint32_t				TempFramCount;
+	uint32_t 				Accumulator;
 	//ª∫¥ÊFIFO
 	MCU_CIRCULAR_CONTEXT 	CircularBuf;
 	int16_t*				PCMBuffer;

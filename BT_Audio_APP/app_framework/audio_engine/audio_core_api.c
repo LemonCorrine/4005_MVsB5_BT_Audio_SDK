@@ -25,7 +25,7 @@
 #include "bt_config.h"
 #include "bt_play_api.h"
 #include "bt_manager.h"
-#if (BT_HFP_SUPPORT == ENABLE)
+#if BT_HFP_SUPPORT
 #include "bt_hf_api.h"
 #endif
 #endif
@@ -58,7 +58,6 @@ static AudioCoreRunState AudioState = AC_RUN_CHECK;
 AudioCoreContext		AudioCore;
 
 extern uint32_t gSysTick;
-extern int32_t tws_get_pcm_delay(void);
 
 void AudioCoreSourcePcmFormatConfig(uint8_t Index, uint16_t Format)
 {
@@ -81,8 +80,6 @@ void AudioCoreSourceDisable(uint8_t Index)
 	if(Index < AUDIO_CORE_SOURCE_MAX_NUM)
 	{
 		AudioCore.AudioSource[Index].Enable = FALSE;
-		//AudioCore.AudioSource[Index].LeftCurVol = 0;
-		//AudioCore.AudioSource[Index].RightCurVol = 0;
 	}
 }
 
@@ -108,26 +105,11 @@ void AudioCoreSourceUnmute(uint8_t Index, bool IsLeftUnmute, bool IsRightUnmute)
 	if(IsLeftUnmute)
 	{
 		AudioCore.AudioSource[Index].LeftMuteFlag = FALSE;
-		AudioCore.AudioSource[Index].LeftCurVol	  = 0; //淡入
 	}
 	if(IsRightUnmute)
 	{
 		AudioCore.AudioSource[Index].RightMuteFlag = FALSE;
-		AudioCore.AudioSource[Index].RightCurVol   = 0; //淡入
 	}
-}
-
-void AudioCoreSourceVolSet(uint8_t Index, uint16_t LeftVol, uint16_t RightVol)
-{
-	AudioEffect_SourceGain_Update(Index);
-	AudioCore.AudioSource[Index].LeftVol = LeftVol;
-	AudioCore.AudioSource[Index].RightVol = RightVol;
-}
-
-void AudioCoreSourceVolGet(uint8_t Index, uint16_t* LeftVol, uint16_t* RightVol)
-{
-	*LeftVol = AudioCore.AudioSource[Index].LeftCurVol;
-	*RightVol = AudioCore.AudioSource[Index].RightCurVol;
 }
 
 void AudioCoreSourceConfig(uint8_t Index, AudioCoreSource* Source)
@@ -143,52 +125,11 @@ void AudioCoreSinkEnable(uint8_t Index)
 void AudioCoreSinkDisable(uint8_t Index)
 {
 	AudioCore.AudioSink[Index].Enable = FALSE;
-	AudioCore.AudioSink[Index].LeftCurVol = 0;
-	AudioCore.AudioSink[Index].RightCurVol = 0;
 }
 
 bool AudioCoreSinkIsEnable(uint8_t Index)
 {
 	return AudioCore.AudioSink[Index].Enable;
-}
-
-void AudioCoreSinkMute(uint8_t Index, bool IsLeftMute, bool IsRightMute)
-{
-	/*if(IsLeftMute)
-	{
-		AudioCore.AudioSink[Index].LeftMuteFlag = TRUE;
-	}
-	if(IsRightMute)
-	{
-		AudioCore.AudioSink[Index].RightMuteFlag = TRUE;
-	}
-	*/
-}
-
-void AudioCoreSinkUnmute(uint8_t Index, bool IsLeftUnmute, bool IsRightUnmute)
-{
-	/*if(IsLeftUnmute)
-	{
-		AudioCore.AudioSink[Index].LeftMuteFlag = FALSE;
-	}
-	if(IsRightUnmute)
-	{
-		AudioCore.AudioSink[Index].RightMuteFlag = FALSE;
-	}
-	*/
-}
-
-void AudioCoreSinkVolSet(uint8_t Index, uint16_t LeftVol, uint16_t RightVol)
-{
-	AudioEffect_SinkGain_Update(Index);
-	AudioCore.AudioSink[Index].LeftVol = LeftVol;
-	AudioCore.AudioSink[Index].RightVol = RightVol;
-}
-
-void AudioCoreSinkVolGet(uint8_t Index, uint16_t* LeftVol, uint16_t* RightVol)
-{
-	*LeftVol = AudioCore.AudioSink[Index].LeftCurVol;
-	*RightVol = AudioCore.AudioSink[Index].RightCurVol;
 }
 
 void AudioCoreSinkConfig(uint8_t Index, AudioCoreSink* Sink)
@@ -237,7 +178,6 @@ void AudioCoreDeinit(void)
  */
 extern uint32_t 	IsAudioCorePause;
 extern uint32_t 	IsAudioCorePauseMsgSend;
-extern bool AudioCoreSinkMuted(void);
 void AudioProcessMain(void);
 __attribute__((optimize("Og")))
 void AudioCoreRun(void)
@@ -246,7 +186,7 @@ void AudioCoreRun(void)
 	switch(AudioState)
 	{
 		case AC_RUN_CHECK:
-			if(IsAudioCorePause == TRUE && ((!mainAppCt.gSysVol.MuteFlag) || AudioCoreSinkMuted()))
+			if(IsAudioCorePause == TRUE)
 			{
 				if(IsAudioCorePauseMsgSend == TRUE)
 				{
@@ -313,6 +253,7 @@ void AudioCoreRun(void)
 //提示音通路无音效，剥离后在sink端混音。
 void AudioProcessMain(void)
 {
+	AudioCoreSourceMuteApply();
 #ifdef CFG_FUNC_RECORDER_EN
 	if(AudioCore.AudioSource[PLAYBACK_SOURCE_NUM].Enable == TRUE)
 	{
@@ -328,7 +269,7 @@ void AudioProcessMain(void)
 #endif
 	if(AudioCore.AudioSource[APP_SOURCE_NUM].Active == TRUE)////music buff
 	{
-		#if (BT_HFP_SUPPORT == ENABLE) && defined(CFG_APP_BT_MODE_EN)
+		#if (BT_HFP_SUPPORT) && defined(CFG_APP_BT_MODE_EN)
 		if(GetSystemMode() != ModeBtHfPlay)
 		#endif
 		{
@@ -363,10 +304,186 @@ void AudioProcessMain(void)
 		AudioCore.AudioEffectProcess((AudioCoreContext*)&AudioCore);
 	}
 	
-    #ifdef CFG_FUNC_BEEP_EN
+#ifdef CFG_FUNC_BEEP_EN
     if(AudioCore.AudioSink[AUDIO_DAC0_SINK_NUM].Active == TRUE)   ////dacx buff
 	{
 		Beep(AudioCore.AudioSink[AUDIO_DAC0_SINK_NUM].PcmOutBuf, SINKFRAME(AUDIO_DAC0_SINK_NUM));
 	}
-    #endif
+#endif
+    AudioCoreSinkMuteApply();
+}
+
+//音量淡入淡出
+#define MixerFadeVolume(a, b, c)  	\
+    if(a > b + c)		    \
+	{						\
+		a -= c;				\
+	}						\
+	else if(a + c < b)	   	\
+	{						\
+		a += c;				\
+	}						\
+	else					\
+	{						\
+		a = b;				\
+	}
+
+
+void AudioCoreSourceMuteApply(void)
+{
+	uint32_t i;
+	uint8_t j;
+	uint16_t LeftVol, RightVol, TargetVol, LeftVolStep, RightVolStep;
+	bool mute;
+
+	for(j = 0; j < AUDIO_CORE_SOURCE_MAX_NUM; j++)
+	{
+		mute = AudioCore.AudioSource[j].LeftMuteFlag || AudioCore.AudioSource[j].RightMuteFlag || mainAppCt.gSysVol.MuteFlag;
+		if((!AudioCore.AudioSource[j].Active) || (mute == AudioCore.AudioSource[j].MuteFlagbk))
+		{
+			if(AudioCoreSourceToRoboeffect(j) != AUDIOCORE_SOURCE_SINK_ERROR)
+			{
+				if(!AudioCore.AudioSource[j].Active || mainAppCt.gSysVol.MuteFlag || AudioCore.AudioSource[j].LeftMuteFlag)
+				{
+					memset(roboeffect_get_source_buffer(AudioEffect.context_memory, AudioCoreSourceToRoboeffect(j)),
+										0, roboeffect_get_buffer_size(AudioEffect.context_memory));
+				}
+			}
+			continue;
+		}
+
+		TargetVol = mute ? 0:4096;
+		LeftVol = 4096 - TargetVol;
+		RightVol = LeftVol;
+		LeftVolStep = 4096 / SOURCEFRAME(j) + (4096 % SOURCEFRAME(j) ? 1 : 0);
+		RightVolStep = LeftVolStep;
+#ifdef CFG_AUDIO_WIDTH_24BIT
+		if(AudioCore.AudioSource[j].BitWidth == PCM_DATA_24BIT_WIDTH //24bit 数据
+		 || AudioCore.AudioSource[j].BitWidthConvFlag     //在AudioCoreSourceGet扩充到24bit
+			)
+		{
+			if(AudioCore.AudioSource[j].Channels == 2)
+			{
+				for(i=0; i < SOURCEFRAME(j); i++)
+				{
+					AudioCore.AudioSource[j].PcmInBuf[2 * i + 0] = __nds32__clips((((int64_t)AudioCore.AudioSource[j].PcmInBuf[2 * i + 0]) * LeftVol + 2048) >> 12, (24)-1);
+					AudioCore.AudioSource[j].PcmInBuf[2 * i + 1] = __nds32__clips((((int64_t)AudioCore.AudioSource[j].PcmInBuf[2 * i + 1]) * RightVol + 2048) >> 12, (24)-1);
+
+					MixerFadeVolume(LeftVol, TargetVol, LeftVolStep);
+					MixerFadeVolume(RightVol, TargetVol, RightVolStep);
+				}
+			}
+			else if(AudioCore.AudioSource[j].Channels == 1)
+			{
+				for(i=0; i<SOURCEFRAME(j); i++)
+				{
+					AudioCore.AudioSource[j].PcmInBuf[i] = __nds32__clips((((int64_t)AudioCore.AudioSource[j].PcmInBuf[i]) * LeftVol + 2048) >> 12, (24)-1);
+
+					MixerFadeVolume(LeftVol, TargetVol, LeftVolStep);
+				}
+			}
+		}
+		else
+#endif
+		{
+			int16_t * PcmInBuf = (int16_t *)AudioCore.AudioSource[j].PcmInBuf;
+			if(AudioCore.AudioSource[j].Channels == 2)
+			{
+				for(i=0; i < SINKFRAME(j); i++)
+				{
+					PcmInBuf[2 * i + 0] = __nds32__clips((((int32_t)PcmInBuf[2 * i + 0]) * LeftVol + 2048) >> 12, (16)-1);
+					PcmInBuf[2 * i + 1] = __nds32__clips((((int32_t)PcmInBuf[2 * i + 1]) * LeftVol + 2048) >> 12, (16)-1);
+
+					MixerFadeVolume(LeftVol, TargetVol, LeftVolStep);
+					MixerFadeVolume(RightVol, TargetVol, RightVolStep);
+				}
+			}
+			else if(AudioCore.AudioSource[j].Channels == 1)
+			{
+				for(i=0; i<SINKFRAME(j); i++)
+				{
+					PcmInBuf[i] = __nds32__clips((((int32_t)PcmInBuf[i]) * LeftVol + 2048) >> 12, (16)-1);
+
+					MixerFadeVolume(LeftVol, TargetVol, LeftVolStep);
+				}
+			}
+		}
+		AudioCore.AudioSource[j].MuteFlagbk = mute;
+	}
+}
+
+void AudioCoreSinkMuteApply(void)
+{
+	uint32_t i;
+	uint8_t j;
+	uint16_t LeftVol, RightVol, TargetVol, LeftVolStep, RightVolStep;
+	bool mute;
+
+	for(j = 0; j < AUDIO_CORE_SINK_MAX_NUM; j++)
+	{
+		mute = AudioCore.AudioSink[j].LeftMuteFlag || AudioCore.AudioSink[j].RightMuteFlag || mainAppCt.gSysVol.MuteFlag;
+		if((!AudioCore.AudioSink[j].Active) || (mute == AudioCore.AudioSink[j].MuteFlagbk))
+		{
+			continue;
+		}
+
+		TargetVol = mute ? 0:4096;
+		LeftVol = 4096 - TargetVol;
+		RightVol = LeftVol;
+		LeftVolStep = 4096 / SINKFRAME(j) + (4096 % SINKFRAME(j) ? 1 : 0);
+		RightVolStep = LeftVolStep;
+
+#ifdef CFG_AUDIO_WIDTH_24BIT
+		if(AudioCore.AudioSink[j].BitWidth == PCM_DATA_24BIT_WIDTH //24bit 数据
+		 //|| AudioCore.AudioSink[j].BitWidthConvFlag     //在AudioCoreSinkSet扩充到24bit,此时还是16bit
+			)
+		{
+			if(AudioCore.AudioSink[j].Channels == 2)
+			{
+				for(i=0; i < SINKFRAME(j); i++)
+				{
+					AudioCore.AudioSink[j].PcmOutBuf[2 * i + 0] = __nds32__clips((((int64_t)AudioCore.AudioSink[j].PcmOutBuf[2 * i + 0]) * LeftVol + 2048) >> 12, (24)-1);
+					AudioCore.AudioSink[j].PcmOutBuf[2 * i + 1] = __nds32__clips((((int64_t)AudioCore.AudioSink[j].PcmOutBuf[2 * i + 1]) * RightVol + 2048) >> 12, (24)-1);
+
+					MixerFadeVolume(LeftVol, TargetVol, LeftVolStep);
+					MixerFadeVolume(RightVol, TargetVol, RightVolStep);
+				}
+			}
+			else if(AudioCore.AudioSink[j].Channels == 1)
+			{
+				for(i=0; i<SINKFRAME(j); i++)
+				{
+					AudioCore.AudioSink[j].PcmOutBuf[i] = __nds32__clips((((int64_t)AudioCore.AudioSink[j].PcmOutBuf[i]) * LeftVol + 2048) >> 12, (24)-1);
+
+					MixerFadeVolume(LeftVol, TargetVol, LeftVolStep);
+				}
+			}
+		}
+		else
+#endif
+		{
+			int16_t * PcmOutBuf = (int16_t *)AudioCore.AudioSink[j].PcmOutBuf;
+			if(AudioCore.AudioSink[j].Channels == 2)
+			{
+				for(i=0; i < SINKFRAME(j); i++)
+				{
+					PcmOutBuf[2 * i + 0] = __nds32__clips((((int32_t)PcmOutBuf[2 * i + 0]) * LeftVol + 2048) >> 12, (16)-1);
+					PcmOutBuf[2 * i + 1] = __nds32__clips((((int32_t)PcmOutBuf[2 * i + 1]) * LeftVol + 2048) >> 12, (16)-1);
+
+					MixerFadeVolume(LeftVol, TargetVol, LeftVolStep);
+					MixerFadeVolume(RightVol, TargetVol, RightVolStep);
+				}
+			}
+			else if(AudioCore.AudioSink[j].Channels == 1)
+			{
+				for(i=0; i<SINKFRAME(j); i++)
+				{
+					PcmOutBuf[i] = __nds32__clips((((int32_t)PcmOutBuf[i]) * LeftVol + 2048) >> 12, (16)-1);
+
+					MixerFadeVolume(LeftVol, TargetVol, LeftVolStep);
+				}
+			}
+		}
+		AudioCore.AudioSink[j].MuteFlagbk = mute;
+	}
 }

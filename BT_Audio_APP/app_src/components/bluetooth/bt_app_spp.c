@@ -26,7 +26,7 @@
 #include "bt_spp_api.h"
 #include "mode_task.h"
 
-#if (BT_SPP_SUPPORT == ENABLE ||(defined(CFG_FUNC_BT_OTA_EN)))
+#if (BT_SPP_SUPPORT ||(defined(CFG_FUNC_BT_OTA_EN)))
 #ifdef CFG_FUNC_BT_OTA_EN
 extern const char cmd_chip_reset[];
 extern const char cmd_chip_spp_link[];

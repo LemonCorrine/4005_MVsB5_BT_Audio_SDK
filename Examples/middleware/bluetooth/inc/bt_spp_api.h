@@ -13,6 +13,8 @@
 #ifndef __BT_SPP_API_H__
 #define __BT_SPP_API_H__
 
+#include "type.h"
+
 typedef enum{
 	BT_STACK_EVENT_SPP_NONE = 0,
 	BT_STACK_EVENT_SPP_CONNECTED,

@@ -564,12 +564,16 @@ void hid_recive_data(void)
 #endif
 
 #ifdef CFG_FUNC_FLASH_PARAM_ONLINE_TUNING_EN
-	if(Request[2] == 0x30 && 	//控制字0x30
-	   Request[0] == 0xA5 && Request[1] == 0x5A) //帧头
+	if((Request[0] == 0xA5 && Request[1] == 0x5A) && //帧头
+		(Request[2] == 0x30 || Request[2] == 0x20))  //控制字0x30/控制字0x20
 	{
 		extern void FlashParamUsb_Rx(uint8_t *buf,uint16_t buf_len);
+		extern void FlashSn_Rx(uint8_t *buf,uint16_t buf_len);
 
-		FlashParamUsb_Rx(Request+3,256-3);
+		if(Request[2] == 0x30)
+			FlashParamUsb_Rx(Request+3,256-3);
+		else
+			FlashSn_Rx(Request+3,256-3);
 	}
 #endif
 }

@@ -25,11 +25,10 @@
 * @{
 */
 
-
-#include "type.h"
-
 #ifndef __BT_HFP_API_H__
 #define __BT_HFP_API_H__
+
+#include "type.h"
 
 typedef enum{
 	BT_STACK_EVENT_HFP_NONE = 0x00,			//0

@@ -479,28 +479,17 @@ void DefaultParamgsInit(void)
 	//for system control 0x01
 	gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
 
-	if(AudioCore.Audioeffect.context_memory)
+	if(AudioEffect.context_memory)
 	{
-		memcpy(&gCtrlVars.HwCt, AudioCore.Audioeffect.cur_effect_para->user_module_parameters, sizeof(gCtrlVars.HwCt));
+		memcpy(&gCtrlVars.HwCt, AudioEffect.cur_effect_para->user_module_parameters, sizeof(gCtrlVars.HwCt));
 	}
 	else
 	{
 		AUDIOEFFECT_EFFECT_PARA *para;
 		if (mainAppCt.EffectMode  == 0)
 		{
-#ifdef CFG_AI_DENOISE_EN
-            mainAppCt.EffectMode = EFFECT_MODE_MICUSBAI;
-#else
-#ifdef CFG_FUNC_EFFECT_BYPASS_EN
-			mainAppCt.EffectMode = EFFECT_MODE_BYPASS;
-#else
-#ifdef CFG_FUNC_MIC_KARAOKE_EN
-			mainAppCt.EffectMode = EFFECT_MODE_HunXiang;
-#else 
-			mainAppCt.EffectMode = EFFECT_MODE_MIC;
-#endif
-#endif
-#endif
+			extern const uint8_t EffectModeToggleMap[];
+            mainAppCt.EffectMode = EffectModeToggleMap[0];
 		}
 
 		para = get_user_effect_parameters(mainAppCt.EffectMode);

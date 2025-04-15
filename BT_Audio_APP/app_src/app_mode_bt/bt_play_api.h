@@ -1,15 +1,25 @@
-//bt_play_api.h
+/**
+ **************************************************************************************
+ * @file    bt_play_api.h
+ * @brief   
+ *
+ * @author  kk
+ * @version V1.1.0
+ *
+ * $Created: 2024-3-29 13:06:47$
+ *
+ * @Copyright (C) 2016, Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
+ **************************************************************************************
+ */
 #include "type.h"
 #include "mcu_circular_buf.h"
-#include "resampler.h"
-#include "resampler_polyphase.h"
 #include "sbc_frame_decoder.h"
 #include "bt_config.h"
 
 #ifndef __BT_PLAY_API_H__
 #define __BT_PLAY_API_H__
 
-#define SBC_FIFO_SIZE	8*1024
+#define SBC_FIFO_SIZE	10*1024
 #define SBC_FIFO_LEVEL_HIGH 	(SBC_FIFO_SIZE / 10 * 7) //70% 开播
 
 #define BT_AAC_LEVEL_HIGH					(12)//frame 计数
@@ -39,11 +49,6 @@ typedef struct _BT_A2DP_PLAYER
 	//sbc相关参数初始化标志,未初始化前,不能收发数据
 	uint32_t sbc_init_flag;
 }BT_A2DP_PLAYER;
-
-
-//extern BT_A2DP_PLAYER *a2dp_player;
-
-
 
 /***********************************************************************************
  * 获取 SBC DATA 有效长度

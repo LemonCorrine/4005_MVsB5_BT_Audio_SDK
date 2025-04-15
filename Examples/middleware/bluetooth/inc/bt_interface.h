@@ -3,10 +3,10 @@
  * @file    platform_interface.h
  * @brief   platfomr interface
  *
- * @author  Halley
- * @version V1.1.0
+ * @author  KK
+ * @version V1.2.0
  *
- * $Created: 2016-07-22 16:24:11$
+ * $Created: 2024-04-22 16:24:11$
  *
  * @Copyright (C) 2016, Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  **************************************************************************************
@@ -159,6 +159,14 @@ extern FUNC_BT_AVRCP_DISCON_PROCESS BtAvrcpDisconProcess;
  * @Note
  *******************************************************************/
 void BtStack_BtAvrcpDisconRegister(uint8_t index);
+
+/********************************************************************
+ * @brief	BtStack_BtA2dpDisconRegister: 蓝牙A2DP断开连接函数注册
+ * @param	index: 0 or 1
+ * @return
+ * @Note
+ *******************************************************************/
+void BtStack_BtA2dpDisconRegister(uint8_t index);
 
 /********************************************************************
  * @brief	BtAppiFunc_BtScoSendProcess: 蓝牙通话数据发送函数接口

@@ -233,6 +233,7 @@ bool SpdifPlayInit(void)
 #endif
 	if(!ModeCommonInit())
 	{
+		ModeCommonDeinit();
 		return FALSE;
 	}
 

@@ -270,6 +270,22 @@ void Power_LVDWakeupConfig(PWR_LVD_Threshold_SEL Lvd_Threshold_Sel);
 bool Power_HRCCtrlByHwDuringDeepSleep(bool IsOpen);
 
 /**
+* @brief  Deepsleep config memory
+* @param  void
+* @return void
+* @note   none
+*/
+void Power_DeepSleepMemoryConfig();
+
+/**
+* @brief  Wakeup config memory
+* @param  void
+* @return void
+* @note   none
+*/
+void Power_WakeupMemoryConfig();
+
+/**
  * @brief  Close RF3V3D for DeepSleep
  * @param  无
  * @return 无
@@ -357,11 +373,11 @@ void Power_LDO16DConfigHighCurrentLimit(uint8_t OCSel_val);
 void Power_LDO33AConfigHighCurrentLimit(uint8_t OCSel_val);
 
 /**
-* @brief  ldo_switch_to_dcdc
-* @param  trim_cfg: 3-1.9V;7-1.8;12-1.7V;18-1.6V;27-1.5V;39-1.4V;57-1.3V
-* @return void
-* @note   注意：不支持DCDC的芯片型号请勿调用该接口，否则会导致芯片因无法正常供电而无法工作！
-*/
+ * @brief  ldo_switch_to_dcdc
+ * @param  trim_cfg: 0-1.9V;1-1.8;2-1.7V;3-1.6V;4-1.5V;5-1.4V;6-1.3V
+ * @return void
+ * @note   注意：不支持DCDC的芯片型号请勿调用该接口，否则会导致芯片因无法正常供电而无法工作！
+ */
 void ldo_switch_to_dcdc(uint8_t trim_cfg);
 
 

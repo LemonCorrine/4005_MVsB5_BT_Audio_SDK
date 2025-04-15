@@ -10,20 +10,16 @@
 	#define DAC_DOUT_MODE				gCtrlVars.HwCt.DAC0Ct.dac_out_mode
 #else
 	#define	SYS_AUDIO_CLK_SELECT		APLL_CLK_MODE
-	#define DAC_DOUT_MODE				MODE0
+	#define DAC_DOUT_MODE				MODE1
 #endif
 
 static uint8_t DAC_BitWidth = 24;
 
 void AudioDAC_Init(DACParamCt *ct, uint32_t SampleRate, uint16_t BitWidth, void *Buf, uint16_t Len,  void *BufEXT, uint16_t LenEXT)
 {
-#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
-	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ * 4);
-	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ * 4);
-#else
-	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
-	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ);
-#endif
+	uint8_t mclkFreqNum = SampleRate > 48000 ? 4:1;
+	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ * mclkFreqNum);
+	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ * mclkFreqNum);
 
 	if(IsSelectMclkClk1(SampleRate))
 	{
@@ -87,6 +83,10 @@ void AudioDAC_Init(DACParamCt *ct, uint32_t SampleRate, uint16_t BitWidth, void 
 
 void AudioDAC0_SampleRateChange(uint32_t SampleRate)
 {
+	uint8_t mclkFreqNum = SampleRate > 48000 ? 4:1;
+	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ * mclkFreqNum);
+	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ * mclkFreqNum);
+
 	if(IsSelectMclkClk1(SampleRate))
 	{
 		Clock_AudioMclkSel(DAC0, PLL_CLOCK1);

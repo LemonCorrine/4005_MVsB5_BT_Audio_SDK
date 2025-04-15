@@ -164,7 +164,7 @@ const unsigned char user_effect_parameters_music_Music[] = {
 
 0x02, 0x26, 0x00, /*Effect Version*/
 
-0x02, 0x11, 0x02, /* Roboeffect Version*/
+0x02, 0x11, 0x07, /* Roboeffect Version*/
 
 0x01, 0x00, /*3rd part data total length  */
 0x00, /*number of 3rd part items*/

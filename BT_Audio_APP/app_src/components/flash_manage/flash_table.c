@@ -70,8 +70,11 @@ struct
 
 	uint32_t	flash_capacity;
 	bool		flash_table_valid;
+	uint32_t	sys_rec_addr;
 }flash_table_info;
 
+
+uint32_t	rec_addr_start;
 
 static const struct
 {
@@ -86,6 +89,9 @@ static const struct
 	{"remind",			&flash_table_info.remind_addr,				0},
 #ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
 	{"effect_data",		&flash_table_info.effect_data_addr,			EFFECT_DATA_OFFSET},
+#endif
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+	{"rec_data",		&flash_table_info.sys_rec_addr,				0},
 #endif
 };
 
@@ -236,7 +242,11 @@ void flash_table_init(void)
 		}
 		APP_DBG("%s = 0x%lx\n",FlashTableReadMap[i].package_name,*(FlashTableReadMap[i].addr));
 	}
-
+#ifdef USE_EXTERN_FLASH_SPACE
+	rec_addr_start = CFG_PARA_RECORDS_FLASH_BEGIN_ADDR;
+	#else
+	rec_addr_start = flash_table_info.sys_rec_addr;
+#endif
 #if 1
 	flash_table_info.user_config_addr = (flash_table_info.flash_capacity - USER_CONFIG_OFFSET);
 	flash_table_info.bt_config_addr = (flash_table_info.flash_capacity - BT_CONFIG_OFFSET);

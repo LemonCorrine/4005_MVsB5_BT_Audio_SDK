@@ -401,6 +401,7 @@ bool MediaPlayInit(void)
 	DMA_ChannelAllocTableSet((uint8_t*)DmaChannelMap);
 	if(!ModeCommonInit())
 	{
+		ModeCommonDeinit();
 		DBG("Common Audio error!\n");
 		return FALSE;
 	}
@@ -522,7 +523,16 @@ bool MediaPlayInit(void)
 		HardWareMuteOrUnMute();
 	}
 #endif
-
+#ifdef CFG_FUNC_RECORDER_EN
+	if(GetSystemMode() == ModeCardPlayBack || GetSystemMode() == ModeUDiskPlayBack )//|| GetSystemMode() ==AppModeFlashFsPlayBack)
+	{
+		return DecoderServiceInit(GetSysModeMsgHandle(),DECODER_MODE_CHANNEL, DECODER_BUF_SIZE_MP3, DECODER_FIFO_SIZE_FOR_MP3);//DECODER_BUF_SIZE_MP3
+	}
+	else
+#endif
+	{
+		return DecoderServiceInit(GetSysModeMsgHandle(),DECODER_MODE_CHANNEL, DECODER_BUF_SIZE, DECODER_FIFO_SIZE_FOR_PLAYER);// decode step1
+	}
 	return TRUE;
 }
 
@@ -540,16 +550,6 @@ void MediaPlayRun(uint16_t msgId)
 #endif
 	if(SoftFlagGet(SoftFlagMediaModeRead))
 	{
-#ifdef CFG_FUNC_RECORDER_EN
-		if(GetSystemMode() == ModeCardPlayBack || GetSystemMode() == ModeUDiskPlayBack )//|| GetSystemMode() ==AppModeFlashFsPlayBack)
-		{
-			DecoderServiceInit(GetSysModeMsgHandle(),DECODER_MODE_CHANNEL, DECODER_BUF_SIZE_MP3, DECODER_FIFO_SIZE_FOR_MP3);//DECODER_BUF_SIZE_MP3
-		}
-		else
-#endif
-		{
-			DecoderServiceInit(GetSysModeMsgHandle(),DECODER_MODE_CHANNEL, DECODER_BUF_SIZE, DECODER_FIFO_SIZE_FOR_PLAYER);// decode step1
-		}
 		if(!MediaPlayerInitialize(sMediaPlayCt->Device, 1, 1))// decode step 2: include : DecoderInit(&gMediaPlayer->PlayerFile,DECODER_MODE_CHANNEL,(int32_t)IO_TYPE_FILE, (int32_t)SongFileType)
 		{
 			APP_DBG("Media decoder init error ,exit media init\n");

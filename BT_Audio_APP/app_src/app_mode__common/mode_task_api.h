@@ -21,10 +21,6 @@ void CommonMsgProccess(uint16_t Msg);
 
 bool AudioIoCommonForHfp(uint16_t gain);
 
-void tws_device_close(void);
-
-void tws_device_open_isr(void);
-
 void PauseAuidoCore(void);
 
 #ifdef CFG_AUDIO_OUT_AUTO_SAMPLE_RATE_44100_48000

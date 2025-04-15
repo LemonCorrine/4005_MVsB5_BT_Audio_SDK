@@ -16,24 +16,13 @@
 #define _BT_MANAGER_H_
 
 #include <string.h>
-#include "bt_common_api.h"
+#include "type.h"
 #include "bt_config.h"
+#include "bt_common_api.h"
 #include "timeout.h"
-#ifdef CFG_APP_CONFIG
-#include "app_config.h"
-#endif
 #include "sys_param.h"
 
 #define MAX_PHONE_NUMBER_LENGTH		20
-
-//typedef uint32_t BT_CHECK_EVENT_LIST;
-//#define BT_EVENT_NONE					0x00
-//#define BT_EVENT_L2CAP_LINK_DISCONNECT	0x02//bit1:在L2CAP处理异常时断开，需要发起重连，并不播放提示音，连接成功后自动播放
-//extern BT_CHECK_EVENT_LIST btCheckEventList;
-//extern uint32_t btEventListB1Count;
-//extern uint32_t btEventListB1State;//异常前播放状态的保存，确定在回连后是否需要发送播放命令
-//extern uint32_t btEventListCount;
-
 
 //btManager.btEventFlagMask
 #define BT_EVENT_FLAG_NONE					0x00
@@ -147,8 +136,6 @@ typedef enum
 	BT_AVRCP_STATE_CONNECTED,	
 } BT_AVRCP_STATE;
 
-
-#ifdef BT_REAL_STATE
 typedef enum{
 	BT_USER_STATE_NONE,
 	BT_USER_STATE_RECON,
@@ -158,7 +145,6 @@ typedef enum{
 } BT_USER_STATE;
 void SetBtUserState(BT_USER_STATE bt_state);
 BT_USER_STATE GetBtUserState(void);
-#endif
 
 typedef enum
 {
@@ -173,6 +159,18 @@ typedef enum
 	BT_PBAP_STATE_CONNECTING,
 	BT_PBAP_STATE_CONNECTED,
 } BT_PBAP_STATE;
+
+#if	BT_SOURCE_SUPPORT
+typedef struct _BT_SOURCE_INQUIRY_LIST
+{
+	uint8_t		flag; 					//1=used
+	uint8_t		addr[6];
+	uint8_t		nameFlag;
+	uint8_t		name[40];
+	uint8_t		classOfDev[3];
+	int8_t		rssi;
+}BT_SOURCE_INQUIRY_LIST;
+#endif
 
 typedef uint8_t TIMER_FLAG;
 #define TIMER_UNUSED					0x00
@@ -212,6 +210,11 @@ typedef struct _BT_CONFIGURATION_PARAMS
 	uint8_t			bt_reconIntervalTime;
 	uint8_t			bt_reconTimeout;
 	uint8_t			bt_accessMode;
+	
+	#if BT_SOURCE_SUPPORT
+	uint32_t		bt_source_SupportProfile;
+	#endif
+	
 }BT_CONFIGURATION_PARAMS;
 
 typedef struct _BT_DB_RECORD
@@ -269,6 +272,9 @@ typedef struct _BT_LINKED_ENV_TAG
 	uint8_t					remoteAddr[BT_ADDR_SIZE];
 	uint8_t					remoteName[BT_NAME_SIZE];
 	uint8_t					remoteNameLen;
+#ifdef BT_MULTI_LINK_SUPPORT
+	uint8_t					btLinkDisconnFlag;
+#endif
 
 	//A2DP
 	BT_A2DP_STATE			a2dpState;
@@ -351,13 +357,12 @@ typedef struct _BT_MANAGER_ST
 	uint8_t					btDisConnectingFlag;
 	BT_SCAN_PAGE_STATE		btScanPageState;
 
-	BT_RST_STATE			btRstState; //BT恢复出厂设置
+	BT_RST_STATE			btRstState; 		//BT恢复出厂设置
 	uint32_t				btRstWaitingCount;
 
 	uint8_t					appleDeviceFlag;	//Note:此标志通过HFP来进行判断;           1=apple device; 0=other device
 	
 	//hfp
-//	BT_HFP_STATE			hfpState;
 	bool					scoConnected;
 	uint8_t					phoneNumber[MAX_PHONE_NUMBER_LENGTH];
 	bool					callWaitingFlag;
@@ -365,7 +370,6 @@ typedef struct _BT_MANAGER_ST
 	uint8_t					signalLevel;
 	bool					voiceRecognition;
 	uint8_t					volGain;
-	//uint8_t					hfpScoCodecType;
 	uint8_t					hfpScoCodecType[BT_LINK_DEV_NUM];
 	uint8_t					hfpVoiceState;		//1:非通话,其他应用使用了通话链路传输音频 0:正常通话
 	uint8_t					hfpScoDiscIndex;	//sco断链index
@@ -380,39 +384,49 @@ typedef struct _BT_MANAGER_ST
 	uint8_t					HfpCurIndex;			//当前通话的index
 
 	//a2dp
-//	BT_A2DP_STATE			a2dpState;
 	uint8_t					a2dpStreamType[BT_LINK_DEV_NUM];//=sbc; =aac
-	uint32_t				aacFrameNumber;//保存接收到的aac帧数,用于管理decoder
+	uint32_t				aacFrameNumber;			//保存接收到的aac帧数,用于管理decoder
 
 	//avrcp
-	uint16_t				avrcpMediaIntervalCnt;	//间隔获取ID3信息计数器
+	uint16_t				avrcpMediaInforFlag;	//应用层主动获取歌词标志
 	BT_TIMER				avrcpPlayStatusTimer;	
-#if (BT_AVRCP_VOLUME_SYNC == ENABLE)
+#if (BT_AVRCP_VOLUME_SYNC)
 	uint8_t					avrcpSyncEnable;
-	uint8_t					avrcpSyncVol; //默认值0xff(未同步), 正常值范围(0-32)
+	uint8_t					avrcpSyncVol; 			//默认值0xff(未同步), 正常值范围(0-32)
 #endif
 
 	uint32_t				btDutModeEnable;		//DUT模式
 
 	uint32_t				btEnterSniffStep;
 	uint32_t				btExitSniffReconPhone;
-	uint32_t				btTwsPairingStartDelayCnt;
 
 	uint32_t				btEventFlagMask;		//连接标志
 	uint32_t				btEventFlagCount;		//处理响应时间
 
-	uint8_t					hfp_CallFalg;//判断是不是通话中连接蓝牙进入的通话模式
-#ifdef BT_REAL_STATE
+	uint8_t					hfp_CallFalg;			//判断是不是通话中连接蓝牙进入的通话模式
 	BT_USER_STATE           btuserstate;
-#endif
-#if (BT_OBEX_SUPPORT == ENABLE)
-		//obex
-		BT_OBEX_STATE			obexState;
+
+#if (BT_OBEX_SUPPORT)
+	//obex
+	BT_OBEX_STATE			obexState;
 #endif
 
-#if (BT_PBAP_SUPPORT == ENABLE)
-		//pbap
+#if (BT_PBAP_SUPPORT)
+	//pbap
 	BT_PBAP_STATE			pbapState;
+#endif
+	
+#if	BT_SOURCE_SUPPORT	
+	uint8_t					conRemoteAddr[6];
+	BT_A2DP_STATE			a2dpSourceState;
+	BT_SOURCE_INQUIRY_LIST	SourceInqResultList[A2DP_SCAN_NUMBER];
+	BT_HFP_STATE			hfgState;
+	uint8_t					GetNameFlag;
+#endif
+
+#ifdef BT_ACCESS_MODE_SET_BY_POWER_ON_TIMEOUT
+	bool					btvisibilityDelayOn;
+	uint32_t 				btvisibilityDelayCount;
 #endif
 } BT_MANAGER_ST;
 
@@ -644,6 +658,17 @@ void SetScoConnectFlag(bool flag);
  *******************************************************************/
 BT_A2DP_STATE GetA2dpState(uint8_t index);
 
+#if	BT_SOURCE_SUPPORT
+
+/********************************************************************
+ * @brief  get the source a2dp profile state
+ * @param  none
+ * @return state
+ * @Note
+ *******************************************************************/
+BT_A2DP_STATE GetSourceA2dpState(void);
+#endif
+
 /********************************************************************
  * @brief  connect the a2dp profile 
  * @param  index: 0 or 1
@@ -738,20 +763,19 @@ void BtConnectCtrl(void);
 
 /********************************************************************
  * @brief	Bt Disconnect Ctrl
- * @param
+ * @param   0(断开，终止回连行为) or 1 (直接断开，不判断条件,不终止回连行为)
  * @return
  * @note	断开蓝牙
  *******************************************************************/
-void BtDisconnectCtrl(void);
-
+void BtDisconnectCtrl(bool OnlyDisconnect);
 
 /********************************************************************
  * @brief	BtSetAccessModeApi
  * @param   BtAccessMode 
-			BtAccessModeNotAccessible		0x00 /*!< Non-discoverable or connectable		
-			BtAccessModeDiscoverbleOnly		0x01 /*!< Discoverable but not connectable		
-			BtAccessModeConnectableOnly		0x02 /*!< Connectable but not discoverable		
-			BtAccessModeGeneralAccessible	0x03 /*!< General discoverable and connectable	
+ *			BtAccessModeNotAccessible		0x00 //!< Non-discoverable or connectable
+ *			BtAccessModeDiscoverbleOnly		0x01 //!< Discoverable but not connectable
+ *			BtAccessModeConnectableOnly		0x02 //!< Connectable but not discoverable
+ *			BtAccessModeGeneralAccessible	0x03 //!< General discoverable and connectable
  * @return
  * @note	经典蓝牙可见性配置接口
  *******************************************************************/
@@ -912,6 +936,36 @@ uint8_t GetBtManagerAvrcpIndex(uint8_t index);
  * @note
  *******************************************************************/
 uint8_t GetBtManagerHfpIndex(uint8_t index);
+
+void BtStopReconnect(void);
+
+
+#if BT_SOURCE_SUPPORT
+void BtconnectAvrcpStart(void);
+void BtSourceInquiryResultParse(uint8_t *addr, uint16_t extRespLen, uint8_t *extResp, int8_t rssi, uint8_t *classOfDevice);
+void BtSourceInquiryListClear(void);
+uint8_t BtSourceInquiryListInsert(uint8_t *addr, uint16_t nameLen, uint8_t *name, uint8_t *classOfDev, int8_t rssi);
+void BtSourceInquiryListNameUpdate(uint8_t *addr, uint16_t nameLen, uint8_t *name);
+void BtSourceInquiryListNameFlagClear(uint8_t *addr);
+void BtSourceInquiryListPrintf(void);
+void BtSourceNameRequest(void);
+void BtSourceNameMatch(void);
+
+void BtSourceInquiryStart(void);
+void BtSourceInquiryStop(void);
+
+//HFG
+void BtHfgCreateCall(void);
+void BtHfgHangUp(void);
+uint8_t SetPinCode(uint8_t *code,uint8_t Len,uint8_t *addr);
+uint8_t RejectPinCode(uint8_t *addr);
+
+BT_HFP_STATE GetSourceHfgState(void);
+
+extern volatile uint32_t gSwitchSourceAndSink;
+
+#endif
+
 
 #endif
 

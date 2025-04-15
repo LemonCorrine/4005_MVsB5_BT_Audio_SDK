@@ -59,6 +59,46 @@ void BtA2dpConnectedDev(BT_A2DP_CALLBACK_PARAMS * param)
 
 	{
 #if (BT_LINK_DEV_NUM == 2)
+
+#if 1
+		if(param->index >= BT_LINK_DEV_NUM)
+		{
+			APP_DBG("a2dp link full\n");
+			BTHciDisconnectCmd(param->params.bd_addr);//连接出现异常直接断开蓝牙
+			if(btManager.btLinked_env[0].btLinkState)
+			{
+				btManager.btLinked_env[1].avrcpState = BT_AVRCP_STATE_NONE;
+				btManager.btLinked_env[1].a2dpState = BT_A2DP_STATE_NONE;
+				btManager.btLinked_env[1].hfpState = BT_HFP_STATE_NONE;
+				btManager.btLinked_env[1].btLinkState = 0;
+				APP_DBG("BtLink[1] DisConnect\n");
+			}
+			else
+			{
+				btManager.btLinked_env[0].avrcpState = BT_AVRCP_STATE_NONE;
+				btManager.btLinked_env[0].a2dpState = BT_A2DP_STATE_NONE;
+				btManager.btLinked_env[0].hfpState = BT_HFP_STATE_NONE;
+				btManager.btLinked_env[0].btLinkState = 0;
+				APP_DBG("BtLink[0] DisConnect\n");
+			}
+			return;
+		}
+		else
+		{
+			if((btManager.btLinked_env[param->index].btLinkedProfile & BT_CONNECTED_A2DP_FLAG)
+					&& (btManager.btLinked_env[param->index].btLinkedProfile & BT_CONNECTED_AVRCP_FLAG)
+			#if(BT_HFP_SUPPORT)
+					&& (btManager.btLinked_env[param->index].btLinkedProfile & BT_CONNECTED_HFP_FLAG)
+			#endif
+				)
+			{
+				APP_DBG("a2dp link error \n");
+				return;
+			}
+
+			ConnectIndex = param->index;
+		}
+#else
 		for(ConnectIndex = 0; ConnectIndex < BT_LINK_DEV_NUM; ConnectIndex++)
 		{
 			if(memcmp(param->params.bd_addr,btManager.btLinked_env[ConnectIndex].remoteAddr,BT_ADDR_SIZE) == 0)
@@ -72,7 +112,7 @@ void BtA2dpConnectedDev(BT_A2DP_CALLBACK_PARAMS * param)
 			{
 				if(!(btManager.btLinked_env[ConnectIndex].btLinkedProfile & BT_CONNECTED_A2DP_FLAG)
 						&& !(btManager.btLinked_env[ConnectIndex].btLinkedProfile & BT_CONNECTED_AVRCP_FLAG)
-				#if(BT_HFP_SUPPORT == ENABLE)
+				#if(BT_HFP_SUPPORT)
 						&& !(btManager.btLinked_env[ConnectIndex].btLinkedProfile & BT_CONNECTED_HFP_FLAG)
 				#endif
 					)
@@ -104,6 +144,7 @@ void BtA2dpConnectedDev(BT_A2DP_CALLBACK_PARAMS * param)
 			}
 			return;
 		}
+#endif
 #endif
 
 		if((param->params.bd_addr)[0] || (param->params.bd_addr)[1] || (param->params.bd_addr)[2]
@@ -174,7 +215,7 @@ void BtA2dpDisconnectedDev(BT_A2DP_CALLBACK_PARAMS * param)
 				break;
 			}
 		}
-#if (defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE))
+#if (defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT))
 		if((GetHfpState(ConnectIndex) >= BT_HFP_STATE_CONNECTED))
 		{
 			if(btManager.btReconExcuteSt->TryCount)
@@ -264,7 +305,7 @@ void BtA2dpStreamStart(BT_A2DP_CALLBACK_PARAMS * param)
 		return ;
 	}
 #endif
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 	if(GetSystemMode() != ModeBtAudioPlay)
 	{
 		if(GetSystemMode() == ModeBtHfPlay)
@@ -354,7 +395,7 @@ void BtA2dpStreamStart(BT_A2DP_CALLBACK_PARAMS * param)
 //#endif
 
 	
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 	extern uint32_t gSpecificDevice;
 	if(gSpecificDevice)
 	{

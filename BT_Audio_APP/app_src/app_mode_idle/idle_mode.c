@@ -21,7 +21,7 @@
 
 #ifdef CFG_APP_IDLE_MODE_EN
 
-#define IDLE_NOT_REQUIRED_MODE	(BIT(ModeIdle) | BIT(ModeTwsSlavePlay) | BIT(ModeBtHfPlay))	
+#define IDLE_NOT_REQUIRED_MODE	(BIT(ModeIdle) | BIT(ModeBtHfPlay))	
 
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 #define CFG_FUNC_REMIND_DEEPSLEEP		//Deepsleep 前播放(sys)提示音
@@ -120,6 +120,7 @@ bool IdleModeInit(void)
 {
 	if(!ModeCommonInit())
 	{
+		ModeCommonDeinit();
 		return FALSE;
 	}
 	//Core Process
@@ -131,7 +132,7 @@ bool IdleModeInit(void)
 #endif
 
 	DBG("Idle Mode Init\n");
-#if (defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE))	
+#if (defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT))
 	if((GetA2dpState(BtCurIndex_Get()) >= BT_A2DP_STATE_CONNECTED)
 		|| (GetHfpState(BtCurIndex_Get()) >= BT_HFP_STATE_CONNECTED)
 		|| (GetAvrcpState(BtCurIndex_Get()) >= BT_AVRCP_STATE_CONNECTED))
@@ -357,6 +358,8 @@ void IdleModeRun(uint16_t msgId)
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 			if(GetRemindSoundItemDisable())
 				IdleMode.AutoPowerOnState = NEED_POWER_ON;	//播放开机提示音，然后进入模式
+			else if(RemindSoundIsPlay())	//已经在播放提示音，等待播放完
+				IdleMode.AutoPowerOnState = WAIT_POWER_ON_REMIND_SOUND;
 			else
 #endif
 				IdleMode.AutoPowerOnState = ENTER_POWER_ON;	//直接进入模式，不需要播放开机提示音

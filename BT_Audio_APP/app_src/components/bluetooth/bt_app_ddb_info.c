@@ -14,7 +14,7 @@
  */
 
 #include <string.h>
-
+#include "app_config.h"
 #include "type.h"
 #include "spi_flash.h"
 #include "flash_table.h"
@@ -23,8 +23,6 @@
 #include "sys_param.h"
 #include "rtos_api.h"
 #include "app_message.h"
-
-extern bool is_tws_device(uint8_t *remote_addr);
 
 #ifdef CFG_FUNC_OPEN_SLOW_DEVICE_TASK
 extern void SlowDevice_MsgSend(uint16_t msgId);
@@ -138,14 +136,14 @@ static uint32_t DbdAllocateRecord(void)
 	
 	//find the available item if any
 	//从[1]开始保存device地址信息
-	for(count = 1 ; count < MAX_BT_DEVICE_NUM ; count ++)
+	for(count = BT_DEVICE_LIST_START ; count < MAX_BT_DEVICE_NUM ; count ++)
 	{
 		if(btManager.btLinkDeviceInfo[count].UsedFlag == 0)
 			return count;
 	}
 
 	//now it is full, I will remove the first record
-    for(count = 2 ; count < MAX_BT_DEVICE_NUM ; count ++)
+    for(count = (BT_DEVICE_LIST_START+1) ; count < MAX_BT_DEVICE_NUM ; count ++)
     {
         memcpy(&(btManager.btLinkDeviceInfo[count-1]),&(btManager.btLinkDeviceInfo[count]),sizeof(BT_LINK_DEVICE_INFO));
     }
@@ -161,7 +159,7 @@ static uint32_t DbdAllocateRecord(void)
 uint32_t GetCurTotaBtRecNum(void)
 {
     uint32_t count;
-    for(count = 1 ; count < MAX_BT_DEVICE_NUM ; count ++)
+    for(count = BT_DEVICE_LIST_START ; count < MAX_BT_DEVICE_NUM ; count ++)
     {
         if(!(btManager.btLinkDeviceInfo[count].UsedFlag))
 			break;
@@ -319,59 +317,72 @@ bool BtDdb_AddOneRecord(const BT_DB_RECORD * record)
 	
 	if(btManager.btDutModeEnable)
 		return FALSE;
-	
-	count = DdbFindRecord((const uint8_t*)&(record->bdAddr));
-	if (count == DDB_NOT_FOUND)
-	{
-		if(is_tws_device((uint8_t*)&(record->bdAddr)))
-			count = 0;
-		else
-			count = DbdAllocateRecord();
 
-		btManager.btLinkDeviceInfo[count].UsedFlag = 1;
-		memcpy(&(btManager.btLinkDeviceInfo[count].device),record,sizeof(BT_DB_RECORD));
-		btManager.btLinkDeviceInfo[count].remote_profile = 0xff;
-
-		btManager.ddbUpdate = 1;
-	}
-	else if(count == 0)
+#if (BT_SOURCE_SUPPORT)
+	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
 	{
-		//tws 配对记录，不更新
-		if(memcmp(btManager.btLinkDeviceInfo[count].device.linkKey, record->linkKey, 16) != 0)
+		if((memcmp(btManager.btLinkDeviceInfo[0].device.bdAddr, record->bdAddr, 6) != 0)
+			||(memcmp(btManager.btLinkDeviceInfo[0].device.linkKey, record->linkKey, 16) != 0)
+			)
 		{
-			memcpy(&(btManager.btLinkDeviceInfo[count].device),record,sizeof(BT_DB_RECORD));
-			btManager.btLinkDeviceInfo[count].UsedFlag = 1;
+			memset(&(btManager.btLinkDeviceInfo[0].device), 0, sizeof(BT_DB_RECORD));
+			memcpy(&(btManager.btLinkDeviceInfo[0].device),record,sizeof(BT_DB_RECORD));
+			btManager.btLinkDeviceInfo[0].UsedFlag = 1;
 			btManager.ddbUpdate = 1;
 		}
 	}
 	else
+#endif
 	{
-		totalCount = GetCurTotaBtRecNum();
-		//确认更新的设备信息在列表中的序列
-		if((count+1) != totalCount)
+		count = DdbFindRecord((const uint8_t*)&(record->bdAddr));
+		if (count == DDB_NOT_FOUND)
 		{
-			//从列表中先删除之前的记录
-			DdbDeleteRecord(count);
-			//将记录更新到列表最后
-			
-			memcpy(&(btManager.btLinkDeviceInfo[totalCount-1].device),record,sizeof(BT_DB_RECORD));
-			btManager.btLinkDeviceInfo[totalCount-1].UsedFlag = 1;
-			btManager.btLinkDeviceInfo[totalCount-1].remote_profile = 0xff;
+			count = DbdAllocateRecord();
+
+			btManager.btLinkDeviceInfo[count].UsedFlag = 1;
+			memcpy(&(btManager.btLinkDeviceInfo[count].device),record,sizeof(BT_DB_RECORD));
+			btManager.btLinkDeviceInfo[count].remote_profile = 0xff;
+
 			btManager.ddbUpdate = 1;
 		}
-		else
+		else if(count == 0)
 		{
+			//tws 配对记录，不更新
 			if(memcmp(btManager.btLinkDeviceInfo[count].device.linkKey, record->linkKey, 16) != 0)
 			{
 				memcpy(&(btManager.btLinkDeviceInfo[count].device),record,sizeof(BT_DB_RECORD));
 				btManager.btLinkDeviceInfo[count].UsedFlag = 1;
 				btManager.ddbUpdate = 1;
-				btManager.btLinkDeviceInfo[count].remote_profile = 0xff;
-				btManager.btDdbLastProfile = 0; //在同一个连接设备的link key发生变化时,同步需要清除连接过的profile参数
+			}
+		}
+		else
+		{
+			totalCount = GetCurTotaBtRecNum();
+			//确认更新的设备信息在列表中的序列
+			if((count+1) != totalCount)
+			{
+				//从列表中先删除之前的记录
+				DdbDeleteRecord(count);
+				//将记录更新到列表最后
+
+				memcpy(&(btManager.btLinkDeviceInfo[totalCount-1].device),record,sizeof(BT_DB_RECORD));
+				btManager.btLinkDeviceInfo[totalCount-1].UsedFlag = 1;
+				btManager.btLinkDeviceInfo[totalCount-1].remote_profile = 0xff;
+				btManager.ddbUpdate = 1;
+			}
+			else
+			{
+				if(memcmp(btManager.btLinkDeviceInfo[count].device.linkKey, record->linkKey, 16) != 0)
+				{
+					memcpy(&(btManager.btLinkDeviceInfo[count].device),record,sizeof(BT_DB_RECORD));
+					btManager.btLinkDeviceInfo[count].UsedFlag = 1;
+					btManager.ddbUpdate = 1;
+					btManager.btLinkDeviceInfo[count].remote_profile = 0xff;
+					btManager.btDdbLastProfile = 0; //在同一个连接设备的link key发生变化时,同步需要清除连接过的profile参数
+				}
 			}
 		}
 	}
-
 	return TRUE;
 }
 
@@ -395,6 +406,10 @@ bool BtDdb_UpgradeLastBtAddr(uint8_t *BtLastAddr, uint8_t BtLastProfile)
 	//APP_DBG("BtDdb_UpgradeLastBtAddr\n");
 	count = DdbFindRecord((const uint8_t*)BtLastAddr);
 	if (count == DDB_NOT_FOUND)
+	{
+		return 0;
+	}
+	else if(count == 0)
 	{
 		return 0;
 	}
@@ -462,11 +477,6 @@ bool BtDdb_UpgradeLastBtAddr(uint8_t *BtLastAddr, uint8_t BtLastProfile)
 
 bool BtDdb_UpLastPorfile(uint8_t BtLastProfile)
 {
-//	if(BtLastProfile > 0x0f)
-//	{
-//		APP_DBG("Error: BtLastProfile = %d\n",BtLastProfile);
-//		//return 0;
-//	}
 	btManager.btDdbLastProfile = BtLastProfile;
 #ifdef CFG_FUNC_OPEN_SLOW_DEVICE_TASK
 	{
@@ -526,19 +536,39 @@ bool BtDdb_UpgradeLastBtProfile(uint8_t *BtLastAddr, uint8_t BtLastProfile)
  **********************************************************************************************/
 bool BtDdb_GetLastBtAddr(uint8_t *BtLastAddr, uint8_t* profile)
 {
-	uint32_t totalCount = GetCurTotaBtRecNum();
-
-	if((totalCount>1)&&(totalCount<=MAX_BT_DEVICE_NUM))
+#if (BT_SOURCE_SUPPORT)
+	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
 	{
-		//从配对列表中获取最后1-2个设备的地址
-		memcpy(BtLastAddr,btManager.btLinkDeviceInfo[totalCount-1].device.bdAddr,6);
-		*profile = ~btManager.btLinkDeviceInfo[totalCount-1].remote_profile;
-		return 1;
+		if(btManager.btLinkDeviceInfo[0].UsedFlag) //source paired infor
+		{
+			//从配对列表中获取index-0设备的地址
+			memcpy(BtLastAddr,btManager.btLinkDeviceInfo[0].device.bdAddr,6);
+			*profile = ~btManager.btLinkDeviceInfo[0].remote_profile;
+			return 1;
+		}
+		else
+		{
+			memset(BtLastAddr, 0, 6);
+			return 0;
+		}
 	}
 	else
+#endif
 	{
-		memset(BtLastAddr, 0, 6);
-		return 0;
+		uint32_t totalCount = GetCurTotaBtRecNum();
+
+		if((totalCount>BT_DEVICE_LIST_START)&&(totalCount<=MAX_BT_DEVICE_NUM))
+		{
+			//从配对列表中获取最后1-2个设备的地址
+			memcpy(BtLastAddr,btManager.btLinkDeviceInfo[totalCount-1].device.bdAddr,6);
+			*profile = ~btManager.btLinkDeviceInfo[totalCount-1].remote_profile;
+			return 1;
+		}
+		else
+		{
+			memset(BtLastAddr, 0, 6);
+			return 0;
+		}
 	}
 }
 

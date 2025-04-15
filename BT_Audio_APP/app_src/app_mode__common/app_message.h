@@ -97,9 +97,15 @@ typedef enum
 	MSG_BT_PLAY_STREAM_PASUE,			//A2DP数据流暂停
 
 /*** from bt ai msg ***/
-	MSG_BT_STATE_CONNECTED,  //连接状态更新,main_task中用于提示音更新
-	MSG_BT_STATE_DISCONNECT, //断开状态更新,main_task中用于提示音更新			
-	MSG_BT_A2DP_STREAMING,   //开始播放音乐,如模式切换需求,按照该事件来进行处理
+	MSG_BT_STATE_CONNECTED,  			//连接状态更新,main_task中用于提示音更新
+	MSG_BT_STATE_DISCONNECT, 			//断开状态更新,main_task中用于提示音更新			
+	MSG_BT_A2DP_STREAMING,   			//开始播放音乐,如模式切换需求,按照该事件来进行处理
+	
+/*** from bt source ***/	
+	MSG_BT_SOURCE_INQUIRY,				//
+	MSG_BT_SOURFE_CONNECT, 				//
+	MSG_BT_SOURCE_DISCONNECT, 			//
+	MSG_BT_SOURCE_SINK_SWITCH,			//
 	
 /** BT HF Mode -Create by mainapp */
 	MSG_BT_HF_MODE_GROUP				= 0x0500,
@@ -459,6 +465,11 @@ typedef enum
     MSG_FOLDER_GUOXUE,	//  
     MSG_FOLDER_YINGYU,	// 
     MSG_REC,
+	MSG_REC1,
+	MSG_REC2,
+	MSG_REC1_PLAYBACK,
+	MSG_REC2_PLAYBACK,
+	MSG_DEL_ALL_REC,
 	MSG_STOP_REC,
     MSG_REC_PLAYBACK,
     MSG_REC_FILE_DEL,	
@@ -532,6 +543,14 @@ typedef enum
 	MSG_REMIND_PLAY_END,
 	MSG_BT_START_OTA,
 
+	//BT SOURCE
+	MSG_BT_SOURCE_HFG_HANG_UP,
+	MSG_BT_SOURCE_HFG_OUTGOING,//HFG进入呼出等待状态
+	MSG_BT_SOURCE_HFG_INCOMING,//HFG进入呼入等待状态
+	MSG_BT_SOURCE_HFG_ANSWER,//HFG接听呼入/呼出
+	MSG_BT_SOURCE_HFG_CONNECT,
+	MSG_BT_SOURCE_A2DP_CONNECT,
+	MSG_BT_SOURCE_A2DP_DISCONNECT,
 
 
 /******************adc level ,Sliding resistance msg, Reservations***************/

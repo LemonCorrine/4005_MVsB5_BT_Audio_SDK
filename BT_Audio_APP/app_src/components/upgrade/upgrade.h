@@ -1,12 +1,12 @@
 /*
- * nvm.h
+ * upgrade.h
  *
  *  Created on: Nov 9, 2022
  *      Author: Ben
  */
 
-#ifndef NVM_H_
-#define NVM_H_
+#ifndef _UPGRADE_H_
+#define _UPGRADE_H_
 #include "type.h"
 
 /*
@@ -23,27 +23,30 @@ typedef enum _STATE{
 	STATE_NEEDLESS_UPGRADE,	    //5			不需要升级
 	STATE_UPGRADE_DONE,      	//6			升级成功
 	STATE_UPGRADE_ERROR, 	    //7			升级错误
-
 }ENUM_STATE;//最多8个状态
 
 typedef enum _ERRNO{
 	ERRNO_CONTROL_NONE = 0x0,				//0  没有错误
 	ERRNO_CONTROL_NO_NEED_UPGRADE,
 	ERRNO_CONTROL_NO_MVA_ERR, 			//2  没有找到MVA包
-	ERRNO_CONTROL_MVA_HEAD_ERR,
-	ERRNO_CONTROL_MVA_CRC_ERR, 			//3 MVA CRC错误
-	ERRNO_CONTROL_CHIP_INFO_ERR, 		//4  芯片型号错误
-	ERRNO_CONTROL_FLASH_DRV_ERR, 		//5 FLASH DRV 错误，例如FlashDrv的size或者校验错误
-	ERRNO_CONTROL_CMD_ERR, 	            //6 Command解析错误
-	ERRNO_CONTROL_CODE_ERR,             //7 Code解析错误
-	ERRNO_CONTROL_DATA_ERR,	            //8 Data解析错误
-    ERRNO_CONTROL_FLASH_ERR,            //9 FLASH 擦写错误
-	ERRNO_CONTROL_UPGRADED_CRC_ERR, 	//A    升级CODE后CRC校验错误
-	ERRNO_CONTROL_KEY_MISMATCH_ERR,		//B key 不一致性错误
-	ERRNO_CONTROL_BANKA_CRC_ERR, 	    //C BANK A crc校验错误
-	ERRNO_CONTROL_UPGRADE_CHN_ERR,        //D 升级途径错误
+	ERRNO_CONTROL_MVA_HEAD_ERR,			//3 MVA 包头错误
+	ERRNO_CONTROL_MVA_CRC_ERR, 			//4 MVA CRC错误
+	ERRNO_CONTROL_CHIP_INFO_ERR, 		//5  芯片型号错误
+	ERRNO_CONTROL_FLASH_DRV_ERR, 		//6 FLASH DRV 错误，例如FlashDrv的size或者校验错误
+	ERRNO_CONTROL_CMD_ERR, 	            //7 Command解析错误
+	ERRNO_CONTROL_CODE_ERR,             //8 Code解析错误
+	ERRNO_CONTROL_DATA_ERR,	            //9 Data解析错误
+    ERRNO_CONTROL_FLASH_ERR,            //A FLASH 擦写错误
+	ERRNO_CONTROL_UPGRADED_CRC_ERR, 	//B    升级CODE后CRC校验错误
+	ERRNO_CONTROL_KEY_MISMATCH_ERR,		//C key 不一致性错误
+	ERRNO_CONTROL_BANKA_CRC_ERR, 	    //D BANK A crc校验错误
+	ERRNO_CONTROL_UPGRADE_CHN_ERR,        //E 升级途径错误
 	ERRNO_CONTROL_FLASHBOOT_SIZE_ERR,
 	ERRNO_CONTROL_HANDSHAKE_FAILED,
+	ERRNO_CONTROL_FLASH_ILLEGAL_ERASE_ERR,	//flash擦除地址非法，例如自己擦除自己
+	ERRNO_CONTROL_FLASH_READ_ERR,		//flash读错误
+	ERRNO_CONTROL_FLASH_WRITE_ERR,		//flash写错误
+	ERRNO_CONTROL_MAGIC_NUMBER_ERR,		//MAGIC NUMBER 错误
 	ERRNO_FS_UPGRADE_NONE  = 0x100,   //升级途径 FS
 	ERRNO_FS_NO_DEVICE_LINK,
 	ERRNO_FS_MOUNT_ERR,
@@ -66,7 +69,7 @@ typedef enum _ERRNO{
 	ERRNO_BLE_READ_TIMEOUT_ERR,
 	ERRNO_BLE_SEND_ERR,
 	ERRNO_UART_UPGRADE_NONE = 0x400,    //升级途径 UART
-
+	ERRNO_UART_NO_LINK,
 	ERRNO_UDISK_UPGRADE_NONE = 0x500,    //升级途径 u盘
 	ERRNO_UDISK_NO_LINK,
 	ERRNO_UDISK_MOUNT_ERR,
@@ -88,6 +91,9 @@ typedef enum _ERRNO{
 	ERRNO_OTA_READ_HEAD_ERR,
 	ERRNO_OTA_SEND_CONFIG_ERR,
 	ERRNO_OTA_CHECKSUM_ERR,
+	ERRNO_SPIMFLASH_UPGRADE_NONE = 0x800,    //升级途径 spimflash
+	ERRNO_SPIMFLASH_NO_LINK,
+
 	ERRNO_USER_UPGRADE_NONE = 0xF00,    //升级途径 USER
 	ERRNO_NO_USER_FUNCTION,
 }ENUM_ERRNO;//最多4096个状态
@@ -99,13 +105,12 @@ typedef enum{
 	CHN_MASK_USBCDC = (1<<3),
 	CHN_MASK_BLE = (1<<4),
 	CHN_MASK_BT = (1<<5),
-	CHN_MASK_EXFLASH = (1<<6),			//SPIM_
-	CHN_MASK_EXFLASH1 = (1<<7),
-    CHN_MASK_UART0 = (1<<8),   //0x104
-    CHN_MASK_UART1 = (1<<9),   //0x104
-    CHN_MASK_INFLASH = (1<<11),  //0x104   具体参数再0x105~0x107
+	CHN_MASK_EXFLASH = (1<<6),
+	CHN_MASK_UART = (1<<7),
+    CHN_MASK_INFLASH = (1<<11),  		//0x104   具体参数再0x105~0x107
 	CHN_MASK_MAX = (1<<12),
 }UPGRADE_APPLY_PARAM;
+
 typedef struct BOOT_REGISETR{
 	volatile  unsigned int RombootState:4;
 	volatile  unsigned int RombootParam:12;
@@ -118,4 +123,4 @@ typedef struct BOOT_REGISETR{
 
 
 
-#endif /* NVM_H_ */
+#endif /* _UPGRADE_H_ */

@@ -10,13 +10,18 @@
 extern BT_CONFIGURATION_PARAMS		*btStackConfigParams;
 
 #include "debug.h"
-#if (BLE_SUPPORT == ENABLE)
+#if (BLE_SUPPORT)
 
 extern void user_set_ble_bd_addr(uint8_t* local_addr);
 
 #define BLE_DFLT_DEVICE_NAME			(sys_parameter.ble_LocalDeviceName)	//BLE名称
 #define BLE_DFLT_DEVICE_NAME_LEN		(strlen(BLE_DFLT_DEVICE_NAME))
 
+#define DEFAULT_MTU_SIZE (250)  // 250
+#define LE_VAL_MAX_LEN (DEFAULT_MTU_SIZE-3)
+#define USE_16BIT_UUID
+
+#ifdef USE_16BIT_UUID
 /// default read perm
 #define RD_P    (PROP(RD)  | SEC_LVL(RP, NOT_ENC))
 /// default write without response perm
@@ -29,56 +34,28 @@ extern void user_set_ble_bd_addr(uint8_t* local_addr);
 #define IND_P   (PROP(I)   | SEC_LVL(NIP, NOT_ENC))
 
 //用户自定义服务
-#define UUID16_SERVICE (0xae30)  // uuid
-#define UDSS_IDX_NB 11           // att index
-#define LE_VAL_MAX_LEN (247)
-#define DEFAULT_MTU_SIZE (250)  // 250
+#define UUID16_SERVICE (0xAB00)  //SERVICE UUID
 
-static ble_gatt_att16_desc_t att16_db[UDSS_IDX_NB] = {
+static ble_gatt_att16_desc_t att16_db[] = {
     //  ATT UUID
     //  | Permission			| EXT PERM | MAX ATT SIZE
-    // User Data Service Service Declaration
-    [0] = {GATT_DECL_PRIMARY_SERVICE, RD_P, 0},  // 0x2800
+	{GATT_DECL_PRIMARY_SERVICE, RD_P, 0},
 
-    // Characteristic1
-    //  DataBase Index Increment Characteristic Declaration
-    [1] = {GATT_DECL_CHARACTERISTIC, WR_P | NTF_P,
-           0},  // 0x2803
-                //  DataBase Index Increment Characteristic Value
-    [2] = {0xae01, WC_P, LE_VAL_MAX_LEN},
-    // Client Characteristic Configuration Descriptor
-    //		[3] = {GATT_DESC_CLIENT_CHAR_CFG,				RD_P | WR_P,
-    //OPT(NO_OFFSET) },//0x2902
+	{GATT_DECL_CHARACTERISTIC, RD_P,0},
+	{0xab01, WC_P|RD_P|WR_P, LE_VAL_MAX_LEN},
 
-    // Characteristic2
-    //  DataBase Index Increment Characteristic Declaration
-    [3] = {GATT_DECL_CHARACTERISTIC, NTF_P,
-           0},  // 0x2803
-                //  DataBase Index Increment Characteristic Value
-    [4] = {0xae02, NTF_P, LE_VAL_MAX_LEN},
-    // Client Characteristic Configuration Descriptor
-    [5] = {GATT_DESC_CLIENT_CHAR_CFG, RD_P | WR_P, OPT(NO_OFFSET)},  // RW
+	{GATT_DECL_CHARACTERISTIC, RD_P,0},
+	{0xab02, NTF_P, LE_VAL_MAX_LEN},
+	{GATT_DESC_CLIENT_CHAR_CFG, RD_P | WR_P, OPT(NO_OFFSET)},//client characteristic configuration descriptor
 
-    // Characteristic3
-    //  DataBase Index Increment Characteristic Declaration
-    [6] = {GATT_DECL_CHARACTERISTIC, NTF_P | WR_P,
-           0},  // 0x2803
-                //  DataBase Index Increment Characteristic Value
-    [7] = {0xae05, IND_P, LE_VAL_MAX_LEN},
-    //		// Client Characteristic Configuration Descriptor
-    [8] = {GATT_DESC_CLIENT_CHAR_CFG, RD_P | WR_P, OPT(NO_OFFSET)},  // RW
-
-    // Characteristic3
-    //  DataBase Index Increment Characteristic Declaration
-    [9] = {GATT_DECL_CHARACTERISTIC, WR_P,
-           0},  // 0x2803
-                //  DataBase Index Increment Characteristic Value
-    [10] = {0xae10, WR_P, LE_VAL_MAX_LEN},
+	{GATT_DECL_CHARACTERISTIC, RD_P, 0},
+	{0xab03, NTF_P, LE_VAL_MAX_LEN},
+	{GATT_DESC_CLIENT_CHAR_CFG, RD_P | WR_P, OPT(NO_OFFSET)},//client characteristic configuration descriptor
 
 };
+#define ATT16_DB_SIZE (sizeof(att16_db)/sizeof(ble_gatt_att16_desc_t))
+#else
 
-#define UDSS_IDX_NB_1 6
-#define MV_CHAR_VAL_LEN_MAX 500
 /* service_uuid and Characteristic_uuid*/
 #define MV_service_uuid128                                            \
     {                                                                     \
@@ -119,25 +96,23 @@ static const uint8_t MV_service[GATT_UUID_128_LEN] = MV_service_uuid128;
 // gatt_att_desc
 const ble_gatt_att128_desc_t MV_att_db[] = {
 
-    [0] = {GATT_DECL_PRIMARY_SERVICE1, RD_P, 0},  // 0x2800
+    [0] = {GATT_DECL_PRIMARY_SERVICE1, RD_P, 0},
     [1] = {GATT_DECL_CHARACTERISTIC_128UUID, PROP(RD), 0},
-    [2] = {MV_device_info_uuid128, WR_P | ATT_UUID(128),
-           MV_CHAR_VAL_LEN_MAX},
-    //[3] = {GATT_DECL_CHARACTERISTIC_128UUID, PROP(RD), 0},
-    //[4] = {MV_data_uuid128, WR_P | ATT_UUID(128), MV_CHAR_VAL_LEN_MAX},
+    [2] = {MV_device_info_uuid128, WR_P | ATT_UUID(128),LE_VAL_MAX_LEN},
+
     [3] = {GATT_DECL_CHARACTERISTIC_128UUID, PROP(RD), 0},
-    [4] = {MV_event_uuid, NTF_P | ATT_UUID(128), MV_CHAR_VAL_LEN_MAX},
-    [5] = {GATT_DESC_CLIENT_CHAR_CFG_128UUID, 0, 0},
-   // [8] = {GATT_DECL_CHARACTERISTIC_128UUID, PROP(RD), 0},
-   // [9] = {MV_ota_uuid, WC_P | ATT_UUID(128), MV_CHAR_VAL_LEN_MAX},
+    [4] = {MV_event_uuid, NTF_P | ATT_UUID(128), LE_VAL_MAX_LEN},
+    [5] = {GATT_DESC_CLIENT_CHAR_CFG_128UUID, RD_P | WR_P, 0},
 };
+#define MV_att128_db_size (sizeof(MV_att_db)/sizeof(ble_gatt_att128_desc_t))
+#endif
 
 uint8_t ble_app_adv_data[30] = {
 	//length + type + data
     // Flags general discoverable, BR/EDR not supported
     2, 0x01, 0x06,
     // Name
-    9, 0x09, 'B','P','1','0','-','B','L','E',
+    9, 0x09, 'B','P','1','5','_','B','L','E',
 };
 
 const uint8_t ble_app_rsp_adv_data[30] = {
@@ -173,20 +148,65 @@ uint8_t LeInitConfigParams(void)
     le_user_config.adv_interval_param.adv_intv_max = 0x0200;
     le_user_config.adv_interval_param.adv_intv_min = 0x0100;
     le_user_config.adv_interval_param.ch_map = 0x07; //37,38,39 ch map
-
+#ifdef USE_16BIT_UUID
     //初始化报文
-    le_user_config.ble_service_idxnb = UDSS_IDX_NB_1;
-    le_user_config.profile_uuid128 = MV_att_db;
-    le_user_config.ble_uuid128_service = MV_service;
+    le_user_config.ble_service_idxnb = ATT16_DB_SIZE;
+    le_user_config.profile_uuid16 = (ble_gatt_att16_desc_t*)att16_db;
+	le_user_config.ble_uuid16_service = UUID16_SERVICE;
+    le_user_config.profile_uuid128  = NULL;
+#else
+    le_user_config.ble_service_idxnb = MV_att128_db_size;
+    le_user_config.profile_uuid128 =(ble_gatt_att128_desc_t *) MV_att_db;
+    le_user_config.ble_uuid128_service =(uint16_t *) MV_service;
+#endif
     le_user_config.att_default_mtu = DEFAULT_MTU_SIZE;
     return 0;
 }
 
+
+/**********************************************************************************
+ *BLE CLIENT CONFIG
+ **********************************************************************************/
+#ifdef DUOBLE_ROLE
+static void gatt_client_discover_cmp_cb(uint8_t conidx, uint8_t user_lid, uint16_t metainfo, uint16_t status)
+
+{
+    printf("Discover complete, status = %x,metainfo: %x\n", status,metainfo);
+}
+
+static void gatt_client_read_cmp_cb(uint8_t conidx, uint8_t user_lid, uint16_t metainfo, uint16_t status, uint16_t hdl, uint16_t offset,const char *p_info)
+{
+    // Inform application about read name
+    printf("Read complete, hdl = %x, name = %s\n", hdl, p_info);
+}
+
+static void gatt_client_write_cmp_cb(uint8_t conidx, uint8_t user_lid, uint16_t metainfo, uint16_t status)
+{
+    printf("Write Name complete, metainfo = %x\n", metainfo);
+}
+
+static void gatt_client_info_recv_cb(uint8_t conidx,  uint8_t event_type, uint16_t hdl, uint8_t info_len, const uint8_t *p_info)
+{
+	  printf("gatt_client_info_recv_cb, hdl = %x\n", hdl);
+}
+gatt_client_appli_itf_t le_appli_itf_t = {
+    .cb_discover_cmp = gatt_client_discover_cmp_cb,
+    .cb_read_cmp = gatt_client_read_cmp_cb,
+    .cb_write_cmp = gatt_client_write_cmp_cb,
+    .cb_info_recv = gatt_client_info_recv_cb,
+};
+
+uint16_t gatt_client_config(void)
+{
+    return gatt_client_init(&le_appli_itf_t);
+}
+#endif
 /***********************************************************************************
  * BLE application initialize
  **********************************************************************************/
 void BleAppInit(void)
 {
+	extern void rwble_enable_init(void);
     LeInitConfigParams(); //le parameters config
     rwble_enable_init();
 }

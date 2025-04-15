@@ -31,7 +31,7 @@ static TE_PWRKEYINIT_RET SystemPowerKeySetting(TE_PWRKEY_MODE eMode, uint8_t u8_
 		return E_PWRKEYINIT_NONE;
 	}
 
-	if (PMU_PowerKeyEnGet())
+	if (PMU_IsPowerKeyEnabled())
 	{
 		return E_PWRKEYINIT_ALREADY_ENABLED;
 	}
@@ -137,7 +137,7 @@ void SystemPowerKeyStateClear(void)
  */
 TE_PWRKEY_MODE SystemPowerKeyGetMode(void)
 {
-	if (PMU_PowerKeyEnGet())
+	if (PMU_IsPowerKeyEnabled())
 	{
 		if (PMU_PowerKeyModeGet() == HARD_MODE)
 		{

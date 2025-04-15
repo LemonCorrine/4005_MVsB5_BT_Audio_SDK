@@ -47,6 +47,7 @@ extern BT_CONFIGURATION_PARAMS		*btStackConfigParams;
 
 extern uint32_t GetCurTotaBtRecNum(void);
 extern uint8_t BtNumericalDispEnable;
+
 /***********************************************************************************
  * 配置蓝牙security功能，1是打开，0是关闭(系统默认关闭)，
  * 这个函数调用需要在bt stack初始化之前
@@ -95,32 +96,24 @@ void BtSetAccessMode_select(void)
 	{
 		case BT_ACCESSBLE_NONE:
 			BtSetAccessModeApi(BtAccessModeNotAccessible);
-			#ifdef BT_REAL_STATE
 			SetBtUserState(BT_USER_STATE_NONE);
-			#endif
 			break;
 
 		case BT_ACCESSBLE_DISCOVERBLEONLY:
 			BtSetAccessModeApi(BtAccessModeDiscoverbleOnly);
-			#ifdef BT_REAL_STATE
 			SetBtUserState(BT_USER_STATE_NONE);
-			#endif
 			break;
 
 		case BT_ACCESSBLE_CONNECTABLEONLY:
 			BtSetAccessModeApi(BtAccessModeConnectableOnly);
-			#ifdef BT_REAL_STATE
 			if(GetBtUserState() != BT_USER_STATE_RECON)
-			SetBtUserState(BT_USER_STATE_NONE);
-			#endif
+				SetBtUserState(BT_USER_STATE_NONE);
 			break;
 
 		case BT_ACCESSBLE_GENERAL:
 			BtSetAccessModeApi(BtAccessModeGeneralAccessible);
-			#ifdef BT_REAL_STATE
 			if(GetBtUserState() != BT_USER_STATE_RECON)
-			SetBtUserState(BT_USER_STATE_PREPAIR);
-			#endif
+				SetBtUserState(BT_USER_STATE_PREPAIR);
 			break;
 		
 		default:
@@ -242,9 +235,13 @@ void BtLinkStateConnect(uint8_t flag, uint8_t index)
 	}
 
 	if(((!btManager.btLinked_env[index].btLinkState)
-		&&(btManager.btLinked_env[index].a2dpState >= BT_A2DP_STATE_CONNECTED)
+		&&((btManager.btLinked_env[index].a2dpState >= BT_A2DP_STATE_CONNECTED)
+#if	BT_SOURCE_SUPPORT		
+		|| GetSourceA2dpState() >= BT_A2DP_STATE_CONNECTED
+#endif	
+		)
 		&& (btManager.btLinked_env[index].avrcpState >= BT_AVRCP_STATE_CONNECTED))
-#if(BT_HFP_SUPPORT == ENABLE)
+#if(BT_HFP_SUPPORT)
 		/*&& (btManager.btLinked_env[index].hfpState >= BT_HFP_STATE_CONNECTED)*/
 #endif
 		|| (flag)
@@ -252,9 +249,19 @@ void BtLinkStateConnect(uint8_t flag, uint8_t index)
 	{
 		btManager.btLinkState = 1;
 		btManager.btLinked_env[index].btLinkState = 1;
+
+#ifdef BT_MULTI_LINK_SUPPORT
+		btManager.btLinked_env[index].btLinkDisconnFlag = 0;
+#endif
+
 		APP_DBG("set btManager.btLinked_env[%d].btLinkState %d\n",index,btManager.btLinked_env[index].btLinkState);
 		BtMidMessageSend(MSG_BT_MID_STATE_CONNECTED, 0);
 
+		if(btManager.linkedNumber == 0)//没有设备连接的情况下，设为当前设备
+		{
+			//btManager.cur_index = param->index;
+			BtCurIndex_Set(index);
+		}
 		btManager.linkedNumber++;
 
 		APP_DBG("linkedNumber %d,index %d\n",btManager.linkedNumber,index);
@@ -288,7 +295,8 @@ void BtLinkStateConnect(uint8_t flag, uint8_t index)
 		}
 	}
 
-#if (BT_AVRCP_VOLUME_SYNC == ENABLE)
+#if (BT_AVRCP_VOLUME_SYNC)
+	extern void SetBtSyncVolume(uint8_t volume);
 //	extern MessageHandle GetSysModeMsgHandle(void);
 	if((GetSystemMode() == ModeBtAudioPlay) && (btManager.btLinked_env[index].avrcpState >= BT_AVRCP_STATE_CONNECTED))
 	{
@@ -314,8 +322,12 @@ void BtLinkStateDisconnect(uint8_t index)
 
 	if( btManager.btLinked_env[index].btLinkState
 		&& (btManager.btLinked_env[index].avrcpState == BT_AVRCP_STATE_NONE)
-		&& (btManager.btLinked_env[index].a2dpState == BT_A2DP_STATE_NONE)
-#if(BT_HFP_SUPPORT == ENABLE)
+		&& ((btManager.btLinked_env[index].a2dpState == BT_A2DP_STATE_NONE)
+#if	BT_SOURCE_SUPPORT		
+		|| (GetSourceA2dpState()== BT_A2DP_STATE_NONE)
+#endif
+		)
+#if(BT_HFP_SUPPORT)
 		&& (btManager.btLinked_env[index].hfpState == BT_HFP_STATE_NONE)
 #endif
 	)
@@ -352,11 +364,19 @@ void BtLinkStateDisconnect(uint8_t index)
 		{
 			for(i=0;i<BT_LINK_DEV_NUM;i++)
 			{
-				if(index != i)
+#ifdef BT_MULTI_LINK_SUPPORT
+				if((index != i) && (btManager.btLinked_env[i].btLinkDisconnFlag != 1) )//防止回连混乱
 				{
+					btManager.btLinked_env[index].btLinkDisconnFlag = 0;
 					//btManager.cur_index = i;
 					BtCurIndex_Set(i);
 				}
+#else
+				if(index != i)
+				{
+					BtCurIndex_Set(i);
+				}
+#endif
 			}
 		}
 		
@@ -412,22 +432,18 @@ void BtStackCallback(BT_STACK_CALLBACK_EVENT event, BT_STACK_CALLBACK_PARAMS * p
 
 		case BT_STACK_EVENT_COMMON_INQUIRY_RESULT:
 		{
-			//APP_DBG("Inquriy Result:\n");
-			//APP_DBG("\t%02x:%02x:%02x:%02x:%02x:%02x",
-			//		(param->params.inquiryResult.addr)[0],
-			//		(param->params.inquiryResult.addr)[1],
-			//		(param->params.inquiryResult.addr)[2],
-			//		(param->params.inquiryResult.addr)[3],
-			//		(param->params.inquiryResult.addr)[4],
-			//		(param->params.inquiryResult.addr)[5]);
-			//APP_DBG("\t %d dB", param->params.inquiryResult.rssi);
-			//APP_DBG("\t extLen = %d , ext = %s \n",param->params.inquiryResult.extRespLen, param->params.inquiryResult.extResp);
+#if BT_SOURCE_SUPPORT// source
+			BtSourceEventCommonInquiryResult(param);
+#endif
 		}
 		break;
 
 		case BT_STACK_EVENT_COMMON_INQUIRY_COMPLETE:
 		{
 			APP_DBG("BT_STACK_EVENT_COMMON_INQUIRY_COMPLETE\n");
+#if BT_SOURCE_SUPPORT
+			BtSourceEventInquiryComplete();
+#endif
 		}
 		break;
 
@@ -437,6 +453,11 @@ void BtStackCallback(BT_STACK_CALLBACK_EVENT event, BT_STACK_CALLBACK_PARAMS * p
 		}
 		break;
 
+		case BT_STACK_EVENT_COMMON_LINK_CONNECT_IND:
+#if BT_SOURCE_SUPPORT
+			BtSourceEventCommonLinkConnectIND(param);
+#endif
+			break;
 
 		case BT_STACK_EVENT_COMMON_MODE_CHANGE:
 			APP_DBG("mode - %d, addrs -  %02x:%02x:%02x:%02x:%02x:%02x\n",
@@ -453,7 +474,6 @@ void BtStackCallback(BT_STACK_CALLBACK_EVENT event, BT_STACK_CALLBACK_PARAMS * p
 		{
 			if(param->params.remDevName.name == NULL)
 				break;
-			
 			APP_DBG("Remote Device:\n");
 			APP_DBG("\t%02x:%02x:%02x:%02x:%02x:%02x",
 					(param->params.remDevName.addr)[0],
@@ -466,6 +486,13 @@ void BtStackCallback(BT_STACK_CALLBACK_EVENT event, BT_STACK_CALLBACK_PARAMS * p
 		}
 		break;
 
+#if BT_SOURCE_SUPPORT
+		case BT_STACK_EVENT_COMMON_GET_REMDEV_NAME_TIMEOUT:
+		{
+			BtSourceEventCommonGetRemdevNameTimeout(param);
+		}
+		break;
+#endif
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		case BT_STACK_EVENT_SETTING_ACCESS_MODE:
 			BtStackServiceMsgSend(MSG_BTSTACK_ACCESS_MODE_SET);
@@ -510,6 +537,11 @@ void BtStackCallback(BT_STACK_CALLBACK_EVENT event, BT_STACK_CALLBACK_PARAMS * p
             if(BtReconnectDevIsExcute())
 			    BtStackServiceMsgSend(MSG_BTSTACK_RECONNECT_REMOTE_PAGE_TIMEOUT);
             break;
+
+		case BT_STACK_EVENT_COMMON_LINK_AUTH_FAILURE:
+			APP_DBG("BT_STACK_EVENT_COMMON_LINK_AUTH_FAILURE\n");
+			btManager.btLastAddrUpgradeIgnored = 0;
+			break;
 
 		default:
 			break;
@@ -738,3 +770,5 @@ uint8_t* BtCurretAddr_Get(void)
 {
 	return GetBtManager()->btLinked_env[btManager.cur_index].remoteAddr;
 }
+
+
