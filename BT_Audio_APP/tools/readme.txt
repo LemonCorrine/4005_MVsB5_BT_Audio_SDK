@@ -26,7 +26,7 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 
 --------------------------------------------------------------------------------------
 
-b1_download_v1.x_8M.exe
+mv_download_bp1x_v3.1.exe
 在AndeSight->Flash Burner中，使用该Flash Driver可以烧录任意的Const Data的bin文件（非0地址）；
 
 
@@ -42,7 +42,3 @@ flash.bat常见使用场景(使用前工程必须已经编译过，output下必�
 1、快速替换提示音
      1.1 不改变提示音名称的前提下，快速替换remind_res下面某些提示音
      1.2 点击运行flash.bat，直接生成.img/.mva
-2、修改参量化信息，比如修改蓝牙名称为xxxxxxx
-     2.1 找到 app_src\system_config\parameter.ini
-     2.2 bt_LocalDeviceName = 40,"BP10_BT_8Mb"  修改为 bt_LocalDeviceName = 40,"xxxxxxx"
-     2.3 点击运行flash.bat，直接生成.img/.mva
