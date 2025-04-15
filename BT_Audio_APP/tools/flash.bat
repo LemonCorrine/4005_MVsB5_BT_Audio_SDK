@@ -13,7 +13,9 @@ tools\remind_script\MergeAudio2BinNew.exe -a 0x0 -i ..\..\mp2
 rd /s /q mp2
 del Release\output\*.img
 del Release\output\main_merge.mva
-tools\merge_script\merge.exe
+grep '^#define CFG_EFFECT_PARAM_IN_FLASH_EN' app_src\system_config\app_config.h | grep '//' && set config1 =-d 0 || set config1 = -d 1
+grep '^#define CFG_FUNC_REMIND_SOUND_EN' app_src\system_config\app_config.h | grep '//' && set config2 = -s 0 || set config2 = -s 1
+tools\merge_script\merge.exe %config1 % %config2 %
 tools\merge_script\Andes_MVAGenerate.exe
 if not exist Release\output\BT_Audio_APP.bin (del Release\output\main_merge.mva)
 del Release\output\noSDKData.bin
