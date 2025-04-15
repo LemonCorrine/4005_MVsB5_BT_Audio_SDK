@@ -9,33 +9,33 @@
 #include "bt_config.h"
 
 #ifdef CFG_FUNC_EFFECT_BYPASS_EN
-extern const AUDIOEFFECT_EFFECT_PARA_TABLE bypass_node;
+extern const AUDIOEFFECT_EFFECT_PARA_TABLE bypass_mode;
 #else
 #ifdef CFG_FUNC_MIC_KARAOKE_EN
-extern const AUDIOEFFECT_EFFECT_PARA_TABLE karaoke_node;
+extern const AUDIOEFFECT_EFFECT_PARA_TABLE karaoke_mode;
 #else
-extern const AUDIOEFFECT_EFFECT_PARA_TABLE mic_node;
-extern const AUDIOEFFECT_EFFECT_PARA_TABLE music_node;
+extern const AUDIOEFFECT_EFFECT_PARA_TABLE mic_mode;
+extern const AUDIOEFFECT_EFFECT_PARA_TABLE music_mode;
 #endif
 #endif
 #if defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE)
-extern const AUDIOEFFECT_EFFECT_PARA_TABLE hfp_node;
+extern const AUDIOEFFECT_EFFECT_PARA_TABLE hfp_mode;
 #endif
 
 static const AUDIOEFFECT_EFFECT_PARA_TABLE *effect_para_table[] =
 {
 #ifdef CFG_FUNC_EFFECT_BYPASS_EN
-	&bypass_node,
+	&bypass_mode,
 #else
 #ifdef CFG_FUNC_MIC_KARAOKE_EN
-	&karaoke_node,
+	&karaoke_mode,
 #else
-	&mic_node,
-	&music_node,
+	&mic_mode,
+	&music_mode,
 #endif
 #endif
 #if defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE)
-	&hfp_node,
+	&hfp_mode,
 #endif
 	NULL,
 };
@@ -43,16 +43,16 @@ static const AUDIOEFFECT_EFFECT_PARA_TABLE *effect_para_table[] =
 static const uint16_t audioeffectVolArr[CFG_PARA_MAX_VOLUME_NUM + 1] =
 {
 #if CFG_PARA_MAX_VOLUME_NUM == 32
-	0xe3e0/*-72db*/,
-	0xe75a/*-63db*/,	0xea20/*-56db*/,	0xecdc/*-49db*/,	0xeed0/*-44db*/,	0xf060/*-40db*/,	0xf1f0/*-36db*/,	0xf380/*-32db*/,	0xf4ac/*-29db*/,
-	0xf5d8/*-26db*/,	0xf6a0/*-24db*/,	0xf768/*-22db*/,	0xf830/*-20db*/,	0xf894/*-19db*/,	0xf8f8/*-18db*/,	0xf95c/*-17db*/,	0xf9c0/*-16db*/,
-	0xfa24/*-15db*/,	0xfa88/*-14db*/,	0xfaec/*-13db*/,	0xfb50/*-12db*/,	0xfbb4/*-11db*/,	0xfc18/*-10db*/,	0xfc7c/*-9db*/,		0xfce0/*-8db*/,
-	0xfd44/*-7db*/,		0xfda8/*-6db*/,		0xfe0c/*-5db*/,		0xfe70/*-4db*/,		0xfed4/*-3db*/,		0xff38/*-2db*/,		0xff9c/*-1db*/,		0x0/*0db*/
+	-7200/*-72db*/,
+	-6300/*-63db*/,	-5600/*-56db*/,	-4900/*-49db*/,	-4400/*-44db*/,	-4000/*-40db*/,	-3600/*-36db*/,	-3200/*-32db*/,	-2900/*-29db*/,
+	-2600/*-26db*/,	-2400/*-24db*/,	-2200/*-22db*/,	-2000/*-20db*/,	-1900/*-19db*/,	-1800/*-18db*/,	-1700/*-17db*/,	-1600/*-16db*/,
+	-1500/*-15db*/,	-1400/*-14db*/,	-1300/*-13db*/,	-1200/*-12db*/,	-1100/*-11db*/,	-1000/*-10db*/,	-900/*-9db*/,	-800/*-8db*/,
+	-700/*-7db*/,	-600/*-6db*/,	-500/*-5db*/,	-400/*-4db*/,	-300/*-3db*/,	-200/*-2db*/,	-100/*-1db*/,	0/*0db*/
 #endif
 #if CFG_PARA_MAX_VOLUME_NUM == 16
-	0xe3e0/*-72db*/,
-	0xea20/*-56db*/,	0xf060/*-40db*/,	0xf4ac/*-29db*/,	0xf6a0/*-24db*/,	0xf830/*-20db*/,	0xf95c/*-17db*/,	0xfa24/*-15db*/,	0xfaec/*-13db*/,
-	0xfbb4/*-11db*/,	0xfc7c/*-9db*/,		0xfd44/*-7db*/,		0xfe0c/*-5db*/,		0xfed4/*-3db*/,		0xff38/*-2db*/,		0xff9c/*-1db*/,		0x0/*0db*/
+	-7200/*-72db*/,
+	-5600/*-56db*/,	-4000/*-40db*/,	-2900/*-29db*/,	-2400/*-24db*/,	-2000/*-20db*/,	-1700/*-17db*/,	-1500/*-15db*/,	-1300/*-13db*/,
+	-1100/*-11db*/,	-900/*-9db*/,	-700/*-7db*/,	-500/*-5db*/,	-300/*-3db*/,	-200/*-2db*/,	-100/*-1db*/,	0/*0db*/
 #endif
 };
 
@@ -150,67 +150,63 @@ void AudioEffect_ReverbStep_Ajust(uint8_t ReverbStep)
 	if(AudioCore.Audioeffect.context_memory == NULL)
 		return;
 
-	uint16_t step;
-	ReverbUnit *Reverbparam;
-	EchoUnit *Echoparam;
+	uint16_t step = 0;
+	int16_t param  = 0;
 	uint8_t Reverbaddr = get_audioeffect_addr(REVERB);
 	uint8_t Echoaddr = get_audioeffect_addr(ECHO);
 
 	if(AudioEffect_effectAddr_check(Echoaddr))
 	{
-		Echoparam = (EchoUnit *)roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, Echoaddr, 0xff);
 		step = ReverbMaxParam.max_echo_delay  / MAX_MIC_REVB_STEP;
 		if(ReverbStep >= (MAX_MIC_REVB_STEP-1))
 		{
-			Echoparam->delay = ReverbMaxParam.max_echo_delay ;
+			param = ReverbMaxParam.max_echo_delay ;
 		}
 		else
 		{
-			Echoparam->delay = ReverbStep * step;
+			param = ReverbStep * step;
 		}
 
 		step = ReverbMaxParam.max_echo_depth / MAX_MIC_REVB_STEP;
 		if(ReverbStep >= (MAX_MIC_REVB_STEP-1))
 		{
-			Echoparam->attenuation = ReverbMaxParam.max_echo_depth;
+			param = ReverbMaxParam.max_echo_depth;
 		}
 		else
 		{
-			Echoparam->attenuation = ReverbStep * step;
+			param = ReverbStep * step;
 		}
 
-		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Echoaddr, 1, &Echoparam->attenuation);
-		AudioEffect_update_local_params(Echoaddr, 1, &Echoparam->attenuation, 2);
-		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Echoaddr, 2, &Echoparam->delay);
-		AudioEffect_update_local_params(Echoaddr, 2, &Echoparam->delay, 2);
+		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Echoaddr, 1, &param);
+		AudioEffect_update_local_params(Echoaddr, 1, &param, 2);
+		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Echoaddr, 2, &param);
+		AudioEffect_update_local_params(Echoaddr, 2, &param, 2);
 	}
 	if(AudioEffect_effectAddr_check(Reverbaddr))
 	{
-		Reverbparam = (ReverbUnit *)roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, Reverbaddr, 0xff);
 		step = ReverbMaxParam.max_reverb_wet_scale / MAX_MIC_REVB_STEP;
 		if(ReverbStep >= (MAX_MIC_REVB_STEP-1))
 		{
-			Reverbparam->wet_scale = ReverbMaxParam.max_reverb_wet_scale;
+			param = ReverbMaxParam.max_reverb_wet_scale;
 		}
 		else
 		{
-			Reverbparam->wet_scale = ReverbStep * step;
+			param = ReverbStep * step;
 		}
+		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Reverbaddr, 1, &param);
+		AudioEffect_update_local_params(Reverbaddr, 1, &param, 2);
 
 		step = ReverbMaxParam.max_reverb_roomsize / MAX_MIC_REVB_STEP;
 		if(ReverbStep >= (MAX_MIC_REVB_STEP-1))
 		{
-			Reverbparam->roomsize_scale = ReverbMaxParam.max_reverb_roomsize;
+			param = ReverbMaxParam.max_reverb_roomsize;
 		}
 		else
 		{
-			Reverbparam->roomsize_scale = ReverbStep * step;
+			param = ReverbStep * step;
 		}
-
-		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Reverbaddr, 1, &Reverbparam->wet_scale);
-		AudioEffect_update_local_params(Reverbaddr, 1, &Reverbparam->wet_scale, 2);
-		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Reverbaddr, 3, &Reverbparam->roomsize_scale);
-		AudioEffect_update_local_params(Reverbaddr, 3, &Reverbparam->roomsize_scale, 2);
+		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Reverbaddr, 3, &param);
+		AudioEffect_update_local_params(Reverbaddr, 3, &param, 2);
 	}
 	gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
 #endif
@@ -222,69 +218,68 @@ void AudioEffect_ReverbPlateStep_Ajust(uint8_t ReverbStep)
 	if(AudioCore.Audioeffect.context_memory == NULL)
 		return;
 
-	uint16_t step;
-	ReverbPlateUnit *ReverbPlateparam;
-	EchoUnit *Echoparam;
+	uint16_t step = 0;
+	int16_t param  = 0;
 	uint8_t ReverbPlateaddr = get_audioeffect_addr(REVERBPLATE);
 	uint8_t Echoaddr = get_audioeffect_addr(ECHO);
 
 	if(AudioEffect_effectAddr_check(Echoaddr))
 	{
-		Echoparam = (EchoUnit *)roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, Echoaddr, 0xff);
 		step = ReverbMaxParam.max_echo_delay  / MAX_MIC_REVB_STEP;
 		if(ReverbStep >= (MAX_MIC_REVB_STEP-1))
 		{
-			Echoparam->delay = ReverbMaxParam.max_echo_delay ;
+			param = ReverbMaxParam.max_echo_delay ;
 		}
 		else
 		{
-			Echoparam->delay = ReverbStep * step;
+			param = ReverbStep * step;
 		}
+		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Echoaddr, 2, &param);
+		AudioEffect_update_local_params(Echoaddr, 2, &param, 2);
 
 		step = ReverbMaxParam.max_echo_depth / MAX_MIC_REVB_STEP;
 		if(ReverbStep >= (MAX_MIC_REVB_STEP-1))
 		{
-			Echoparam->attenuation = ReverbMaxParam.max_echo_depth;
+			param = ReverbMaxParam.max_echo_depth;
 		}
 		else
 		{
-			Echoparam->attenuation = ReverbStep * step;
+			param = ReverbStep * step;
 		}
-		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Echoaddr, 1, &Echoparam->attenuation);
-		AudioEffect_update_local_params(Echoaddr, 1, &Echoparam->attenuation, 2);
-		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Echoaddr, 2, &Echoparam->delay);
-		AudioEffect_update_local_params(Echoaddr, 2, &Echoparam->delay, 2);
+		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Echoaddr, 1, &param);
+		AudioEffect_update_local_params(Echoaddr, 1, &param, 2);
 	}
 	if(AudioEffect_effectAddr_check(ReverbPlateaddr))
 	{
-		ReverbPlateparam = (ReverbPlateUnit *)roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, ReverbPlateaddr, 0xff);
 		step = ReverbMaxParam.max_reverbplate_wetdrymix / MAX_MIC_REVB_STEP;
 		if(ReverbStep >= (MAX_MIC_REVB_STEP-1))
 		{
-			ReverbPlateparam->wetdrymix = ReverbMaxParam.max_reverbplate_wetdrymix;
+			param = ReverbMaxParam.max_reverbplate_wetdrymix;
 		}
 		else
 		{
-			ReverbPlateparam->wetdrymix = ReverbStep * step;
+			param = ReverbStep * step;
 		}
 
-		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, ReverbPlateaddr, 6, &ReverbPlateparam->wetdrymix);
-		AudioEffect_update_local_params(ReverbPlateaddr, 6, &ReverbPlateparam->wetdrymix, 2);
+		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, ReverbPlateaddr, 6, &param);
+		AudioEffect_update_local_params(ReverbPlateaddr, 6, &param, 2);
 	}
 	gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
 #endif
 }
 
-uint16_t AudioEffect_SilenceDetector_Get(AUDIOEFFECT_EFFECT_NUM effect)
+int32_t AudioEffect_SilenceDetector_Get(AUDIOEFFECT_EFFECT_NUM effect)
 {
+	int32_t level;
 	if(AudioCore.Audioeffect.context_memory == NULL)
-		return 0;
+		return -1;
 	if(!AudioEffect_effectAddr_check(get_audioeffect_addr(effect)))
-		return 0;
+		return -2;
 
 	SilenceDetectorUnit *SDParam;
 	SDParam = (SilenceDetectorUnit *)roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, get_audioeffect_addr(effect), 0xff);
-	return SDParam->level;
+	level = SDParam->level;
+	return level;
 }
 
 uint16_t AudioEffect_GainControl_Get(AUDIOEFFECT_EFFECT_NUM effect)
@@ -310,7 +305,10 @@ void AudioEffect_GainControl_Set(AUDIOEFFECT_EFFECT_NUM effect, uint16_t gain)
 	roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, get_audioeffect_addr(effect), 1, &param);
 	AudioEffect_update_local_params(get_audioeffect_addr(effect), 1, &param, 2);
 
-	gCtrlVars.AutoRefresh = get_audioeffect_addr(effect);
+	if(gCtrlVars.AutoRefresh == AutoRefresh_NONE)
+	{
+		gCtrlVars.AutoRefresh = get_audioeffect_addr(effect);
+	}
 }
 void AudioEffect_GainMute_Set(AUDIOEFFECT_EFFECT_NUM effect, bool muteFlag)
 {
@@ -644,6 +642,9 @@ uint8_t get_audioeffect_addr(AUDIOEFFECT_EFFECT_NUM effect_name)
 		case SILENCE_DETECTOR:
 			addr = param->effect_addr.SILENCE_DETECTOR_ADDR;
 			break;
+		case SILENCE_DETECTOR_MUSIC:
+			addr = param->effect_addr.SILENCE_DETECTOR_MUSIC_ADDR;
+			break;
 		case VOICE_CHANGER:
 			addr = param->effect_addr.VOICE_CHANGER_ADDR;
 			break;
@@ -707,3 +708,108 @@ bool AudioEffect_effectAddr_check(uint8_t addr)
 //			return FALSE;
 	return TRUE;
 }
+
+#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
+uint16_t get_EffectParamFlash_WriteAddr(void)
+{
+	uint16_t offset = 1024 * CFG_EFFECT_PARAM_IN_FLASH_SIZE;
+	uint16_t flashCnt = 0;
+	for(uint8_t i = 0; i < ((EFFECT_MODE_COUNT - 1) * 2); i++)
+	{
+		SpiFlashRead(get_effect_data_addr() + i * 2, (uint8_t*)&flashCnt, 2, 1);
+//		DBG("flashCnt = %d\n", flashCnt);
+		offset = (flashCnt < offset) ? flashCnt : offset;
+	}
+	return offset;
+}
+
+void EffectParamFlashUpdata(void)
+{
+	SPI_FLASH_ERR_CODE ret = 0;
+	int32_t FlashAddr = get_effect_data_addr();
+	uint16_t FlashWriteOffset = 0;
+	uint16_t effectHwCfgOffset = 0;
+	uint16_t effectParamOffset = 0;
+
+	if (((SpiFlashRead(get_effect_data_addr() + ((mainAppCt.EffectMode - 1) * 4), (uint8_t*)&effectHwCfgOffset, 2 ,1)  == FLASH_NONE_ERR)
+			&& (effectHwCfgOffset != 0xffff))
+		&& ((SpiFlashRead(get_effect_data_addr() + ((mainAppCt.EffectMode - 1) * 4) + 2, (uint8_t*)&effectParamOffset, 2 ,1)  == FLASH_NONE_ERR)
+				&& (effectParamOffset != 0xffff)))
+	{
+		DBG("EffectData FlashAdd = %lx\n", FlashAddr);
+		DBG("effectHwCfgOffset = %d\n", effectHwCfgOffset);
+		DBG("effectParamOffset = %d\n", effectParamOffset);
+	}
+	else
+	{
+		FlashWriteOffset = get_EffectParamFlash_WriteAddr();
+		if (FlashWriteOffset < (((EFFECT_MODE_COUNT - 1) * 4) + sizeof(gCtrlVars.HwCt)
+				+ get_user_effect_parameters_len(AudioCore.Audioeffect.user_effect_parameters)))
+		{
+			APP_DBG("Flash space is not enough!!!\n");
+			return;
+		}
+
+		effectHwCfgOffset = FlashWriteOffset - sizeof(gCtrlVars.HwCt);
+		effectParamOffset = effectHwCfgOffset - get_user_effect_parameters_len(AudioCore.Audioeffect.user_effect_parameters);
+
+		DBG("EffectData FlashAdd = %lx\n", FlashAddr);
+		DBG("FlashWriteOffset = %d\n", FlashWriteOffset);
+		DBG("effectHwCfgOffset = %d\n", effectHwCfgOffset);
+		DBG("effectParamOffset = %d\n", effectParamOffset);
+	}
+//	SpiFlashErase(SECTOR_ERASE, FlashAdd /4096 , 1);
+	//write data
+	if (effectHwCfgOffset - effectParamOffset == get_user_effect_parameters_len(AudioCore.Audioeffect.user_effect_parameters))
+	{
+		ret += SpiFlashWrite(FlashAddr + effectHwCfgOffset, (uint8_t*)&gCtrlVars.HwCt, sizeof(gCtrlVars.HwCt), 1);
+		ret += SpiFlashWrite(FlashAddr + effectParamOffset, (uint8_t*)AudioCore.Audioeffect.user_effect_parameters,
+								get_user_effect_parameters_len(AudioCore.Audioeffect.user_effect_parameters), 1);
+		if (ret != FLASH_NONE_ERR)
+		{
+			APP_DBG("write error:%d\n", ret);
+			return;
+		}
+	}
+	else
+	{
+		APP_DBG("Please reburning flash image to erase flash effect param!!!\n");
+		return;
+	}
+
+	SpiFlashWrite(FlashAddr + ((mainAppCt.EffectMode - 1) * 4), (uint8_t*)&effectHwCfgOffset, 2, 1);
+	SpiFlashWrite(FlashAddr + ((mainAppCt.EffectMode - 1) * 4) + 2, (uint8_t*)&effectParamOffset, 2, 1);
+	APP_DBG("EffectParamFlashUpdata done!\n");
+}
+
+bool AudioEffect_GetFlashHwCfg(uint8_t effectMode, HardwareConfigContext *hw_ct)
+{
+	uint16_t offset = 0;
+	if (SpiFlashRead(get_effect_data_addr() + ((mainAppCt.EffectMode - 1) * 4), (uint8_t*)&offset, 2 ,1) == FLASH_NONE_ERR)
+	{
+		if ((offset != 0xffff) && (SpiFlashRead(get_effect_data_addr() + offset, (uint8_t*)hw_ct, sizeof(gCtrlVars.HwCt) ,1) == FLASH_NONE_ERR))
+		{
+			return TRUE;
+		}
+	}
+	DBG("flash read HwCt err\n");
+	return FALSE;
+}
+
+bool AudioEffect_GetFlashEffectParam(uint8_t effectMode,  uint8_t *effect_param)
+{
+	uint16_t effectHwCfgOffset = 0;
+	uint16_t effectParamOffset = 0;
+	if ((SpiFlashRead(get_effect_data_addr() + ((mainAppCt.EffectMode - 1) * 4), (uint8_t*)&effectHwCfgOffset, 2 ,1) == FLASH_NONE_ERR)
+			&& (SpiFlashRead(get_effect_data_addr() + ((mainAppCt.EffectMode - 1) * 4) + 2, (uint8_t*)&effectParamOffset, 2 ,1) == FLASH_NONE_ERR)
+			&& (effectHwCfgOffset - effectParamOffset == get_user_effect_parameters_len(effect_param)))
+	{
+		if (SpiFlashRead(get_effect_data_addr() + effectParamOffset, (uint8_t*)effect_param, get_user_effect_parameters_len(effect_param) ,1) == FLASH_NONE_ERR)
+		{
+			return TRUE;
+		}
+	}
+	DBG("flash read EffectParam err\n");
+	return FALSE;
+}
+#endif

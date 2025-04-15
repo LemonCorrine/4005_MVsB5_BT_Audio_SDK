@@ -3,7 +3,6 @@
 #include "display.h"
 #include "seg_panel.h"
 #include "seg_led_disp.h"
-#include "lcd_seg.h"
 #include "debug.h"
 
 #ifdef DISP_DEV_7_LED

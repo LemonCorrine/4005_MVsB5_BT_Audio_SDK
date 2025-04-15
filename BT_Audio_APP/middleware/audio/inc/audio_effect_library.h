@@ -1,14 +1,14 @@
 /**
-*************************************************************************************
-* @file	    audio_effect_library.h
-* @brief	Audio Effect Library
-*
-* @author	ZHAO Ying (Alfred)
-* @version	@see AUDIO_EFFECT_LIBRARY_VERSION
-*
-* &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
-*************************************************************************************
-*/
+ *************************************************************************************
+ * @file	audio_effect_library.h
+ * @brief	Audio Effect Library
+ *
+ * @author	ZHAO Ying (Alfred)
+ * @version	@see AUDIO_EFFECT_LIBRARY_VERSION
+ *
+ * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
+ *************************************************************************************
+ */
 
 #ifndef __AUDIO_EFFECT_LIBRARY_H__
 #define __AUDIO_EFFECT_LIBRARY_H__
@@ -81,7 +81,7 @@
 #include "beamforming.h"
 
 // audio effect library version
-#define AUDIO_EFFECT_LIBRARY_VERSION "2.36.0"
+#define AUDIO_EFFECT_LIBRARY_VERSION "2.37.0"
 
 // audio effect versions (Info below is for convenience only. In case of any contradiction, the version info in the respective file header shall prevail.)
 #define EFFECT_VERSION_ADPCM_CODEC                  "2.0.1"
@@ -124,7 +124,7 @@
 #define EFFECT_VERSION_PITCH_SHIFTER_PRO            "2.2.1"
 #define EFFECT_VERSION_REVERB                       "2.1.0"
 #define EFFECT_VERSION_REVERB_PLATE                 "2.3.0"
-#define EFFECT_VERSION_REVERB_PRO                   "1.3.1"
+#define EFFECT_VERSION_REVERB_PRO                   "1.4.0"
 #define EFFECT_VERSION_ROBOT_TONE                   "1.0.0"
 #define EFFECT_VERSION_SILENCE_DETECTOR             "1.2.1"
 #define EFFECT_VERSION_STEREO_WIDENER               "1.3.1"

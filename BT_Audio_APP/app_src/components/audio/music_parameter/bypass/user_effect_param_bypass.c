@@ -14,12 +14,12 @@
 const unsigned char user_effect_parameters_bypass_bypass[] = {
 0x18, 0x00, /*total data length*/
 
-0x02, 0x24, 0x00, /*Effect Version*/
+0x02, 0x25, 0x00, /*Effect Version*/
 
 0x81, /*mic_gain*/
 0x05,/*length*/
-0x00, /*enable*/
-0x00, 0x00, /*mute*/
+0x01, /*enable*/
+0x01, 0x00, /*mute*/
 0x00, 0x00, /*gain*/
 
 0x82, /*gain_control1*/
@@ -32,7 +32,7 @@ const unsigned char user_effect_parameters_bypass_bypass[] = {
 0x05,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*mute*/
-0xe8, 0x20, /*gain*/
+0x00, 0x00, /*gain*/
 
 };
 

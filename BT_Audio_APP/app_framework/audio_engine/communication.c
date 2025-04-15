@@ -1247,23 +1247,23 @@ void Communication_Effect_0x0D(uint8_t *buf, uint32_t len)//SPDIF
 		tx_buf[3]  = 1 + 10*2;///1 + len * sizeof(int16)
 		tx_buf[4]  = 0xff;
 
-		tx_buf[6]  = 1;
-		tx_buf[8]  = SPDIF_SampleRateGet(SPDIF0);
+		tx_buf[5]  = 1;
+		tx_buf[7]  = SPDIF_SampleRateGet(SPDIF0);
 #ifdef CFG_APP_OPTICAL_MODE_EN
-		tx_buf[10] = SPDIF0_OPTICAL_PORT_MODE - 1;
-		tx_buf[12] = SPDIF0_OPTICAL_PORT_ANA_INPUT;
+		tx_buf[9] = SPDIF0_OPTICAL_PORT_MODE - 1;
+		tx_buf[11] = SPDIF0_OPTICAL_PORT_ANA_INPUT;
 #endif
 #ifdef CFG_APP_COAXIAL_MODE_EN
-		tx_buf[10] = SPDIF0_COAXIAL_PORT_MODE - 1;
-		tx_buf[12] = SPDIF0_COAXIAL_PORT_ANA_INPUT;
+		tx_buf[9] = SPDIF0_COAXIAL_PORT_MODE - 1;
+		tx_buf[11] = SPDIF0_COAXIAL_PORT_ANA_INPUT;
 #endif
-		tx_buf[14] = SPDIF_FlagStatusGet(SPDIF0, LOCK_FLAG_STATUS);
-		tx_buf[16] = 0;
-		tx_buf[18] = SPDIF_SampleRateGet(SPDIF1);
-		tx_buf[20] = 0;
-		tx_buf[22] = 0;
-		tx_buf[24] = SPDIF_FlagStatusGet(SPDIF1, LOCK_FLAG_STATUS);
-		tx_buf[25] = 0x16;
+		tx_buf[13] = SPDIF_FlagStatusGet(SPDIF0, LOCK_FLAG_STATUS);
+		tx_buf[15] = 0;
+		tx_buf[17] = SPDIF_SampleRateGet(SPDIF1);
+		tx_buf[19] = 0;
+		tx_buf[21] = 0;
+		tx_buf[23] = SPDIF_FlagStatusGet(SPDIF1, LOCK_FLAG_STATUS);
+		tx_buf[24] = 0x16;
 #endif
 		Communication_Effect_Send(tx_buf,26);
 	}
@@ -1292,8 +1292,8 @@ void Communication_Effect_0xfb(uint8_t *buf, uint32_t len)
 
 	for(int i = 0; i < num; i++)
 	{
-		int32_t t_size;
-		t_size = roboeffect_get_effect_memory_size(addr[i], AudioCore.Audioeffect.user_effect_list, AudioCore.Audioeffect.user_effect_parameters);
+		uint32_t t_size;
+		roboeffect_get_effect_memory_size_runtime(AudioCore.Audioeffect.context_memory, addr[i], &t_size);
 		// printf("-->0x%02X: %d\n", addr[i], t_size);
 		if(t_size < 0) break;//not enough nodes to get
 		*ptr_size = t_size;
@@ -1323,9 +1323,8 @@ void Communication_Effect_0xfc(uint8_t *buf, uint8_t len)//user define tag
 	tx_buf[2]  = 0xfc;//control
 	if(len == 0)
 	{
-		AUDIOEFFECT_EFFECT_PARA *mpara = get_user_effect_parameters(mainAppCt.EffectMode);
-		tx_buf[3]  = strlen((char *)mpara->user_effect_name);//len
-		memcpy(&tx_buf[4], mpara->user_effect_name, tx_buf[3]);
+		tx_buf[3]  = strlen((char *)AudioCore.Audioeffect.effect_name);//len
+		memcpy(&tx_buf[4], AudioCore.Audioeffect.effect_name, tx_buf[3]);
 		tx_buf[4+tx_buf[3]] = 0x16;
 		Communication_Effect_Send(tx_buf, 4+tx_buf[3]+1);
 	}
@@ -1345,6 +1344,10 @@ void Communication_Effect_0xfc(uint8_t *buf, uint8_t len)//user define tag
 #endif
 }
 
+#ifdef CFG_EFFECT_PARAM_UPDATA_BY_ACPWORKBENCH
+bool EffectParamFlashUpdataFlag = FALSE;
+#endif
+
 void Communication_Effect_0xfd(uint8_t *buf, uint8_t len)//user define tag
 {
 #ifdef CFG_EFFECT_PARAM_UPDATA_BY_ACPWORKBENCH
@@ -1354,7 +1357,7 @@ void Communication_Effect_0xfd(uint8_t *buf, uint8_t len)//user define tag
 	tx_buf[2]  = 0xfd;//control
 	tx_buf[3]  = 0x16;
 	Communication_Effect_Send(&tx_buf[2], 1);//返回控制字
-	EffectParamFlashUpdataFlag = 1;
+	EffectParamFlashUpdataFlag = TRUE;
 #endif
 }
 
@@ -1463,9 +1466,10 @@ void Communication_Effect_Config(uint8_t Control, uint8_t *buf, uint32_t len)
 	{
 		return;
 	}
-	if(Control != 0x80)
+	if(Control != 0x80 && package_id != 0)
 	{
 		package_id = 0;		//重新开始计数;
+		gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
 	}
 	if((Control > 2)&&(Control != 0x80))
 	{

@@ -192,6 +192,21 @@ typedef enum __CLOCK_OUT_MODE
 	CLK_48M_MDM_MUX,		//5:   clk1  clk_48m_mdm_mux
 }CLOCK_OUT_MODE;
 
+typedef enum __CLOCK_SYNC_CTRL_MODULE{
+	I2S_BCLK_SEL,
+	MDAC_MCLK_SEL,
+	START_EN,
+	UPDATE_DONE_CLR,
+	UPDATE_EN,
+	UPDATE_DONE,
+}CLOCK_SYNC_CTRL_MODULE;
+
+typedef enum __CLOCK_CLK_CNT_MODULE{
+	I2S_BCLK_CNT0,
+	I2S_BCLK_CNT1,
+	MDAC_MCLK_CNT0,
+	MDAC_MCLK_CNT1,
+}CLOCK_CLK_CNT_MODULE;
 
 //建议MCLK0 配置为11.2896M，MCLK1配置为12.288M
 #define		AUDIO_PLL_CLK1_FREQ		11289600//PLL1,11.2896MHz
@@ -755,6 +770,30 @@ void Clock_IRRestoreDefaultClk();
  */
 void Clock_RTCLOSC32K_ANA_CTRL(uint8_t RTC_MODE_SEL,uint8_t RTC_CS);
 
+/**
+ * @brief	CLOCK_SYNC_CTRL模块状态设置
+ * @param	CLOCK_SYNC_CTRL源选择
+ *   @arg	Module:CLOCK_SYNC_CTRL源
+ *   @arg	Value:设置值
+ * @return  none
+ */
+void Clock_SyncCtrl_Set(CLOCK_SYNC_CTRL_MODULE Module, uint32_t Value);
+
+/**
+ * @brief	CLOCK_SYNC_CTRL模块状态获取
+ * @param	CLOCK_SYNC_CTRL源选择
+ *   @arg	Module:CLOCK_SYNC_CTRL源
+ * @return  模块状态
+ */
+uint32_t Clock_SyncCtrl_Get(CLOCK_SYNC_CTRL_MODULE Module);
+
+/**
+ * @brief	CLK_CNT模块计数值获取
+ * @param	CLOCK_CLK_CNT源选择
+ *   @arg	CLOCK_CLK_CNT源
+ * @return  计数值
+ */
+uint32_t Clock_ClkCnt_Get(CLOCK_CLK_CNT_MODULE Module);
 #ifdef  __cplusplus
 }
 #endif//__cplusplus

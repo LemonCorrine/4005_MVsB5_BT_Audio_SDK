@@ -1,9 +1,11 @@
 /***************************************************
  * @file    user_effect_param_mic.c                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.7.0                  
+ * @author  ACPWorkbench: 3.8.12                  
  * @version V1.1.0                                 
- * @Created 2023-12-01T13:40:14                                      
+ * @Effect Version: 2.37.0
+ * @RoboEffect Version: 2.15.0
+ * @Created 2024-02-06T16:37:52                                      
  * @Graphics Name mic                                      
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -12,11 +14,16 @@
 #include "type.h"
 
 const unsigned char user_effect_parameters_mic_mic[] = {
-0x68, 0x03, /*total data length*/
+0x72, 0x03, /*total data length*/
 
-0x02, 0x24, 0x00, /*Effect Version*/
+0x02, 0x25, 0x00, /*Effect Version*/
 
-0x81, /*mic_eq0*/
+0x81, /*silence_detector_mic*/
+0x03,/*length*/
+0x01, /*enable*/
+0x00, 0x00, /*PCM amplitude*/
+
+0x82, /*mic_eq0*/
 0x69,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*Pregain*/
@@ -72,7 +79,7 @@ const unsigned char user_effect_parameters_mic_mic[] = {
 0xd4, 0x02, /*Filter10_Q*/
 0x00, 0x00, /*Filter10_Gain*/
 
-0x82, /*mic_ns*/
+0x83, /*mic_ns*/
 0x09,/*length*/
 0x00, /*enable*/
 0x6c, 0xee, /*threshold*/
@@ -80,7 +87,7 @@ const unsigned char user_effect_parameters_mic_mic[] = {
 0x05, 0x00, /*attack*/
 0xf4, 0x01, /*release*/
 
-0x83, /*mic_EQ*/
+0x84, /*mic_EQ*/
 0x69,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*Pregain*/
@@ -136,7 +143,7 @@ const unsigned char user_effect_parameters_mic_mic[] = {
 0xd4, 0x02, /*Filter10_Q*/
 0x00, 0x00, /*Filter10_Gain*/
 
-0x84, /*mic_drc*/
+0x85, /*mic_drc*/
 0x35,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*mode*/
@@ -166,19 +173,24 @@ const unsigned char user_effect_parameters_mic_mic[] = {
 0x00, 0x00, /*Pregain3*/
 0x00, 0x00, /*Pregain4*/
 
-0x85, /*mic_gain*/
+0x86, /*mic_gain*/
 0x05,/*length*/
 0x01, /*enable*/
 0x00, 0x00, /*mute*/
 0x00, 0x00, /*gain*/
 
-0x86, /*gain_control0*/
+0x87, /*silence_detector_music*/
+0x03,/*length*/
+0x01, /*enable*/
+0x00, 0x00, /*PCM amplitude*/
+
+0x88, /*gain_control0*/
 0x05,/*length*/
 0x01, /*enable*/
 0x00, 0x00, /*mute*/
 0x00, 0x00, /*gain*/
 
-0x87, /*noise_suppressor_expander0*/
+0x89, /*noise_suppressor_expander0*/
 0x09,/*length*/
 0x00, /*enable*/
 0x6c, 0xee, /*threshold*/
@@ -186,13 +198,13 @@ const unsigned char user_effect_parameters_mic_mic[] = {
 0x05, 0x00, /*attack*/
 0xf4, 0x01, /*release*/
 
-0x88, /*gain_control2*/
+0x8a, /*gain_control2*/
 0x05,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*mute*/
 0x00, 0x00, /*gain*/
 
-0x89, /*eq1*/
+0x8b, /*eq1*/
 0x69,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*Pregain*/
@@ -248,7 +260,7 @@ const unsigned char user_effect_parameters_mic_mic[] = {
 0xd4, 0x02, /*Filter10_Q*/
 0x00, 0x00, /*Filter10_Gain*/
 
-0x8a, /*compander*/
+0x8c, /*compander*/
 0x0d,/*length*/
 0x00, /*enable*/
 0x60, 0xf0, /*threshold*/
@@ -258,7 +270,7 @@ const unsigned char user_effect_parameters_mic_mic[] = {
 0x64, 0x00, /*release_time*/
 0x00, 0x00, /*pregain*/
 
-0x8b, /*low_level_compressor1*/
+0x8d, /*low_level_compressor1*/
 0x09,/*length*/
 0x00, /*enable*/
 0x00, 0xe7, /*threshold*/
@@ -266,26 +278,26 @@ const unsigned char user_effect_parameters_mic_mic[] = {
 0x0a, 0x00, /*attack_time*/
 0xe8, 0x03, /*release_time*/
 
-0x8c, /*harmonic_exciter0*/
+0x8e, /*harmonic_exciter0*/
 0x07,/*length*/
 0x00, /*enable*/
 0xe8, 0x03, /*cutoff frequency*/
 0x50, 0x00, /*dry*/
 0x50, 0x00, /*wet*/
 
-0x8d, /*mvbass*/
+0x8f, /*mvbass*/
 0x07,/*length*/
 0x00, /*enable*/
 0x64, 0x00, /*cutoff frequency*/
 0x23, 0x00, /*intensity*/
 0x01, 0x00, /*enhanced*/
 
-0x8e, /*3D*/
+0x90, /*3D*/
 0x03,/*length*/
 0x00, /*enable*/
 0x32, 0x00, /*intensity*/
 
-0x8f, /*eq2*/
+0x91, /*eq2*/
 0x69,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*Pregain*/
@@ -341,7 +353,7 @@ const unsigned char user_effect_parameters_mic_mic[] = {
 0xd4, 0x02, /*Filter10_Q*/
 0x00, 0x00, /*Filter10_Gain*/
 
-0x90, /*music_drc*/
+0x92, /*music_drc*/
 0x35,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*mode*/
@@ -371,7 +383,7 @@ const unsigned char user_effect_parameters_mic_mic[] = {
 0x00, 0x00, /*Pregain3*/
 0x00, 0x00, /*Pregain4*/
 
-0x91, /*music_EQ*/
+0x93, /*music_EQ*/
 0x69,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*Pregain*/
@@ -427,13 +439,13 @@ const unsigned char user_effect_parameters_mic_mic[] = {
 0xd4, 0x02, /*Filter10_Q*/
 0x00, 0x00, /*Filter10_Gain*/
 
-0x92, /*gain_control1*/
+0x94, /*gain_control1*/
 0x05,/*length*/
 0x01, /*enable*/
 0x01, 0x00, /*mute*/
 0x00, 0x00, /*gain*/
 
-0x93, /*eq0*/
+0x95, /*eq0*/
 0x69,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*Pregain*/
@@ -489,7 +501,7 @@ const unsigned char user_effect_parameters_mic_mic[] = {
 0xd4, 0x02, /*Filter10_Q*/
 0x00, 0x00, /*Filter10_Gain*/
 
-0x94, /*low_level_compressor0*/
+0x96, /*low_level_compressor0*/
 0x09,/*length*/
 0x00, /*enable*/
 0x00, 0xe7, /*threshold*/
@@ -497,11 +509,11 @@ const unsigned char user_effect_parameters_mic_mic[] = {
 0x0a, 0x00, /*attack_time*/
 0xe8, 0x03, /*release_time*/
 
-0x95, /*remind_gain_control*/
+0x97, /*remind_gain_control*/
 0x05,/*length*/
 0x01, /*enable*/
 0x00, 0x00, /*mute*/
-0x00, 0x00, /*gain*/
+0x44, 0xfd, /*gain*/
 
 };
 
@@ -512,8 +524,8 @@ const unsigned char user_module_parameters_mic_mic[] = {
 0x00, 0x00, /*pga_aux_right_show*/
 0x01, 0x00, /*pga_aux_left_enable*/
 0x01, 0x00, /*pga_aux_right_enable*/
-0x00, 0x00, /*pga_aux_left_gain*/
-0x00, 0x00, /*pga_aux_right_gain*/
+0x0b, 0x00, /*pga_aux_left_gain*/
+0x0b, 0x00, /*pga_aux_right_gain*/
 
 0x04, /*ADC0 DIGITAL CONTROL*/
 0x14, /*length*/
@@ -521,7 +533,7 @@ const unsigned char user_module_parameters_mic_mic[] = {
 0x00, 0x00, /*mute*/
 0x00, 0x10, /*left_volume*/
 0x00, 0x10, /*right_volume*/
-0x08, 0x00, /*sample_rate*/
+0x07, 0x00, /*sample_rate*/
 0x00, 0x00, /*LR_swap*/
 0x00, 0x00, /*hpc*/
 0x05, 0x00, /*fade_time*/
@@ -544,7 +556,7 @@ const unsigned char user_module_parameters_mic_mic[] = {
 0x00, 0x00, /*mute*/
 0x00, 0x10, /*left_volume*/
 0x00, 0x10, /*right_volume*/
-0x08, 0x00, /*sample_rate*/
+0x07, 0x00, /*sample_rate*/
 0x00, 0x00, /*LR_swap*/
 0x00, 0x00, /*hpc*/
 0x05, 0x00, /*fade_time*/
@@ -571,7 +583,7 @@ const unsigned char user_module_parameters_mic_mic[] = {
 0x09, /*DAC0 CONTROL*/
 0x1c, /*length*/
 0x03, 0x00, /*enable*/
-0x08, 0x00, /*sample_rate*/
+0x07, 0x00, /*sample_rate*/
 0x00, 0x00, /*mute*/
 0x00, 0x10, /*left_volume*/
 0x00, 0x10, /*right_volume*/
@@ -592,13 +604,13 @@ const unsigned char user_module_parameters_mic_mic[] = {
 0x16, /*length*/
 0x00, 0x00, /*tx_enable*/
 0x00, 0x00, /*rx_enable*/
-0xbb, 0x80, /*sample_rate*/
+0x00, 0x00, /*sample_rate*/
 0x00, 0x00, /*mclk_source*/
 0x00, 0x00, /*master_slave*/
-0x00, 0x02, /*word_length*/
+0x00, 0x00, /*word_length*/
 0x00, 0x00, /*stereo_mono*/
 0x00, 0x00, /*fade_time*/
-0x00, 0x02, /*data_format*/
+0x00, 0x00, /*data_format*/
 0x00, 0x00, /*bclk_invert*/
 0x00, 0x00, /*lrclk_invert*/
 
@@ -606,13 +618,13 @@ const unsigned char user_module_parameters_mic_mic[] = {
 0x16, /*length*/
 0x00, 0x00, /*tx_enable*/
 0x00, 0x00, /*rx_enable*/
-0xbb, 0x80, /*sample_rate*/
+0x00, 0x00, /*sample_rate*/
 0x00, 0x00, /*mclk_source*/
 0x00, 0x00, /*master_slave*/
-0x00, 0x02, /*word_length*/
+0x00, 0x00, /*word_length*/
 0x00, 0x00, /*stereo_mono*/
 0x00, 0x00, /*fade_time*/
-0x00, 0x02, /*data_format*/
+0x00, 0x00, /*data_format*/
 0x00, 0x00, /*bclk_invert*/
 0x00, 0x00, /*lrclk_invert*/
 

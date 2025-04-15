@@ -138,6 +138,12 @@ bool AudioEffectInit()
 			//先释放资源
 			osPortFree(AudioCore.Audioeffect.user_effect_parameters);
 		}
+#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
+		if (AudioCore.Audioeffect.effect_name)
+		{
+			osPortFree(AudioCore.Audioeffect.effect_name);
+		}
+#endif
 		
 		AUDIOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(mainAppCt.EffectMode);
 
@@ -152,7 +158,21 @@ bool AudioEffectInit()
 		AudioCore.Audioeffect.audioeffect_frame_size = para->user_effect_list->frame_size;
 		para->user_effect_list->sample_rate = AudioCoreMixSampleRateGet(DefaultNet);
 
-		DBG("EFFECT_MODE: %s\n", para->user_effect_name);
+#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
+		if (AudioEffect_GetFlashEffectParam(mainAppCt.EffectMode, AudioCore.Audioeffect.user_effect_parameters))
+		{
+			AudioCore.Audioeffect.effect_name = osPortMalloc(strlen((char *)para->user_effect_name) + 6 + 1);
+			strcpy((char *)AudioCore.Audioeffect.effect_name, "Flash_");
+			memcpy(AudioCore.Audioeffect.effect_name + 6, para->user_effect_name, strlen((char *)para->user_effect_name) + 1);
+			DBG("read effect parameters from flash ok\n");
+		}
+		else
+#endif
+		{
+			AudioCore.Audioeffect.effect_name = osPortMalloc(strlen((char *)para->user_effect_name) + 1);
+			memcpy(AudioCore.Audioeffect.effect_name, para->user_effect_name, strlen((char *)para->user_effect_name) + 1);
+		}
+		DBG("EFFECT_MODE: %s\n", AudioCore.Audioeffect.effect_name);
 	}
 
 	AudioCore.Audioeffect.audioeffect_memory_size = roboeffect_get_memory_current_size(
@@ -250,7 +270,6 @@ bool AudioEffectInit()
 		{
 			DBG("roboeffect_init ok.\n");
 			AudioCore.Audioeffect.effect_addr = 0;
-			AudioEffect_GetAudioEffectMaxValue();
 
 			////Audio Core & Audioeffect音量配置
 			SystemVolSet();
@@ -258,9 +277,8 @@ bool AudioEffectInit()
 	}
 
 	//After effect init done, AudioCore know what frame size should be set.
-	AudioCoreFrameSizeSet(DefaultNet, roboeffect_get_suit_frame_size(
-			AudioCore.Audioeffect.context_memory, AudioCore.Audioeffect.audioeffect_frame_size, AudioCore.Audioeffect.effect_addr,
-			(AudioCore.Audioeffect.effect_enable ? 1 : -1)));
+	AudioCoreFrameSizeSet(DefaultNet, roboeffect_estimate_frame_size(AudioCore.Audioeffect.user_effect_list, AudioCore.Audioeffect.user_effect_parameters));
+
 	roboeffect_prot_init();
 	return TRUE;
 }
@@ -323,6 +341,7 @@ bool ModeCommonInit(void)
 	{
 		DBG("!!!audioeffect init must be earlier than sink init!!!.\n");
 	}
+	AudioEffect_GetAudioEffectMaxValue();
 
 	FifoLenStereo = AudioCoreFrameSizeGet(DefaultNet) * sizeof(PCM_DATA_TYPE) * 2 * 2;//立体声8倍大小于帧长，单位byte
 
@@ -382,6 +401,12 @@ bool ModeCommonInit(void)
 		BitWidth = 24;
 	#else
 		BitWidth = 16;
+	#endif
+
+	#ifdef CFG_VCOM_DRIVE_EN
+		ct.DACVcomModel = Direct;
+	#else
+		ct.DACVcomModel = Disable;
 	#endif
 		AudioDAC_Init(&ct,mainAppCt.SampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
 
@@ -747,6 +772,8 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 	}
 	FifoLenStereo = AudioCoreFrameSizeGet(DefaultNet) * 2 * 2 * 2;//立体声8倍大小于帧长，单位byte
 
+	DefaultParamgsInit();	//refresh local hardware config params(just storage not set)
+
 #if CFG_RES_MIC_SELECT
 	AudioCoreSourceDisable(MIC_SOURCE_NUM);
 
@@ -915,6 +942,12 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 	#else
 		BitWidth = 16;
 	#endif
+
+	#ifdef CFG_VCOM_DRIVE_EN
+		ct.DACVcomModel = Direct;
+	#else
+		ct.DACVcomModel = Disable;
+	#endif
 		AudioDAC_Init(&ct,sampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
 
 	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
@@ -1022,7 +1055,7 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 //
 //}
 //sel: 0 = init hw, 1 = effect, 2 = hw + effect
-void AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
+bool AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 {
 	uint8_t i;
 
@@ -1035,6 +1068,7 @@ void AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 		if(!AudioEffectInit())
 		{
 			DBG("audioeffect init fail, please check!!!\n");
+			return FALSE;
 		}
 
 		for(i = 0; i < AUDIO_CORE_SOURCE_MAX_NUM; i++)
@@ -1071,11 +1105,13 @@ void AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 		DefaultParamgsInit();
 		AudioCodecGainUpdata();//update hardware config
 	}
+	return TRUE;
 }
 
 //各模式下的通用消息处理, 共有的提示音在此处理，因此要求调用次API前，确保APP running状态。避免解码器没准备好。
 void CommonMsgProccess(uint16_t Msg)
 {
+	uint8_t     EffectMode;
 #if defined(CFG_FUNC_DISPLAY_EN)
 	MessageContext	msgSend;
 #endif
@@ -1417,6 +1453,7 @@ void CommonMsgProccess(uint16_t Msg)
 			#endif
 			break;
 		case MSG_EFFECTMODE:
+			EffectMode = mainAppCt.EffectMode;
 #ifndef CFG_FUNC_EFFECT_BYPASS_EN
 			if(GetSystemMode() == ModeBtHfPlay	//蓝牙通话模式下，不支持音效模式切换
 #ifdef CFG_FUNC_RECORDER_EN
@@ -1453,12 +1490,19 @@ void CommonMsgProccess(uint16_t Msg)
 			AUDIOEFFECT_EFFECT_PARA *mpara = get_user_effect_parameters(mainAppCt.EffectMode);
 
 			DBG("EFFECT_MODE: %s\n", mpara->user_effect_name);
-			if (mpara->user_effect_list->frame_size == AudioCoreFrameSizeGet(DefaultNet))
+			if (roboeffect_estimate_frame_size(mpara->user_effect_list, mpara->user_effect_parameters) == AudioCoreFrameSizeGet(DefaultNet))
 			{
-				AudioEffectModeSel(mainAppCt.EffectMode, 2);//sel: 0=init hw, 1=effect, 2=hw + effect
+				if(!AudioEffectModeSel(mainAppCt.EffectMode, 2))//sel: 0=init hw, 1=effect, 2=hw + effect
+				{
+					 mainAppCt.EffectMode = EffectMode; //切换不成功，恢复之前EffectMode
+					 mpara = get_user_effect_parameters(mainAppCt.EffectMode);
+					 AudioEffectModeSel(mainAppCt.EffectMode, 2);
+				}
 			}
 			else
 			{
+				uint8_t defaultFrameSize= mpara->user_effect_list->frame_size;
+				mpara->user_effect_list->frame_size = roboeffect_estimate_frame_size(mpara->user_effect_list, mpara->user_effect_parameters);
 				PauseAuidoCore();
 				ModeCommonDeinit();
 				if(!ModeCommonInit())
@@ -1484,6 +1528,7 @@ void CommonMsgProccess(uint16_t Msg)
 				}
 				SoftFlagDeregister(SoftFlagAudioCoreSourceIsDeInit);
 				AudioCoreServiceResume();
+				mpara->user_effect_list->frame_size = defaultFrameSize;
 			}
 
 			AudioEffectParamSync();		//switch effect mode also need to sync some params

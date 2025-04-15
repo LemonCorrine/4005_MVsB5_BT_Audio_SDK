@@ -40,6 +40,8 @@ extern "C" {
 #define	DEVICE_INT_OUT_EP			0x01
 #define	DEVICE_BULK_IN_EP			0x81
 #define	DEVICE_BULK_OUT_EP			0x01
+
+#define	DEVICE_ISO_OUT_EP1			0x01
 #define	DEVICE_ISO_IN_EP			0x82
 #define	DEVICE_ISO_OUT_EP			0x02
 

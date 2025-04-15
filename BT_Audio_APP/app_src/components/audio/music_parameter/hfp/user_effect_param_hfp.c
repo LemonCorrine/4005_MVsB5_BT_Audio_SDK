@@ -1,9 +1,11 @@
 /***************************************************
  * @file    user_effect_param_hfp.c                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.5.4                  
+ * @author  ACPWorkbench: 3.8.12                  
  * @version V1.1.0                                 
- * @Created 2023-09-12T17:04:08                                      
+ * @Effect Version: 2.37.0
+ * @RoboEffect Version: 2.15.0
+ * @Created 2024-02-06T16:59:34                                      
  * @Graphics Name hfp                                      
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -12,21 +14,26 @@
 #include "type.h"
 
 const unsigned char user_effect_parameters_hfp_hfp[] = {
-0x6b, 0x01, /*total data length*/
+0x75, 0x01, /*total data length*/
 
-0x02, 0x24, 0x00, /*Effect Version*/
+0x02, 0x25, 0x00, /*Effect Version*/
 
-0x81, /*aec0*/
+0x81, /*silence_detector_mic*/
+0x03,/*length*/
+0x01, /*enable*/
+0x00, 0x00, /*PCM amplitude*/
+
+0x82, /*aec0*/
 0x03,/*length*/
 0x00, /*enable*/
 0x03, 0x00, /*echo suppression level*/
 
-0x82, /*noise_suppressor_blue0*/
+0x83, /*noise_suppressor_blue0*/
 0x03,/*length*/
 0x00, /*enable*/
 0x05, 0x00, /*level*/
 
-0x83, /*mic_EQ*/
+0x84, /*mic_EQ*/
 0x69,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*Pregain*/
@@ -82,7 +89,7 @@ const unsigned char user_effect_parameters_hfp_hfp[] = {
 0xd4, 0x02, /*Filter10_Q*/
 0x00, 0x00, /*Filter10_Gain*/
 
-0x84, /*mic_drc*/
+0x85, /*mic_drc*/
 0x35,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*mode*/
@@ -112,19 +119,24 @@ const unsigned char user_effect_parameters_hfp_hfp[] = {
 0x00, 0x00, /*Pregain3*/
 0x00, 0x00, /*Pregain4*/
 
-0x85, /*mic_gain*/
+0x86, /*mic_gain*/
 0x05,/*length*/
 0x01, /*enable*/
 0x00, 0x00, /*mute*/
 0x00, 0x00, /*gain*/
 
-0x86, /*music_gain*/
+0x87, /*silence_detector_music*/
+0x03,/*length*/
+0x01, /*enable*/
+0x00, 0x00, /*PCM amplitude*/
+
+0x88, /*music_gain*/
 0x05,/*length*/
 0x01, /*enable*/
 0x00, 0x00, /*mute*/
-0x00, 0x00, /*gain*/
+0x24, 0xfa, /*gain*/
 
-0x87, /*music_preEQ*/
+0x89, /*music_preEQ*/
 0x69,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*Pregain*/
@@ -180,7 +192,7 @@ const unsigned char user_effect_parameters_hfp_hfp[] = {
 0xd4, 0x02, /*Filter10_Q*/
 0x00, 0x00, /*Filter10_Gain*/
 
-0x88, /*music_drc*/
+0x8a, /*music_drc*/
 0x35,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*mode*/
@@ -210,11 +222,11 @@ const unsigned char user_effect_parameters_hfp_hfp[] = {
 0x00, 0x00, /*Pregain3*/
 0x00, 0x00, /*Pregain4*/
 
-0x89, /*upmix_1to20*/
+0x8b, /*upmix_1to20*/
 0x01,/*length*/
 0x01, /*enable*/
 
-0x8a, /*pcm_delay0*/
+0x8c, /*pcm_delay0*/
 0x07,/*length*/
 0x00, /*enable*/
 0x28, 0x00, /*delay*/
@@ -239,7 +251,7 @@ const unsigned char user_module_parameters_hfp_hfp[] = {
 0x00, 0x00, /*mute*/
 0x00, 0x10, /*left_volume*/
 0x00, 0x10, /*right_volume*/
-0x08, 0x00, /*sample_rate*/
+0x07, 0x00, /*sample_rate*/
 0x00, 0x00, /*LR_swap*/
 0x00, 0x00, /*hpc*/
 0x05, 0x00, /*fade_time*/
@@ -262,11 +274,11 @@ const unsigned char user_module_parameters_hfp_hfp[] = {
 0x00, 0x00, /*mute*/
 0x00, 0x10, /*left_volume*/
 0x00, 0x10, /*right_volume*/
-0x08, 0x00, /*sample_rate*/
+0x07, 0x00, /*sample_rate*/
 0x00, 0x00, /*LR_swap*/
 0x00, 0x00, /*hpc*/
 0x05, 0x00, /*fade_time*/
-0x00, 0x00, /*mclk_source*/
+0x01, 0x00, /*mclk_source*/
 0x01, 0x00, /*dc_blocker*/
 
 0x08, /*ADC1 AGC CONTROL*/
@@ -289,7 +301,7 @@ const unsigned char user_module_parameters_hfp_hfp[] = {
 0x09, /*DAC0 CONTROL*/
 0x1c, /*length*/
 0x03, 0x00, /*enable*/
-0x08, 0x00, /*sample_rate*/
+0x07, 0x00, /*sample_rate*/
 0x00, 0x00, /*mute*/
 0x00, 0x10, /*left_volume*/
 0x00, 0x10, /*right_volume*/
@@ -301,7 +313,7 @@ const unsigned char user_module_parameters_hfp_hfp[] = {
 0x00, 0x00, /*SCF_mute*/
 0x05, 0x00, /*fade_time*/
 0x00, 0x00, /*zero_num*/
-0x00, 0x00, /*mclk_source*/
+0x01, 0x00, /*mclk_source*/
 
 0x0a, /*DAC1 CONTROL*/
 0x00, /*length*/
@@ -310,13 +322,13 @@ const unsigned char user_module_parameters_hfp_hfp[] = {
 0x16, /*length*/
 0x00, 0x00, /*tx_enable*/
 0x00, 0x00, /*rx_enable*/
-0xbb, 0x80, /*sample_rate*/
+0x00, 0x00, /*sample_rate*/
 0x00, 0x00, /*mclk_source*/
 0x00, 0x00, /*master_slave*/
-0x00, 0x02, /*word_length*/
+0x00, 0x00, /*word_length*/
 0x00, 0x00, /*stereo_mono*/
 0x00, 0x00, /*fade_time*/
-0x00, 0x02, /*data_format*/
+0x00, 0x00, /*data_format*/
 0x00, 0x00, /*bclk_invert*/
 0x00, 0x00, /*lrclk_invert*/
 
@@ -324,13 +336,13 @@ const unsigned char user_module_parameters_hfp_hfp[] = {
 0x16, /*length*/
 0x00, 0x00, /*tx_enable*/
 0x00, 0x00, /*rx_enable*/
-0xbb, 0x80, /*sample_rate*/
+0x00, 0x00, /*sample_rate*/
 0x00, 0x00, /*mclk_source*/
 0x00, 0x00, /*master_slave*/
-0x00, 0x02, /*word_length*/
+0x00, 0x00, /*word_length*/
 0x00, 0x00, /*stereo_mono*/
 0x00, 0x00, /*fade_time*/
-0x00, 0x02, /*data_format*/
+0x00, 0x00, /*data_format*/
 0x00, 0x00, /*bclk_invert*/
 0x00, 0x00, /*lrclk_invert*/
 

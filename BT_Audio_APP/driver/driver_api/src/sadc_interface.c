@@ -23,7 +23,7 @@ void SarADC_Init(void)
 
 	ADC_Enable();
 	ADC_ClockDivSet(4);  //120M / (2*4) = 15M
-	ADC_VrefSet(ADC_VREF_VDDA);//1:VDDA; 0:VDD
+	ADC_VrefSet(ADC_VREF_VDD);//1:VDDA; 0:VDD
 	ADC_ModeSet(ADC_CON_SINGLE);
 
 	ADC_Calibration();//上电校准一次即可

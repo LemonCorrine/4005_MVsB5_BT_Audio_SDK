@@ -85,7 +85,9 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 //#define BTHF_AUDIOEFFECT_BYPASS  //目的:便于调试,直接进行通路数据的搬运,不应用V3音效流程
 void AudioEffectProcessBTHF(AudioCoreContext *pAudioCore)
 {
+#ifdef BTHF_AUDIOEFFECT_BYPASS //audio effect bypass
 	uint16_t n = AudioCoreFrameSizeGet(AudioCore.CurrentMix);
+#endif
 	int16_t  s;
 
 #ifdef BTHF_AUDIOEFFECT_BYPASS
@@ -104,7 +106,7 @@ void AudioEffectProcessBTHF(AudioCoreContext *pAudioCore)
 			if(!pAudioCore->AudioSource[s].Active || mainAppCt.gSysVol.MuteFlag || pAudioCore->AudioSource[s].LeftMuteFlag)
 			{
 				memset(roboeffect_get_source_buffer(AudioCore.Audioeffect.context_memory, AudioCoreSourceToRoboeffect(s)),
-									0, n * 2 * 2);
+									0, roboeffect_get_buffer_size(AudioCore.Audioeffect.context_memory));
 			}
 		}
 	}

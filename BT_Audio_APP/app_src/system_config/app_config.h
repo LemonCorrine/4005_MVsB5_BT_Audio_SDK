@@ -43,8 +43,8 @@
  * 前者是burner烧录时版本，后者是mva版本需关注*/
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(0)
-#define  CFG_SDK_MINOR_VERSION		(2)
-#define  CFG_SDK_PATCH_VERSION	    (12)
+#define  CFG_SDK_MINOR_VERSION		(3)
+#define  CFG_SDK_PATCH_VERSION	    (0)
 
 
 //****************************************************************************************
@@ -138,8 +138,11 @@
 #ifdef CFG_RES_AUDIO_SPDIFOUT_EN
 	#define SPDIF_OUT_NUM			SPDIF1
 	#define SPDIF_OUT_DMA_ID		PERIPHERAL_ID_SPDIF1_TX
-	#ifdef CFG_AUDIO_WIDTH_24BIT
-		#define CFG_AUDIO_SPDIFOUT_24BIT	//打开SPDIF_TX 24bit输出，关闭SPDIF_TX 16bit输出
+	#define CFG_I2S_SLAVE_TO_SPDIFOUT_EN	//Just support I2S1 and AUDIO_CLK must select DPLL
+	#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
+		#define CFG_FUNC_EFFECT_BYPASS_EN
+		#undef 	CFG_RES_MIC_SELECT
+		#define CFG_RES_MIC_SELECT      (0)
 	#endif
 #endif
 
@@ -154,14 +157,26 @@
 #if defined(CFG_APP_I2SIN_MODE_EN) || defined(CFG_RES_AUDIO_I2SOUT_EN)
 #include"i2s.h"
 //i2s gpio配置，必须都配置成i2s1或者i2s0
-#define I2S_MCLK_GPIO					I2S0_MCLK_OUT_A24 //选择MCLK_OUT/MCLK_IN脚，I2S自动配置成master/slave
-#define I2S_LRCLK_GPIO					I2S0_LRCLK_A20
-#define I2S_BCLK_GPIO					I2S0_BCLK_A21
-#ifdef CFG_RES_AUDIO_I2SOUT_EN
-	#define I2S_DOUT_GPIO				I2S0_DOUT_A22
-#endif
-#ifdef CFG_APP_I2SIN_MODE_EN
-	#define I2S_DIN_GPIO				I2S0_DIN_A23
+#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
+	#define I2S_MCLK_GPIO					I2S1_MCLK_IN_A6 //选择MCLK_OUT/MCLK_IN脚，I2S自动配置成master/slave
+	#define I2S_LRCLK_GPIO					I2S1_LRCLK_A7
+	#define I2S_BCLK_GPIO					I2S1_BCLK_A9
+	#ifdef CFG_RES_AUDIO_I2SOUT_EN
+		#define I2S_DOUT_GPIO				I2S1_DOUT_A30
+	#endif
+	#ifdef CFG_APP_I2SIN_MODE_EN
+		#define I2S_DIN_GPIO				I2S1_DIN_A10
+	#endif
+#else
+	#define I2S_MCLK_GPIO					I2S0_MCLK_OUT_A24 //选择MCLK_OUT/MCLK_IN脚，I2S自动配置成master/slave
+	#define I2S_LRCLK_GPIO					I2S0_LRCLK_A20
+	#define I2S_BCLK_GPIO					I2S0_BCLK_A21
+	#ifdef CFG_RES_AUDIO_I2SOUT_EN
+		#define I2S_DOUT_GPIO				I2S0_DOUT_A22
+	#endif
+	#ifdef CFG_APP_I2SIN_MODE_EN
+		#define I2S_DIN_GPIO				I2S0_DIN_A23
+	#endif
 #endif
 #define CFG_RES_I2S_MODE				GET_I2S_MODE(I2S_MCLK_GPIO)		//根据I2S_MCLK_GPIO自动配置master/slave
 																		//也可以手动配置成1或者0  0:master mode ;1:slave mode
@@ -238,47 +253,36 @@
 #define CFG_FUNC_AUDIO_EFFECT_EN //总音效使能开关
 #ifdef CFG_FUNC_AUDIO_EFFECT_EN
 
-//#define CFG_FUNC_EFFECT_BYPASS_EN		//开启后默认运行bypass音效框图，用于音频指标测试
-#ifdef CFG_FUNC_EFFECT_BYPASS_EN
-	#undef CFG_FUNC_MIC_KARAOKE_EN
-#endif
+	//#define CFG_FUNC_EFFECT_BYPASS_EN		//开启后默认运行bypass音效框图，用于音频指标测试
+	#ifdef CFG_FUNC_EFFECT_BYPASS_EN
+		#undef CFG_FUNC_MIC_KARAOKE_EN
+	#endif
 
     //#define CFG_FUNC_ECHO_DENOISE          //消除快速调节delay时的杂音，
  	//#define CFG_FUNC_MUSIC_EQ_MODE_EN     //Music EQ模式功能配置
 
-#ifdef CFG_FUNC_MIC_KARAOKE_EN
-	#define CFG_FUNC_MIC_TREB_BASS_EN    	//Mic高低音调节功能配置
-	#define CFG_FUNC_MUSIC_TREB_BASS_EN    //Music高低音调节功能配置
-	//闪避功能选择设置
-	//注:若需要完善移频开启后的啾啾干扰声问题，需要开启此功能(利用MIC信号检测接口处理)
-//	#define  CFG_FUNC_SHUNNING_EN
-		#define SHNNIN_VALID_DATA                          	 500  ////MIC音量阈值
-		#define SHNNIN_STEP                                  1  /////单次调节的步，对应VolArr中的一级
-		#define SHNNIN_THRESHOLD                             SHNNIN_STEP*10  ////threshold
-		#define SHNNIN_VOL_RECOVER_TIME                      50////伴奏音量恢复时长：50*20ms = 1s
-		#define SHNNIN_UP_DLY                                3/////音量上升时间
-		#define SHNNIN_DOWN_DLY                              1/////音量下降时间
-#endif
+	#ifdef CFG_FUNC_MIC_KARAOKE_EN
+		#define CFG_FUNC_MIC_TREB_BASS_EN    	//Mic高低音调节功能配置
+		#define CFG_FUNC_MUSIC_TREB_BASS_EN    //Music高低音调节功能配置
+		//闪避功能选择设置
+		//注:若需要完善移频开启后的啾啾干扰声问题，需要开启此功能(利用MIC信号检测接口处理)
+	//	#define  CFG_FUNC_SHUNNING_EN
+			#define SHNNIN_VALID_DATA                          	 500  ////MIC音量阈值
+			#define SHNNIN_STEP                                  1  /////单次调节的步，对应VolArr中的一级
+			#define SHNNIN_THRESHOLD                             SHNNIN_STEP*10  ////threshold
+			#define SHNNIN_VOL_RECOVER_TIME                      50////伴奏音量恢复时长：50*20ms = 1s
+			#define SHNNIN_UP_DLY                                3/////音量上升时间
+			#define SHNNIN_DOWN_DLY                              1/////音量下降时间
+	#endif
     //#define CFG_FUNC_SILENCE_AUTO_POWER_OFF_EN     //无信号自动关机功能，
     #ifdef CFG_FUNC_SILENCE_AUTO_POWER_OFF_EN      
 		#define  SILENCE_THRESHOLD                 120        //设置信号检测门限，小于这个值认为无信号
-		#define  SILENCE_POWER_OFF_DELAY_TIME      10*60*100     //无信号关机延时时间，单位：ms
+		#define  SILENCE_POWER_OFF_DELAY_TIME      10*60*1000 //无信号关机延时时间:10Min，单位：ms
     #endif
 
 	#define CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN//在线调音
 	#ifdef CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN
-	
-		/**在线调音硬件接口有USB HID接口，或者UART接口*/
-		/**建议使用USB HID接口，收发buf共512Byte*/
-		/**UART接口占用2路DMA，收发Buf共2k Byte*/
-		/**使用USB HID作为调音接口，DMA资源紧张*/
-		#define  CFG_COMMUNICATION_BY_USB		// usb or uart
-
-//		#define	 CFG_UART_COMMUNICATION_TX_PIN					GPIOA10
-//		#define  CFG_UART_COMMUNICATION_TX_PIN_MUX_SEL			(3)
-//		#define  CFG_UART_COMMUNICATION_RX_PIN					GPIOA9
-//		#define  CFG_UART_COMMUNICATION_RX_PIN_MUX_SEL			(1)
-
+		#define  CFG_COMMUNICATION_BY_USB			//在线调音硬件接口USB HID
 		#define  CFG_COMMUNICATION_CRYPTO						(0)////调音通讯加密=1 调音通讯不加密=0
 		#define  CFG_COMMUNICATION_PASSWORD                     0x11223344//////四字节的长度密码
 	#endif
@@ -287,10 +291,9 @@
 	//音效参数存储于flash固定区域中
 	//#define CFG_EFFECT_PARAM_IN_FLASH_EN
 	#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
-		#define CFG_EFFECT_PARAM_IN_FLASH_MAX_NUM				(10)//支持flash参数最大组数，flash空间紧张时建议按需配置
-		#define	CFG_EFFECT_PARAM_IN_FLASH_ACTIVCE_NUM			(6)
+		#define CFG_EFFECT_PARAM_IN_FLASH_SIZE			(16)//KB，分配给音效参数在线下载的flash空间
 		#ifdef CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN
-			#define CFG_EFFECT_PARAM_UPDATA_BY_ACPWORKBENCH			//打开该宏可以通过ACPWorkBench，多消耗4156 Byte RAM，量产时如果RAM紧张可以关闭这个宏
+			#define CFG_EFFECT_PARAM_UPDATA_BY_ACPWORKBENCH
 		#endif
 	#endif
 
@@ -550,6 +553,9 @@
 
 //flash系统参数在线调整
 #define CFG_FUNC_FLASH_PARAM_ONLINE_TUNING_EN
+
+//CAN功能demo
+//#define CFG_FUNC_CAN_DEMO_EN
 
 #include "sys_gpio.h"
 #include "power_config.h"

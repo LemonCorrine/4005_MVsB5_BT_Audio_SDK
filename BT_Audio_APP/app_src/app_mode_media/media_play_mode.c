@@ -644,9 +644,9 @@ bool MediaPlayDeinit(void)
 	AudioCoreSourceDeinit(sMediaPlayCt->SourceNum);
 	//Kill used services
 	DecoderServiceDeinit(DECODER_MODE_CHANNEL);
-	if(GetSysModeState(ModeUDiskAudioPlay) == ModeStateDeinit
+	if(GetSystemMode() == ModeUDiskAudioPlay
 	#ifdef CFG_FUNC_RECORDER_EN
-				|| GetSysModeState(ModeUDiskPlayBack) == ModeStateDeinit
+				|| GetSystemMode() == ModeUDiskPlayBack
 	#endif
 		 )
 	{
@@ -662,9 +662,9 @@ bool MediaPlayDeinit(void)
 		APP_DBG("unmount u disk\n");
 #endif
 	}
-	else if(GetSysModeState(ModeCardAudioPlay) == ModeStateDeinit
+	else if(GetSystemMode() == ModeCardAudioPlay
 #ifdef CFG_FUNC_RECORDER_EN
-			|| GetSysModeState(ModeCardPlayBack) == ModeStateDeinit
+			|| GetSystemMode() == ModeCardPlayBack
 #endif
 		)
 	{
@@ -689,6 +689,10 @@ bool MediaPlayDeinit(void)
 		osPortFree(gMediaPlayer->AccRamBlk);
 		gMediaPlayer->AccRamBlk = NULL;
 	}
+
+	extern void DecoderTimeClear(DecoderChannels DecoderChannel);
+	DecoderTimeClear(DECODER_MODE_CHANNEL);
+
 	MediaPlayerDeinitialize();
 
 	ModeCommonDeinit();

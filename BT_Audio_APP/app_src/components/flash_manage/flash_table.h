@@ -22,6 +22,9 @@ typedef struct _FLASH_DATA_MAP_
 
 	uint8_t	flash_table		[1024 * 4];		//size:4KB	索引表
 	uint8_t	sys_parameter	[1024 * 4];		//size:4KB	8MB SDK参量化数据
+#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
+	uint8_t	effect_data		[1024 * CFG_EFFECT_PARAM_IN_FLASH_SIZE];	//音效参数数据
+#endif
 	uint8_t	bt_data			[1024 * 8];		//size:8KB  bt数据 配对记录等
 	uint8_t	bp_data			[1024 * 8];		//size:8KB	breakpoint数据
 }FLASH_DATA_MAP;
@@ -35,6 +38,7 @@ typedef struct _FLASH_DATA_MAP_
 #define BT_DATA_OFFSET     			GET_MEMBER_OFFSET(bt_data)
 #define BP_DATA_OFFSET     			GET_MEMBER_OFFSET(bp_data)
 #define SYS_PARA_OFFSET				GET_MEMBER_OFFSET(sys_parameter)
+#define EFFECT_DATA_OFFSET			GET_MEMBER_OFFSET(effect_data)
 
 #define BP_DATA_FLASH_SIZE			GET_MEMBER_SIZE(bp_data)
 #define BTDB_USERDATA_SIZE			GET_MEMBER_SIZE(bt_data)
@@ -50,6 +54,7 @@ uint32_t get_bt_data_addr(void);		//系统数据（模式/音量/断点播放等）
 uint32_t get_user_config_addr(void);	//用户数据（配合烧录器等工具使用，SN码等信息）
 uint32_t get_bt_config_addr(void);		//蓝牙配置数据（配合烧录器/测试盒使用，频偏值/MAC地址等）
 uint32_t get_sys_parameter_addr(void);	//flash 参量化数据地址
+uint32_t get_effect_data_addr(void);	//音效参数数据地址
 
 #define REMIND_FLASH_STORE_BASE				(get_remind_addr())
 

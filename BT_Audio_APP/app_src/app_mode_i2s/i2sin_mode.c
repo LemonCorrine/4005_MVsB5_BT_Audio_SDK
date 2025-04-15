@@ -40,10 +40,15 @@
 #include "ctrlvars.h"
 #include "mcu_circular_buf.h"
 #include "mode_task_api.h"
+#include "clk.h"
 
 #ifdef CFG_APP_I2SIN_MODE_EN
 
 #define I2SIN_SOURCE_NUM				APP_SOURCE_NUM
+
+#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
+volatile uint32_t CurrentSampleRate = 0;
+#endif
 
 typedef struct _I2SInPlayContext
 {
@@ -67,7 +72,11 @@ static const uint8_t DmaChannelMap[6] = {
 #ifdef CFG_RES_AUDIO_I2SOUT_EN
 	PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE,
 #else
+#ifdef CFG_RES_AUDIO_SPDIFOUT_EN
+	SPDIF_OUT_DMA_ID,
+#else
 	255,
+#endif
 #endif
 #ifdef CFG_RES_AUDIO_I2S_MIX_IN_EN
 	PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX_I2S_MODULE,
@@ -188,6 +197,11 @@ bool I2SInPlayResInit(void)
 		gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source = Clock_AudioMclkGet(AUDIO_I2S1);
 #endif
 
+#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN#if CFG_RES_I2S_MODE == 1
+	I2S_SampleRateCheckInterruptClr(CFG_RES_I2S_MODULE);
+	I2S_SampleRateCheckInterruptEnable(CFG_RES_I2S_MODULE);
+#endif
+#endif
 //	//note Soure0.和sink0已经在main app中配置，不要随意配置
 	//Core Soure1.Para
 	AudioCoreIO	AudioIOSet;
@@ -204,7 +218,7 @@ bool I2SInPlayResInit(void)
 #else
 	{//slave
 	#if CFG_PARA_I2S_SAMPLERATE == CFG_PARA_SAMPLE_RATE
-		AudioIOSet.Adapt = SRA_ONLY;//CLK_ADJUST_ONLY;//
+		AudioIOSet.Adapt = STD;//SRA_ONLY;//CLK_ADJUST_ONLY;//
 	#else
 		AudioIOSet.Adapt = SRC_SRA;//SRC_ADJUST;//
 	#endif
@@ -314,6 +328,26 @@ bool  I2SInPlayInit(void)
  */
 void I2SInPlayRun(uint16_t msgId)
 {
+#if defined (CFG_RES_AUDIO_SPDIFOUT_EN) && (CFG_RES_I2S_MODE == 1)
+#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
+	extern void AudioSpdifOut_SampleRateChange(uint32_t SampleRate);
+	if (I2S_SampleRateCheckInterruptGet(CFG_RES_I2S_MODULE))
+	{
+		CurrentSampleRate = I2S_SampleRateGet(CFG_RES_I2S_MODULE);
+		I2S_SampleRateSet(CFG_RES_I2S_MODULE, CurrentSampleRate);
+		APP_DBG("I2SIn samplerate change to:%ld\n", CurrentSampleRate);
+		if((CurrentSampleRate == 11025) || (CurrentSampleRate == 22050) || (CurrentSampleRate == 44100)
+				|| (CurrentSampleRate == 88200) || (CurrentSampleRate == 176400))
+			Clock_AudioMclkSel(CFG_RES_I2S_MODULE, PLL_CLOCK1);
+		else
+			Clock_AudioMclkSel(CFG_RES_I2S_MODULE, PLL_CLOCK2);
+		AudioSpdifOut_SampleRateChange(CurrentSampleRate);
+		SyncModule_Reset();
+		I2S_SampleRateCheckInterruptClr(CFG_RES_I2S_MODULE);
+	}
+#endif
+#endif
+
 	switch(msgId)//警告：在此段代码，禁止新增提示音插播位置。
 	{
 /*	case MSG_REMIND_SOUND_PLAY_START:

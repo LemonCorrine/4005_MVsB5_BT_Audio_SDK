@@ -111,29 +111,29 @@ typedef struct __PWM_StructInit
 
     bool        DMAReqEnable;       //是否使能DMA从Mem搬运占空比到外设中，参数取值： 1 -- 使能DMA请求； 0 -- 禁能DMA请求
 
-    uint8_t     MasterModeSel;		//000: Reset - timer3_ug is used as trigger out
+    uint8_t     MasterModeSel;		//000: Reset - timer6_ug is used as trigger out
 	 	 	 	 	 	 	 	 	//001: Update - the update event is used as trigger out
 		 	 	 	 	 	 	 	//010: PWM - pwm_o1 is used as trigger out.
 
     uint8_t     MasterSlaveSel;		//0: trigger input is no action
     								//1: the counter is reset by the posedge of trigger input
-    /*TriggerInSrc
-         * 	Timer5:
-         *      00: Internal trigger 0 (itr0), Timer6
-         *      01: Forbiden
-         *      10: Forbiden
-         *  Timer6:
-         *      00: Internal trigger 0 (itr0), Timer5
-         *      01: Forbiden
-         *      10: Forbiden
-         *  Timer7:
-         *      00: Internal trigger 0 (itr0), Timer5
-         *      01: Internal trigger 1 (itr1), Timer6
-         *      10: Internal trigger 2 (itr2), Timer7
-         *  Timer8:
-         *      00: Internal trigger 0 (itr0), Timer5
-         *      01: Internal trigger 1 (itr1), Timer6
-         *      10: Internal trigger 2 (itr2), Timer7*/
+				/*TriggerInSrc
+				* 	Timer5:
+				*      00: Internal trigger 0 (itr0), Timer6
+				*		01: Internal trigger 1 (itr1), Timer7
+				*		10: Internal trigger 2 (itr2), Timer8
+				*  Timer6:
+				*      00: Internal trigger 0 (itr0), Timer5
+				*		01: Internal trigger 1 (itr1), Timer7
+				*		10: Internal trigger 2 (itr2), Timer8
+				*  Timer7:
+				*      00: Internal trigger 0 (itr0), Timer5
+				*		01: Internal trigger 1 (itr1), Timer6
+				*		10: Internal trigger 2 (itr2), Timer8
+				*  Timer8:
+				*      00: Internal trigger 0 (itr0), Timer5
+				*		01: Internal trigger 1 (itr1), Timer6
+				*		10: Internal trigger 2 (itr2), Timer7*/
     uint8_t     TriggerInSrc;
 
     uint8_t     CcxmAndCccUpdataSel;//0: the timerX_ccxm and timerX_ccc only update when timerX_ug or timerX_com set
@@ -190,7 +190,7 @@ void PWM_GpioConfig(uint8_t PWMChSel, uint8_t PwmIoSel, PWM_IO_MODE PWMMode);
 /**
  * @brief     选择一个定时器下的PWM通道并配置其参数
  *
- * @param[in] TimerIdx  定时器索引号，只支持TIMER3、TIMER4
+ * @param[in] TimerIdx  定时器索引号，只支持TIMER5、TIMER6、TIMER7、TIMER8
  * @param[in] PWMParam  PWM初始化参数，详细参考 PWMInfo
  * 						Slave模式下，CounterMode和OutputType参数需要注意：
  * 						OutputType=PWM_OUTPUT_SINGLE_1，CounterMode=PWM_COUNTER_MODE_DOWN时，PWM启动时会有一个毛刺，
@@ -203,7 +203,7 @@ PWM_ERROR_CODE PWM_Config(TIMER_INDEX TimerIdx, PWM_StructInit *PWMParam);
 /**
  * @brief     开启定时器TimerIdx的一个通道PWM
  *
- * @param[in] TimerIdx  定时器索引号，只支持TIMER3、TIMER4
+ * @param[in] TimerIdx  定时器索引号，只支持TIMER5、TIMER6、TIMER7、TIMER8
  *
  * @return    错误号：0 - 正确，其他为错误，详细参考PWM_ERROR_CODE
  */
@@ -212,7 +212,7 @@ PWM_ERROR_CODE PWM_Enable(TIMER_INDEX TimerIdx);
 /**
  * @brief     关闭定时器TimerIdx的一个通道PWM
  *
- * @param[in] TimerIdx  定时器索引号，只支持TIMER3、TIMER4
+ * @param[in] TimerIdx  定时器索引号，只支持TIMER5、TIMER6、TIMER7、TIMER8
  *
  * @return    错误号：0 - 正确，其他为错误，详细参考PWM_ERROR_CODE
  */
@@ -246,7 +246,7 @@ PWM_ERROR_CODE PWM_IOCTRl(TIMER_INDEX TimerIdx, PWM_IOCTRL_CMD Cmd, PWM_IOCTRL_A
 /**
  * @brief      占空比动态配置
  *
- * @param[in]  TimerIdx 定时器索引号,只支持TIMER3、TIMER4
+ * @param[in]  TimerIdx 定时器索引号,只支持TIMER5、TIMER6、TIMER7、TIMER8
  * @param[in]  Duty     0~0xFFFF对应0~100%
  *
  * @return     错误号：0 - 正确，其他为错误，详细参考PWM_ERROR_CODE
@@ -256,7 +256,7 @@ PWM_ERROR_CODE PWM_DutyConfigIQ16(TIMER_INDEX TimerIdx, uint16_t Duty);
 /**
  * @brief      将定时器TimerIdx占空比参数进行转换，将百分比数据转成十六进制数据
  *
- * @param[in]  TimerIdx 定时器索引号,只支持TIMER3、TIMER4
+ * @param[in]  TimerIdx 定时器索引号,只支持TIMER5、TIMER6、TIMER7、TIMER8
  * @param[in]  BufIn    占空比输入参数地址，单位％
  * @param[out] BufOut   占空比输出参数地址，十六进制
  * @param[in]  Len      BufIn的长度,单位：字节

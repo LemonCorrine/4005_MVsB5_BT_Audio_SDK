@@ -844,7 +844,7 @@ void AudioCoreSinkDeinit(uint8_t Index)
 }
 
 #ifdef CFG_AUDIO_WIDTH_24BIT
-void AudioCorePcmDataBitWidthConv(PCM_DATA_TYPE *PcmBuf,uint16_t dataSize,PCM_DATA_WIDTH BitWidth)
+void AudioCorePcmDataBitWidthConv(void *PcmBuf,uint16_t dataSize,PCM_DATA_WIDTH BitWidth)
 {
 	uint32_t n;
 	int32_t	*PcmBuf32 = (int32_t *)PcmBuf;
@@ -1184,12 +1184,18 @@ void AudioCoreIOLenProcess(void)
 							if(SrcAudioLen)
 							{
 								SrcAudioLen = MCUCircular_GetData(&SrcAdapter->SrcBufHandler, AudioCore.AdaptIn, SrcAudioLen * PcmDataLen) / PcmDataLen;
-				#ifdef CFG_AUDIO_WIDTH_24BIT
+					#ifdef CFG_AUDIO_WIDTH_24BIT
 								if(Sink->BitWidth == PCM_DATA_24BIT_WIDTH)
 									SrcAudioLen = resampler_polyphase_apply24(&SrcAdapter->SrcCt, (int32_t *)AudioCore.AdaptIn, (int32_t *)AudioCore.AdaptOut, SrcAudioLen);
 								else
-				#endif
+					#endif
 									SrcAudioLen = resampler_polyphase_apply(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+					#ifdef CFG_AUDIO_WIDTH_24BIT
+								if(Sink->BitWidthConvFlag)
+								{
+									AudioCorePcmDataBitWidthConv(AudioCore.AdaptOut,SrcAudioLen * PcmDataLen,Sink->BitWidth);
+								}
+					#endif
 								Sink->DataSetFunc(AudioCore.AdaptOut, SrcAudioLen);
 							}
 						}
@@ -1202,6 +1208,12 @@ void AudioCoreIOLenProcess(void)
 							if(SrcAudioLen)
 							{
 								SrcAudioLen = MCUCircular_GetData(&SrcAdapter->SrcBufHandler, AudioCore.AdaptOut, SrcAudioLen * PcmDataLen) / PcmDataLen;
+					#ifdef CFG_AUDIO_WIDTH_24BIT
+								if(Sink->BitWidthConvFlag)
+								{
+									AudioCorePcmDataBitWidthConv(AudioCore.AdaptOut,SrcAudioLen * PcmDataLen,Sink->BitWidth);
+								}
+					#endif
 								Sink->DataSetFunc(AudioCore.AdaptOut, SrcAudioLen);
 							}
 						}
@@ -1241,6 +1253,12 @@ void AudioCoreIOLenProcess(void)
 									resampler_farrow_apply(&AdjAdapter->SraResFarCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, 128, 128 + AdjAdapter->AdjustVal);
 								SraAudioLen += AdjAdapter->AdjustVal;
 								AdjAdapter->AdjustVal = 0;
+			#ifdef CFG_AUDIO_WIDTH_24BIT
+								if(Sink->BitWidthConvFlag)
+								{
+									AudioCorePcmDataBitWidthConv(AudioCore.AdaptOut,SraAudioLen * PcmDataLen,Sink->BitWidth);
+								}
+			#endif
 								Sink->DataSetFunc(AudioCore.AdaptOut, SraAudioLen);
 							}
 						}
@@ -1252,6 +1270,12 @@ void AudioCoreIOLenProcess(void)
 							if(SraAudioLen)
 							{
 								SraAudioLen = MCUCircular_GetData(&AdjAdapter->SraBufHandler, AudioCore.AdaptOut, SraAudioLen * PcmDataLen) / PcmDataLen;
+			#ifdef CFG_AUDIO_WIDTH_24BIT
+								if(Sink->BitWidthConvFlag)
+								{
+									AudioCorePcmDataBitWidthConv(AudioCore.AdaptOut,SraAudioLen * PcmDataLen,Sink->BitWidth);
+								}
+			#endif
 								Sink->DataSetFunc(AudioCore.AdaptOut, SraAudioLen);
 							}
 						}
@@ -1331,6 +1355,12 @@ void AudioCoreIOLenProcess(void)
 								else
 						#endif
 									SrcAudioLen = resampler_polyphase_apply(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+						#ifdef CFG_AUDIO_WIDTH_24BIT
+								if(Sink->BitWidthConvFlag)
+								{
+									AudioCorePcmDataBitWidthConv(AudioCore.AdaptOut,SrcAudioLen * PcmDataLen,Sink->BitWidth);
+								}
+						#endif
 								Sink->DataSetFunc(AudioCore.AdaptOut, SrcAudioLen);
 							}
 						}
@@ -1343,6 +1373,12 @@ void AudioCoreIOLenProcess(void)
 							if(SrcAudioLen)
 							{
 								SrcAudioLen = MCUCircular_GetData(&SrcAdapter->SrcBufHandler, AudioCore.AdaptOut, SrcAudioLen * PcmDataLen) / PcmDataLen;
+						#ifdef CFG_AUDIO_WIDTH_24BIT
+								if(Sink->BitWidthConvFlag)
+								{
+									AudioCorePcmDataBitWidthConv(AudioCore.AdaptOut,SrcAudioLen * PcmDataLen,Sink->BitWidth);
+								}
+						#endif
 								Sink->DataSetFunc(AudioCore.AdaptOut, SrcAudioLen);
 							}
 						}
@@ -1623,7 +1659,7 @@ void AudioCoreSinkSet(uint8_t Index)
 	{
 		case STD:
 #ifdef CFG_AUDIO_WIDTH_24BIT
-			if(Sink->BitWidthConvFlag == 1)
+			if(Sink->BitWidthConvFlag)
 			{
 				AudioCorePcmDataBitWidthConv(Sink->PcmOutBuf,SINKFRAME(Index) * PcmDataLen,Sink->BitWidth);
 			}
@@ -1658,6 +1694,12 @@ void AudioCoreSinkSet(uint8_t Index)
 		case CLK_ADJUST_ONLY:
 		{
 			CLK_ADJUST_ADAPTER * AdjAdapter = (CLK_ADJUST_ADAPTER *)Sink->AdjAdapter;
+#ifdef CFG_AUDIO_WIDTH_24BIT
+			if(Sink->BitWidthConvFlag)
+			{
+				AudioCorePcmDataBitWidthConv(Sink->PcmOutBuf,SINKFRAME(Index) * PcmDataLen,Sink->BitWidth);
+			}
+#endif
 			Sink->DataSetFunc(Sink->PcmOutBuf, SINKFRAME(Index));
 			if(AdjAdapter->Enable)
 			{

@@ -261,6 +261,7 @@ extern uint8_t CAN_GetRxMsgCnt(void);
 extern bool CAN_GetSleepSel(void);
 extern CAN_TIME_CAP CAN_GetRxTxTimestamp(void);
 extern void CAN_SetModeCmd(CAN_MODE_CMD cmd);
+extern void CAN_SendToBuf(CAN_DATA_MSG * msg);
 
 #endif
 

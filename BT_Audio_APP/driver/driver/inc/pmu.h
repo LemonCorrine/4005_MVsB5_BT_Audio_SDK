@@ -333,6 +333,9 @@ void PMU_WakeupRestoreConfig();
 void PMU_DeepSleepConfig();
 
 bool PMU_FristPowerOnFlagGet(void);
+void PMU_ResRegOneBitSet(uint8_t BitMask);
+void PMU_ResRegOneBitClear(uint8_t BitMask);
+uint8_t PMU_ResRegGet(void);
 
 #ifdef __cplusplus
 }

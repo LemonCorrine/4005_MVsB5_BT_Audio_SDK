@@ -66,6 +66,7 @@ struct
 	uint32_t	user_config_addr;
 	uint32_t	bt_config_addr;
 	uint32_t	sys_parameter_addr;
+	uint32_t	effect_data_addr;
 
 	uint32_t	flash_capacity;
 	bool		flash_table_valid;
@@ -83,6 +84,9 @@ static const struct
 	{"bp_data",			&flash_table_info.bp_data_addr,				BP_DATA_OFFSET},
 	{"bt_data",			&flash_table_info.bt_data_addr,				BT_DATA_OFFSET},
 	{"remind",			&flash_table_info.remind_addr,				0},
+#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
+	{"effect_data",		&flash_table_info.effect_data_addr,			EFFECT_DATA_OFFSET},
+#endif
 };
 
 uint32_t flash_table_read(char * name)
@@ -275,3 +279,7 @@ uint32_t get_sys_parameter_addr(void)
 	return flash_table_info.sys_parameter_addr;
 }
 
+uint32_t get_effect_data_addr(void)
+{
+	return flash_table_info.effect_data_addr;
+}

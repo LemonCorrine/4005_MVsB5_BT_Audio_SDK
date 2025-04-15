@@ -76,6 +76,25 @@ void HWDeviceDected_Init(void)
 	HwPwmConfig(50);
 	#endif
 }
+
+#ifdef CFG_FUNC_SILENCE_AUTO_POWER_OFF_EN
+void SilenceDectorProcess(void)
+{
+	//根据实际情况进行修改和配置（MIC + MUSIC）
+	int32_t mic_level = AudioEffect_SilenceDetector_Get(SILENCE_DETECTOR);
+	int32_t music_level = AudioEffect_SilenceDetector_Get(SILENCE_DETECTOR_MUSIC);
+
+	if(mic_level < 0)	//没有检测到MIC通道信号，不做关机处理
+		mic_level = SILENCE_THRESHOLD + 1;
+	if(music_level < 0) //没有检测到MUSIC通道信号，不做关机处理
+		music_level = SILENCE_THRESHOLD + 1;
+
+	if(	mic_level > SILENCE_THRESHOLD   &&		//MIC通道信号
+		music_level > SILENCE_THRESHOLD			//MUSIC通道信号
+	  )
+		mainAppCt.Silence_Power_Off_Time = 0;
+}
+#endif
 /*
 ****************************************************************
 *常用应用处理主循环
@@ -97,7 +116,13 @@ void HWDeviceDected(void)
 
 		return ;
 	}
-    
+#ifdef CFG_FUNC_SILENCE_AUTO_POWER_OFF_EN
+	SilenceDectorProcess();
+#endif
+#ifdef CFG_FUNC_SHUNNING_EN
+	ShunningModeProcess();//闪避功能处理
+#endif
+
 	if(!IsTimeOut(&HWDeviceTimer)) return;
 
     TimeOutSet(&HWDeviceTimer, HW_DECTED_DLY); 
@@ -111,6 +136,8 @@ void HWDeviceDected(void)
 	}
     (*HWdeviceList[HWDeviceConut])();
 }
+
+#ifdef CFG_FUNC_SHUNNING_EN
 /*************************************************
 *    闪避处理函数
 *
@@ -119,7 +146,6 @@ void HWDeviceDected(void)
 void ShunningModeProcess(void)
 {
 	////20ms调用一次此函数//增益值(dyn_gain)闪避功能专用///0~4096 分16级，总为0~16 256为一级
-#ifdef CFG_FUNC_SHUNNING_EN
 	static uint16_t shnning_recover_dly = 0;
 	static uint16_t shnning_up_dly      = 0;
 	static uint16_t shnning_down_dly    = 0;
@@ -197,9 +223,8 @@ void ShunningModeProcess(void)
 
 		AudioEffect_GainControl_Set(APP_SOURCE_GAIN, get_audioeffectVolArr(mainAppCt.aux_out_dyn_gain));
 	}
-#endif
 }
-
+#endif
 /*
 ****************************************************************
 * 耳机插拔检测处理demo

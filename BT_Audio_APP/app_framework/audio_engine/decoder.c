@@ -392,6 +392,13 @@ static void DecoderStopProcess(DecoderChannels DecoderChannel)
 	DecoderServiceCt[DecoderChannel].decoderState = DecoderStateNone;
 }
 
+void DecoderTimeClear(DecoderChannels DecoderChannel)
+{
+	APP_DBG("DecoderTimeClear\n");
+	DecoderServiceCt[DecoderChannel].DecoderLastPlayTime = 0;
+	DecoderServiceCt[DecoderChannel].DecoderCurPlayTime = 0;
+}
+
 /*
 static void DecoderServicePause(DecoderChannels DecoderChannel)
 {

@@ -39,6 +39,7 @@ enum
 #else
 #define USB_AUDIO_SOURCE_NUM	APP_SOURCE_NUM
 #endif
+#define USB_AUDIO_SOURCE1_NUM	APP_SOURCE_NUM
 enum
 {
 	AUDIO_DAC0_SINK_NUM,		//主音频输出在audiocore Sink中的通道，必须配置，audiocore借用此通道buf处理数据	
@@ -159,6 +160,7 @@ typedef struct _AudioeffectContext
 	uint8_t *user_module_parameters;
 	int32_t audioeffect_memory_size;
 	uint32_t audioeffect_frame_size;
+	uint8_t *effect_name;
 	uint8_t effect_count;
 	uint8_t effect_addr;
 	uint8_t effect_enable;

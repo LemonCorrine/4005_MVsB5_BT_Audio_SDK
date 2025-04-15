@@ -17,7 +17,10 @@
 #define CFG_CHIP_BP1564A2		11
 #define CFG_CHIP_AP1524A1		12		//无蓝牙
 #define CFG_CHIP_AP1532B1		13		//无蓝牙
-
+#define CFG_CHIP_BP1532E2		14
+#define CFG_CHIP_BP1532E1		15
+#define CFG_CHIP_BP1552A2		16
+#define CFG_CHIP_BP1552D2		17
 //****************************************************************************************
 //       芯片型号选择配置
 // 不同的封装的电源配置/蓝牙模拟参数等可能会不一样
@@ -58,6 +61,14 @@
     #define CHIP_FLASH_CAPACTITY			16
 	#define	CHIP_LINEIN_CHANNEL				ANA_INPUT_CH_LINEIN2
 	#define	CHIP_USE_DCDC											//使用DCDC
+#elif (CFG_CHIP_SEL == CFG_CHIP_BP1532E2)
+    #define CHIP_FLASH_CAPACTITY			16
+	#define	CHIP_LINEIN_CHANNEL				ANA_INPUT_CH_LINEIN2
+	#define	CHIP_USE_DCDC											//使用DCDC
+#elif (CFG_CHIP_SEL == CFG_CHIP_BP1532E1)
+    #define CHIP_FLASH_CAPACTITY			8
+	#define	CHIP_LINEIN_CHANNEL				ANA_INPUT_CH_LINEIN2
+	#define	CHIP_USE_DCDC
 #elif (CFG_CHIP_SEL == CFG_CHIP_BP1548C1)
     #define CHIP_FLASH_CAPACTITY			8
 	#define	CHIP_LINEIN_CHANNEL				ANA_INPUT_CH_LINEIN1
@@ -78,6 +89,14 @@
 	#define	CHIP_LINEIN_CHANNEL				ANA_INPUT_CH_LINEIN1
 	#define	CHIP_USE_DCDC											//使用DCDC
 	#define	CHIP_DAC_USE_DIFF
+#elif (CFG_CHIP_SEL == CFG_CHIP_BP1552A2)
+    #define CHIP_FLASH_CAPACTITY			16
+	#define	CHIP_LINEIN_CHANNEL				ANA_INPUT_CH_LINEIN1
+	#define	CHIP_USE_DCDC											//使用DCDC
+#elif (CFG_CHIP_SEL == CFG_CHIP_BP1552D2)
+    #define CHIP_FLASH_CAPACTITY			16
+	#define	CHIP_LINEIN_CHANNEL				ANA_INPUT_CH_LINEIN1
+	#define	CHIP_USE_DCDC											//使用DCDC
 #elif (CFG_CHIP_SEL == CFG_CHIP_AP1524A1)
     #define CHIP_FLASH_CAPACTITY			8
 	#define	CHIP_LINEIN_CHANNEL				ANA_INPUT_CH_LINEIN2
@@ -91,6 +110,13 @@
     #define CHIP_FLASH_CAPACTITY			16
 	#define	CHIP_LINEIN_CHANNEL				ANA_INPUT_CH_LINEIN1
     #error "Undefined Chip type!!!!"
+#endif
+
+//****************************************************************************************
+// VCOM免电容直接驱动耳机 (部分芯片支持)
+//****************************************************************************************
+#if (CFG_CHIP_SEL == CFG_CHIP_BP1532E1) || (CFG_CHIP_SEL == CFG_CHIP_BP1532E2) || (CFG_CHIP_SEL == CFG_CHIP_BP1564A1) || (CFG_CHIP_SEL == CFG_CHIP_BP1564A2)
+//	#define CFG_VCOM_DRIVE_EN
 #endif
 
 //****************************************************************************************

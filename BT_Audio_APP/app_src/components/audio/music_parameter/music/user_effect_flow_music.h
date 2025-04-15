@@ -1,9 +1,9 @@
 /***************************************************
- * @file     music.h                      
+ * @file     user_effect_flow_music.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.7.0                 
+ * @author  ACPWorkbench: 3.8.12                 
  * @version V1.1.0                                  
- * @Created 2023-12-01T16:02:27                                      
+ * @Created 2024-02-06T16:39:25                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define MUSIC_ROBOEFFECT_LIB_VER "2.14.0"
+#define MUSIC_ROBOEFFECT_LIB_VER "2.15.0"
 
 typedef enum _MUSIC_roboeffect_io_enum
 {
@@ -35,11 +35,13 @@ typedef enum _MUSIC_roboeffect_io_enum
 
 typedef enum _MUSIC_roboeffect_effect_list_enum{
     MUSIC_START_ADDR = 0x80,
+    MUSIC_silence_detector_mic_ADDR,
     MUSIC_mic_eq0_ADDR,
     MUSIC_mic_ns_ADDR,
     MUSIC_mic_EQ_ADDR,
     MUSIC_mic_drc_ADDR,
     MUSIC_mic_gain_ADDR,
+    MUSIC_silence_detector_music_ADDR,
     MUSIC_gain_control0_ADDR,
     MUSIC_noise_suppressor_expander0_ADDR,
     MUSIC_gain_control2_ADDR,
