@@ -10,7 +10,7 @@
 *.flash.ui*
 *.c
 *.h
-*.a
+# *.a
 # *.exe
 # *.mp3
 # *.txt
