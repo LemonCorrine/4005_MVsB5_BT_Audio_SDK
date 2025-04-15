@@ -335,6 +335,9 @@ void a2dp_sbc_save(uint8_t *p,uint32_t len)
 			
 			//uint32_t decoder_out_sample = 0;
 			ret = sbc_get_fram_infor(p,&a2dp_player->sbc_bytes,&a2dp_player->sample_rate,&a2dp_player->decoder_out_sample);
+#ifdef CFG_AUDIO_OUT_AUTO_SAMPLE_RATE_44100_48000
+			AudioOutSampleRateSet(a2dp_player->sample_rate);
+#endif
 			AudioCoreSourceChange(APP_SOURCE_NUM, 2, a2dp_player->sample_rate);
 			if(a2dp_player->sbc_bytes)
 				AudioCoreSourceDepthChange(APP_SOURCE_NUM, (sizeof(a2dp_player->sbc_fifo) / a2dp_player->sbc_bytes) * a2dp_player->decoder_out_sample + sizeof(a2dp_player->last_pcm_buf) / 4);

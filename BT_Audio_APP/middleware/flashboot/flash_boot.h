@@ -4,7 +4,12 @@
 #include "app_config.h"
 #include "flash_table.h"
 #include "nvm.h"
-#define FLASH_BOOT_EN      				1//1
+
+#ifdef CFG_AI_DENOISE_EN
+	#define FLASH_BOOT_EN      				0//1
+#else
+	#define FLASH_BOOT_EN      				1//1
+#endif
 //需要和debug.h中定义的GPIO一一对应
 typedef enum __UART_TX
 {

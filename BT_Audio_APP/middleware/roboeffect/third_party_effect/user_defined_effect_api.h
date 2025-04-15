@@ -17,11 +17,71 @@
 
 
 
+#include "ai_denoise.h" 
+
 #include "simple_gain.h" 
 
+#ifdef CFG_APP_CONFIG
+	#include "app_config.h"
+	#ifdef CFG_AI_DENOISE_EN
+		#define AI_DENOISE_ENABLE                  (1)
+	#else
+		#define AI_DENOISE_ENABLE                  (0)
+	#endif
+#else
+	#define AI_DENOISE_ENABLE                  (1)
+#endif
 
 #define SIMPLE_GAIN_ENABLE                 (1)
 
+
+//Add AI_DENOISE_INFO_DATA to USER_DEFINED_LIBS_DATA
+#define AI_DENOISE_INFO_DATA \
+0x3F, 0x00, \
+0x01, 0x02, 0x00, \
+0x0A, \
+0x61, 0x69, 0x5F, 0x64, 0x65, 0x6E, 0x6F, 0x69, 0x73, 0x65, \
+0x00, \
+0x01, \
+0x00, \
+0x01, \
+0x01, \
+0x0D, \
+0x64, 0x65, 0x6E, 0x6F, 0x69, 0x73, 0x65, 0x5F, 0x6C, 0x65, 0x76, 0x65, 0x6C, \
+0x02, \
+0x00, 0x00, \
+0x5A, 0x00, \
+0x01, 0x00, \
+0x1E, 0x00, \
+0x02, 0x00, \
+0x00, \
+0x00, \
+0x00, \
+0x01, 0x00, \
+0x0C, \
+0x64, 0x65, 0x6E, 0x6F, 0x69, 0x73, 0x65, 0x20, 0x64, 0x65, 0x65, 0x70, \
+0x00, 
+
+
+//ai_denoise interface
+bool roboeffect_ai_denoise_init_if(void *node);
+bool roboeffect_ai_denoise_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
+bool roboeffect_ai_denoise_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
+int32_t roboeffect_ai_denoise_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
+
+
+//Add AI_DENOISE_INTERFACE to USER_DEFINED_INTERFACE
+#if AI_DENOISE_ENABLE
+#define AI_DENOISE_INTERFACE \
+	{ROBOEFFECT_AI_DENOISE, ROBOEFFECT_CH_MONO, FZ_ANY, 1, 4,\
+	roboeffect_ai_denoise_init_if, roboeffect_ai_denoise_config_if, roboeffect_ai_denoise_apply_if, roboeffect_ai_denoise_memory_size_if,\
+	},
+#else
+#define AI_DENOISE_INTERFACE \
+	{ROBOEFFECT_AI_DENOISE, ROBOEFFECT_CH_MONO, FZ_ANY, 1, 4,\
+	roboeffect_null_init_if, roboeffect_null_config_if, roboeffect_null_apply_if, roboeffect_null_memory_size_if,\
+	},
+#endif
 
 //Add SIMPLE_GAIN_INFO_DATA to USER_DEFINED_LIBS_DATA
 #define SIMPLE_GAIN_INFO_DATA \
@@ -79,14 +139,17 @@ int32_t roboeffect_simple_gain_memory_size_if(roboeffect_memory_size_query *quer
 
 
 #define USER_DEFINED_INTERFACE \
+	AI_DENOISE_INTERFACE \
 	SIMPLE_GAIN_INTERFACE
 
 #define USER_DEFINED_LIBS_DATA \
+	AI_DENOISE_INFO_DATA \
 	SIMPLE_GAIN_INFO_DATA
 
 typedef enum _roboeffect_user_effect_type_enum
 {
 	/*Add user define effect ID here*/
-	ROBOEFFECT_SIMPLE_GAIN = ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN,
+	ROBOEFFECT_AI_DENOISE = ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN,
+	ROBOEFFECT_SIMPLE_GAIN,
 	ROBOEFFECT_TOTAL_MAX,
 } roboeffect_user_effect_type_enum;

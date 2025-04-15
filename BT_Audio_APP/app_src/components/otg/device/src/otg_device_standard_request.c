@@ -39,9 +39,6 @@ void IsAndroid(void);
 
 
 const uint8_t  DeviceQualifier[10] = {10,6,0x10,0x01,0,0,0,64,1,0};
-#if (CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-extern void OnDeviceAudioRcvIsoPacket1(void);
-#endif
 extern void OnDeviceAudioRcvIsoPacket(void);
 extern void OnDeviceAudioSendIsoPacket(void);
 
@@ -51,24 +48,15 @@ void hid_send_data(void);
 const uint8_t DeviceString_LangID[] = {0x04, 0x03, 0x09, 0x04};
 const uint8_t MicByteSet[] = {0,MIC_ALT1_BITS,MIC_ALT2_BITS};
 const uint8_t SpeakerByteSet[] = {0,SPEAKER_ALT1_BITS,SPEAKER_ALT2_BITS};
-#if (CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-const uint8_t Speaker1ByteSet[] = {0,SPEAKER1_ALT1_BITS,SPEAKER1_ALT2_BITS};
-#endif
 uint8_t Setup[8];
 uint8_t Request[256];
 
 uint8_t *ConfigDescriptor;
 uint8_t *InterfaceNum;
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-const char *gDeviceProductString1 ="B5X usb audio game";			//max length: 32bytes
-#endif
 const char *gDeviceProductString ="mvsilicon B5 usb audio";			//max length: 32bytes
 const char *gDeviceString_Manu ="MV-SILICON";						//max length: 32bytes
 const char *gDeviceString_SerialNumber ="20190808";					//max length: 32bytes
 
-#if (CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-extern UsbAudio UsbAudioSpeaker1;
-#endif
 extern UsbAudio UsbAudioSpeaker;
 extern UsbAudio UsbAudioMic;
 
@@ -138,12 +126,6 @@ void OTG_DeviceGetDescriptor(void)
 			{
 				UsbSendPtr = (uint8_t*)gDeviceProductString;
 			}
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-			else if(Setup[2] == 4)		//Speaker1 name
-			{
-				UsbSendPtr = (uint8_t*)gDeviceProductString1;
-			}
-#endif
 			else 						//serial number
 			{
 				UsbSendPtr = (uint8_t*)gDeviceString_SerialNumber;
@@ -271,27 +253,15 @@ void OTG_DeviceStandardRequest()
 				OTG_DeviceEndpointReset(DEVICE_BULK_IN_EP,TYPE_BULK_IN);
 #else
 				OTG_DeviceEndpointReset(DEVICE_INT_IN_EP,TYPE_INT_IN);
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-				OTG_DeviceEndpointReset(DEVICE_ISO_OUT_EP1,TYPE_ISO_OUT);
-#endif
 				OTG_DeviceEndpointReset(DEVICE_ISO_OUT_EP,TYPE_ISO_OUT);
 				OTG_DeviceEndpointReset(DEVICE_ISO_IN_EP,TYPE_ISO_IN);
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-				OTG_DeviceEndpointPacketSizeSet(DEVICE_ISO_OUT_EP1,DEVICE_FS_ISO_OUT1_MPS);
-#endif
 				OTG_DeviceEndpointPacketSizeSet(DEVICE_ISO_OUT_EP,DEVICE_FS_ISO_OUT_MPS);
 				OTG_DeviceEndpointPacketSizeSet(DEVICE_ISO_IN_EP,DEVICE_FS_ISO_IN_MPS);
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-				OTG_EndpointInterruptEnable(DEVICE_ISO_OUT_EP1,OnDeviceAudioRcvIsoPacket1);
-#endif
 				OTG_EndpointInterruptEnable(DEVICE_ISO_OUT_EP,OnDeviceAudioRcvIsoPacket);
 				OTG_EndpointInterruptEnable(DEVICE_ISO_IN_EP,OnDeviceAudioSendIsoPacket);
 				OTG_DeviceAudioInit();
 				UsbAudioMic.InitOk = 1;
 				UsbAudioSpeaker.InitOk = 1;
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-				UsbAudioSpeaker1.InitOk = 1;
-#endif
 #endif
 			}
 			break;
@@ -327,18 +297,6 @@ void OTG_DeviceStandardRequest()
 					UsbAudioSpeaker.AltSlow = 1;
 				}
 			}
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-			else if(Setup[4] == InterfaceNum[AUDIO_SRM_OUT1_INTERFACE_NUM])
-			{
-				UsbAudioSpeaker1.AltSet = Setup[2];
-				DBG("speaker1 %d",Setup[2]);
-				UsbAudioSpeaker1.ByteSet = Speaker1ByteSet[UsbAudioSpeaker1.AltSet];
-				if(UsbAudioSpeaker1.AltSet == 0)
-				{
-					UsbAudioSpeaker1.AltSlow = 1;
-				}
-			}
-#endif
 		#endif
 			break;
 
@@ -528,9 +486,6 @@ void OTG_DeviceRequestProcess(void)
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
 		UsbAudioMic.InitOk = 0;
 		UsbAudioSpeaker.InitOk = 0;
-#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-		UsbAudioSpeaker1.InitOk = 0;
-#endif
 #endif
 	}
 	if(OTG_DeviceSetupReceive(Setup, 8, &DataLeng) != DEVICE_NONE_ERR)

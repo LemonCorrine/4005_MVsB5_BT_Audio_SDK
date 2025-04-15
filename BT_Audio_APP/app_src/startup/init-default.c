@@ -162,11 +162,7 @@ void __cpu_init()
 	 * If we use v3/v3m toolchain and want to use
 	 * assembly version please don't use USE_C_EXT
 	 * in CFLAGS */
-#if FLASH_BOOT_EN
 	__nds32__mtsr((uint32_t)(&__sdk_code_start), NDS32_SR_IVB);
-#else
-	__nds32__mtsr(0x0, NDS32_SR_IVB);
-#endif
 # endif
 #endif
 	/* Set PSW INTL to 0 */

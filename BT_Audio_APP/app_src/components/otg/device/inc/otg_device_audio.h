@@ -47,7 +47,6 @@ typedef struct _UsbAudio
 	MCU_CIRCULAR_CONTEXT 	CircularBuf;
 	int16_t*				PCMBuffer;
 }UsbAudio;
-extern UsbAudio UsbAudioSpeaker1;
 extern UsbAudio UsbAudioSpeaker;
 extern UsbAudio UsbAudioMic;
 
@@ -66,11 +65,6 @@ uint16_t UsbAudioSpeakerDataGet(void *Buffer,uint16_t Len);
 uint16_t UsbAudioSpeakerDataLenGet(void);
 uint16_t UsbAudioSpeakerDepthGet(void);
 
-//pc->chip 从缓存区获取数据
-uint16_t UsbAudioSpeaker1DataGet(void *Buffer,uint16_t Len);
-//pc->chip 获取缓存区数据长度
-uint16_t UsbAudioSpeaker1DataLenGet(void);
-uint16_t UsbAudioSpeaker1DepthGet(void);
 
 //chip->pc 保存数据到缓存区
 uint16_t UsbAudioMicDataSet(void *Buffer,uint16_t Len);

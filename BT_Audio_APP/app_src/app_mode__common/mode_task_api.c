@@ -615,7 +615,11 @@ bool ModeCommonInit(void)
 			return FALSE;
 		}
 
+#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
+		AudioIOSet.Adapt = STD;
+#else
 		AudioIOSet.Adapt = SRC_ONLY;
+#endif
 		AudioIOSet.Sync = TRUE;
 		AudioIOSet.Channels = 2;
 		AudioIOSet.Net = DefaultNet;

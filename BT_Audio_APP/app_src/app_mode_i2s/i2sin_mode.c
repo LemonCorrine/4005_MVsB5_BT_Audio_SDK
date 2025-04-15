@@ -197,7 +197,8 @@ bool I2SInPlayResInit(void)
 		gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source = Clock_AudioMclkGet(AUDIO_I2S1);
 #endif
 
-#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN#if CFG_RES_I2S_MODE == 1
+#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
+#if CFG_RES_I2S_MODE == 1
 	I2S_SampleRateCheckInterruptClr(CFG_RES_I2S_MODULE);
 	I2S_SampleRateCheckInterruptEnable(CFG_RES_I2S_MODULE);
 #endif
@@ -333,17 +334,25 @@ void I2SInPlayRun(uint16_t msgId)
 	extern void AudioSpdifOut_SampleRateChange(uint32_t SampleRate);
 	if (I2S_SampleRateCheckInterruptGet(CFG_RES_I2S_MODULE))
 	{
+		{
+			I2S_SampleRateSet(CFG_RES_I2S_MODULE, 88200);
+			AudioSpdifOut_SampleRateChange(88200);
+		}//Add the above actions to make I2S_SampleRateGet right
 		CurrentSampleRate = I2S_SampleRateGet(CFG_RES_I2S_MODULE);
 		I2S_SampleRateSet(CFG_RES_I2S_MODULE, CurrentSampleRate);
 		APP_DBG("I2SIn samplerate change to:%ld\n", CurrentSampleRate);
-		if((CurrentSampleRate == 11025) || (CurrentSampleRate == 22050) || (CurrentSampleRate == 44100)
-				|| (CurrentSampleRate == 88200) || (CurrentSampleRate == 176400))
-			Clock_AudioMclkSel(CFG_RES_I2S_MODULE, PLL_CLOCK1);
-		else
-			Clock_AudioMclkSel(CFG_RES_I2S_MODULE, PLL_CLOCK2);
+//		if((CurrentSampleRate == 11025) || (CurrentSampleRate == 22050) || (CurrentSampleRate == 44100)
+//				|| (CurrentSampleRate == 88200) || (CurrentSampleRate == 176400))
+//			Clock_AudioMclkSel(AUDIO_I2S1, PLL_CLOCK1);
+//		else
+//			Clock_AudioMclkSel(AUDIO_I2S1, PLL_CLOCK2);
 		AudioSpdifOut_SampleRateChange(CurrentSampleRate);
 		SyncModule_Reset();
 		I2S_SampleRateCheckInterruptClr(CFG_RES_I2S_MODULE);
+
+		MessageContext msgSend;
+		msgSend.msgId = MSG_EFFECTREINIT;
+		MessageSend(GetMainMessageHandle(), &msgSend);
 	}
 #endif
 #endif

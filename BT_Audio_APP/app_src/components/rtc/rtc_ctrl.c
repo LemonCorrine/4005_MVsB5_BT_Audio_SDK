@@ -943,19 +943,34 @@ void RtcMsgPro(MessageContext MsgId)
 void RTC_ServiceInit(uint16_t RstFflag)
 {
 	APP_DBG("Rtc init------------------\n");
+
+	if(CFG_FUNC_RTC_OSC_FREQ == OSC_24M)
+	{
+		RTC_ClockSrcSel(OSC_24M);
+	}
+	else
+	{
+		Clock_EnableLOSC32K();
+		RTC_ClockSrcSel(OSC_32K);
+	}
+	Clock_EnableRTCLOSC32K();
+	RTC_IntDisable();//Ä¬ÈÏ¹Ø±ÕRTCÖÐ¶Ï
+	RTC_IntFlagClear();
+	RTC_WakeupDisable();
+
 	RtcState = RTC_STATE_IDLE;
 	RtcSubState = RTC_SET_NONE;
 	RtcUpdateDisplay = FALSE;
 	RtcFlag = 0;
 	RtcAutOutTimeCount = 0;
 	TimeOutSet(&RtcReadTimer, 0);
-    #ifdef CFG_FUNC_ALARM_EN
+#ifdef CFG_FUNC_ALARM_EN
     gpAlarmList = AlarmList;
     gpAlarmList_temp = AlarmList;
-    #endif
+#endif
     if(RstFflag==0) return;//not power on
 
-	gRtcTime.Year = 2001;
+	gRtcTime.Year = 2024;
 	gRtcTime.Mon  = 1;
 	gRtcTime.Date  = 1;
 	gRtcTime.Hour = 12;
@@ -966,7 +981,7 @@ void RTC_ServiceInit(uint16_t RstFflag)
 	gRtcTime = RTC_DateTimerGet();
 	APP_DBG("%d  ,%d  ,%d  \n",(uint16_t)gRtcTime.Year,gRtcTime.Mon,gRtcTime.Date);
 
-	#ifdef CFG_FUNC_ALARM_EN
+#ifdef CFG_FUNC_ALARM_EN
 	//init all alarm//
 	mainAppCt.AlarmFlag = FALSE;
 	mainAppCt.AlarmID = 0;
@@ -980,7 +995,7 @@ void RTC_ServiceInit(uint16_t RstFflag)
 	gpAlarmList_temp->AlarmMin  = gAlarmTime.Min;
 	gpAlarmList_temp->AlarmMode = ALARM_MODE_ONCE;
 	RTC_LoadCurrAlarm(gpAlarmList_temp);
-	#endif
+#endif
 }
 
 void RTC_AlarmParameterInit(void)

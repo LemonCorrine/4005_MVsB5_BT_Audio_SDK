@@ -44,7 +44,7 @@
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(0)
 #define  CFG_SDK_MINOR_VERSION		(3)
-#define  CFG_SDK_PATCH_VERSION	    (0)
+#define  CFG_SDK_PATCH_VERSION	    (1)
 
 
 //****************************************************************************************
@@ -440,16 +440,9 @@
 #endif
 
 //****************************************************************************************
-//                 SHELL功能配置
-//说明:
-//    1.shell功能启用以及配置请到shell.c中配置;
-//    2.shell功能默认关闭，默认使用UART1;
-//****************************************************************************************
-//#define CFG_FUNC_SHELL_EN
-
-//****************************************************************************************
 //                 UART DEBUG功能配置
-//注意：DEBUG打开后，会增大mic通路的delay，不需要DEBUG调试代码时，建议关闭掉！
+//注意： DEBUG打开后，会增大mic通路的delay，不需要DEBUG调试代码时，建议关闭掉！
+//		SHELL功能需要开启 UART DEBUG功能
 //****************************************************************************************
 #include "debug.h"
 //#define CFG_FUNC_DEBUG_EN
@@ -457,7 +450,13 @@
 #ifdef CFG_FUNC_DEBUG_EN
 	#define CFG_UART_TX_PORT 				DEBUG_TX_A10
 	#define CFG_UART_BANDRATE   			DEBUG_BAUDRATE_2000000//DEBUG_BAUDRATE_115200
-	#define CFG_FLASHBOOT_DEBUG_EN          ENABLE//ENABLE			
+	#define CFG_FLASHBOOT_DEBUG_EN          ENABLE//ENABLE
+
+//	#define CFG_FUNC_SHELL_EN				//SHELL功能配置
+	#ifdef	CFG_FUNC_SHELL_EN
+		//UART RX配置,需要和串口日志打印为同一个UART组
+		#define CFG_FUNC_SHELL_RX_PORT 		DEBUG_RX_A9
+	#endif
 #endif
 
 //****************************************************************************************
@@ -507,6 +506,20 @@
 /**电位器功能选择**/
 //#define CFG_ADC_LEVEL_KEY_EN
 
+//***************************************************************************************
+//					RTC/闹钟功能配置
+//    OSC_32K: RTC时钟选择晶体晶振32.768kHZ,芯片引脚：GPIOB5/GPIOB9，仅部分型号支持
+//    OSC_24M: RTC时钟选择晶体晶振24MHZ
+//***************************************************************************************
+//#define CFG_FUNC_RTC_EN
+#ifdef CFG_FUNC_RTC_EN
+	#define CFG_FUNC_RTC_OSC_FREQ		OSC_32K
+	#define CFG_FUNC_ALARM_EN  			//闹钟功能,必须开时钟
+	#define CFG_FUNC_LUNAR_EN  			//万年历,必须开时钟
+	#ifdef CFG_FUNC_ALARM_EN
+		#define CFG_FUNC_SNOOZE_EN 		//闹钟贪睡功能
+	#endif
+#endif
 
 //****************************************************************************************
 //                            Display 显示配置
@@ -539,23 +552,21 @@
 //****************************************************************************************
 //#define  CFG_FUNC_DETECT_MIC_SEG_EN  
 
-//****************************************************************************************
-//                            配置冲突 编译警告
-//****************************************************************************************
-
-#if defined(CFG_FUNC_SHELL_EN) && defined(CFG_USE_SW_UART)
-#error	Conflict: shell  X  SW UART No RX!
-#endif
-
-//redmine 任务13199 麦克风产品
-//基于标准SDK更新，暂时不做分支处理
-//#define  VD51_REDMINE_13199
-
 //flash系统参数在线调整
 #define CFG_FUNC_FLASH_PARAM_ONLINE_TUNING_EN
 
 //CAN功能demo
 //#define CFG_FUNC_CAN_DEMO_EN
+
+//AI_DENOISE demo,IDE需要使用V323或者以后的版本,需要专用芯片
+//下面宏定义采用脚本控制，必须单独一行，不要在该行后面添加注释
+//#define CFG_AI_DENOISE_EN
+#ifdef CFG_AI_DENOISE_EN
+	#undef 	CFG_APP_BT_MODE_EN			//资源有限，不支持BT
+	#undef 	CFG_PARA_SAMPLE_RATE		//重新定义 采样率32K
+	#define	CFG_PARA_SAMPLE_RATE		(32000)
+	#undef 	CFG_FUNC_REMIND_SOUND_EN	//不支持提示音
+#endif
 
 #include "sys_gpio.h"
 #include "power_config.h"

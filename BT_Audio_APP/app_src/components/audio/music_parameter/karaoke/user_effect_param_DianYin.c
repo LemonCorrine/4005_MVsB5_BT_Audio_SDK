@@ -81,7 +81,7 @@ const unsigned char user_effect_parameters_Karaoke_DianYin[] = {
 
 0x8a, /*eq0*/
 0x69,/*length*/
-0x01, /*enable*/
+0x00, /*enable*/
 0x00, 0x00, /*Pregain*/
 0x00, 0x00, /*Fixed-Floating_Point*/
 0x01, 0x00, /*Filter1_Enable*/
@@ -233,7 +233,7 @@ const unsigned char user_effect_parameters_Karaoke_DianYin[] = {
 
 0x8f, /*noise_suppressor_expander1*/
 0x09,/*length*/
-0x01, /*enable*/
+0x00, /*enable*/
 0x6c, 0xee, /*threshold*/
 0x03, 0x00, /*ratio*/
 0x02, 0x00, /*attack*/
@@ -344,7 +344,7 @@ const unsigned char user_effect_parameters_Karaoke_DianYin[] = {
 
 0x9a, /*eq4*/
 0x69,/*length*/
-0x01, /*enable*/
+0x00, /*enable*/
 0x00, 0x00, /*Pregain*/
 0x00, 0x00, /*Fixed-Floating_Point*/
 0x01, 0x00, /*Filter1_Enable*/
@@ -466,7 +466,7 @@ const unsigned char user_effect_parameters_Karaoke_DianYin[] = {
 
 0xa2, /*auto_tune0*/
 0x07,/*length*/
-0x01, /*enable*/
+0x00, /*enable*/
 0x04, 0x00, /*key*/
 0x00, 0x00, /*snap*/
 0x00, 0x00, /*pitch accuracy*/
@@ -546,7 +546,7 @@ const unsigned char user_effect_parameters_Karaoke_DianYin[] = {
 
 0xa6, /*eq6*/
 0x69,/*length*/
-0x01, /*enable*/
+0x00, /*enable*/
 0x00, 0x00, /*Pregain*/
 0x00, 0x00, /*Fixed-Floating_Point*/
 0x01, 0x00, /*Filter1_Enable*/
@@ -602,7 +602,7 @@ const unsigned char user_effect_parameters_Karaoke_DianYin[] = {
 
 0xa7, /*reverb0*/
 0x0d,/*length*/
-0x01, /*enable*/
+0x00, /*enable*/
 0x64, 0x00, /*dry*/
 0x64, 0x00, /*wet*/
 0x64, 0x00, /*width*/
