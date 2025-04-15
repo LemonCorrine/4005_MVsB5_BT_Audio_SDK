@@ -26,6 +26,14 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 --------------------------------------------------------------------------------------
 版本历史：（采用倒序排列，最新版置顶）
 
+2023-12-15【0.1.14  build @ Dec 15 2023 10:13:05】
+size:341,204 bytes
+更新内容：
+	1、修改SDIO RX/TX DMA传输为WROD方式，新增DMA_SetPriorty接口
+	2、新增OTG_DeviceEndpointPacketSizeSet接口，设置usb设备单次传输最大包字节数
+	3、修改UART_Send结束判断标志使用TX_FINISH
+
+------------------------------
 2023-12-6【0.1.13  build @ Dec  6 2023 13:54:27】
 size:340,516 bytes
 更新内容：

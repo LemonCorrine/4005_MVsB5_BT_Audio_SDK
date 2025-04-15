@@ -26,6 +26,14 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2018, All rights reserved.
 --------------------------------------------------------------------------------------
 
 版本历史：（采用倒序排列，最新版置顶）
+*2023-12-12  【1.6.1 build @ Dec 12 2023 11:01:31】
+size：32,174 bytes
+	1.优化 任务 #13640 文件浏览功能
+
+*2023-10-18  【1.6.0 build @ Oct 18 2023 09:41:40】
+size：151,552 bytes
+	1.增加ffpresearch_empty_folder_table_set()，针对空目录进行跳过搜索文件操作
+
 *2020-05-25  【1.5.0  build @ May 25 2020 12:00:00】
 size：28,258 bytes
 	1.f_open_by_num_in_dir 针对故事机应用，改变参数

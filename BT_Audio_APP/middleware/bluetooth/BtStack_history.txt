@@ -27,6 +27,10 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 
 版本历史：（采用倒序排列，最新版置顶）
 
+2023-12-14【15_0.2.5 build @ Dec 14 2023 18:35:24】
+size:2,280,180 bytes
+1、修复BLE收包ke_malloc溢出的问题
+
 2023-12-7【15_0.2.4 build @ Dec  7 2023 15:19:57】
 size:2,280,476 bytes
 1、解决华为手机鸿蒙系统，呼入电话，创建SCO链路异常问题
