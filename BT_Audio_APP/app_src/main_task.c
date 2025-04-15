@@ -300,7 +300,6 @@ static void SysVarInit(void)
 		}
 	}
 	mainAppCt.gSysVol.MuteFlag = TRUE;	
-	mainAppCt.muteFlagPre = FALSE;
 	
 	#ifdef CFG_FUNC_SILENCE_AUTO_POWER_OFF_EN
 	mainAppCt.Silence_Power_Off_Time = 0;
@@ -317,8 +316,6 @@ void SystemTimerInit(void)
 
 static void SystemInit(void)
 {
-	int16_t i;
-
 	DelayMsFunc = (DelayMsFunction)vTaskDelay; //提高Os条件下驱动层延时函数精度，非OS默认使用DelayMs
 	DMA_ChannelAllocTableSet((uint8_t*)DmaChannelMap);
 #ifdef CFG_DUMP_DEBUG_EN
@@ -359,27 +356,14 @@ static void SystemInit(void)
 	HDMI_CEC_DDC_Init();
 #endif
 	///////////////////////////////AudioCore/////////////////////////////////////////
-	mainAppCt.AudioCore =  (AudioCoreContext*)&AudioCore;
-	memset(mainAppCt.AudioCore, 0, sizeof(AudioCoreContext));
+	memset((AudioCoreContext*)&AudioCore, 0, sizeof(AudioCoreContext));
 
 	CtrlVarsInit();//音频系统硬件变量初始化，系统变量初始化
-
-	for(i = 0; i < MaxNet; i++)
-	{
-		AudioCoreMixSampleRateSet(i, CFG_PARA_SAMPLE_RATE);//默认系统采样率
-	}
-	mainAppCt.SampleRate = CFG_PARA_SAMPLE_RATE;
 	
 	////Audio Core音量配置
 	SystemVolSet();
-	
-	for( i = 0; i < AUDIO_CORE_SOURCE_MAX_NUM; i++)
-	{
-	   mainAppCt.AudioCore->AudioSource[i].PreGain = 4095;//默认使用4095， 0dB
-	}
 
 	AudioCoreServiceCreate(mainAppCt.msgHandle);
-	mainAppCt.AudioCoreSync = FALSE;
 #ifdef CFG_FUNC_REMIND_SOUND_EN	
 	RemindSoundInit();
 #endif
@@ -401,47 +385,6 @@ static void SystemInit(void)
 	DeviceServiceInit();
 	APP_DBG("MainApp:run\n");
 
-}
-
-
-//接收下层service created消息，完毕后start这些servcie
-static void MainAppServiceCreating(uint16_t msgId)
-{
-	if(msgId == MSG_AUDIO_CORE_SERVICE_CREATED)
-	{
-		APP_DBG("MainApp:AudioCore service created\n");
-		mainAppCt.AudioCoreSync = TRUE;
-	}
-	
-	if(mainAppCt.AudioCoreSync)
-	{
-		AudioCoreServiceStart();
-		mainAppCt.AudioCoreSync = FALSE;
-		mainAppCt.state = TaskStateReady;
-	}
-}
-
-//接收下层service started，完毕后准备模式切换。
-static void MainAppServiceStarting(uint16_t msgId)
-{
-	if(msgId == MSG_AUDIO_CORE_SERVICE_STARTED)
-	{
-		APP_DBG("MainApp:AudioCore service started\n");
-		mainAppCt.AudioCoreSync = TRUE;
-	}
-
-	if(mainAppCt.AudioCoreSync)
-	{
-		mainAppCt.AudioCoreSync = FALSE;
-		mainAppCt.state = TaskStateRunning;
-		SysModeTaskCreat();
-#ifdef	CFG_FUNC_OPEN_SLOW_DEVICE_TASK
-		{
-		extern	void CreatSlowDeviceTask(void);
-		CreatSlowDeviceTask();
-		}
-#endif
-	}
 }
 
 static void PublicDetect(void)
@@ -536,11 +479,21 @@ static void PublicMsgPross(MessageContext msg)
 	switch(msg.msgId)
 	{
 		case MSG_AUDIO_CORE_SERVICE_CREATED:	
-			MainAppServiceCreating(msg.msgId);
+			APP_DBG("MainApp:AudioCore service created\n");
+			AudioCoreServiceStart();
+			mainAppCt.state = TaskStateReady;
 			break;
 		
 		case MSG_AUDIO_CORE_SERVICE_STARTED:
-			MainAppServiceStarting(msg.msgId);
+			APP_DBG("MainApp:AudioCore service started\n");
+			SysModeTaskCreat();
+	#ifdef	CFG_FUNC_OPEN_SLOW_DEVICE_TASK
+			{
+				extern	void CreatSlowDeviceTask(void);
+				CreatSlowDeviceTask();
+			}
+	#endif
+			mainAppCt.state = TaskStateRunning;
 			break;
 #if FLASH_BOOT_EN
 		case MSG_DEVICE_SERVICE_CARD_OUT:
@@ -744,7 +697,7 @@ int32_t MainAppTaskStart(void)
 	shell_init();
 	xTaskCreate(mv_shell_task, "SHELL", SHELL_TASK_STACK_SIZE, NULL, SHELL_TASK_PRIO, NULL);
 #endif
-	xTaskCreate(MainAppTaskEntrance, "MainApp", MAIN_APP_TASK_STACK_SIZE, NULL, MAIN_APP_TASK_PRIO, &mainAppCt.taskHandle);
+	xTaskCreate(MainAppTaskEntrance, "MainApp", MAIN_APP_TASK_STACK_SIZE, NULL, MAIN_APP_TASK_PRIO, NULL);
 	return 0;
 }
 

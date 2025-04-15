@@ -39,6 +39,8 @@ void AudioSpdifOut_SampleRateChange(uint32_t SampleRate)
 
 void AudioSpdifOutParamsSet(void)
 {
+	uint32_t sampleRate = AudioCoreMixSampleRateGet(DefaultNet);;
+
 #ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
 	SyncModule_Init();
 #endif
@@ -46,7 +48,7 @@ void AudioSpdifOutParamsSet(void)
 	Clock_SpdifClkSelect(PLL_CLK_MODE);//DPLL
 	SPDIF_TXInit(SPDIF_OUT_NUM,1, 1, 0, 10);
 	DMA_CircularConfig(SPDIF_OUT_DMA_ID, sizeof(SpdifAddr)/4, SpdifAddr, sizeof(SpdifAddr));
-	AudioSpdifOut_SampleRateChange(CFG_PARA_SAMPLE_RATE);
+	AudioSpdifOut_SampleRateChange(sampleRate);
 	SPDIF_ModuleEnable(SPDIF_OUT_NUM);
 	DMA_ChannelEnable(SPDIF_OUT_DMA_ID);
 }

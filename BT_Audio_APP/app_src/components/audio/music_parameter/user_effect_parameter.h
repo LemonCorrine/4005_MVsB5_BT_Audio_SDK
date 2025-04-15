@@ -419,4 +419,15 @@ bool AudioEffect_GetFlashHwCfg(uint8_t effectMode, HardwareConfigContext *hw_ct)
  */
 bool AudioEffect_GetFlashEffectParam(uint8_t effectMode,  uint8_t *effect_param);
 
+//ACPWorkbench V3.8.15以后版本导出的参数增加了Roboeffect Version + 3rd part data
+//使用的时候注意参数的版本，修改对应的偏移
+typedef struct __EffectValidParamUnit
+{
+	uint8_t *	params_first_address;
+	uint16_t 	data_len;
+} EffectValidParamUnit;
+
+EffectValidParamUnit AudioEffect_GetUserEffectValidParam(uint8_t *effect_param);
+
+
 #endif

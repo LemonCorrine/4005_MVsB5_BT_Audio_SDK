@@ -453,9 +453,9 @@ void AudioEffect_SinkGain_Update(uint8_t sink)
 
 void AudioEffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t *param_input, uint8_t param_len)
 {
-	uint16_t third_data_len = *(uint16_t *)(AudioCore.Audioeffect.user_effect_parameters + 8);
-	uint8_t *params = AudioCore.Audioeffect.user_effect_parameters + 8 + third_data_len + 2;
-	uint16_t data_len = *(uint16_t *)AudioCore.Audioeffect.user_effect_parameters - 8 - third_data_len - 2;
+	EffectValidParamUnit unit = AudioEffect_GetUserEffectValidParam(AudioCore.Audioeffect.user_effect_parameters);
+	uint8_t *params = unit.params_first_address;
+	uint16_t data_len = unit.data_len;
 	uint8_t len = 0;
 
 //	DBG("input: 0x%x\n", *(uint16_t *)param_input);
@@ -482,9 +482,9 @@ void AudioEffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t 
 
 void AudioEffect_update_local_effect_status(uint8_t addr, uint8_t effect_enable)
 {
-	uint16_t third_data_len = *(uint16_t *)(AudioCore.Audioeffect.user_effect_parameters + 8);
-	uint8_t *params = AudioCore.Audioeffect.user_effect_parameters + 8 + third_data_len + 2;
-	uint16_t data_len = *(uint16_t *)AudioCore.Audioeffect.user_effect_parameters - 8 - third_data_len - 2;
+	EffectValidParamUnit unit = AudioEffect_GetUserEffectValidParam(AudioCore.Audioeffect.user_effect_parameters);
+	uint8_t *params = unit.params_first_address;
+	uint16_t data_len = unit.data_len;
 	uint8_t len = 0;
 	while(data_len)
 	{
@@ -506,9 +506,9 @@ void AudioEffect_update_local_effect_status(uint8_t addr, uint8_t effect_enable)
 
 void AudioEffect_update_local_block_params(uint8_t addr)
 {
-	uint16_t third_data_len = *(uint16_t *)(AudioCore.Audioeffect.user_effect_parameters + 8);
-	uint8_t *params = AudioCore.Audioeffect.user_effect_parameters + 8 + third_data_len + 2;
-	uint16_t data_len = *(uint16_t *)AudioCore.Audioeffect.user_effect_parameters - 8 - third_data_len - 2;
+	EffectValidParamUnit unit = AudioEffect_GetUserEffectValidParam(AudioCore.Audioeffect.user_effect_parameters);
+	uint8_t *params = unit.params_first_address;
+	uint16_t data_len = unit.data_len;
 	uint8_t len = 0;
 	const uint8_t *p = (uint8_t *)roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, addr, 0xFF);
 //	uint8_t i = 0;
@@ -842,3 +842,21 @@ bool AudioEffect_GetFlashEffectParam(uint8_t effectMode,  uint8_t *effect_param)
 	return FALSE;
 }
 #endif
+
+//total data length  	---- 2 Bytes
+//Effect Version		---- 3 Bytes
+//Roboeffect Version  	---- 3 Bytes
+//ACPWorkbench V3.8.15以后版本导出的参数增加了3字节的Roboeffect Version + 3rd part data
+//使用的时候注意参数的版本，修改对应的偏移
+EffectValidParamUnit AudioEffect_GetUserEffectValidParam(uint8_t *effect_param)
+{
+	EffectValidParamUnit unit;
+	uint16_t third_data_len = *(uint16_t *)(effect_param + 8);
+
+	unit.params_first_address = effect_param + 8 + third_data_len + 2;
+	unit.data_len = *(uint16_t *)effect_param - 8 - third_data_len - 2;
+
+	return unit;
+}
+
+

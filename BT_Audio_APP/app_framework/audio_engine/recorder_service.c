@@ -795,16 +795,7 @@ static bool MediaRecorder_Init(MessageHandle parentMsgHandle)
 	RecorderCt->parentMsgHandle = parentMsgHandle;
 	RecorderCt->state = TaskStateCreating;
 	//para
-#if (BT_HFP_SUPPORT == 1)
-	if(GetSystemMode() == ModeBtHfPlay)
-	{
-		RecorderCt->SampleRate = CFG_BTHF_PARA_SAMPLE_RATE; //注意采样率同步，从sink1获取。
-	}
-	else
-#endif
-	{
-		RecorderCt->SampleRate = CFG_PARA_SAMPLE_RATE; //注意采样率同步，从sink1获取。
-	}
+	RecorderCt->SampleRate = AudioCoreMixSampleRateGet(DefaultNet); //注意采样率同步，从sink1获取。
 	RecorderCt->RecorderOn = FALSE;
 	RecorderCt->EncodeOn = FALSE;
 
@@ -1166,7 +1157,7 @@ bool MediaRecordHeapEnough(void)
 	/*********PCM FIFO************/
 	TotalSize += MALLOC_REAL_SIZE(MEDIA_RECORDER_FIFO_LEN);
 	/**********Encode buf****************/
-	TotalSize += MALLOC_REAL_SIZE(((CFG_PARA_SAMPLE_RATE > 32000)?(1152):(576)) * 2 * MEDIA_RECORDER_CHANNEL);
+	TotalSize += MALLOC_REAL_SIZE((((AudioCoreMixSampleRateGet(DefaultNet)) > 32000)?(1152):(576)) * 2 * MEDIA_RECORDER_CHANNEL);
 	/************Encoder**************************/
 	TotalSize += MALLOC_REAL_SIZE(sizeof(MP3EncoderContext));
 	/**************Encode out*********************/

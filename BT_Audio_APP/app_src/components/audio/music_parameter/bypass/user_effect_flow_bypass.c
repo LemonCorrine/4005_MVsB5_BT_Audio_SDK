@@ -54,7 +54,7 @@ static const roboeffect_exec_effect_info user_effects_bypass[] = {
 roboeffect_effect_list_info user_effect_list_bypass = {
     BYPASS_COUNT_ADDR - 0x81, //count      
     44100, //sample rate
-    256, //framse size
+    384, //framse size
     user_effects_bypass,
 };
 static const roboeffect_io_unit source_unit_bypass[] = {
@@ -100,7 +100,7 @@ const unsigned char user_effect_parameters_bypass_Bypass[] = {
 
 0x02, 0x26, 0x00, /*Effect Version*/
 
-0x02, 0x10, 0x02, /* Roboeffect Version*/
+0x02, 0x11, 0x02, /* Roboeffect Version*/
 
 0x01, 0x00, /*3rd part data total length  */
 0x00, /*number of 3rd part items*/

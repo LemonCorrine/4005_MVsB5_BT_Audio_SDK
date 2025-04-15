@@ -229,7 +229,7 @@ bool HdmiInPlayResMalloc(uint16_t SampleLen)
 	}
 	memset(hdmiInPlayCt, 0, sizeof(HdmiInPlayContext));
 	// Audio core config
-	hdmiInPlayCt->SampleRate = CFG_PARA_SAMPLE_RATE;
+	hdmiInPlayCt->SampleRate =  AudioCoreMixSampleRateGet(DefaultNet);
 
 	if(!HdmiInPlayResMalloc(AudioCoreFrameSizeGet(DefaultNet)))
 	{
@@ -315,7 +315,7 @@ bool HdmiInPlayResMalloc(uint16_t SampleLen)
 	AudioIOSet.Depth = AudioCoreFrameSizeGet(DefaultNet) * 2;
 	AudioIOSet.LowLevelCent = 40;
 	AudioIOSet.HighLevelCent = 60;
-	AudioIOSet.SampleRate = CFG_PARA_SAMPLE_RATE;
+	AudioIOSet.SampleRate =  AudioCoreMixSampleRateGet(DefaultNet);
 #ifdef	CFG_AUDIO_WIDTH_24BIT
 	AudioIOSet.IOBitWidth = 1;//0,16bit,1:24bit
 	AudioIOSet.IOBitWidthConvFlag = 0;//需要数据进行位宽扩展
@@ -550,7 +550,7 @@ static void HdmiARCScan(void)
 	pcm_space = MCUCircular_GetSpaceLen(&hdmiInPlayCt->hdmiPcmCircularBuf) - sizeof(PCM_DATA_TYPE) * 8;
 
 #if 1//def CFG_FUNC_MIXER_SRC_EN
-	pcm_space = (pcm_space * hdmiInPlayCt->hdmiSampleRate) / CFG_PARA_SAMPLE_RATE - sizeof(PCM_DATA_TYPE) * 8;
+	pcm_space = (pcm_space * hdmiInPlayCt->hdmiSampleRate) /  AudioCoreMixSampleRateGet(DefaultNet) - sizeof(PCM_DATA_TYPE) * 8;
 #endif
 
 	if(pcm_space < sizeof(PCM_DATA_TYPE) * 8)

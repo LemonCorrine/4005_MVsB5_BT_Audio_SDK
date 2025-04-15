@@ -433,7 +433,7 @@ bool MediaPlayInit(void)
 	AudioIOSet.Net = DefaultNet;
 	AudioIOSet.DataIOFunc = ModeDecoderPcmDataGet;
 	AudioIOSet.LenGetFunc = ModeDecoderPcmDataLenGet;
-	AudioIOSet.SampleRate = CFG_PARA_SAMPLE_RATE;//初始值
+	AudioIOSet.SampleRate = AudioCoreMixSampleRateGet(DefaultNet);//初始值
 #ifdef	CFG_AUDIO_WIDTH_24BIT
 	AudioIOSet.IOBitWidth = 0;//0,16bit,1:24bit
 	AudioIOSet.IOBitWidthConvFlag = 1;//需要数据进行位宽扩展
@@ -632,14 +632,6 @@ bool MediaPlayDeinit(void)
 	AudioCoreProcessConfig((void*)AudioNoAppProcess);
 	AudioCoreSourceDisable(sMediaPlayCt->SourceNum);
 	//AudioCoreSourceUnmute(sMediaPlayCt->SourceNum, TRUE, TRUE);
-#ifndef CFG_FUNC_MIXER_SRC_EN
-#ifdef CFG_RES_AUDIO_DACX_EN
-	AudioDAC_SampleRateChange(ALL, CFG_PARA_SAMPLE_RATE);//恢复
-#endif
-#ifdef CFG_RES_AUDIO_DAC0_EN
-	AudioDAC_SampleRateChange(DAC0, CFG_PARA_SAMPLE_RATE);//恢复
-#endif
-#endif
 //	AudioCoreSourceDeinit(REMIND_SOURCE_NUM);
 	AudioCoreSourceDeinit(sMediaPlayCt->SourceNum);
 	//Kill used services

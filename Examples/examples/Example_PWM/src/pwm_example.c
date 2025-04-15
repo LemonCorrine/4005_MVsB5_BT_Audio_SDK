@@ -624,7 +624,7 @@ int main(void)
     Clock_Module3Enable(ALL_MODULE3_CLK_SWITCH);
     Clock_SysClkSelect(PLL_CLK_MODE);
     Clock_UARTClkSelect(PLL_CLK_MODE);
-    Clock_HOSCCurrentSet(9);
+    Clock_HOSCCurrentSet(15);
 
     // BP15系列开发板启用串口，默认使用
     GPIO_PortAModeSet(GPIOA9, 1);  // Rx, A9:uart1_rxd_1

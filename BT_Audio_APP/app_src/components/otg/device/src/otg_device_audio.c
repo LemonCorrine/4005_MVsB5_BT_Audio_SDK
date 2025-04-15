@@ -277,7 +277,7 @@ void OnDeviceAudioSendIsoPacket(void)
 	{
 		RealLen = UsbAudioMic.AudioSampleRate/1000;
 	}
-	if(UsbAudioMic.FramCount < (UsbAudioMic.AudioSampleRate/CFG_PARA_SAMPLE_RATE)*10)
+	if(UsbAudioMic.FramCount < (UsbAudioMic.AudioSampleRate/AudioCoreMixSampleRateGet(DefaultNet))*10)
 	{
 		memset(iso_buf,0,RealLen*sizeof(PCM_DATA_TYPE)*channel);
 	}

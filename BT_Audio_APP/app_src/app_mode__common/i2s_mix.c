@@ -71,6 +71,8 @@ static void AudioI2sOutParamsSet(void)
 bool I2S_MixInit(void)
 {
 	AudioCoreIO	AudioIOSet;
+	uint32_t sampleRate  = AudioCoreMixSampleRateGet(DefaultNet);
+
 	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
 
 #ifdef CFG_RES_AUDIO_I2S_MIX_IN_EN
@@ -125,19 +127,17 @@ bool I2S_MixInit(void)
 
 	#if ((CFG_RES_MIX_I2S_MODE == I2S_MASTER_MODE) || !defined(CFG_FUNC_MIX_I2S_IN_SYNC_EN))
 		{//master 或者关微调
-		#if CFG_PARA_MIX_I2S_SAMPLERATE == CFG_PARA_SAMPLE_RATE
-			AudioIOSet.Adapt = STD;
-		#else
-			AudioIOSet.Adapt = SRC_ONLY;
-		#endif
+			if(CFG_PARA_MIX_I2S_SAMPLERATE == sampleRate)
+				AudioIOSet.Adapt = STD;
+			else
+				AudioIOSet.Adapt = SRC_ONLY;
 		}
 	#else
 		{//slave
-		#if CFG_PARA_MIX_I2S_SAMPLERATE == CFG_PARA_SAMPLE_RATE
-			AudioIOSet.Adapt = SRA_ONLY;//CLK_ADJUST_ONLY;//
-		#else
-			AudioIOSet.Adapt = SRC_SRA;//SRC_ADJUST;//
-		#endif
+			if(CFG_PARA_MIX_I2S_SAMPLERATE == sampleRate)
+				AudioIOSet.Adapt = SRA_ONLY;//CLK_ADJUST_ONLY;//
+			else
+				AudioIOSet.Adapt = SRC_SRA;//SRC_ADJUST;//
 		}
 	#endif
 
@@ -204,19 +204,17 @@ bool I2S_MixInit(void)
 
 		if((CFG_RES_MIX_I2S_MODE == I2S_MASTER_MODE) || !defined(CFG_FUNC_MIX_I2S_OUT_SYNC_EN))
 		{// Master 或不开微调
-	#if CFG_PARA_MIX_I2S_SAMPLERATE == CFG_PARA_SAMPLE_RATE
-			AudioIOSet.Adapt = STD;//SRC_ONLY
-	#else
-			AudioIOSet.Adapt = SRC_ONLY;
-	#endif
+			if(CFG_PARA_MIX_I2S_SAMPLERATE == sampleRate)
+				AudioIOSet.Adapt = STD;//SRC_ONLY
+			else
+				AudioIOSet.Adapt = SRC_ONLY;
 		}
 		else//slave
 		{
-	#if CFG_PARA_MIX_I2S_SAMPLERATE == CFG_PARA_SAMPLE_RATE
-			AudioIOSet.Adapt = STD;//SRA_ONLY;//CLK_ADJUST_ONLY;
-	#else
-			AudioIOSet.Adapt = SRC_ONLY;//SRC_SRA;//SRC_ADJUST;
-	#endif
+			if(CFG_PARA_MIX_I2S_SAMPLERATE == sampleRate)
+				AudioIOSet.Adapt = STD;//SRA_ONLY;//CLK_ADJUST_ONLY;
+			else
+				AudioIOSet.Adapt = SRC_ONLY;//SRC_SRA;//SRC_ADJUST;
 		}
 		AudioIOSet.Sync = TRUE;//I2S slave 时候如果master没有接，有可能会导致DAC也不出声音。
 		AudioIOSet.Channels = 2;
@@ -248,7 +246,7 @@ bool I2S_MixInit(void)
 	}
 	else//sam add,20230221
 	{
-		I2S_SampleRateSet(CFG_RES_MIX_I2S_MODULE, CFG_PARA_SAMPLE_RATE);
+		I2S_SampleRateSet(CFG_RES_MIX_I2S_MODULE, sampleRate);
 	#ifdef	CFG_AUDIO_WIDTH_24BIT
 		AudioCore.AudioSink[AUDIO_I2S_MIX_OUT_SINK_NUM].BitWidth = AudioIOSet.IOBitWidth;
 		AudioCore.AudioSink[AUDIO_I2S_MIX_OUT_SINK_NUM].BitWidthConvFlag = AudioIOSet.IOBitWidthConvFlag;

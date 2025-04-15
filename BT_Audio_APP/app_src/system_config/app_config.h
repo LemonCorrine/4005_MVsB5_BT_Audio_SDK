@@ -44,7 +44,7 @@
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(0)
 #define  CFG_SDK_MINOR_VERSION		(4)
-#define  CFG_SDK_PATCH_VERSION	    (0)
+#define  CFG_SDK_PATCH_VERSION	    (1)
 
 
 //****************************************************************************************
@@ -296,12 +296,6 @@
 	#endif
 
 #endif
-
-//****************************************************************************************
-//     音频相关配置参数
-//****************************************************************************************
-#define	CFG_PARA_SAMPLE_RATE				(44100)
-#define CFG_BTHF_PARA_SAMPLE_RATE			(16000)//蓝牙HFP模式下统一采样率为16K
 
 //****************************************************************************************
 //     转采样功能选择
@@ -557,14 +551,9 @@
 //#define CFG_FUNC_CAN_DEMO_EN
 
 //AI_DENOISE demo,IDE需要使用V323或者以后的版本,需要专用芯片
+//开启AI_DENOISE，资源有限建议关掉BT模式，提示音等功能
 //下面宏定义采用脚本控制，必须单独一行，不要在该行后面添加注释
 //#define CFG_AI_DENOISE_EN
-#ifdef CFG_AI_DENOISE_EN
-	#undef 	CFG_APP_BT_MODE_EN			//资源有限，不支持BT
-	#undef 	CFG_PARA_SAMPLE_RATE		//重新定义 采样率32K
-	#define	CFG_PARA_SAMPLE_RATE		(32000)
-	#undef 	CFG_FUNC_REMIND_SOUND_EN	//不支持提示音
-#endif
 
 #include "sys_gpio.h"
 #include "power_config.h"

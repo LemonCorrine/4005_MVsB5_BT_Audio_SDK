@@ -170,6 +170,8 @@ void PauseAuidoCore(void)
 
 bool AudioEffectInit()
 {
+	uint16_t i;
+
 	if(AudioCore.Audioeffect.effect_addr)
 	{
 		AudioEffect_update_local_effect_status(AudioCore.Audioeffect.effect_addr, AudioCore.Audioeffect.effect_enable);
@@ -201,7 +203,12 @@ bool AudioEffectInit()
 			para->user_effect_list->frame_size = AudioCore.Audioeffect.audioeffect_frame_size;
 			DBG("audioeffect_default_frame_size: %lu\n",AudioCore.Audioeffect.audioeffect_frame_size);
 		}
-		para->user_effect_list->sample_rate = AudioCoreMixSampleRateGet(DefaultNet);
+
+		for(i = 0; i < MaxNet; i++)
+		{
+			AudioCoreMixSampleRateSet(i, para->user_effect_list->sample_rate);//默认系统采样率
+		}
+		//para->user_effect_list->sample_rate = AudioCoreMixSampleRateGet(DefaultNet);
 
 #ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
 		AudioCore.Audioeffect.EffectFlashUseFlag = FALSE;
@@ -381,18 +388,16 @@ void AudioI2sOutParamsSet(void)
 bool ModeCommonInit(void)
 {
 	AudioCoreIO AudioIOSet;
-	uint16_t FifoLenStereo,i;
-
-	for(i = 0; i < MaxNet; i++)
-	{
-		AudioCoreMixSampleRateSet(i, CFG_PARA_SAMPLE_RATE);//默认系统采样率
-	}
-	APP_DBG("Systerm SampleRate: %d\n", (uint16_t)AudioCoreMixSampleRateGet(DefaultNet));
+	uint16_t FifoLenStereo;
+	uint32_t sampleRate;
 
 	if(!AudioEffectInit())
 	{
 		DBG("!!!audioeffect init must be earlier than sink init!!!.\n");
 	}
+	sampleRate  = AudioCoreMixSampleRateGet(DefaultNet);
+	APP_DBG("Systerm SampleRate: %d\n", sampleRate);
+
 	AudioEffect_GetAudioEffectMaxValue();
 
 	FifoLenStereo = AudioCoreFrameSizeGet(DefaultNet) * sizeof(PCM_DATA_TYPE) * 2 * 2;//立体声8倍大小于帧长，单位byte
@@ -439,7 +444,7 @@ bool ModeCommonInit(void)
 	#else
 		BitWidth = 16;
 	#endif
-		AudioDAC_Init(&DACDefaultParamCt,mainAppCt.SampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
+		AudioDAC_Init(&DACDefaultParamCt,sampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
 
 	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 		Clock_AudioMclkSel(AUDIO_DAC0, gCtrlVars.HwCt.DAC0Ct.dac_mclk_source);
@@ -449,7 +454,7 @@ bool ModeCommonInit(void)
 	}
 	else//sam add,20230221
 	{
-		AudioDAC0_SampleRateChange(CFG_PARA_SAMPLE_RATE);
+		AudioDAC0_SampleRateChange(sampleRate);
 		gCtrlVars.HwCt.DAC0Ct.dac_mclk_source = Clock_AudioMclkGet(AUDIO_DAC0);
 	#ifdef	CFG_AUDIO_WIDTH_24BIT
 		AudioCore.AudioSink[AUDIO_DAC0_SINK_NUM].BitWidth = AudioIOSet.IOBitWidth;
@@ -485,9 +490,9 @@ bool ModeCommonInit(void)
 
 		//Mic1   digital
 	#ifdef CFG_AUDIO_WIDTH_24BIT
-		AudioADC_DigitalInit(ADC1_MODULE, mainAppCt.SampleRate,ADC_WIDTH_24BITS,(void*)mainAppCt.ADCFIFO, FifoLenStereo);
+		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_24BITS,(void*)mainAppCt.ADCFIFO, FifoLenStereo);
 	#else
-		AudioADC_DigitalInit(ADC1_MODULE, mainAppCt.SampleRate,ADC_WIDTH_16BITS,(void*)mainAppCt.ADCFIFO, FifoLenStereo);
+		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_16BITS,(void*)mainAppCt.ADCFIFO, FifoLenStereo);
 	#endif
 
 	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
@@ -526,8 +531,8 @@ bool ModeCommonInit(void)
 	if(!AudioCoreSourceIsInit(REMIND_SOURCE_NUM))
 	{
 		memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
-		AudioIOSet.Adapt = STD;//SRC_ONLY;
-		AudioIOSet.SampleRate = CFG_PARA_SAMPLE_RATE;//初始值
+		AudioIOSet.Adapt = SRC_ONLY;
+		AudioIOSet.SampleRate = sampleRate;//初始值
 		AudioIOSet.Sync = FALSE;
 		AudioIOSet.Channels = 1;
 		AudioIOSet.Net = DefaultNet;
@@ -573,17 +578,15 @@ bool ModeCommonInit(void)
 
 #if((CFG_RES_I2S_MODE == I2S_MASTER_MODE) || !defined(CFG_FUNC_I2S_IN_SYNC_EN))
 		// Master 或不开微调
-	#if CFG_PARA_I2S_SAMPLERATE == CFG_PARA_SAMPLE_RATE
+		if(CFG_PARA_I2S_SAMPLERATE == sampleRate)
 			AudioIOSet.Adapt = STD;//SRC_ONLY
-	#else
+		else
 			AudioIOSet.Adapt = SRC_ONLY;
-	#endif
 #else//slave
-	#if CFG_PARA_I2S_SAMPLERATE == CFG_PARA_SAMPLE_RATE
+		if(CFG_PARA_I2S_SAMPLERATE == sampleRate)
 			AudioIOSet.Adapt = STD;//SRA_ONLY;//CLK_ADJUST_ONLY;
-	#else
+		else
 			AudioIOSet.Adapt = SRC_ONLY;//SRC_SRA;//SRC_ADJUST;
-	#endif
 #endif
 		AudioIOSet.Sync = TRUE;//I2S slave 时候如果master没有接，有可能会导致DAC也不出声音。
 		AudioIOSet.Channels = 2;
@@ -615,7 +618,7 @@ bool ModeCommonInit(void)
 	}
 	else//sam add,20230221
 	{
-		I2S_SampleRateSet(CFG_RES_I2S_MODULE, CFG_PARA_SAMPLE_RATE);
+		I2S_SampleRateSet(CFG_RES_I2S_MODULE, sampleRate);
 	#ifdef	CFG_AUDIO_WIDTH_24BIT
 		AudioCore.AudioSink[AUDIO_I2SOUT_SINK_NUM].BitWidth = AudioIOSet.IOBitWidth;
 		AudioCore.AudioSink[AUDIO_I2SOUT_SINK_NUM].BitWidthConvFlag = AudioIOSet.IOBitWidthConvFlag;
@@ -656,7 +659,7 @@ bool ModeCommonInit(void)
 		AudioIOSet.Net = DefaultNet;
 		AudioIOSet.HighLevelCent = 60;
 		AudioIOSet.LowLevelCent = 40;
-		AudioIOSet.SampleRate = CFG_PARA_SAMPLE_RATE;//根据实际外设选择
+		AudioIOSet.SampleRate = sampleRate;//根据实际外设选择
 
 		AudioIOSet.DataIOFunc = AudioSpdifTXDataSet;
 		AudioIOSet.LenGetFunc = AudioSpdifTXDataSpaceLenGet;
@@ -674,7 +677,7 @@ bool ModeCommonInit(void)
 	}
 	else//sam add,20230221
 	{
-		SPDIF_SampleRateSet(SPDIF_OUT_NUM,CFG_PARA_SAMPLE_RATE);
+		SPDIF_SampleRateSet(SPDIF_OUT_NUM,sampleRate);
 	#ifdef	CFG_AUDIO_WIDTH_24BIT
 		AudioCore.AudioSink[AUDIO_SPDIF_SINK_NUM].BitWidth = AudioIOSet.IOBitWidth;
 		AudioCore.AudioSink[AUDIO_SPDIF_SINK_NUM].BitWidthConvFlag = AudioIOSet.IOBitWidthConvFlag;
@@ -795,16 +798,20 @@ void ModeCommonDeinit(void)
 	AudioCore.Audioeffect.context_memory = NULL;
 }
 
-bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
+bool AudioIoCommonForHfp(uint16_t gain)
 {
 	AudioCoreIO AudioIOSet;
 	uint16_t FifoLenStereo;
 //	uint16_t FifoLenMono = SampleLen * 2 * 2;//单声到4倍大小于帧长，单位byte
+	uint32_t sampleRate;
 
 	if(!AudioEffectInit())
 	{
 		DBG("!!!audioeffect init must be earlier than sink init!!!.\n");
 	}
+	sampleRate = AudioCoreMixSampleRateGet(DefaultNet);
+	APP_DBG("Systerm HFP SampleRate: %d\n", sampleRate);
+
 	FifoLenStereo = AudioCoreFrameSizeGet(DefaultNet) * 2 * 2 * 2;//立体声8倍大小于帧长，单位byte
 
 	DefaultParamgsInit();	//refresh local hardware config params(just storage not set)
@@ -896,7 +903,7 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 		memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
 
 		AudioIOSet.Adapt = SRC_ONLY;
-		AudioIOSet.SampleRate = CFG_PARA_SAMPLE_RATE;//初始值
+		AudioIOSet.SampleRate = sampleRate;//初始值
 		AudioIOSet.Sync = FALSE;
 		AudioIOSet.Channels = 1;
 		AudioIOSet.Net = DefaultNet;
@@ -1007,17 +1014,15 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 
 #if((CFG_RES_I2S_MODE == I2S_MASTER_MODE) || !defined(CFG_FUNC_I2S_IN_SYNC_EN))
 		// Master 或不开微调
-	#if CFG_PARA_I2S_SAMPLERATE == CFG_BTHF_PARA_SAMPLE_RATE
+		if(CFG_PARA_I2S_SAMPLERATE == sampleRate)
 			AudioIOSet.Adapt = STD;//SRC_ONLY
-	#else
+		else
 			AudioIOSet.Adapt = SRC_ONLY;
-	#endif
 #else//slave
-	#if CFG_PARA_I2S_SAMPLERATE == CFG_BTHF_PARA_SAMPLE_RATE
+		if(CFG_PARA_I2S_SAMPLERATE == sampleRate)
 			AudioIOSet.Adapt = SRA_ONLY;//CLK_ADJUST_ONLY;
-	#else
+		else
 			AudioIOSet.Adapt = SRC_SRA;//SRC_ADJUST;
-	#endif
 #endif
 		AudioIOSet.Sync = TRUE;//I2S slave 时候如果master没有接，有可能会导致DAC也不出声音。
 		AudioIOSet.Channels = 2;
@@ -1025,7 +1030,6 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 		AudioIOSet.HighLevelCent = 60;
 		AudioIOSet.LowLevelCent = 40;
 		AudioIOSet.SampleRate = CFG_PARA_I2S_SAMPLERATE;//根据实际外设选择
-//		AudioIOSet.CoreSampleRate = CFG_BTHF_PARA_SAMPLE_RATE;
 		if(CFG_RES_I2S_MODULE == 0)
 		{
 			AudioIOSet.DataIOFunc = AudioI2S0_DataSet;
@@ -1111,6 +1115,7 @@ bool AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 		}
 #endif
 
+#ifndef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
 #ifdef CFG_RES_I2S_MODULE
 		extern void RST_I2SModule(I2S_MODULE I2SModuleIndex);
 		RST_I2SModule(CFG_RES_I2S_MODULE);
@@ -1137,6 +1142,7 @@ bool AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 		DMA_ChannelDisable(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX_I2S_MODULE);
 		DMA_CircularFIFOClear(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX_I2S_MODULE);
 		DMA_ChannelEnable(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX_I2S_MODULE);
+#endif
 #endif
 #endif
 
@@ -1539,8 +1545,10 @@ void CommonMsgProccess(uint16_t Msg)
 
 			AUDIOEFFECT_EFFECT_PARA *mpara = get_user_effect_parameters(mainAppCt.EffectMode);
 
-			DBG("EFFECT_MODE: %s\n", mpara->user_effect_name);
-			if (roboeffect_estimate_frame_size(mpara->user_effect_list, mpara->user_effect_parameters) == AudioCoreFrameSizeGet(DefaultNet))
+			DBG("EFFECT_MODE: %s %d\n", mpara->user_effect_name,mpara->user_effect_list->sample_rate);
+			if (roboeffect_estimate_frame_size(mpara->user_effect_list, mpara->user_effect_parameters) == AudioCoreFrameSizeGet(DefaultNet)
+			   && mpara->user_effect_list->sample_rate == AudioCoreMixSampleRateGet(DefaultNet)
+			)	//不涉及修改帧长 采样率
 			{
 				if(!AudioEffectModeSel(mainAppCt.EffectMode, 2))//sel: 0=init hw, 1=effect, 2=hw + effect
 				{
@@ -1577,6 +1585,7 @@ void CommonMsgProccess(uint16_t Msg)
 					}
 				}
 				SoftFlagDeregister(SoftFlagAudioCoreSourceIsDeInit);
+				AudioCodecGainUpdata();//update hardware config
 				AudioCoreServiceResume();
 				mpara->user_effect_list->frame_size = defaultFrameSize;
 			}

@@ -140,6 +140,7 @@ bool I2SInPlayResMalloc(uint16_t SampleLen)
 bool I2SInPlayResInit(void)
 {
 	I2SParamCt i2s_set;
+	uint32_t sampleRate  = AudioCoreMixSampleRateGet(DefaultNet);
 
 	sI2SInPlayCt->SampleRate = CFG_PARA_I2S_SAMPLERATE;//根据实际外设选择
 	//Core Source1 para
@@ -210,19 +211,17 @@ bool I2SInPlayResInit(void)
 
 #if ((CFG_RES_I2S_MODE == I2S_MASTER_MODE) || !defined(CFG_FUNC_I2S_IN_SYNC_EN))
 	{//master 或者关微调
-	#if CFG_PARA_I2S_SAMPLERATE == CFG_PARA_SAMPLE_RATE
-		AudioIOSet.Adapt = STD;
-	#else
-		AudioIOSet.Adapt = SRC_ONLY;
-	#endif
+		if(CFG_PARA_I2S_SAMPLERATE == sampleRate)
+			AudioIOSet.Adapt = STD;
+		else
+			AudioIOSet.Adapt = SRC_ONLY;
 	}
 #else
 	{//slave
-	#if CFG_PARA_I2S_SAMPLERATE == CFG_PARA_SAMPLE_RATE
-		AudioIOSet.Adapt = STD;//SRA_ONLY;//CLK_ADJUST_ONLY;//
-	#else
-		AudioIOSet.Adapt = SRC_SRA;//SRC_ADJUST;//
-	#endif
+		if(CFG_PARA_I2S_SAMPLERATE == sampleRate)
+			AudioIOSet.Adapt = STD;//SRA_ONLY;//CLK_ADJUST_ONLY;//
+		else
+			AudioIOSet.Adapt = SRC_SRA;//SRC_ADJUST;//
 	}
 #endif
 

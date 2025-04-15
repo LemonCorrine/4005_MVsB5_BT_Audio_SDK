@@ -5,9 +5,12 @@
 #include "debug.h"
 #include "dac_interface.h"
 #ifdef CFG_APP_CONFIG
-#include "app_config.h"
+	#include "app_config.h"
+	#include "ctrlvars.h"
+	#define DAC_DOUT_MODE				gCtrlVars.HwCt.DAC0Ct.dac_out_mode
 #else
-#define	SYS_AUDIO_CLK_SELECT		APLL_CLK_MODE
+	#define	SYS_AUDIO_CLK_SELECT		APLL_CLK_MODE
+	#define DAC_DOUT_MODE				MODE0
 #endif
 
 static uint8_t DAC_BitWidth = 24;
@@ -41,12 +44,12 @@ void AudioDAC_Init(DACParamCt *ct, uint32_t SampleRate, uint16_t BitWidth, void 
 	AudioDAC_ZeroNumSet(DAC0, 7);
     if(BitWidth == 16)
     {
-        AudioDAC_DoutModeSet(DAC0, MODE0, WIDTH_16_BIT); // WIDTH_24_BIT_1, WIDTH_24_BIT_2, WIDTH_16_BIT
+        AudioDAC_DoutModeSet(DAC0, DAC_DOUT_MODE, WIDTH_16_BIT); // WIDTH_24_BIT_1, WIDTH_24_BIT_2, WIDTH_16_BIT
         DAC_BitWidth = 16;
     }
     else if(BitWidth == 24)
     {
-        AudioDAC_DoutModeSet(DAC0, MODE0, WIDTH_24_BIT_2);
+        AudioDAC_DoutModeSet(DAC0, DAC_DOUT_MODE, WIDTH_24_BIT_2);
         DAC_BitWidth = 24;
     }
     if(BufEXT != NULL)

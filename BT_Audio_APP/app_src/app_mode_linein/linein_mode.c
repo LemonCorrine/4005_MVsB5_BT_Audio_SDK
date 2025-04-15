@@ -152,7 +152,7 @@ void LineinADCDigitalInit(void)
 		BitWidth = ADC_WIDTH_24BITS;
 #endif
 
-	AudioADC_DigitalInit(ADC0_MODULE, CFG_PARA_SAMPLE_RATE,BitWidth, (void*)sLineInPlayCt->ADCFIFO, sLineInPlayCt->ADCFIFO_len);
+	AudioADC_DigitalInit(ADC0_MODULE, AudioCoreMixSampleRateGet(DefaultNet),BitWidth, (void*)sLineInPlayCt->ADCFIFO, sLineInPlayCt->ADCFIFO_len);
 
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 	Clock_AudioMclkSel(AUDIO_ADC0, gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source);
@@ -365,7 +365,7 @@ bool LineInMixPlayInit(void)
 	AudioCoreSourceEnable(LINEIN_MIX_SOURCE_NUM);
 	AudioAnaChannelSet(LINEIN_INPUT_CHANNEL);
 
-	AudioADC_DigitalInit(ADC0_MODULE, CFG_PARA_SAMPLE_RATE, AudioIOSet.IOBitWidth,(void*)sLineInPlayCt->ADCFIFO, sLineInPlayCt->ADCFIFO_len);
+	AudioADC_DigitalInit(ADC0_MODULE, AudioCoreMixSampleRateGet(DefaultNet), AudioIOSet.IOBitWidth,(void*)sLineInPlayCt->ADCFIFO, sLineInPlayCt->ADCFIFO_len);
 
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 	Clock_AudioMclkSel(AUDIO_ADC0, gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source);
