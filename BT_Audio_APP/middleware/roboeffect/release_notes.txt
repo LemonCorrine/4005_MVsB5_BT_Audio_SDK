@@ -25,6 +25,27 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 联系山景的技术工程人员，谢谢！
 
 ------------------------------------------------------------------------------------------------
+date: 2024_03_29：v2.17.2
+1. 更新third_party_effects_data_gen.exe，更改第三方音效合并的音效库信息文件名规则：
+roboeffect_library_info_v2.17.2.bin --> roboeffect_library_info_v2.17.2_3rdparty.bin
+位于"3rdparty"的位置可由用户任意修改后，直接放入ACPWorkbench的目录roboeffect_library_info_set，可以被工具识别。
+支持此功能的上位机版本为：ACPWorkbench_V3.9.6。
+
+------------------------------------------------------------------------------------------------
+date: 2024_03_29：v2.17.1
+1. 音效库数据中补全EQ，DRC缺失的信息。
+2. 修复音效库信息文件 roboeffect_library_info_v2.XX.XX.bin 生成错误的bug。
+3. 更新third_party_effects_data_gen.exe，修改由第三方音效合并的音效库信息文件名，变化如下：
+roboeffect_library_info_v2.17.1.bin --> roboeffect_library_info_3rdparty_v2.17.1.bin
+位于"3rdparty"的位置可由用户任意修改后，直接放入ACPWorkbench的目录roboeffect_library_info_set，可以被工具识别。
+支持此功能的上位机版本为：ACPWorkbench_V3.9.6。
+
+------------------------------------------------------------------------------------------------
+date: 2024_03_25：v2.17.0
+1. 增加phase_inverter音效，支持 0° or 180° 的相位控制。
+
+
+------------------------------------------------------------------------------------------------
 date: 2024_03_06：v2.16.2
 1. 修复某些内存足够的情况下，roboeffect_get_error_code()误报内存不足的bug。
 
