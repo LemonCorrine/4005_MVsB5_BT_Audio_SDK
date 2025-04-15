@@ -88,6 +88,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/lrc/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/rtos/rtos_api}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/rtos/freertos/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/third_party_effect/ai_denoise}&quot;"/>
 								</option>
 								<option id="nds.c.compiler.option.debugging.level.315162434" name="Debug Level" superClass="nds.c.compiler.option.debugging.level" value="nds.c.debugging.level.max" valueType="enumerated"/>
 								<option id="nds.c.compiler.option.misc.other.1628901459" name="Other flags" superClass="nds.c.compiler.option.misc.other" value="-c -fmessage-length=0 -ldsp -mext-dsp -std=gnu99" valueType="string"/>
@@ -137,6 +138,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/flashfs}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/lrc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/fatfs}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/third_party_effect/ai_denoise}&quot;"/>
 								</option>
 								<option defaultValue="-O0" id="nds.c.link.option.optimization.level.1768301097" name="Optimization Level" superClass="nds.c.link.option.optimization.level" value="-Os1" valueType="string"/>
 								<option defaultValue="true" id="nds32le-elf-mculib-v3s.c.link.option.noshared.base.94131748" name="No shared libraries (-static)" superClass="nds32le-elf-mculib-v3s.c.link.option.noshared.base" valueType="boolean"/>
@@ -184,7 +186,7 @@
 			<resource resourceType="PROJECT" workspacePath="/BT_Audio_APP"/>
 		</configuration>
 		<configuration configurationName="Debug">
-			<resource resourceType="PROJECT" workspacePath="/AudioPlay_4B5"/>
+			<resource resourceType="PROJECT" workspacePath="/BT_Audio_APP"/>
 		</configuration>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
