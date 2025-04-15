@@ -24,6 +24,20 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 注意：在工程文件中，所有源文件的位置、文件名请不要轻易改动，任何疑问请及时
 联系山景的技术工程人员，谢谢！
 
+------------------------------------------------------------------------------------------------
+date: 2024_02_02：v2.15.0
+1. 音效库升级到2.37.0，reverb_pro音效增加24bit，当erfactor和delay参数修改时，需改变reverb_pro的内存用量大小。
+2. 新增roboeffect_estimate_frame_size()接口，方便在引擎初始化前得到flow chart的适用帧长。
+3. 新增roboeffect_get_effect_memory_size_runtime()接口，用于在运行期获得某个音效的内存使用量。
+请注意，从这个版本开始，改变音效的某个参数，会发生内存使用量的变化；内存使用量获取分以下两种情况：
+A. 调用roboeffect_init()之前，使用roboeffect_get_effect_memory_size()获得某个音效的内存占用，按调音文件中的固定参数计算。
+B. 调用roboeffect_init()之后，使用roboeffect_get_effect_memory_size_runtime()获得某个音效的内存占用，按运行期当前参数计算。
+4. 基于以上的改动，roboeffect_enable_effect()函数按runtime的方式评估内存用量，如内存不足，按ROBOEFFECT_INSUFFICIENT_MEMORY返回。
+
+------------------------------------------------------------------------------------------------
+date: 2024_01_23：v2.14.1
+1. 修复echo，pingpong音效对delay参数上限设置错误的问题。
+2. 修复roboeffect_user_defined_get_info接口误报错误的bug。
 
 ------------------------------------------------------------------------------------------------
 date: 2024_01_16：v2.14.0
