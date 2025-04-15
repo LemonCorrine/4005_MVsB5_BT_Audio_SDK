@@ -27,6 +27,11 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2018, All rights reserved.
 
 版本历史：（采用倒序排列，最新版置顶）
 
+*2023-12-08  【1.0.5  build @ Dec  8 2023 09:34:25】
+size：10,992  bytes
+更新内容：
+	1、在最新SVN版本上添加void RTC_LoadCurrAlarm(ALARM_TIME_INFO *pAlarmList); API需要传递参数
+	2、去除BACKUP中一些接口的调用
 ------------------------------
 
 *2019-11-22  【1.0.4  build @ Nov 22 2019 20:18:20】

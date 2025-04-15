@@ -27,6 +27,19 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 
 版本历史：（采用倒序排列，最新版置顶）
 
+2023-12-7【15_0.2.4 build @ Dec  7 2023 15:19:57】
+size:2,280,476 bytes
+1、解决华为手机鸿蒙系统，呼入电话，创建SCO链路异常问题
+2、更新蓝牙lib库增加BLE地址单独配置
+
+2023-12-6【15_0.2.3 build @ Dec  6 2023 17:30:02】
+size:2,246,322 bytes
+1、解决华为手机鸿蒙系统，通话杂音问题
+
+2023-11-29【15_0.2.2 build @ Nov 29 2023 09:29:18】
+size:2,247,982 bytes
+1、更新蓝牙参数
+
 2023-11-22【v15_0.2.1】
 1、将BT/BLE/MDM的中断优先级配置为最高 0
 2、设置memory为xmem3;
