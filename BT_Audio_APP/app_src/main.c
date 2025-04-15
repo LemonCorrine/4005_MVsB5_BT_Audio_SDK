@@ -41,8 +41,6 @@
 
 #include "bt_em_config.h"
 
-//#define USE_DCDC
-
 //-----------------globle timer----------------------//
 volatile uint32_t gInsertEventDelayActTimer = 2500; // ms
 volatile uint32_t gChangeModeTimeOutTimer = CHANGE_MODE_TIMEOUT_COUNT;
@@ -142,6 +140,14 @@ void Timer6Interrupt(void)
 
 void SystemClockInit(void)
 {
+#ifdef USB_CRYSTA_FREE_EN
+	Clock_USBCrystaFreeSet(240000);
+	Clock_SysClkSelect(PLL_CLK_MODE);
+	//Note: USB和UART时钟配置DPLL和APLL必须是同一个时钟,但是UART可以单独选择RC
+	Clock_USBClkSelect(PLL_CLK_MODE);
+	Clock_UARTClkSelect(PLL_CLK_MODE);
+	Clock_SpdifClkSelect(PLL_CLK_MODE);
+#else
 	Clock_Config(1, 24000000);
 	Clock_PllLock(240000);
 	Clock_APllLock(240000);//蓝牙使用APLL 240M
@@ -151,9 +157,9 @@ void SystemClockInit(void)
 	//Note: USB和UART时钟配置DPLL和APLL必须是同一个时钟,但是UART可以单独选择RC
 	Clock_USBClkSelect(APLL_CLK_MODE);
 	Clock_UARTClkSelect(APLL_CLK_MODE);
-	
-	Clock_SpdifClkSelect(APLL_CLK_MODE);
 
+	Clock_SpdifClkSelect(APLL_CLK_MODE);
+#endif
 	//模块时钟使能配置
 	Clock_Module1Enable(ALL_MODULE1_CLK_SWITCH);
 	Clock_Module2Enable(ALL_MODULE2_CLK_SWITCH);
@@ -257,9 +263,9 @@ int main(void)
 	//Chip_Init(1);
 	WDG_Enable(WDG_STEP_4S);
 //	WDG_Disable();
-	
+#ifndef USB_CRYSTA_FREE_EN
 	Clock_HOSCCurrentSet(31);//initial set 31, after clock start set to 5
-
+#endif
 //#if FLASH_BOOT_EN
 //	RstFlag = Reset_FlagGet_Flash_Boot();
 //#else
@@ -273,9 +279,10 @@ int main(void)
 	//Power_DeepSleepLDO12Config(1);//Power_LDO12Config(1250);	//使用320M主频时需要提升到1.25v，使用288M则可以屏蔽掉这行 //ZSQ
 
 	SystemClockInit();
+#ifndef USB_CRYSTA_FREE_EN
 	Clock_HOSCCurrentSet(9);
-
-#ifdef USE_DCDC
+#endif
+#ifdef CHIP_USE_DCDC
 //	ldo_switch_to_dcdc(7); // //3-1.9V;7-1.8;12-1.7V;18-1.6V;27-1.5V;39-1.4V;57-1.3V 18:Default:1.6V //max power
 	ldo_switch_to_dcdc(12);
 #else

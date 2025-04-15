@@ -476,7 +476,7 @@ static uint32_t BtRemoteDeviceConnecting_SinglePhone(uint8_t *addr)
 		}
 		else 
 		{
-			return BT_CON_SLAVE;
+			return BT_CON_MASTER;//BT_CON_SLAVE;
 		}
 	}
 }

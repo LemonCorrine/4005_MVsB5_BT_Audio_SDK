@@ -203,7 +203,9 @@ void Roboeffect_SourceGain_Update(uint8_t Index);
 
 void Roboeffect_SinkGain_Update(uint8_t Index);
 
-void roboeffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t *param_input);
+void roboeffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t *param_input, uint8_t param_len);
+
+void roboeffect_update_local_block_params(uint8_t addr);
 
 uint8_t AudioCoreSourceToRoboeffect(int8_t source);
 
@@ -215,3 +217,27 @@ extern uint32_t get_user_effects_script_len_mic(void);
 extern uint32_t get_user_effects_script_len_music(void);
 extern uint32_t get_user_effects_script_len_hfp(void);
 extern uint32_t get_user_effects_script_len_Karaoke(void);
+
+extern const unsigned char user_effect_parameters_hfp_hfp[];
+extern const unsigned char user_module_parameters_hfp_hfp[];
+
+extern const unsigned char user_effect_parameters_mic_mic[];
+extern const unsigned char user_module_parameters_mic_mic[];
+
+extern const unsigned char user_effect_parameters_music_music[];
+extern const unsigned char user_module_parameters_music_music[];
+
+extern const unsigned char user_effect_parameters_Karaoke_HunXiang[];
+extern const unsigned char user_module_parameters_Karaoke_HunXiang[];
+extern const unsigned char user_effect_parameters_Karaoke_DianYin[];
+extern const unsigned char user_module_parameters_Karaoke_DianYin[];
+extern const unsigned char user_effect_parameters_Karaoke_MoYin[];
+extern const unsigned char user_module_parameters_Karaoke_MoYin[];
+extern const unsigned char user_effect_parameters_Karaoke_HanMai[];
+extern const unsigned char user_module_parameters_Karaoke_HanMai[];
+extern const unsigned char user_effect_parameters_Karaoke_NanBianNv[];
+extern const unsigned char user_module_parameters_Karaoke_NanBianNv[];
+extern const unsigned char user_effect_parameters_Karaoke_NvBianNan[];
+extern const unsigned char user_module_parameters_Karaoke_NvBianNan[];
+extern const unsigned char user_effect_parameters_Karaoke_WaWaYin[];
+extern const unsigned char user_module_parameters_Karaoke_WaWaYin[];

@@ -62,6 +62,12 @@ typedef enum _POWERKEY_SWITCH_MODE
 	SOFT_MODE = 1
 }POWERKEY_SWITCH_MODE;
 
+typedef enum _POWER_LONG_RESET_MODE
+{
+	LONGR_RST_MODE_TIMEOUT_KEYUP = 0,
+	LONGR_RST_MODE_TIMEOUT = 1
+}POWER_LONG_RESET_MODE;
+
 typedef enum _HARD_TRIGGER_MODE
 {
 	LEVEL_TRIGGER = 0,
@@ -99,6 +105,15 @@ typedef enum _POWERKEY_VTH_TUNNING
 	VTH_0V8,
 	VTH_2V4
 }POWERKEY_VTH_TUNNING;
+
+
+typedef enum _C0_POWERUP_MODE
+{
+	C0PU_MODE_LEVEL = 0,
+	C0PU_MODE_EDGE_RISING = 1,
+	C0PU_MODE_EDGE_FALLING = 2,
+	C0PU_MODE_EDGE_BOTH = 3
+}C0_POWERUP_MODE;
 
 /* Define --------------------------------------------------------------------*/
 #define		PMU_GPIO_C0_REG_START						(0x40024168)
@@ -295,6 +310,12 @@ uint8_t PMU_PowerKeyNoiseFilterMaxCntGet(void);
 void PMU_PowerKeyLongOrShortPressInterruptSet(POWERKEY_INT_SEL mode_set);
 POWERKEY_INT_SEL PMU_PowerKeyLongOrShortPressInterruptGet(void);
 
+void PMU_PowerLongResetModeSet(POWER_LONG_RESET_MODE PowerLongResetMode);
+POWER_LONG_RESET_MODE PMU_PowerLongResetModeGet(void);
+
+void PMU_GpioC0PowerupModeSet(C0_POWERUP_MODE powerup_mode);
+C0_POWERUP_MODE PMU_GpioC0PowerupModeGet(void);
+
 /**
  * @brief  PMU restore config for wakeup
  * @param  void
@@ -311,6 +332,7 @@ void PMU_WakeupRestoreConfig();
  */
 void PMU_DeepSleepConfig();
 
+bool PMU_FristPowerOnFlagGet(void);
 
 #ifdef __cplusplus
 }

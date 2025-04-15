@@ -57,16 +57,6 @@ void BtHf_ScoDataSet(void *InBuf,uint16_t InLen);
 uint16_t BtHf_ScoDataLenGet(void);
 uint16_t BtHf_ScoDataSpaceLenGet(void);
 
-//AEC»º´æ
-void BtHf_AECEffectInit(void);
-bool BtHf_AECInit(void);
-void BtHf_AECDeinit(void);
-uint32_t BtHf_AECRingDataSet(void *InBuf, uint16_t InLen);
-uint32_t BtHf_AECRingDataGet(void* OutBuf, uint16_t OutLen);
-int32_t BtHf_AECRingDataSpaceLenGet(void);
-int32_t BtHf_AECRingDataLenGet(void);
-int16_t *BtHf_AecInBuf(void);
-
 
 #endif /*__BT_HF_API_H__*/
 

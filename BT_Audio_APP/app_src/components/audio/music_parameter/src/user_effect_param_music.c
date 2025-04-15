@@ -14,7 +14,7 @@
 const unsigned char user_effect_parameters_music_music[] = {
 0x61, 0x03, /*total data length*/
 
-0x02, 0x20, 0x00, /*Effect Version*/
+0x02, 0x21, 0x00, /*Effect Version*/
 
 0x81, /*mic_eq0*/
 0x69,/*length*/

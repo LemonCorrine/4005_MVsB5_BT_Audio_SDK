@@ -38,8 +38,8 @@ char TagBuf[32];//max = 32
 uint8_t lenTag;
 uint8_t  tx_buf[256]     = {0xa5, 0x5a, 0x00, 0x00,};
 
-char AudioLibVer[] = AUDIO_EFFECT_LIBRARY_VERSION;
-char RoboeffectLibVer[] = ROBOEFFECT_LIB_VER;
+const char AudioLibVer[] = AUDIO_EFFECT_LIBRARY_VERSION;
+const char RoboeffectLibVer[] = ROBOEFFECT_LIB_VER;
 
 extern uint8_t  hid_tx_buf[];
 extern uint32_t SysemMipsPercent;
@@ -131,17 +131,25 @@ bool roboeffect_effect_update_params_entrance(uint8_t addr, uint8_t *buf, uint32
         if(buf[0] == 0xff)//all parameters
         {
 			int16_t enable = buf[1];//[1] is enable/disable
-			int16_t *params = (int16_t *)&buf[3];//[3] is parameters beginning
+			uint8_t *params = (uint8_t *)&buf[3];//[3] is parameters beginning
 
 			uint8_t *effectParams = AudioCore.Roboeffect.user_effect_parameters + 5;
 			uint16_t data_len = *(uint16_t *)AudioCore.Roboeffect.user_effect_parameters - 5;
 			uint8_t len = 0;
+
 			while(data_len)
 			{
 				if(*effectParams == addr)
 				{
-					effectParams += 2;
+					effectParams ++;
+					len = *effectParams;
+					effectParams++;
 					*effectParams = enable;
+					effectParams++;
+					if(len > 1)
+					{
+						memcpy(effectParams, params, len - 1);
+					}
 					break;
 				}
 				else
@@ -151,7 +159,7 @@ bool roboeffect_effect_update_params_entrance(uint8_t addr, uint8_t *buf, uint32
 					effectParams += (len + 1);
 					data_len -= (len + 1);
 				}
-			};
+			}
 			if( addr == AudioCore.Roboeffect.effect_count)
 			{
                 AudioCore.Roboeffect.effect_addr = addr;
@@ -161,8 +169,8 @@ bool roboeffect_effect_update_params_entrance(uint8_t addr, uint8_t *buf, uint32
 				MessageSend(GetMainMessageHandle(), &msgSend);
 			}
 
-            roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, addr, 0xff, params);
-            roboeffect_enable_effect(AudioCore.Roboeffect.context_memory, addr, enable);
+//            roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, addr, 0xff, params);
+//            roboeffect_enable_effect(AudioCore.Roboeffect.context_memory, addr, enable);
         }
         else//one parameter
         {
@@ -170,11 +178,9 @@ bool roboeffect_effect_update_params_entrance(uint8_t addr, uint8_t *buf, uint32
             {
 				int16_t enable = buf[1];//[1] is enable/disable
 
-                roboeffect_enable_effect(AudioCore.Roboeffect.context_memory, addr, enable);
+//                roboeffect_enable_effect(AudioCore.Roboeffect.context_memory, addr, enable);
                 AudioCore.Roboeffect.effect_addr = addr;
                 AudioCore.Roboeffect.effect_enable = enable;
-//                local_effect_list.frame_size = roboeffect_get_suit_frame_size(
-//                								AudioCore.Roboeffect.context_memory, addr, local_effect_list.frame_size);
 
                 MessageContext msgSend;
                 msgSend.msgId = MSG_EFFECTREINIT;
@@ -189,7 +195,14 @@ bool roboeffect_effect_update_params_entrance(uint8_t addr, uint8_t *buf, uint32
                 {
                 	roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, addr, index, params);
 
-                	roboeffect_update_local_params(addr, index, params);
+                	if(len == 3)
+                	{
+                		roboeffect_update_local_params(addr, index, params, len);
+                	}
+                	else
+                	{
+                		roboeffect_update_local_block_params(addr);
+                	}
                 }
             }
         }
@@ -225,8 +238,8 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 
 		temp[8] = 0x01;//graph count
 
-		*(uint16_t *)&temp[9] = user_effect_list_music.frame_size;
-		*(uint16_t *)&temp[11] = comm_ret_sample_rate_enum(user_effect_list_music.sample_rate);
+		*(uint16_t *)&temp[9] = AudioCoreFrameSizeGet(DefaultNet);
+		*(uint16_t *)&temp[11] = comm_ret_sample_rate_enum(AudioCoreMixSampleRateGet(DefaultNet));
 		
 		temp[13] = 0x01;//EOM
 		temp[14] = 0x16;
@@ -347,11 +360,7 @@ void Communication_Effect_0x00(void)
 	tx_buf[1]  = 0x5a;
 	tx_buf[2]  = 0x00;
 	tx_buf[3]  = 0x0A;
-#ifdef CFG_FUNC_MIC_KARAOKE_EN
-	tx_buf[4]  = 0x33;//30=B1X Audio;31=B1X Karaoke;32=B5 Audio;33=B5 Karaoke
-#else
-	tx_buf[4]  = 0x32;//30=B1X Audio;31=B1X Karaoke;32=B5 Audio;33=B5 Karaoke
-#endif
+	tx_buf[4]  = 0x42;//41=B1; 42=B5
 
 	tx_buf[5]  = CFG_SDK_MAJOR_VERSION;
 	tx_buf[6]  = CFG_SDK_MINOR_VERSION;

@@ -37,7 +37,6 @@
 #include "audio_core_service.h"
 #include "powercontroller.h"
 #include "deepsleep.h"
-#include "backup_interface.h"
 #include "breakpoint.h"
 #include "decoder.h"
 #include "remind_sound_item.h"
@@ -725,9 +724,6 @@ bool RadioPlayDeinit(void)
 	}
 	if(IsAudioPlayerMute() == FALSE)
 	{
-#ifdef CFG_FUNC_PCM_FIND_ZERO_EN
-		SetFindPCMZeroStart();
-#endif
 		HardWareMuteOrUnMute();
 	}
 	

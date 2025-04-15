@@ -52,7 +52,4 @@ extern roboeffect_effect_list_info user_effect_list_hfp;
 
 extern const roboeffect_effect_steps_table user_effect_steps_hfp;
 
-extern const unsigned char user_effect_parameters_hfp_hfp[];
-
-extern const unsigned char user_module_parameters_hfp_hfp[];
 #endif/*__USER_EFFECT_FLOW_HFP_H__*/

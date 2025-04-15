@@ -11,8 +11,13 @@
 
 void AudioI2S_Init(I2S_MODULE Module, I2SParamCt *ct)
 {
+#ifdef USB_CRYSTA_FREE_EN
+	Clock_AudioPllClockSet(PLL_CLK_MODE, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
+	Clock_AudioPllClockSet(PLL_CLK_MODE, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ);
+#else
 	Clock_AudioPllClockSet(APLL_CLK_MODE, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
 	Clock_AudioPllClockSet(APLL_CLK_MODE, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ);
+#endif
 
 	//tx
 	if(ct->I2sTxRxEnable & 0x1)

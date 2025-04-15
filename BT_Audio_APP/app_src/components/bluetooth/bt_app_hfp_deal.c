@@ -568,10 +568,10 @@ void BtHfpCallSetupNone(BT_HFP_CALLBACK_PARAMS * param)
 			btManager.HfpCurIndex = 0xff;				
 			break;
 		case BT_HFP_STATE_ACTIVE:
-			if(!GetScoConnectFlag())
+			//if(!GetScoConnectFlag())
 			{
 				SetHfpState(param->index, BT_HFP_STATE_CONNECTED);
-				BtHfModeExit();
+				//BtHfModeExit();
 			}
 			break;
 		case BT_HFP_STATE_3WAY_ATCTIVE_CALL:

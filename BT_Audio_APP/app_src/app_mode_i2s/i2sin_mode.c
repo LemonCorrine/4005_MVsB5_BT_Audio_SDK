@@ -33,7 +33,6 @@
 #include "audio_effect.h"
 #include "powercontroller.h"
 #include "deepsleep.h"
-#include "backup_interface.h"
 #include "breakpoint.h"
 #include "audio_vol.h"
 #include "i2s.h"
@@ -324,9 +323,6 @@ bool I2SInPlayDeinit(void)
 	APP_DBG("I2SIn Play deinit\n");
 	if(IsAudioPlayerMute() == FALSE)
 	{
-#ifdef CFG_FUNC_PCM_FIND_ZERO_EN
-		SetFindPCMZeroStart();
-#endif
 		HardWareMuteOrUnMute();
 	}	
 	//Kill used services

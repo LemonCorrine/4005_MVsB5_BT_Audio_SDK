@@ -1,6 +1,5 @@
 #include <string.h>
 #include "main_task.h"
-#include "backup_interface.h"
 #include "remind_sound.h"
 #include "audio_effect.h"
 #include "powercontroller.h"
@@ -15,7 +14,7 @@
 #include "bt_manager.h"
 #include "bt_stack_service.h"
 #include "audio_core_service.h"
-
+#include "pmu_powerkey.h"
 
 #define MAIN_APP_TASK_SLEEP_PRIO		6 //进入deepsleep 需要相对其他task最高优先级。
 
@@ -29,10 +28,8 @@
 #endif
 
 extern bool ModeCommonInit(void);
-extern bool SystemPowerKeyIdleModeInit(uint32_t Mode, uint16_t CountTime);
-extern bool SystemPowerKeyIdleModeWakeUpDetect(void);
-
 extern void SystemTimerInit(void);
+
 #if defined(CFG_APP_IDLE_MODE_EN)&&defined(CFG_FUNC_REMIND_SOUND_EN)
 extern volatile uint32_t gIdleRemindSoundTimeOutTimer;
 #endif
@@ -57,183 +54,6 @@ static struct
 
 	SysModeNumber	SavePrevMode;
 }IdleMode;
-
-
-#ifdef	CFG_IDLE_MODE_POWER_KEY
-
-#define USE_POWERKEY_MSG_SP 	MSG_POWERDOWN
-
-#if	POWERKEY_MODE == POWERKEY_MODE_PUSH_BUTTON
-	#define 	POWER_KEY_JITTER_TIME		100			//消抖时间，该时间和软开关开关机硬件时间有关
-	#define 	POWER_KEY_CP_TIME			1000
-
-	typedef enum _POWER_KEY_STATE
-	{
-		POWER_KEY_STATE_IDLE,
-		POWER_KEY_STATE_JITTER,
-		POWER_KEY_STATE_PRESS_DOWN,
-		POWER_KEY_STATE_CP,
-	} POWER_KEY_STATE;
-
-
-	TIMER			PowerKeyWaitTimer;
-	POWER_KEY_STATE	PowerKeyState = POWER_KEY_STATE_IDLE;
-
-	void PowerPushButtonKeyInit(void)
-	{
-		PowerKeyState = POWER_KEY_STATE_IDLE;
-		TimeOutSet(&PowerKeyWaitTimer, 0);
-	}
-	
-	uint16_t GetPowerPushButtonKey(void)
-	{
-		uint16_t Msg = MSG_NONE;
-		
-		switch(PowerKeyState)
-		{
-			case POWER_KEY_STATE_IDLE:
-				//powerkey按键唤醒以后 需要等待powerkey按键释放
-				if(IdleMode.PowerKeyWakeUpCheckFlag)
-				{
-					if(BACKUP_PowerKeyPinStateGet())
-					{	
-						IdleMode.PowerKeyWakeUpCheckFlag = FALSE;
-					}				
-					break;
-				}
-				if(!BACKUP_PowerKeyPinStateGet())
-				{	
-					TimeOutSet(&PowerKeyWaitTimer, POWER_KEY_JITTER_TIME);
-					PowerKeyState = POWER_KEY_STATE_JITTER;
-				}
-				break;
-			case POWER_KEY_STATE_JITTER:
-				if(BACKUP_PowerKeyPinStateGet())
-				{
-					PowerKeyState = POWER_KEY_STATE_IDLE;
-				}
-				else if(IsTimeOut(&PowerKeyWaitTimer))
-				{
-					PowerKeyState = POWER_KEY_STATE_PRESS_DOWN;
-					TimeOutSet(&PowerKeyWaitTimer, POWER_KEY_CP_TIME);
-				}
-				break;
-				
-			case POWER_KEY_STATE_PRESS_DOWN:
-				if(BACKUP_PowerKeyPinStateGet())
-				{
-					PowerKeyState = POWER_KEY_STATE_IDLE;
-					#ifdef USE_POWERKEY_PUSH_BUTTON_MSG_SP
-						Msg = USE_POWERKEY_PUSH_BUTTON_MSG_SP;
-					#else
-						Msg = USE_POWERKEY_MSG_SP;
-					#endif
-				}
-				else if(IsTimeOut(&PowerKeyWaitTimer))
-				{
-					PowerKeyState = POWER_KEY_STATE_CP;
-					Msg = USE_POWERKEY_MSG_SP;
-				}
-				break;
-				
-			case POWER_KEY_STATE_CP:
-				//此处仅保证一次按键不会响应多次短按
-				if(BACKUP_PowerKeyPinStateGet())
-				{
-					PowerKeyState = POWER_KEY_STATE_IDLE;
-				}
-				else
-				{
-					//do no thing
-				}
-				break;
-				
-			default:
-				PowerKeyState = POWER_KEY_STATE_IDLE;
-				break;
-		}
-		return Msg;
-	}
-#else
-	#define POWER_KEY_JITTER_CNT		50
-	#define POWER_KEY_WAIT_RELEASE		0xffff
-	static uint32_t CntTimer = POWER_KEY_JITTER_CNT;
-
-	void PowerKeySlideSwitchInit(void)
-	{
-		CntTimer = POWER_KEY_JITTER_CNT;
-	}
-	
-	uint16_t GetPowerKeySlideSwitch(void)
-	{
-		uint16_t Msg = MSG_NONE;
-		
-		if(SystemPowerKeyDetect())
-		{
-			if(CntTimer > 0 && CntTimer != POWER_KEY_WAIT_RELEASE)
-				CntTimer--;
-			if(CntTimer == 0)
-			{
-				CntTimer = POWER_KEY_WAIT_RELEASE;
-				Msg = USE_POWERKEY_MSG_SP;
-			}
-		}
-		else
-		{
-			CntTimer = POWER_KEY_JITTER_CNT;
-		}
-		return Msg;
-	}
-#endif
-#endif
-
-#ifdef CFG_IDLE_MODE_DEEP_SLEEP
-	void DeepSleepKeyInit(void)
-	{
-
-	}
-
-	uint16_t GetDeepSleepKey(void)
-	{
-		return MSG_NONE;
-	}
-#endif
-
-void EnterIdleModeScanInit(void)
-{
-#ifdef	CFG_IDLE_MODE_POWER_KEY
-#if	POWERKEY_MODE == POWERKEY_MODE_PUSH_BUTTON
-		PowerPushButtonKeyInit();
-#else
-		PowerKeySlideSwitchInit();
-#endif
-#endif
-	
-#ifdef CFG_IDLE_MODE_DEEP_SLEEP
-		DeepSleepKeyInit();
-#endif
-}
-
-uint16_t GetEnterIdleModeScanKey(void)
-{
-	uint16_t Msg = MSG_NONE;
-#ifdef	CFG_IDLE_MODE_POWER_KEY
-#if	POWERKEY_MODE == POWERKEY_MODE_PUSH_BUTTON
-	Msg = GetPowerPushButtonKey();
-#else
-	Msg = GetPowerKeySlideSwitch();	
-#endif
-#endif
-	
-#ifdef CFG_IDLE_MODE_DEEP_SLEEP
-	if(Msg == MSG_NONE)
-	{
-		Msg = GetDeepSleepKey();
-	}
-#endif
-
-	return Msg;
-}
 
 void PowerOnRemindSound(void)
 {
@@ -280,43 +100,14 @@ bool GetPowerRemindSoundPlayEnd(void)
 #endif
 	return FALSE;
 }
-#ifdef	CFG_IDLE_MODE_POWER_KEY
-void PowerKeyModeInit(void)
-{
-	RTC_IntDisable();//默认关闭RTC中断
-	RTC_IntFlagClear();
-#ifdef CFG_CHIP_BP1064L2
-	Backup_Clock(BACKUP_CLK_32K_OSC);
-#else
-	Backup_Clock(BACKUP_CLK_32K_RC32);//BACKUP默认使用片内RC32K;RTC功能需要高精度RTC(外部24M晶体),若用到power key功能，则rtc功能不建议使用!!!!
-#endif
-#if zsq
-	while(!BACKUP_IsOscClkToggle());	//wait backup clk ready.
-#endif
-#if	POWERKEY_MODE != POWERKEY_MODE_PUSH_BUTTON
-	IdleMode.PowerKeyWakeUpCheckFlag = SystemPowerKeyIdleModeInit(POWERKEY_MODE, POWERKEY_CNT);
-#else
-	IdleMode.PowerKeyWakeUpCheckFlag = SystemPowerKeyIdleModeInit(POWERKEY_MODE, 200);
-#endif
-	PowerKeyModeGet();
-}
-#endif
 
 void IdleModeConfig(void)
 {
-#ifdef	CFG_IDLE_MODE_POWER_KEY
-	PowerKeyModeInit();
-#endif
-
-
-#ifdef CFG_IDLE_MODE_DEEP_SLEEP
-
-#endif
-
-	EnterIdleModeScanInit();
-
 	IdleMode.AutoPowerOnState	= NEED_POWER_ON;
-	
+
+//	PMU_PowerKey8SResetSet();
+	SystemPowerKeyIdleModeInit();
+
 #ifdef  CFG_FUNC_REMIND_SOUND_EN
 	IdleMode.RemindSoundFlag 	= FALSE;
 	IdleMode.DeepSleepFlag = FALSE;
@@ -372,9 +163,6 @@ bool IdleModeDeinit(void)
 
 	if(IsAudioPlayerMute() == FALSE)
 	{
-#ifdef CFG_FUNC_PCM_FIND_ZERO_EN
-		SetFindPCMZeroStart();
-#endif
 		HardWareMuteOrUnMute();
 	}	
 	
@@ -388,7 +176,9 @@ bool IdleModeDeinit(void)
 #ifdef CFG_IDLE_MODE_DEEP_SLEEP
 	SoftFlagDeregister(SoftFlagIdleModeEnterSleep);
 #endif	
-
+#ifdef CFG_SOFT_POWER_KEY_EN
+	SoftFlagDeregister(SoftFlagIdleModeEnterSoftPower);
+#endif
 #ifdef CFG_APP_BT_MODE_EN
 	if(sys_parameter.bt_BackgroundType != BT_BACKGROUND_DISABLE)
 	{
@@ -418,15 +208,6 @@ void SendQuitIdleModeMsg(void)
 
 void IdleModeRun(uint16_t msgId)
 {
-#if	defined(CFG_IDLE_MODE_POWER_KEY) && (POWERKEY_MODE != POWERKEY_MODE_PUSH_BUTTON)
-	if(IdleMode.PowerKeyWakeUpCheckFlag)
-	{	
-		PowerKeyModeInit();
-		SystemPowerKeyIdleModeWakeUpDetect();
-		IdleMode.PowerKeyWakeUpCheckFlag = FALSE;
-	}
-#endif	
-	
 #ifdef CFG_IDLE_MODE_POWER_KEY
 	if(SoftFlagGet(SoftFlagIdleModeEnterPowerDown)
 #ifdef	CFG_FUNC_REMIND_SOUND_EN
@@ -434,31 +215,26 @@ void IdleModeRun(uint16_t msgId)
 #endif
 	 )
 	{
-	#if (POWERKEY_MODE == POWERKEY_MODE_PUSH_BUTTON)
-		if(TRUE == BACKUP_PowerKeyPinStateGet()) 
-		{
-			SoftFlagDeregister(SoftFlagIdleModeEnterPowerDown);
-			PowerKeyModeInit();
-			ADC_PowerkeyChannelDisable();
-			BACKUP_SystemPowerDown();
-			while(1);
-		}			
-	#else
 		SoftFlagDeregister(SoftFlagIdleModeEnterPowerDown);
-		if(TRUE == SystemPowerKeyDetect())
-		{
-			PowerKeyModeInit();
-#if zsq
-			BACKUP_SystemPowerDown();
+#if (POWERKEY_MODE == POWERKEY_MODE_PUSH_BUTTON)
+		if(1)
+#elif (POWERKEY_MODE == POWERKEY_MODE_SLIDE_SWITCH_LPD)
+		if(!PMU_PowerKeyPinStateGet())
+#elif (POWERKEY_MODE == POWERKEY_MODE_SLIDE_SWITCH_HPD)
+		if(PMU_PowerKeyPinStateGet())
+#else
+		if(0)
 #endif
-			while(1);
+		{
+			SystemPowerDown();
 		}
 		else
 		{
-			//不满足powerkey条件 直接开机
+			PMU_PowerKeyStateClear();
+			PMU_PowerKeyShortPressStateClear();
+			PMU_PowerKeyLongPressStateClear();
 			IdleMode.AutoPowerOnState = NEED_POWER_ON;
 		}
-	#endif				
 	}
 #endif	
 
@@ -483,7 +259,7 @@ void IdleModeRun(uint16_t msgId)
 			//bb reset
 			RF_PowerDownBySw();
 			WDG_Feed();
-			rwip_reset();
+//			rwip_reset();
 			BT_IntDisable();
 			WDG_Feed();
 			//Kill bt stack service
@@ -530,6 +306,19 @@ void IdleModeRun(uint16_t msgId)
 	}
 #endif	
 
+#ifdef CFG_SOFT_POWER_KEY_EN
+	if(SoftFlagGet(SoftFlagIdleModeEnterSoftPower)
+#ifdef	CFG_FUNC_REMIND_SOUND_EN
+		&& (!GetPowerRemindSoundPlayEnd())
+#endif
+	)
+	{
+		extern void SoftKeyPowerOff(void);
+		SoftFlagDeregister(SoftFlagIdleModeEnterSoftPower);
+		SoftKeyPowerOff();
+		IdleMode.AutoPowerOnState = POWER_ON_IDLE;
+	}
+#endif
 	switch(IdleMode.AutoPowerOnState)
 	{
 		case NEED_POWER_ON:
@@ -556,6 +345,9 @@ void IdleModeRun(uint16_t msgId)
 		case MSG_POWER:
 		case MSG_POWERDOWN:
 		case MSG_DEEPSLEEP:
+#ifdef CFG_SOFT_POWER_KEY_EN
+		case MSG_SOFT_POWER:
+#endif
 #ifdef CFG_IDLE_MODE_POWER_KEY
 			if(SoftFlagGet(SoftFlagIdleModeEnterPowerDown)
 #ifdef	CFG_FUNC_REMIND_SOUND_EN

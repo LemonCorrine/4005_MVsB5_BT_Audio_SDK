@@ -415,6 +415,21 @@ void Clock_PllFreeRun(uint32_t PllFreq, uint32_t K1, uint32_t OS, uint32_t NDAC,
  * @return  TRUE, 配置成功
  */
 bool Clock_PllFreeRunEfuse(void);
+
+/**
+ * @brief	DPLL USB免晶体时钟功能配置
+ * @param	目标 DPLL 时钟频率
+ * @return  无
+ */
+void Clock_USBCrystaFreeSet(uint32_t target_freq);
+
+/**
+ * @brief	USB免晶体时钟校准处理
+ * @param	无
+ * @return  校准状态
+ */
+uint8_t Clock_USBCrystaFreeAdjustProcess(void);
+
 /**
  * @brief	pll模块关闭
  * @param	无

@@ -46,15 +46,6 @@
 ***********************************************************************************/
 
 #define MAX_PACKAGE_NAME_LEN		16
-
-typedef struct _FlashTablePackageHeader
-{
-	uint8_t header[4];
-	uint32_t len;
-	uint32_t num;
-	uint16_t crc;
-}FlashTablePackageHeader;
-
 //°ü³¤¶È32
 #define ONE_PAGEAGE_LEN				32	
 typedef struct _FlashTablePackage

@@ -14,8 +14,14 @@ static AUDIO_BitWidth ADC1_BitWidth = ADC_WIDTH_24BITS;
 void AudioADC_DigitalInit(ADC_MODULE Module, uint32_t SampleRate, void* Buf, uint16_t Len,AUDIO_BitWidth BitWidth)
 {
 	//音频时钟使能，其他模块可能也会开启
+#ifdef USB_CRYSTA_FREE_EN
+	Clock_AudioPllClockSet(PLL_CLK_MODE, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
+	Clock_AudioPllClockSet(PLL_CLK_MODE, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ);
+#else
 	Clock_AudioPllClockSet(APLL_CLK_MODE, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
 	Clock_AudioPllClockSet(APLL_CLK_MODE, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ);
+#endif
+
 
 	if(Module == ADC0_MODULE)
     {

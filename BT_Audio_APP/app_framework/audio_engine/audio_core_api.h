@@ -23,9 +23,7 @@ enum
 {
 	MIC_SOURCE_NUM,			//麦克风通路
 	APP_SOURCE_NUM,			//app主要音源通道,配music音效
-#ifdef CFG_FUNC_REMIND_SOUND_EN
 	REMIND_SOURCE_NUM,	 	//提示音使用固定混音通道 无音效
-#endif
 #ifdef BT_TWS_SUPPORT
 	TWS_SOURCE_NUM,
 #endif
@@ -45,9 +43,6 @@ enum
 #endif
 #if	(defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE)) || defined(CFG_APP_USB_AUDIO_MODE_EN)
 	AUDIO_APP_SINK_NUM,
-#endif
-#ifdef CFG_RES_AUDIO_DACX_EN
-	AUDIO_DACX_SINK_NUM,		//dacx通道
 #endif
 #if defined(CFG_RES_AUDIO_I2SOUT_EN)
 	AUDIO_STEREO_SINK_NUM,      //模式无关Dac0之外的 立体声输出

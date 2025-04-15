@@ -33,7 +33,6 @@
 #include "audio_effect.h"
 #include "powercontroller.h"
 #include "deepsleep.h"
-#include "backup_interface.h"
 #include "resampler_polyphase.h"
 #include "mcu_circular_buf.h"
 #include "breakpoint.h"
@@ -506,9 +505,6 @@ bool SpdifPlayDeinit(void)
 
 	if(IsAudioPlayerMute() == FALSE)
 	{
-#ifdef CFG_FUNC_PCM_FIND_ZERO_EN
-		SetFindPCMZeroStart();
-#endif
 		HardWareMuteOrUnMute();
 	}
 	AudioCoreSourceAdjust(SPDIF_SOURCE_NUM, FALSE);

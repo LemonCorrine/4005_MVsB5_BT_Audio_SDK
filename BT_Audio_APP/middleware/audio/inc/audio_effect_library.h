@@ -77,7 +77,7 @@
 #include "motor_wrap.h"
 
 // audio effect library version
-#define AUDIO_EFFECT_LIBRARY_VERSION "2.32.0"
+#define AUDIO_EFFECT_LIBRARY_VERSION "2.33.0"
 
 // audio effect versions (Info below is for convenience only. In case of any contradiction, the version info in the respective file header shall prevail.)
 #define EFFECT_VERSION_ADPCM_CODEC                  "2.0.1"
@@ -129,7 +129,7 @@
 #define EFFECT_VERSION_VIRTUAL_BASS_TD              "4.1.6"
 #define EFFECT_VERSION_VIRTUAL_BASS_CLASSIC         "3.17.0"
 #define EFFECT_VERSION_VIRTUAL_SURROUND             "1.1.1"
-#define EFFECT_VERSION_VOCAL_REMOVER                "1.3.2"
+#define EFFECT_VERSION_VOCAL_REMOVER                "1.4.0"
 #define EFFECT_VERSION_VOICE_CHANGER                "1.6.3"
 #define EFFECT_VERSION_VOICE_CHANGER_PRO            "2.5.0"
 

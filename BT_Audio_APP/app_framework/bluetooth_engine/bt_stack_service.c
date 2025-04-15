@@ -1149,8 +1149,8 @@ void BBErrorReport(uint8_t mode, uint32_t errorType)
  **********************************************************************************/
 void BT_IntDisable(void)
 {
-	NVIC_DisableIRQ(18);//BT_Interrupt =18
-	NVIC_DisableIRQ(19);//BLE_Interrupt =19
+	NVIC_DisableIRQ(BT_IRQn);
+	NVIC_DisableIRQ(BLE_IRQn);
 }
 
 /***********************************************************************************

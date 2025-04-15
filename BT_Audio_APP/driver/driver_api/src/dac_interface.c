@@ -11,10 +11,15 @@ static uint8_t DAC_BitWidth = 24;
 
 void AudioDAC_Init(uint32_t SampleRate, uint16_t BitWidth, void *Buf, uint16_t Len,  void *BufEXT, uint16_t LenEXT)
 {
+#ifdef USB_CRYSTA_FREE_EN
+	//CLK select
+	Clock_AudioPllClockSet(PLL_CLK_MODE, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
+	Clock_AudioPllClockSet(PLL_CLK_MODE, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ);
+#else
 	//CLK select
 	Clock_AudioPllClockSet(APLL_CLK_MODE, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
 	Clock_AudioPllClockSet(APLL_CLK_MODE, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ);
-
+#endif
 	if(IsSelectMclkClk1(SampleRate))
 	{
 		Clock_AudioMclkSel(AUDIO_DAC0, PLL_CLOCK1);

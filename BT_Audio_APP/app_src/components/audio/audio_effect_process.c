@@ -25,47 +25,6 @@ extern uint8_t AudioCoreSinkToRoboeffect(int8_t sink);
 extern uint32_t music_eq_mode_unit;
 #endif
 
-#ifdef CFG_FUNC_PCM_FIND_ZERO_EN
-volatile int16_t gPcmZeroValue = 1;
-volatile uint16_t gPcmZeroCounActionPoint = 0;
-static uint32_t sPcm0Flag = 0;
-static uint32_t gAudioPcmData0Count = 0;
-extern uint32_t get_remind_state(void);
-extern void SetAudioCorePause(void);
-extern void Reset_Remind_Buffer(void);
-extern volatile uint32_t gFindPcmZeroFlag;
-
-void PCM_Data_TO_0_Judge(int16_t PcmData0,int16_t PcmData1)
-{
-	if((PcmData0 < gPcmZeroValue && PcmData0 > -gPcmZeroValue)||
-		(PcmData1 < gPcmZeroValue && PcmData1 > -gPcmZeroValue))
-	{
-		if(gFindPcmZeroFlag)
-		{
-			gAudioPcmData0Count++;
-			if(gAudioPcmData0Count > gPcmZeroCounActionPoint)
-			{
-				printf("PCM 0 PROCESS = %d \n",gPcmZeroCounActionPoint);
-				SetAudioCorePause();
-#ifdef CFG_FUNC_REMIND_SOUND_EN
-				if(get_remind_state() == 2)
-				{
-					Reset_Remind_Buffer();//need clear audio source input
-				}
-#endif
-				gAudioPcmData0Count =  0;
-				sPcm0Flag = 1;
-			}
-		}
-	}
-	else
-	{
-		//if(gAudioPcmData0Count)
-			gAudioPcmData0Count = 0;
-	}
-}
-#endif
-
 #ifdef CFG_FUNC_AUDIO_EFFECT_EN
 
 __attribute__((optimize("Og")))
@@ -78,24 +37,14 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
 	PCM_DATA_TYPE *usb_out	= NULL;
 #endif
-#ifdef CFG_FUNC_REMIND_SOUND_EN
-	if(!pAudioCore->AudioSource[REMIND_SOURCE_NUM].Active)
+
+	for(s = 0; s < AUDIO_CORE_SOURCE_MAX_NUM; s++)
 	{
-		memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(REMIND_SOURCE_NUM)),
-								0, n * sizeof(PCM_DATA_TYPE) * 2);
-	}
-#else
-	memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, MUSIC_SOURCE_REMIND_SOURCE), 0, n * sizeof(PCM_DATA_TYPE) * 2);
-#endif
-	if(!pAudioCore->AudioSource[MIC_SOURCE_NUM].Active)
-	{
-		memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(MIC_SOURCE_NUM)),
-								0, n * sizeof(PCM_DATA_TYPE) * 2);
-	}
-	if(!pAudioCore->AudioSource[APP_SOURCE_NUM].Active)
-	{
-		memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(APP_SOURCE_NUM)),
-								0, n * sizeof(PCM_DATA_TYPE) * 2);
+		if(!pAudioCore->AudioSource[s].Active)
+		{
+			memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(s)),
+									0, n * sizeof(PCM_DATA_TYPE) * 2);
+		}
 	}
 
 #ifdef CFG_RES_AUDIO_DAC0_EN
@@ -160,7 +109,6 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 //#define BTHF_AUDIOEFFECT_BYPASS  //目的:便于调试,直接进行通路数据的搬运,不应用V3音效流程
 void AudioEffectProcessBTHF(AudioCoreContext *pAudioCore)
 {
-//	int16_t  s;
 	uint16_t n = AudioCoreFrameSizeGet(AudioCore.CurrentMix);
 
 #ifdef BTHF_AUDIOEFFECT_BYPASS
@@ -205,6 +153,7 @@ void AudioEffectProcessBTHF(AudioCoreContext *pAudioCore)
 #endif
 
 #ifdef BTHF_AUDIOEFFECT_BYPASS //audio effect bypass
+	int16_t  s;
 	for(s = n-1; s >= 0; s--)
 	{
 		hf_dac_out[s*2 + 0] = hf_pcm_in[s];
@@ -245,24 +194,13 @@ void AudioBypassProcess(AudioCoreContext *pAudioCore)
 	PCM_DATA_TYPE *i2s_out      = NULL;//pBuf->i2s0_out;
 #endif
 
-#ifdef CFG_FUNC_REMIND_SOUND_EN
-	if(!pAudioCore->AudioSource[REMIND_SOURCE_NUM].Active)
+	for(s = 0; s < AUDIO_CORE_SOURCE_MAX_NUM; s++)
 	{
-		memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(REMIND_SOURCE_NUM)),
-								0, n * sizeof(PCM_DATA_TYPE) * 2);
-	}
-#else
-	memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, MUSIC_SOURCE_REMIND_SOURCE), 0, n * sizeof(PCM_DATA_TYPE) * 2);
-#endif
-	if(!pAudioCore->AudioSource[MIC_SOURCE_NUM].Active)
-	{
-		memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(MIC_SOURCE_NUM)),
-								0, n * sizeof(PCM_DATA_TYPE) * 2);
-	}
-	if(!pAudioCore->AudioSource[APP_SOURCE_NUM].Active)
-	{
-		memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(APP_SOURCE_NUM)),
-								0, n * sizeof(PCM_DATA_TYPE) * 2);
+		if(!pAudioCore->AudioSource[s].Active)
+		{
+			memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(s)),
+									0, n * sizeof(PCM_DATA_TYPE) * 2);
+		}
 	}
 
 #ifdef CFG_RES_AUDIO_DAC0_EN
@@ -284,7 +222,9 @@ void AudioBypassProcess(AudioCoreContext *pAudioCore)
 	}
 #endif
 
+#ifdef CFG_FUNC_REMIND_SOUND_EN
 	remind_in = pAudioCore->AudioSource[REMIND_SOURCE_NUM].PcmInBuf;
+#endif
 	music_pcm = pAudioCore->AudioSource[APP_SOURCE_NUM].PcmInBuf;
 	mic_pcm = pAudioCore->AudioSource[MIC_SOURCE_NUM].PcmInBuf;
 
@@ -298,6 +238,7 @@ void AudioBypassProcess(AudioCoreContext *pAudioCore)
 //			AudioCoreAppSourceVolApply(MIC_SOURCE_NUM, (int16_t *)mic_pcm, n, 2);
 	}
 
+#ifdef CFG_FUNC_REMIND_SOUND_EN
 	if(pAudioCore->AudioSource[REMIND_SOURCE_NUM].Active)
 	{
 		for(s = 0; s < n; s++)
@@ -307,6 +248,7 @@ void AudioBypassProcess(AudioCoreContext *pAudioCore)
 		}
 	}
 	else
+#endif
 	{
 		for(s = 0; s < n; s++)
 		{

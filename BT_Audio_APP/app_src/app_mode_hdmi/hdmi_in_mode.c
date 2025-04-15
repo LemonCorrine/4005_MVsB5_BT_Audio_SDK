@@ -38,7 +38,6 @@
 #include "hdmi_in_Mode.h"
 #include "powercontroller.h"
 #include "deepsleep.h"
-#include "backup_interface.h"
 #include "breakpoint.h"
 #include "ctrlvars.h"
 #include "recorder_service.h"
@@ -619,9 +618,6 @@ bool HdmiInPlayDeinit(void)
 
 	if(IsAudioPlayerMute() == FALSE)
 	{
-#ifdef CFG_FUNC_PCM_FIND_ZERO_EN
-		SetFindPCMZeroStart();
-#endif
 		HardWareMuteOrUnMute();
 	}
 

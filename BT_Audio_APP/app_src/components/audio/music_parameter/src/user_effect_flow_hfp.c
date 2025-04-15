@@ -68,7 +68,7 @@ roboeffect_effect_list_info user_effect_list_hfp = {
     48000, //sample rate
     256, //framse size
     user_effects_hfp,
-    NULL,
+//    NULL,
 };
 static const roboeffect_io_unit source_unit_hfp[] = {
     {HFP_SOURCE_MIC_SOURCE          ,  0 , BITS_16         , CH_MONO}, //{source, mem, bit_width, ch}

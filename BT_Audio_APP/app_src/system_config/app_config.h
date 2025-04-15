@@ -14,7 +14,7 @@
 #define __APP_CONFIG_H__
 
 #include "type.h"
-
+#include "chip_config.h"
 
 //************************************************************************************************************
 //    本系统默认开启2个系统全局宏，在IDE工程配置(Build Settings-Compiler-Symbols)，此处用于提醒
@@ -33,22 +33,6 @@
 //24bit SDK RAM开销会大幅度增加
 #define  CFG_AUDIO_WIDTH_24BIT
 
-
-//****************************************************************************************
-//       芯片型号选择配置
-// 应用开发时，一定要选对型号,防止上位机显示的mic和linein输入和硬件接口不一致
-//****************************************************************************************
-//#define  CFG_CHIP_B5X128
-//#define  CFG_CHIP_BP1524A1
-//#define  CFG_CHIP_BP1524A2
-//#define  CFG_CHIP_BP1564A1
-//#define  CFG_CHIP_BP1564A2
-//#define CFG_CHIP_BP1532A2
-//#define CFG_CHIP_AP1524A1
-#define CFG_CHIP_BP1532B1
-
-#define CFG_CHIP_RAM_SIZE		(256*1024)
-
 /**音频SDK版本号：V1.0.0**/
 /*0xB5：芯片B15X，01：大版本号， 00：小版本号， 00：用户修订号（由用户设定，可结合补丁号）；
  *实际存储字节序：1A 01 00 00 ，略区别于sdk版本*/
@@ -57,7 +41,7 @@
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(0)
 #define  CFG_SDK_MINOR_VERSION		(2)
-#define  CFG_SDK_PATCH_VERSION	    (3)
+#define  CFG_SDK_PATCH_VERSION	    (4)
 
 
 //****************************************************************************************
@@ -74,20 +58,14 @@
 #define	CFG_APP_OPTICAL_MODE_EN	// SPDIF 光纤模式
 #define CFG_APP_COAXIAL_MODE_EN	// SPDIF 同轴模式
 
-#ifdef CFG_CHIP_AP1524A1
-#undef CFG_APP_BT_MODE_EN
+#ifdef CHIP_BT_DISABLE
+	#undef CFG_APP_BT_MODE_EN
 #endif
 
 #define CFG_FUNC_OPEN_SLOW_DEVICE_TASK
 
-//aux 2 B0/B1
-//aux 1 B2/B3
 #ifdef CFG_APP_LINEIN_MODE_EN
-#if defined(CFG_CHIP_BP1524A1) || defined(CFG_CHIP_BP1524A2) || defined(CFG_CHIP_BP1532A2) || defined(CFG_CHIP_AP1524A1) || defined(CFG_CHIP_BP1532B1)
-	#define LINEIN_INPUT_CHANNEL				(ANA_INPUT_CH_LINEIN2)
-#else
-	#define LINEIN_INPUT_CHANNEL				(ANA_INPUT_CH_LINEIN1)
-#endif
+	#define LINEIN_INPUT_CHANNEL				(CHIP_LINEIN_CHANNEL)
 #endif
 
 #ifdef CFG_APP_RADIOIN_MODE_EN
@@ -111,6 +89,7 @@
 	#define CFG_PARA_AUDIO_USB_OUT_SRC	//转采样准备
 	#define CFG_RES_AUDIO_USB_VOL_SET_EN
 	//#define USB_READER_EN
+//	#define USB_CRYSTA_FREE_EN			//usb声卡免晶体功能
 #endif
 
 //IDLE模式(假待机),powerkey/deepsleep可以同时选中也可以单独配置
@@ -119,21 +98,13 @@
 //MSG_DEEPSLEEP --> 进入IDLE模式以后如果CFG_IDLE_MODE_DEEP_SLEEP打开进入deepsleep
 //MSG_POWERDOWN --> 进入IDLE模式以后如果CFG_IDLE_MODE_POWER_KEY打开进入powerdown
 #ifdef  CFG_APP_IDLE_MODE_EN
-//	#define CFG_IDLE_MODE_POWER_KEY	//power key
+	#define CFG_IDLE_MODE_POWER_KEY	//power key
 	#define CFG_IDLE_MODE_DEEP_SLEEP //deepsleep
 	#ifdef CFG_IDLE_MODE_POWER_KEY
-		#define BAKEUP_FIRST_ENTER_POWERDOWN		//第一次上电需要按下PowerKey
-		#define POWERKEY_MODE		POWERKEY_MODE_SLIDE_SWITCH_LPD//POWERKEY_MODE_PUSH_BUTTON
-		#if (POWERKEY_MODE == POWERKEY_MODE_SLIDE_SWITCH_LPD) || (POWERKEY_MODE == POWERKEY_MODE_SLIDE_SWITCH_HPD)
-			#define POWERKEY_CNT					20
-		#else
-			#define POWERKEY_CNT					2000
+		#define POWERKEY_MODE		POWERKEY_MODE_PUSH_BUTTON
+		#if(POWERKEY_MODE==POWERKEY_MODE_PUSH_BUTTON)
+			//#define POWERKEY_FIRST_ENTER_POWERDOWN		//第一次上电需要按下PowerKey
 		#endif
-
-		#if (POWERKEY_MODE == POWERKEY_MODE_PUSH_BUTTON)
-			//powerkey复用短按键功能。
-			#define USE_POWERKEY_PUSH_BUTTON_MSG_SP		MSG_PLAY_PAUSE
-		#endif	
 	#endif
 	#ifdef CFG_IDLE_MODE_DEEP_SLEEP
 		/*红外按键唤醒,注意CFG_PARA_WAKEUP_GPIO_IR和 唤醒键IR_KEY_POWER设置*/
@@ -272,8 +243,6 @@
 
 #endif
 
-//#define CFG_FUNC_PCM_FIND_ZERO_EN
-
 //****************************************************************************************
 //     音频相关配置参数
 //****************************************************************************************
@@ -408,7 +377,7 @@
 //****************************************************************************************
 #include "debug.h"
 //#define CFG_FUNC_DEBUG_EN
-#define CFG_FUNC_USBDEBUG_EN
+//#define CFG_FUNC_USBDEBUG_EN
 #ifdef CFG_FUNC_DEBUG_EN
 	#define CFG_UART_TX_PORT 				DEBUG_TX_A31
 	#define CFG_UART_BANDRATE   			DEBUG_BAUDRATE_2000000//DEBUG_BAUDRATE_115200

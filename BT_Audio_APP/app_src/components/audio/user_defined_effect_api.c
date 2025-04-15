@@ -601,7 +601,7 @@ void Roboeffect_SinkGain_Update(uint8_t Index)
 	}
 }
 
-void roboeffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t *param_input)
+void roboeffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t *param_input, uint8_t param_len)
 {
 	uint8_t *params = AudioCore.Roboeffect.user_effect_parameters + 5;
 	uint16_t data_len = *(uint16_t *)AudioCore.Roboeffect.user_effect_parameters - 5;
@@ -614,8 +614,9 @@ void roboeffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t *
 		{
 			params += (param_index * 2 + 3);
 //			printf("before: 0x%x\n", *(uint16_t *)params);
-			*(uint16_t *)params = *(uint16_t *)param_input;
-//			printf("addr:0x%x,index:%d,local:0x%x\n", addr, param_index, *(uint16_t *)params);
+//			*(uint16_t *)params = *(uint16_t *)param_input;
+			memcpy((uint16_t *)params, (uint16_t *)param_input, param_len - 1);
+//			printf("addr:0x%x,index:%d,local:0x%x, len:%d\n", addr, param_index, *(uint16_t *)params, param_len);
 			break;
 		}
 		else
@@ -625,23 +626,52 @@ void roboeffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t *
 			params += (len + 1);
 			data_len -= (len + 1);
 		}
-	};
-};
+	}
+}
+
+void roboeffect_update_local_block_params(uint8_t addr)
+{
+	uint8_t *params = AudioCore.Roboeffect.user_effect_parameters + 5;
+	uint16_t data_len = *(uint16_t *)AudioCore.Roboeffect.user_effect_parameters - 5;
+	uint8_t len = 0;
+	const uint8_t *p = (uint8_t *)roboeffect_get_effect_parameter(AudioCore.Roboeffect.context_memory, addr, 0xFF);
+//	uint8_t i = 0;
+
+	while(data_len)
+	{
+		if(*params == addr)
+		{
+			params++;
+			len = *params;
+			params+=2;
+//			for(; i < len; i ++)
+//			{
+//				printf("0x%x, 0x%x\n", *(params + i), *(p + i));
+//			}
+			memcpy(params, p, len - 1);
+			printf("addr:0x%x,param:0x%x, len:0x%x\n", addr, *(uint16_t *)params, len);
+			break;
+		}
+		else
+		{
+			params++;
+			len = *params;
+			params += (len + 1);
+			data_len -= (len + 1);
+		}
+	}
+}
 
 uint8_t AudioCoreSourceToRoboeffect(int8_t source)
 {
 
 	switch (source) {
-#if CFG_RES_MIC_SELECT
 		case MIC_SOURCE_NUM:
 			return roboeffect_source[AudioCore.Roboeffect.flow_chart_mode].mic_source;
-#endif
 		case APP_SOURCE_NUM:
 			return roboeffect_source[AudioCore.Roboeffect.flow_chart_mode].app_source;
-#ifdef CFG_FUNC_REMIND_SOUND_EN
 		case REMIND_SOURCE_NUM:
 			return roboeffect_source[AudioCore.Roboeffect.flow_chart_mode].remind_source;
-#endif
 		default:
 			// handle error
 			return roboeffect_source[AudioCore.Roboeffect.flow_chart_mode].app_source;

@@ -37,27 +37,26 @@ extern BT_CONFIGURATION_PARAMS		*btStackConfigParams;
 ////////////////////////////////////////////////////////////////////
 static uint32_t FlshGetPairingInfoWriteOffset(uint32_t StartOffset, uint32_t Step);
 
+#ifdef PRINT_RECORD_INFOR
 /**********************************************************************************************/
 /* 打印相应的信息 */
 /**********************************************************************************************/
-#ifdef PRINT_RECORD_INFOR
-static void PrintRecordInfor(const BT_DB_RECORD * record)
-{
-	uint8_t len=0;
-	APP_DBG("---\n");
-	APP_DBG("RemoteAddr:");
-	for(len=0; len<6; len++)
-	{
-		APP_DBG("%02x ",record->bdAddr[len]);
-	}
-	APP_DBG("\nlinkkey:");
-	for(len=0; len<16; len++)
-	{
-		APP_DBG("%02x ",record->linkKey[len]);
-	}
-	APP_DBG("\n---\n");
-}
-#ifdef PRINT_RECORD_INFOR
+//static void PrintRecordInfor(const BT_DB_RECORD * record)
+//{
+//	uint8_t len=0;
+//	APP_DBG("---\n");
+//	APP_DBG("RemoteAddr:");
+//	for(len=0; len<6; len++)
+//	{
+//		APP_DBG("%02x ",record->bdAddr[len]);
+//	}
+//	APP_DBG("\nlinkkey:");
+//	for(len=0; len<16; len++)
+//	{
+//		APP_DBG("%02x ",record->linkKey[len]);
+//	}
+//	APP_DBG("\n---\n");
+//}
 /*****************************************************************************************
  * 
  ****************************************************************************************/
@@ -91,7 +90,6 @@ static void ShowOneDevSavedPairingInfo(int RecId,int AddrOffset, int Size)
     }
     APP_DBG("\n");
 }
-#endif
 /*****************************************************************************************
  * 
  ****************************************************************************************/
