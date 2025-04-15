@@ -204,8 +204,8 @@ bool LineInPlayInit(void)
 	LineInPlayResInit();
 
 #if (LINEIN_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN1)
-	AudioADC_AnaInit(ADC0_MODULE,LINEIN1_LEFT,Single);
-	AudioADC_AnaInit(ADC0_MODULE,LINEIN1_RIGHT,Single);
+	AudioADC_AnaInit(ADC0_MODULE,LINEIN1_LEFT,Single,ADCCommonEnergy);
+	AudioADC_AnaInit(ADC0_MODULE,LINEIN1_RIGHT,Single,ADCCommonEnergy);
 #endif
 #if (LINEIN_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN2)
 	GPIO_PortBModeSet(GPIOB0,0);

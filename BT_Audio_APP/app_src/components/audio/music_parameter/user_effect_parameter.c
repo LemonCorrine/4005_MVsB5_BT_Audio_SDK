@@ -7,18 +7,107 @@
 #include "nn_denoise_api.h"
 #include "main_task.h"
 
+extern uint32_t get_user_effects_script_len_mic(void);
+extern uint32_t get_user_effects_script_len_music(void);
+extern uint32_t get_user_effects_script_len_hfp(void);
+extern uint32_t get_user_effects_script_len_Karaoke(void);
+
+extern const unsigned char user_effect_parameters_hfp_hfp[];
+extern const unsigned char user_module_parameters_hfp_hfp[];
+extern const unsigned char user_effect_parameters_mic_mic[];
+extern const unsigned char user_module_parameters_mic_mic[];
+extern const unsigned char user_effect_parameters_music_music[];
+extern const unsigned char user_module_parameters_music_music[];
+extern const unsigned char user_effect_parameters_Karaoke_HunXiang[];
+extern const unsigned char user_module_parameters_Karaoke_HunXiang[];
+extern const unsigned char user_effect_parameters_Karaoke_DianYin[];
+extern const unsigned char user_module_parameters_Karaoke_DianYin[];
+extern const unsigned char user_effect_parameters_Karaoke_MoYin[];
+extern const unsigned char user_module_parameters_Karaoke_MoYin[];
+extern const unsigned char user_effect_parameters_Karaoke_HanMai[];
+extern const unsigned char user_module_parameters_Karaoke_HanMai[];
+extern const unsigned char user_effect_parameters_Karaoke_NanBianNv[];
+extern const unsigned char user_module_parameters_Karaoke_NanBianNv[];
+extern const unsigned char user_effect_parameters_Karaoke_NvBianNan[];
+extern const unsigned char user_module_parameters_Karaoke_NvBianNan[];
+extern const unsigned char user_effect_parameters_Karaoke_WaWaYin[];
+extern const unsigned char user_module_parameters_Karaoke_WaWaYin[];
+
 static const ROBOEFFECT_EFFECT_ADDR effect_addr[] = {
-  //{music_EQ ,mic_EQ ,REVERB  ,ECHO  ,silence  ,APP_source  ,remind  ,mic  ,REC ,DAC0_sink ,APP  ,REC, ,stereo},
-    {0x0      ,0x0    ,0x0     ,0x0   ,0x0      ,0x86        ,0x0     ,0x85 ,0x0 ,0x0       ,0x0  ,0x0  ,0x0},//mic
-    {0x0      ,0x0    ,0x0     ,0x0   ,0x0      ,0x86        ,0x0     ,0x85 ,0x0 ,0x0       ,0x0  ,0x0  ,0x0},//music
-    {0x0      ,0x0    ,0x0     ,0x0   ,0x0      ,0x86        ,0x0     ,0x85 ,0x0 ,0x0       ,0x0  ,0x0  ,0x0},//HFP
-    {0x0      ,0x0    ,0x0     ,0x0   ,0x8F     ,0x81        ,0x0     ,0x8D ,0x0 ,0x81      ,0xAC ,0x0  ,0x0},//HUNXIANG
-    {0x0      ,0x0    ,0x0     ,0x0   ,0x8F     ,0x81        ,0x0     ,0x8D ,0x0 ,0x0       ,0xAC ,0x0  ,0x0},//DIANYIN
-    {0x0      ,0x0    ,0x0     ,0x0   ,0x8F     ,0x81        ,0x0     ,0x8D ,0x0 ,0x0       ,0xAC ,0x0  ,0x0},//MOYIN
-    {0x0      ,0x0    ,0x0     ,0x0   ,0x8F     ,0x81        ,0x0     ,0x8D ,0x0 ,0x0       ,0xAC ,0x0  ,0x0},//HANMAI
-    {0x0      ,0x0    ,0x0     ,0x0   ,0x8F     ,0x81        ,0x0     ,0x8D ,0x0 ,0x0       ,0xAC ,0x0  ,0x0},//NANBIANNV
-    {0x0      ,0x0    ,0x0     ,0x0   ,0x8F     ,0x81        ,0x0     ,0x8D ,0x0 ,0x0       ,0xAC ,0x0  ,0x0},//NVBIANNAN
-    {0x0      ,0x0    ,0x0     ,0x0   ,0x8F     ,0x81        ,0x0     ,0x8D ,0x0 ,0x0       ,0xAC ,0x0  ,0x0},//WAWAYIN
+	//mic
+	{
+		.APP_SOURCE_GAIN_ADDR = MIC_gain_control0_ADDR,
+		.MIC_SOURCE_GAIN_ADDR = MIC_mic_gain_ADDR,
+	},
+
+	//music
+	{
+		.APP_SOURCE_GAIN_ADDR = MUSIC_gain_control0_ADDR,
+		.MIC_SOURCE_GAIN_ADDR = MUSIC_mic_gain_ADDR,
+	},
+
+	//hfp
+	{
+		.APP_SOURCE_GAIN_ADDR = HFP_music_gain_ADDR,
+		.MIC_SOURCE_GAIN_ADDR = HFP_mic_gain_ADDR,
+	},
+
+	//HUNXIANG
+	{
+		.SILENCE_DETECTOR_ADDR = KARAOKE_silence_detector0_ADDR,
+		.APP_SOURCE_GAIN_ADDR = KARAOKE_gain_control0_ADDR,
+		.MIC_SOURCE_GAIN_ADDR = KARAOKE_gain_control1_ADDR,
+		.DAC0_SINK_GAIN_ADDR = KARAOKE_gain_control0_ADDR,	//框图里面没有，暂时复用app source
+		.APP_SINK_GAIN_ADDR = KARAOKE_gain_control10_ADDR,
+	},
+
+	//DIANYIN
+	{
+		.SILENCE_DETECTOR_ADDR = KARAOKE_silence_detector0_ADDR,
+		.APP_SOURCE_GAIN_ADDR = KARAOKE_gain_control0_ADDR,
+		.MIC_SOURCE_GAIN_ADDR = KARAOKE_gain_control1_ADDR,
+		.APP_SINK_GAIN_ADDR = KARAOKE_gain_control10_ADDR,
+	},
+
+	//MOYIN
+	{
+		.SILENCE_DETECTOR_ADDR = KARAOKE_silence_detector0_ADDR,
+		.APP_SOURCE_GAIN_ADDR = KARAOKE_gain_control0_ADDR,
+		.MIC_SOURCE_GAIN_ADDR = KARAOKE_gain_control1_ADDR,
+		.APP_SINK_GAIN_ADDR = KARAOKE_gain_control10_ADDR,
+	},
+
+	//HANMAI
+	{
+		.SILENCE_DETECTOR_ADDR = KARAOKE_silence_detector0_ADDR,
+		.APP_SOURCE_GAIN_ADDR = KARAOKE_gain_control0_ADDR,
+		.MIC_SOURCE_GAIN_ADDR = KARAOKE_gain_control1_ADDR,
+		.APP_SINK_GAIN_ADDR = KARAOKE_gain_control10_ADDR,
+	},
+
+	//NANBIANNV
+	{
+		.SILENCE_DETECTOR_ADDR = KARAOKE_silence_detector0_ADDR,
+		.APP_SOURCE_GAIN_ADDR = KARAOKE_gain_control0_ADDR,
+		.MIC_SOURCE_GAIN_ADDR = KARAOKE_gain_control1_ADDR,
+		.APP_SINK_GAIN_ADDR = KARAOKE_gain_control10_ADDR,
+	},
+
+	//NVBIANNAN
+	{
+		.SILENCE_DETECTOR_ADDR = KARAOKE_silence_detector0_ADDR,
+		.APP_SOURCE_GAIN_ADDR = KARAOKE_gain_control0_ADDR,
+		.MIC_SOURCE_GAIN_ADDR = KARAOKE_gain_control1_ADDR,
+		.APP_SINK_GAIN_ADDR = KARAOKE_gain_control10_ADDR,
+	},
+
+	//WAWAYIN
+	{
+		.SILENCE_DETECTOR_ADDR = KARAOKE_silence_detector0_ADDR,
+		.APP_SOURCE_GAIN_ADDR = KARAOKE_gain_control0_ADDR,
+		.MIC_SOURCE_GAIN_ADDR = KARAOKE_gain_control1_ADDR,
+		.APP_SINK_GAIN_ADDR = KARAOKE_gain_control10_ADDR,
+	},
 };
 
 static const ROBOEFFECT_SOURCE_NUM roboeffect_source[] = {
@@ -48,32 +137,6 @@ static const ROBOEFFECT_SINK_NUM roboeffect_sink[] = {
 	{KARAOKE_SINK_DAC0_SINK, KARAOKE_SINK_APP_SINK,	KARAOKE_SINK_STEREO_SINK,	KARAOKE_SINK_REC_SINK},	//NVBIANNAN
 	{KARAOKE_SINK_DAC0_SINK, KARAOKE_SINK_APP_SINK,	KARAOKE_SINK_STEREO_SINK,	KARAOKE_SINK_REC_SINK},	//WAWAYIN
 };
-
-extern uint32_t get_user_effects_script_len_mic(void);
-extern uint32_t get_user_effects_script_len_music(void);
-extern uint32_t get_user_effects_script_len_hfp(void);
-extern uint32_t get_user_effects_script_len_Karaoke(void);
-
-extern const unsigned char user_effect_parameters_hfp_hfp[];
-extern const unsigned char user_module_parameters_hfp_hfp[];
-extern const unsigned char user_effect_parameters_mic_mic[];
-extern const unsigned char user_module_parameters_mic_mic[];
-extern const unsigned char user_effect_parameters_music_music[];
-extern const unsigned char user_module_parameters_music_music[];
-extern const unsigned char user_effect_parameters_Karaoke_HunXiang[];
-extern const unsigned char user_module_parameters_Karaoke_HunXiang[];
-extern const unsigned char user_effect_parameters_Karaoke_DianYin[];
-extern const unsigned char user_module_parameters_Karaoke_DianYin[];
-extern const unsigned char user_effect_parameters_Karaoke_MoYin[];
-extern const unsigned char user_module_parameters_Karaoke_MoYin[];
-extern const unsigned char user_effect_parameters_Karaoke_HanMai[];
-extern const unsigned char user_module_parameters_Karaoke_HanMai[];
-extern const unsigned char user_effect_parameters_Karaoke_NanBianNv[];
-extern const unsigned char user_module_parameters_Karaoke_NanBianNv[];
-extern const unsigned char user_effect_parameters_Karaoke_NvBianNan[];
-extern const unsigned char user_module_parameters_Karaoke_NvBianNan[];
-extern const unsigned char user_effect_parameters_Karaoke_WaWaYin[];
-extern const unsigned char user_module_parameters_Karaoke_WaWaYin[];
 
 static const ROBOEFFECT_EFFECT_PARA roboeffect_para[] = {
 	//mic
@@ -148,13 +211,13 @@ void Roboeffect_GetAudioEffectMaxValue(void)
 }
 
 #if defined(CFG_FUNC_MIC_TREB_BASS_EN) || defined(CFG_FUNC_MUSIC_TREB_BASS_EN)
-void Roboeffect_EQ_Ajust(ROBOEFFECT_EQ_TYPE type,uint8_t BassGain, uint8_t TrebGain)
+void Roboeffect_EQ_Ajust(ROBOEFFECT_EFFECT_TYPE type,uint8_t BassGain, uint8_t TrebGain)
 {
 	uint8_t node;
 
 	if(type == MIC_EQ)
 		node = effect_addr[AudioCore.Roboeffect.flow_chart_mode].MIC_EQ_ADDR;
-	else
+	else if(type == MUSIC_EQ)
 		node = effect_addr[AudioCore.Roboeffect.flow_chart_mode].MUSIC_EQ_ADDR;
 
 	if(AudioCore.Roboeffect.context_memory == NULL)
@@ -589,4 +652,25 @@ ROBOEFFECT_EFFECT_PARA * get_user_effect_parameters(ROBOEFFECT_EFFECT_MODE mode)
 roboeffect_effect_list_info *get_local_effect_list_buf(void)
 {
 	return &local_effect_list;
+}
+
+uint8_t get_roboeffect_addr(ROBOEFFECT_EFFECT_TYPE effect_name)
+{
+	switch(effect_name)
+	{
+		case APP_SOURCE_GAIN:
+			return effect_addr[AudioCore.Roboeffect.flow_chart_mode].APP_SOURCE_GAIN_ADDR;
+			break;
+		case SILENCE_DETECTOR:
+			return effect_addr[AudioCore.Roboeffect.flow_chart_mode].SILENCE_DETECTOR_ADDR;
+			break;
+		default:
+			break;
+	}
+
+}
+
+uint16_t get_roboeffectVolArr(uint8_t vol)
+{
+	return roboeffectVolArr[vol];
 }

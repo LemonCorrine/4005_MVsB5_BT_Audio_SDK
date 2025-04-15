@@ -43,6 +43,7 @@ uint16_t Number_value = 0;
 TIMER Number_selectTimer;
 #endif
 extern void CtrlVarsInit(void);
+extern void report_up_grate(void);
 extern volatile uint32_t gInsertEventDelayActTimer;
 extern void BtTwsDisconnectApi(void);
 #if FLASH_BOOT_EN
@@ -99,7 +100,9 @@ static const uint8_t DmaChannelMap[6] = {
 static void MainAppInit(void)
 {
 	memset(&mainAppCt, 0, sizeof(MainAppContext));
-
+#if FLASH_BOOT_EN
+    report_up_grate();
+#endif
 	mainAppCt.msgHandle = MessageRegister(MAIN_NUM_MESSAGE_QUEUE);
 	mainAppCt.state = TaskStateCreating;
 	mainAppCt.SysCurrentMode = ModeIdle;

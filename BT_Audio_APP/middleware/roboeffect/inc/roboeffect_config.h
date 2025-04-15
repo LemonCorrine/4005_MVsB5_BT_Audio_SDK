@@ -54,9 +54,9 @@ extern "C" {
 #define AEC_ENABLE                         (1)
 #define COMPANDER_ENABLE                   (1)
 #define LOW_LEVEL_COMPRESSOR_ENABLE        (1)
-#define BEAT_TRACKER_ENABLE                (0)
+#define BEAT_TRACKER_ENABLE                (1)
 #define ENGINE_SOUND_ENABLE                (0)
-#define BIQUAD_ENABLE                      (0)
+#define BIQUAD_ENABLE                      (1)
 #define CHORUS2_ENABLE                     (0)
 #define REVERB_PLATE_ENABLE                (1)
 #define HOWLING_SUPPRESSOR_FINE_ENABLE     (1)
@@ -114,7 +114,7 @@ extern "C" {
 #define ROBOEFFECT_LOW_LEVEL_COMPRESSOR_PARAM_LEN     4
 #define ROBOEFFECT_BEAT_TRACKER_PARAM_LEN             3
 #define ROBOEFFECT_ENGINE_SOUND_PARAM_LEN             5
-#define ROBOEFFECT_BIQUAD_PARAM_LEN                   5
+#define ROBOEFFECT_BIQUAD_PARAM_LEN                   7
 #define ROBOEFFECT_CHORUS2_PARAM_LEN                  8
 #define ROBOEFFECT_REVERB_PLATE_PARAM_LEN             7
 #define ROBOEFFECT_HOWLING_SUPPRESSOR_FINE_PARAM_LEN  2

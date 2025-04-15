@@ -16,6 +16,7 @@
  * <h2><center>&copy; COPYRIGHT 2023 MVSilicon </center></h2>
  *****************************************************************************/
 #include "stdio.h"
+#include <string.h>
 #include <nds32_intrinsic.h>
 #include "audio_effect_library.h"
 #include "motor_wrap.h"
@@ -23,13 +24,13 @@
 
 static const table_motor_dec g_table_motor_dec_0[] =
 {
-    {IdleDataBuffer_0,           {IdleDataBuffer_0    + ADPCM_HDR, 0, 0, 0}},
-    {IdleDataBuffer_0,           {IdleDataBuffer_0    + ADPCM_HDR, 0, 0, 0}},
-    {Wav0DataBuffer_0,           {Wav0DataBuffer_0    + ADPCM_HDR, 0, 0, 0}},
-    {Wav1DataBuffer_0,           {Wav1DataBuffer_0    + ADPCM_HDR, 0, 0, 0}},
-    {Wav2DataBuffer_0,           {Wav2DataBuffer_0    + ADPCM_HDR, 0, 0, 0}},
-    {Wav3DataBuffer_0,           {Wav3DataBuffer_0    + ADPCM_HDR, 0, 0, 0}},
-    {Wav4DataBuffer_0,           {Wav4DataBuffer_0    + ADPCM_HDR, 0, 0, 0}},
+    {(AdPcmFileHeader *)IdleDataBuffer_0,           {IdleDataBuffer_0    + ADPCM_HDR, 0, 0, 0}},
+    {(AdPcmFileHeader *)IdleDataBuffer_0,           {IdleDataBuffer_0    + ADPCM_HDR, 0, 0, 0}},
+    {(AdPcmFileHeader *)Wav0DataBuffer_0,           {Wav0DataBuffer_0    + ADPCM_HDR, 0, 0, 0}},
+    {(AdPcmFileHeader *)Wav1DataBuffer_0,           {Wav1DataBuffer_0    + ADPCM_HDR, 0, 0, 0}},
+    {(AdPcmFileHeader *)Wav2DataBuffer_0,           {Wav2DataBuffer_0    + ADPCM_HDR, 0, 0, 0}},
+    {(AdPcmFileHeader *)Wav3DataBuffer_0,           {Wav3DataBuffer_0    + ADPCM_HDR, 0, 0, 0}},
+    {(AdPcmFileHeader *)Wav4DataBuffer_0,           {Wav4DataBuffer_0    + ADPCM_HDR, 0, 0, 0}},
 };
 
 static EngineSoundContextWrap *dec_main_0 = NULL;
@@ -38,7 +39,7 @@ static EngineSoundContextWrap *dec_main_0 = NULL;
 int32_t motor_data_dec_callback_0(int32_t index, int32_t n, int16_t *pcm_buf)
 {
     table_motor_dec *item;
-    int32_t rest_samples = n;
+    uint32_t rest_samples = n;
     uint32_t offset_rest, finished_samples;
     int16_t *output_offset = pcm_buf, *dec_buffer;
     uint8_t *block_data;
@@ -56,7 +57,7 @@ int32_t motor_data_dec_callback_0(int32_t index, int32_t n, int16_t *pcm_buf)
             if(item->info.BlocksOffset > 0)//any rest data?
             {
                 offset_rest = item->hdr->SamplesPerBlock - item->info.BlocksOffset;
-                block_data = item->info.DataBase + item->info.Blocks * item->hdr->BytesPerBlock;
+                block_data = (uint8_t*)(item->info.DataBase + item->info.Blocks * item->hdr->BytesPerBlock);
                 adpcm_decode_block_mono(block_data, dec_buffer, item->hdr->SamplesPerBlock);
                 
                 if(rest_samples < offset_rest)//
@@ -84,7 +85,7 @@ int32_t motor_data_dec_callback_0(int32_t index, int32_t n, int16_t *pcm_buf)
             {
                 if(item->info.Blocks < item->hdr->EncodedBlocks)//not at trailing
                 {
-                    block_data = item->info.DataBase + item->info.Blocks * item->hdr->BytesPerBlock;
+                    block_data = (uint8_t*)(item->info.DataBase + item->info.Blocks * item->hdr->BytesPerBlock);
                     adpcm_decode_block_mono(block_data, dec_buffer, item->hdr->SamplesPerBlock);
                     
                     if(rest_samples < item->hdr->SamplesPerBlock)
@@ -108,7 +109,7 @@ int32_t motor_data_dec_callback_0(int32_t index, int32_t n, int16_t *pcm_buf)
                 else if(item->hdr->TrailingPCMSamples > 0)//at trailing
                 {
                     offset_rest = item->hdr->TrailingPCMSamples - item->info.TrailingOffset;
-                    block_data = item->info.DataBase + item->hdr->EncodedBlocks * item->hdr->BytesPerBlock + item->info.TrailingOffset * 2;
+                    block_data = (uint8_t*)(item->info.DataBase + item->hdr->EncodedBlocks * item->hdr->BytesPerBlock + item->info.TrailingOffset * 2);
                     if(rest_samples < offset_rest)
                     {
                         memcpy(output_offset, block_data, rest_samples*2);
@@ -155,7 +156,7 @@ int32_t motor_data_dec_callback_0(int32_t index, int32_t n, int16_t *pcm_buf)
             if(item->info.BlocksOffset > 0)//any rest data?
             {
                 offset_rest = item->hdr->SamplesPerBlock - item->info.BlocksOffset;
-                block_data = item->info.DataBase + item->info.Blocks * item->hdr->BytesPerBlock;
+                block_data = (uint8_t*)(item->info.DataBase + item->info.Blocks * item->hdr->BytesPerBlock);
                 adpcm_decode_block_mono(block_data, dec_buffer, item->hdr->SamplesPerBlock);
                 
                 if(rest_samples < offset_rest)// 
@@ -179,7 +180,7 @@ int32_t motor_data_dec_callback_0(int32_t index, int32_t n, int16_t *pcm_buf)
             {
                 if(item->info.Blocks < item->hdr->EncodedBlocks)//not at trailing
                 {
-                    block_data = item->info.DataBase + item->info.Blocks * item->hdr->BytesPerBlock;
+                    block_data = (uint8_t*)(item->info.DataBase + item->info.Blocks * item->hdr->BytesPerBlock);
                     adpcm_decode_block_mono(block_data, dec_buffer, item->hdr->SamplesPerBlock);
                     
                     if(rest_samples < item->hdr->SamplesPerBlock)
@@ -200,7 +201,7 @@ int32_t motor_data_dec_callback_0(int32_t index, int32_t n, int16_t *pcm_buf)
                 {
                     // printf("B1");
                     offset_rest = item->hdr->TrailingPCMSamples - item->info.TrailingOffset;
-                    block_data = item->info.DataBase + item->hdr->EncodedBlocks * item->hdr->BytesPerBlock + item->info.TrailingOffset * 2;
+                    block_data = (uint8_t*)(item->info.DataBase + item->hdr->EncodedBlocks * item->hdr->BytesPerBlock + item->info.TrailingOffset * 2);
                     if(rest_samples < offset_rest)
                     {
                         memcpy(output_offset, block_data, rest_samples*2);

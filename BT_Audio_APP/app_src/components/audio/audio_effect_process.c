@@ -16,6 +16,7 @@
 #include "bt_hf_api.h"
 
 #include "roboeffect_api.h"
+#include "user_effect_parameter.h"
 
 //EffectNodeList  gEffectNodeList[AUDIO_EFFECT_GROUP_NUM];
 extern uint8_t AudioCoreSourceToRoboeffect(int8_t source);
@@ -67,17 +68,7 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 		}
 	}
 
-#ifdef CFG_FUNC_SHUNNING_EN
-	uint16_t gain;
-	gain = Roboeffect_GainControl_Get(MUSIC_PREGAIN_ADDR);
-	Roboeffect_GainControl_Set(effect_addr[AudioCore.Roboeffect.flow_chart_mode].MUSIC_PREGAIN_ADDR, mainAppCt.aux_out_dyn_gain);
-#endif
-
 	roboeffect_apply(AudioCore.Roboeffect.context_memory);
-
-#ifdef CFG_FUNC_SHUNNING_EN
-	Roboeffect_GainControl_Set(effect_addr[AudioCore.Roboeffect.flow_chart_mode].MUSIC_PREGAIN_ADDR, gain);
-#endif
 
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
 	if(usb_out)

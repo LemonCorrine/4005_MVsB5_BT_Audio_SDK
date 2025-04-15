@@ -38,23 +38,26 @@ extern "C"{
 
 #define USB_VID				0x1236
 #define USB_PID_BASE		0x17B1//具体PID叠加下列功能值作为Offset
-#define AUDIO_ONLY			0
-#define MIC_ONLY			1
-#define AUDIO_MIC			2
+
+#define HID					0	//
+#define AUDIO_ONLY			1
+#define MIC_ONLY			2
+#define AUDIO_MIC			3
 
 #ifdef USB_READER_EN
-#define READER				3
-#define AUDIO_READER		4
-#define MIC_READER			5
-#define AUDIO_MIC_READER	6
+#define READER				4
+//#define AUDIO_READER		5
+//#define MIC_READER		6
+//#define AUDIO_MIC_READER	7
 #endif
+
 
 #define AUDIO_UAC_10	10
 #define AUDIO_UAC_20	20
 #define USB_AUDIO_PROTOCOL	AUDIO_UAC_10
 
 
-#define HID					7
+
 #if (USB_AUDIO_PROTOCOL == AUDIO_UAC_10)
 #define USBPID(x)			(USB_PID_BASE + x)
 #elif (USB_AUDIO_PROTOCOL == AUDIO_UAC_20)

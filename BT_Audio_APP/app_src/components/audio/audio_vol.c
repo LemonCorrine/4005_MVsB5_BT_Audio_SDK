@@ -44,7 +44,6 @@
 #include "i2s.h"
 #include "delay.h"
 #include "hdmi_in_api.h"
-#include "user_effect_parameter.h"
 bool gIsVolSetEnable = FALSE;
 int32_t SetChannel = 0xff;
 static int32_t Cnt = -1;
@@ -735,6 +734,9 @@ void SystemVolSet(void)
 			AudioCoreSinkVolSet(i, gSysVolArr[mainAppCt.gSysVol.AudioSinkVol[i]], gSysVolArr[mainAppCt.gSysVol.AudioSinkVol[i]]);
 		}
 	}
+#ifdef CFG_FUNC_SHUNNING_EN
+	mainAppCt.aux_out_dyn_gain = mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM];
+#endif
 }
 
 void SystemVolSetChannel(int8_t SetChannel, uint8_t volume)

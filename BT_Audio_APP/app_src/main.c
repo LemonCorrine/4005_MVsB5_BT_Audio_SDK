@@ -67,7 +67,6 @@ volatile uint32_t gIdleRemindSoundTimeOutTimer = 0 ;//ms
 extern void DBUS_Access_Area_Init(uint32_t start_addr);
 extern const unsigned char *GetLibVersionFatfsACC(void);
 extern void UsbAudioTimer1msProcess(void);
-extern void report_up_grate(void);
 extern char *effect_lib_version_return(void);
 extern void Power_LDO16Config(uint8_t value);
 extern void ldo_switch_to_dcdc(uint8_t trim_cfg);
@@ -303,8 +302,11 @@ int main(void)
 #endif
 	
 	DBUS_Access_Area_Init(0);//设置Databus访问区间为codesize
-
+#ifndef USB_CRYSTA_FREE_EN
 	SpiFlashInit(80000000, MODE_4BIT, 0, FSHC_APLL_CLK_MODE);
+#else
+	SpiFlashInit(80000000, MODE_4BIT, 0, FSHC_PLL_CLK_MODE);
+#endif
 	//Clock_RC32KClkDivSet(Clock_RcFreqGet(TRUE) / 32000);//不可屏蔽//ZSQ
 	
 	//考虑到大容量的8M flash，写之前需要Unlock，SDK默认不做加锁保护
@@ -365,10 +367,6 @@ int main(void)
 	sys_parameter_init();
 #ifdef CFG_APP_BT_MODE_EN
 	bt_em_size_init();
-#endif
-
-#if FLASH_BOOT_EN
-    report_up_grate();
 #endif
 
 	APP_DBG("RstFlag = %x\n", RstFlag);
