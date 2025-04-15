@@ -78,32 +78,55 @@ uint8_t *get_cur_tws_addr(void)
 /***********************************************************************************
  * 配置可见性函数接口
  **********************************************************************************/
-static void BtSetAccessModeApi(BtAccessMode accessMode)
+void BtSetAccessModeApi(uint8_t accessMode)
 {
-	//printf("BtSetAccessModeApi:%x,  bk:%x\n", accessMode, GetBtDeviceConnState());
-	//if(GetBtDeviceConnState() != accessMode)
+	if(GetBtDeviceConnState() != accessMode)
 	{
-		APP_DBG("set access mode: %d\n", accessMode);
+		APP_DBG("cur access mode %d set %d ok\n", GetBtDeviceConnState(),accessMode);
 		BTSetAccessMode(accessMode);
+	}else{
+		APP_DBG("cur access mode and set is same\n");
 	}
 }
 
-void BtSetAccessMode_NoDisc_NoCon(void)
+void BtSetAccessMode_select(void)
 {
-	BtSetAccessModeApi(BtAccessModeNotAccessible);
-}
+	switch (GetBtManager()->btAccessModeEnable)
+	{
+		case BT_ACCESSBLE_NONE:
+			BtSetAccessModeApi(BtAccessModeNotAccessible);
+			#ifdef BT_REAL_STATE
+			SetBtUserState(BT_USER_STATE_NONE);
+			#endif
+			break;
 
-void BtSetAccessMode_NoDisc_Con(void)
-{
-	BtSetAccessModeApi(BtAccessModeConnectableOnly);
-}
+		case BT_ACCESSBLE_DISCOVERBLEONLY:
+			BtSetAccessModeApi(BtAccessModeDiscoverbleOnly);
+			#ifdef BT_REAL_STATE
+			SetBtUserState(BT_USER_STATE_NONE);
+			#endif
+			break;
 
-void BtSetAccessMode_Disc_Con(void)
-{
-	if (GetBtManager()->btAccessModeEnable)
-		BtSetAccessModeApi(BtAccessModeGeneralAccessible);
-	else
-		BtSetAccessModeApi(BtAccessModeConnectableOnly);
+		case BT_ACCESSBLE_CONNECTABLEONLY:
+			BtSetAccessModeApi(BtAccessModeConnectableOnly);
+			#ifdef BT_REAL_STATE
+			if(GetBtUserState() != BT_USER_STATE_RECON)
+			SetBtUserState(BT_USER_STATE_NONE);
+			#endif
+			break;
+
+		case BT_ACCESSBLE_GENERAL:
+			BtSetAccessModeApi(BtAccessModeGeneralAccessible);
+			#ifdef BT_REAL_STATE
+			if(GetBtUserState() != BT_USER_STATE_RECON)
+			SetBtUserState(BT_USER_STATE_PREPAIR);
+			#endif
+			break;
+		
+		default:
+			BtSetAccessModeApi(BtAccessModeGeneralAccessible);
+			break;
+	}
 }
 
 /***********************************************************************************
@@ -424,7 +447,6 @@ void BtStackCallback(BT_STACK_CALLBACK_EVENT event, BT_STACK_CALLBACK_PARAMS * p
 					(param->params.modeChange.addr)[3],
 					(param->params.modeChange.addr)[4],
 					(param->params.modeChange.addr)[5]);
-			BtLinkModeChanged(param);
 			break;
 
 		case BT_STACK_EVENT_COMMON_GET_REMDEV_NAME:

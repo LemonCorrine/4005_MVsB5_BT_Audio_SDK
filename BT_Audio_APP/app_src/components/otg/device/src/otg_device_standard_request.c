@@ -257,11 +257,13 @@ void OTG_DeviceStandardRequest()
 				OTG_DeviceEndpointReset(DEVICE_ISO_IN_EP,TYPE_ISO_IN);
 				OTG_DeviceEndpointPacketSizeSet(DEVICE_ISO_OUT_EP,DEVICE_FS_ISO_OUT_MPS);
 				OTG_DeviceEndpointPacketSizeSet(DEVICE_ISO_IN_EP,DEVICE_FS_ISO_IN_MPS);
+#ifdef CFG_APP_USB_AUDIO_MODE_EN
 				OTG_EndpointInterruptEnable(DEVICE_ISO_OUT_EP,OnDeviceAudioRcvIsoPacket);
 				OTG_EndpointInterruptEnable(DEVICE_ISO_IN_EP,OnDeviceAudioSendIsoPacket);
 				OTG_DeviceAudioInit();
 				UsbAudioMic.InitOk = 1;
 				UsbAudioSpeaker.InitOk = 1;
+#endif
 #endif
 			}
 			break;

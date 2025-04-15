@@ -24,6 +24,9 @@
 
 #define NVM_TEST_SIZE	(16)
 
+//#define DEMO_8S_RESET
+
+
 void NvmTestExample(void)
 {
 	uint8_t Nvm_Set_Data[NVM_TEST_SIZE] = {0};
@@ -90,6 +93,10 @@ void PowerKeyExample(void)
 	{
 		DBG("Powerkey disabled !!!\r\n");
 	}
+	else if (E_PWRKEYINIT_NOTSUPPORT == ePwrKeyInitRet)
+	{
+		DBG("Powerkey function not support on this chip !!!\r\n");
+	}
 	else
 	{
 		DBG("Powerkey init failed, err code %d, please check setting parameters !!!\r\n", ePwrKeyInitRet);
@@ -109,23 +116,24 @@ void PowerKeyExample(void)
 		DBG("Current setting is BYPASS MODE\r\n");
 	}
 
-	if (SystemPowerKeyGetMode() == E_PWRKEY_MODE_SLIDESWITCH)
-	{
-		//here wait the key to be released
-		while(PMU_PowerKeyPinStateGet() == FALSE)
-		{
-			DBG("Here, wait powerkey to be released!!!\n");
-			DelayMs(500);
-		}
-		DelayMs(100);
-	}
-
 	//clear state flags
 	SystemPowerKeyStateClear();
+
+#ifdef DEMO_8S_RESET
+	if (SystemPowerKeyGetMode() == E_PWRKEY_MODE_PUSHBUTTON)
+	{
+		DBG("Demo for 8s long press reset function !!!\r\n");
+	}
+	else
+	{
+		DBG("There is no 8s long press reset function in this mode !!!\r\n");
+	}
+#endif
 
 	while(1)
 	{
 		DelayMs(100);
+#ifndef DEMO_8S_RESET
 		if (SystemPowerKeyDetect())
 		{
 			DBG("\r\nDetected powerkey signal, goto powerdown !!!\r\n");
@@ -133,6 +141,7 @@ void PowerKeyExample(void)
 			//goto powerdown
 			PMU_SystemPowerDown();
 		}
+#endif
 	}
 }
 

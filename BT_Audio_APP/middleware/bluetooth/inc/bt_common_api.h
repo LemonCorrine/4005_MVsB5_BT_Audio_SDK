@@ -145,7 +145,7 @@ typedef struct _RequestRemNameParam
 /**
  * BtAccessibleMode type
  */
-typedef uint8_t		BtAccessMode;
+typedef uint8_t	BtAccessMode;
 
 #define BtAccessModeNotAccessible		0x00 /*!< Non-discoverable or connectable		*/
 #define BtAccessModeDiscoverbleOnly		0x01 /*!< Discoverable but not connectable		*/

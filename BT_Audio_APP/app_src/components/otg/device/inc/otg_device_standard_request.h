@@ -39,22 +39,20 @@ extern "C"{
 #define HID_DATA_INTERFACE_NUM			5
 #define AUDIO_SRM_OUT1_INTERFACE_NUM	6
 
-#define USB_VID				0x1236
+#define USB_VID				0x1237
 #define USB_PID_BASE		0x17B5//具体PID叠加下列功能值作为Offset
 
-#define HID					0	//
+#define HID					0
 #define AUDIO_ONLY			1
 #define MIC_ONLY			2
 #define AUDIO_MIC			3
-#ifdef USB_READER_EN
 #define READER				4
-#endif
 
-#if (CFG_PARA_USB_MODE == AUDIO_MIC)
-#define AUDIO_UAC_10	10
-#define AUDIO_UAC_20	20
+//AUDIO_UAC_20配置只支持AUDIO_MIC
+#define AUDIO_UAC_10		10
+#define AUDIO_UAC_20		20
 #define USB_AUDIO_PROTOCOL	AUDIO_UAC_10
-#endif
+
 
 #if (USB_AUDIO_PROTOCOL == AUDIO_UAC_10)
 #define USBPID(x)			(USB_PID_BASE + x)
@@ -62,99 +60,120 @@ extern "C"{
 #define USBPID(x)			(USB_PID_BASE + 1 + x)
 #endif
 
+#if((CFG_PARA_USB_MODE == MIC_ONLY) || (CFG_PARA_USB_MODE == AUDIO_MIC))
+	#define	CFG_OTG_MODE_MIC_EN			//OTG声卡 MIC开启
+#endif
+
+#if((CFG_PARA_USB_MODE == AUDIO_ONLY) || (CFG_PARA_USB_MODE == AUDIO_MIC))
+	#define	CFG_OTG_MODE_AUDIO_EN		//OTG声卡 AUDIO开启
+#endif
+
 #define PCM16BIT	2
 #define PCM24BIT	3
 #define PCM32BIT	4
 
-#if (CFG_PARA_USB_MODE == AUDIO_MIC)
+#ifdef CFG_OTG_MODE_MIC_EN
+	#define MIC_ALT2_EN			//麦克风第二种PCM格式使能
 
-#define MIC_ALT2_EN			//麦克风第二种PCM格式使能
-#define	USBD_AUDIO_MIC_FREQ							192000		//192000 : bits per seconds 麦克风最大采样率
-#define	USBD_AUDIO_MIC_FREQ1						96000		//96000 : bits per seconds
-#define	USBD_AUDIO_MIC_FREQ2						48000		//48000 : bits per seconds
-#define MIC_CHANNELS_NUM							1			//麦克风声道数  1 or 2
-#define	MIC_ALT1_BITS								PCM16BIT	//PCM16BIT or PCM24BIT
-#ifdef MIC_ALT2_EN
-	#define	MIC_ALT2_BITS							PCM24BIT	//PCM16BIT or PCM24BIT
-	#define	MIC_ALT2_DESCRIPTOR_SIZE				0x31		//描述符长度
+	#define MIC_FREQ_NUM								6			//采样率个数  MAX: 6
+	#define	USBD_AUDIO_MIC_FREQ							192000		//192000 : bits per seconds 麦克风最大采样率
+	#define	USBD_AUDIO_MIC_FREQ1						176400		//96000 : bits per seconds
+	#define	USBD_AUDIO_MIC_FREQ2						96000		//48000 : bits per seconds
+	#define	USBD_AUDIO_MIC_FREQ3						88200		//48000 : bits per seconds
+	#define	USBD_AUDIO_MIC_FREQ4						48000		//48000 : bits per seconds
+	#define	USBD_AUDIO_MIC_FREQ5						44100		//48000 : bits per seconds
+
+	#define MIC_CHANNELS_NUM							1			//麦克风声道数  1 or 2
+	#define	MIC_ALT1_BITS								PCM16BIT	//PCM16BIT or PCM24BIT
+	#ifdef MIC_ALT2_EN
+		#define	MIC_ALT2_BITS							PCM24BIT	//PCM16BIT or PCM24BIT
+	#endif
 #endif
 
-#define SPEAKER_ALT2_EN		//扬声器第二种PCM格式使能
-#define	USBD_AUDIO_FREQ								48000		//48000 : bits per seconds 扬声器最大采样率
-#define	USBD_AUDIO_FREQ1							44100		//44100 : bits per seconds
-#define	USBD_AUDIO_FREQ2							44100		//44100 : bits per seconds
-#define PACKET_CHANNELS_NUM							2			//扬声器声道数  1 or 2
-#define	SPEAKER_ALT1_BITS							PCM16BIT	//PCM16BIT or PCM24BIT
-#ifdef SPEAKER_ALT2_EN
-	#define	SPEAKER_ALT2_BITS						PCM24BIT	//PCM16BIT or PCM24BIT
-	#define	SPEAKER_ALT2_DESCRIPTOR_SIZE			0x31		//描述符长度
+#ifdef CFG_OTG_MODE_AUDIO_EN
+	#define SPEAKER_ALT2_EN		//扬声器第二种PCM格式使能
+
+	#define SPEAKER_FREQ_NUM							2			//采样率个数  MAX: 6
+	#define	USBD_AUDIO_FREQ								48000		//48000 : bits per seconds 扬声器最大采样率
+	#define	USBD_AUDIO_FREQ1							44100		//44100 : bits per seconds
+	#define	USBD_AUDIO_FREQ2							44100		//44100 : bits per seconds
+	#define	USBD_AUDIO_FREQ3							44100		//44100 : bits per seconds
+	#define	USBD_AUDIO_FREQ4							44100		//44100 : bits per seconds
+	#define	USBD_AUDIO_FREQ5							44100		//44100 : bits per seconds
+
+	#define PACKET_CHANNELS_NUM							2			//扬声器声道数  1 or 2
+	#define	SPEAKER_ALT1_BITS							PCM16BIT	//PCM16BIT or PCM24BIT
+	#ifdef SPEAKER_ALT2_EN
+		#define	SPEAKER_ALT2_BITS						PCM24BIT	//PCM16BIT or PCM24BIT
+	#endif
 #endif
 
+
+//以下参数不需要修改
+#ifdef CFG_OTG_MODE_MIC_EN
+#define MIC_FREQ_DESCRIPTOR_SIZE					(0x08+MIC_FREQ_NUM*3)
 #else
-#define	USBD_AUDIO_MIC_FREQ							96000		//48000 : bits per seconds
-#define	USBD_AUDIO_MIC_FREQ1						48000		//44100 : bits per seconds
-#define	USBD_AUDIO_MIC_FREQ2						44100		//44100 : bits per seconds
-#define	MIC_ALT1_BITS								PCM16BIT
-#define	MIC_ALT2_BITS								PCM24BIT
-#define MIC_CHANNELS_NUM							1
-
-#define	USBD_AUDIO_FREQ								48000		//96000 : bits per seconds
-#define	USBD_AUDIO_FREQ1							44100		//48000 : bits per seconds
-#define	USBD_AUDIO_FREQ2							44100		//44100 : bits per seconds
-#define	SPEAKER_ALT1_BITS							PCM16BIT
-#define	SPEAKER_ALT2_BITS							PCM24BIT
-#define PACKET_CHANNELS_NUM							2
-
-#define	SPEAKER1_ALT1_BITS							PCM16BIT
-#define	SPEAKER1_ALT2_BITS							PCM24BIT
-#define PACKET1_CHANNELS_NUM						2
+#define MIC_FREQ_DESCRIPTOR_SIZE					0
+#define MIC_FREQ_NUM								0
+#define	USBD_AUDIO_MIC_FREQ							0
+#define	USBD_AUDIO_MIC_FREQ1						0
+#define	USBD_AUDIO_MIC_FREQ2						0
+#define	USBD_AUDIO_MIC_FREQ3						0
+#define	USBD_AUDIO_MIC_FREQ4						0
+#define	USBD_AUDIO_MIC_FREQ5						0
+#define MIC_CHANNELS_NUM							0
+#define	MIC_ALT1_BITS								0
 #endif
 
-#ifndef MIC_ALT1_BITS
-#define MIC_ALT1_BITS	PCM16BIT
-#endif
-#ifndef MIC_ALT2_BITS
-#define MIC_ALT2_BITS	PCM16BIT
-#endif
-#ifndef SPEAKER_ALT1_BITS
-#define SPEAKER_ALT1_BITS	PCM16BIT
-#endif
-#ifndef SPEAKER1_ALT1_BITS
-#define SPEAKER1_ALT1_BITS	0
-#endif
-#ifndef SPEAKER1_ALT2_BITS
-#define SPEAKER1_ALT2_BITS	0
-#endif
-#ifndef SPEAKER1_CHANNELS_NUM
-#define SPEAKER1_CHANNELS_NUM	2
-#endif
-#ifndef USBD_SPEAKER1_FREQ
-#define USBD_SPEAKER1_FREQ	0
-#endif
-#ifndef USBD_SPEAKER1_FREQ1
-#define USBD_SPEAKER1_FREQ1	0
-#endif
-#ifndef USBD_SPEAKER1_FREQ2
-#define USBD_SPEAKER1_FREQ2	0
+#ifdef CFG_OTG_MODE_AUDIO_EN
+#define SPEAKER_FREQ_DESCRIPTOR_SIZE				(0x08+SPEAKER_FREQ_NUM*3)
+#else
+#define SPEAKER_FREQ_DESCRIPTOR_SIZE				0
+#define SPEAKER_FREQ_NUM							0
+#define	USBD_AUDIO_FREQ								0
+#define	USBD_AUDIO_FREQ1							0
+#define	USBD_AUDIO_FREQ2							0
+#define	USBD_AUDIO_FREQ3							0
+#define	USBD_AUDIO_FREQ4							0
+#define	USBD_AUDIO_FREQ5							0
+#define PACKET_CHANNELS_NUM							0
+#define	SPEAKER_ALT1_BITS							0
 #endif
 
-#ifndef SPEAKER_ALT2_BITS
-#define SPEAKER_ALT2_BITS	PCM16BIT
+#ifdef MIC_ALT2_EN
+	#if (USB_AUDIO_PROTOCOL == AUDIO_UAC_10)
+	#define	MIC_ALT2_DESCRIPTOR_SIZE				(0x28+MIC_FREQ_NUM*3)		//描述符长度
+	#elif (USB_AUDIO_PROTOCOL == AUDIO_UAC_20)
+	#define	MIC_ALT2_DESCRIPTOR_SIZE				0x2E		//描述符长度
+	#endif
+#else
+	#define	MIC_ALT2_BITS							0
+	#define	MIC_ALT2_DESCRIPTOR_SIZE				0
 #endif
-#ifndef MIC_ALT2_DESCRIPTOR_SIZE
-#define MIC_ALT2_DESCRIPTOR_SIZE	0
+
+#ifdef SPEAKER_ALT2_EN
+	#if (USB_AUDIO_PROTOCOL == AUDIO_UAC_10)
+	#define	SPEAKER_ALT2_DESCRIPTOR_SIZE			(0x28+SPEAKER_FREQ_NUM*3)		//描述符长度
+	#elif (USB_AUDIO_PROTOCOL == AUDIO_UAC_20)
+	#define	SPEAKER_ALT2_DESCRIPTOR_SIZE			0x2E		//描述符长度
+	#endif
+#else
+	#define	SPEAKER_ALT2_BITS						0
+	#define	SPEAKER_ALT2_DESCRIPTOR_SIZE			0
 #endif
-#ifndef SPEAKER_ALT2_DESCRIPTOR_SIZE
-#define SPEAKER_ALT2_DESCRIPTOR_SIZE	0
-#endif
-#ifndef SPEAKER1_ALT2_DESCRIPTOR_SIZE
-#define SPEAKER1_ALT2_DESCRIPTOR_SIZE	0
-#endif
+
+#if (USBD_AUDIO_MIC_FREQ <= 48000)
+#define	DEVICE_FS_ISO_IN_MPS		(48000*MIC_CHANNELS_NUM*MAX(MIC_ALT1_BITS,MIC_ALT2_BITS)/1000)
+#else
 #define	DEVICE_FS_ISO_IN_MPS		(USBD_AUDIO_MIC_FREQ*MIC_CHANNELS_NUM*MAX(MIC_ALT1_BITS,MIC_ALT2_BITS)/1000)
+#endif
+#if (USBD_AUDIO_FREQ <= 48000)
+#define	DEVICE_FS_ISO_OUT_MPS		(48000*PACKET_CHANNELS_NUM*MAX(SPEAKER_ALT1_BITS,SPEAKER_ALT2_BITS)/1000)
+#else
 #define	DEVICE_FS_ISO_OUT_MPS		(USBD_AUDIO_FREQ*PACKET_CHANNELS_NUM*MAX(SPEAKER_ALT1_BITS,SPEAKER_ALT2_BITS)/1000)
-#define	DEVICE_FS_ISO_OUT1_MPS		(USBD_SPEAKER1_FREQ*SPEAKER1_CHANNELS_NUM*MAX(SPEAKER1_ALT1_BITS,SPEAKER1_ALT2_BITS)/1000)
+#endif
 
-#if (DEVICE_FS_ISO_IN_MPS + DEVICE_FS_ISO_OUT_MPS + DEVICE_FS_ISO_OUT1_MPS> 1000)
+#if (DEVICE_FS_ISO_IN_MPS + DEVICE_FS_ISO_OUT_MPS > 1000)
 #error usb带宽不够
 #endif
 
@@ -242,12 +261,14 @@ extern "C"{
 #define USB_ENDPOINT_TYPE_SYNCHRONOUS                 0x0D
 #define AUDIO_ENDPOINT_GENERAL                        0x01
 
-#define USER_CONFIG_DESCRIPTOR_SIZE		(SPEAKER_ALT2_DESCRIPTOR_SIZE+MIC_ALT2_DESCRIPTOR_SIZE+SPEAKER1_ALT2_DESCRIPTOR_SIZE+PACKET_CHANNELS_NUM+MIC_CHANNELS_NUM+SPEAKER1_CHANNELS_NUM)
 
+#define USER_CONFIG_DESCRIPTOR_SIZE		(SPEAKER_ALT2_DESCRIPTOR_SIZE+MIC_ALT2_DESCRIPTOR_SIZE+PACKET_CHANNELS_NUM+MIC_CHANNELS_NUM+MIC_FREQ_DESCRIPTOR_SIZE+SPEAKER_FREQ_DESCRIPTOR_SIZE)
 #define CHANNEL_CONFIG(chn)				(uint8_t)(chn>1?0x03:0x01)			//chn 1 or 2
 
-#define AUDIO_EP_MAX_SZE(frq,chn,bytes) (uint8_t)(((frq * chn * bytes)/1000) & 0xFF), \
-                                        (uint8_t)((((frq * chn * bytes)/1000) >> 8) & 0xFF)
+#define FRQ_MAX_SZE(frq) 				(frq%1000?frq/1000+1:frq/1000)
+
+#define AUDIO_EP_MAX_SZE(frq,chn,bytes) (uint8_t)(((FRQ_MAX_SZE(frq) * chn * bytes)) & 0xFF), \
+                                        (uint8_t)((((FRQ_MAX_SZE(frq) * chn * bytes)) >> 8) & 0xFF)
 
 #define W_TOTAL_LENGTH(num)             (uint8_t)(num), (uint8_t)((num) >> 8)
 #define SAMPLE_FREQ_NUM(num)            (uint8_t)(num), (uint8_t)((num >> 8))

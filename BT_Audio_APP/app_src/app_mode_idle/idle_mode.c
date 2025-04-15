@@ -260,17 +260,7 @@ void IdleModeRun(uint16_t msgId)
 		{
 			vTaskDelay(50);
 			//bb reset
-			RF_PowerDownBySw();
-			WDG_Feed();
-//			rwip_reset();
-			BT_IntDisable();
-			WDG_Feed();
-			//Kill bt stack service
-			BtStackServiceKill();
-			WDG_Feed();
-			vTaskDelay(10);
-			RF_PowerDownByHw();
-			BT_ModuleClose();
+			BtResetAndKill();
 		}
 #endif		
 

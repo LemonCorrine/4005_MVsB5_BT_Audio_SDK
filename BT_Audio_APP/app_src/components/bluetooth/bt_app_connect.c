@@ -113,6 +113,14 @@ void BtCancelConnect(void)
 	btManager.btReconPhoneSt.excute = NULL;
 	btManager.btReconPhoneSt.ConnectionTimer.timerFlag = TIMER_UNUSED;
 	btManager.btReconPhoneSt.profile = 0;
+	#ifdef BT_REAL_STATE
+	if (GetBtManager()->btAccessModeEnable != BT_ACCESSBLE_GENERAL)
+	{
+		SetBtUserState(BT_USER_STATE_NONE);
+	}else{
+		SetBtUserState(BT_USER_STATE_PREPAIR);
+	}	
+	#endif
 }
 
 /*****************************************************************************************
@@ -309,6 +317,9 @@ void BtReconnectDevCreate(uint8_t *addr, uint8_t tryCount, uint8_t interval, uin
     }
 	
 	APP_DBG("BtReconnectDevCreate\n");
+#ifdef BT_REAL_STATE
+	SetBtUserState(BT_USER_STATE_RECON);
+#endif
 	btManager.btReconPhoneSt.ConnectionTimer.timerFlag = TIMER_UNUSED;
 	memcpy(btManager.btReconPhoneSt.RemoteDevAddr, addr, BT_ADDR_SIZE);
 	btManager.btReconPhoneSt.TryCount = tryCount;
@@ -482,6 +493,14 @@ void BtReconnectProcess(void)
 				else
 				{
 					btManager.btReconExcuteSt = NULL;
+					#ifdef BT_REAL_STATE
+					if (GetBtManager()->btAccessModeEnable != BT_ACCESSBLE_GENERAL)
+					{
+						SetBtUserState(BT_USER_STATE_NONE);
+					}else{
+						SetBtUserState(BT_USER_STATE_PREPAIR);
+					}
+					#endif
 					//APP_DBG("reconnect: end\n");
 				}
 			}
@@ -581,7 +600,7 @@ void BtScanPageStateCheck(void)
 				}
 			}
 
-			BtSetAccessMode_NoDisc_NoCon();
+			BtSetAccessModeApi(BtAccessModeNotAccessible);
 			BtScanPageStateSet(BT_SCAN_PAGE_STATE_DISABLE);
 			break;
 			
@@ -656,7 +675,7 @@ void BtScanPageStateCheck(void)
 				BtReconnectDevice();
 			}
 
-			BtSetAccessMode_Disc_Con();
+			BtSetAccessMode_select();
 			break;
 		#endif
 #else
@@ -673,7 +692,7 @@ void BtScanPageStateCheck(void)
 				{
 			#ifndef CFG_AUTO_ENTER_TWS_SLAVE_MODE
 					BtReconnectTws_Slave();
-					BtSetAccessMode_NoDisc_NoCon();
+					BtSetAccessModeApi(BtAccessModeNotAccessible);
 					break;
 			#endif
             
@@ -692,9 +711,9 @@ void BtScanPageStateCheck(void)
 		#endif
 #endif
 //			if(btManager.btConStateProtectCnt)
-//				BtSetAccessMode_NoDisc_NoCon();
+//				BtSetAccessModeApi(BtAccessModeNotAccessible);
 //			else
-				BtSetAccessMode_Disc_Con();
+				BtSetAccessMode_select();
 			break;
 			
 		case BT_SCAN_PAGE_STATE_ENABLE:

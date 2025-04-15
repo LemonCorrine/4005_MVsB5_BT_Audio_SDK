@@ -30,5 +30,7 @@ extern const uint8_t effect_property_for_display[];
 #define V3_PACKAGE_TYPE_STREAM          2
 #define V3_PACKAGE_TYPE_EFFECT_CHAIN    3
 #define V3_PACKAGE_TYPE_STEP_TABLE      4
+#define V3_PACKAGE_TYPE_EFFECT_NAME     5
+#define V3_PACKAGE_TYPE_EFFECT_ID       6
 
 #endif/*__COMMUNICATION_H__*/

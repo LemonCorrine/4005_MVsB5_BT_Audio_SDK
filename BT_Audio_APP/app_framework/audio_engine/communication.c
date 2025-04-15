@@ -99,7 +99,7 @@ bool roboeffect_effect_update_params_entrance(uint8_t addr, uint8_t *buf, uint32
         const int16_t *params;
         if((params = roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, addr, 0xff)) != NULL)
         {
-            int16_t len = roboeffect_get_parameter_number(AudioCore.Audioeffect.context_memory, addr);
+            int16_t len = roboeffect_get_effect_parameter_count(AudioCore.Audioeffect.context_memory, addr);
             if(len >= 0)//= 0 when only enable/disable existed
             {
                 int16_t *pp = (int16_t*)&tx_buf[5];//out parameter 0 is enable/disable
@@ -238,7 +238,7 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 		temp[8] = 0x01;//graph count
 
 		*(uint16_t *)&temp[9] = AudioCoreFrameSizeGet(DefaultNet);
-		*(uint16_t *)&temp[11] = comm_ret_sample_rate_enum(AudioCore.Audioeffect.user_effect_list->sample_rate);
+		*(uint16_t *)&temp[11] = comm_ret_sample_rate_enum(AudioCore.Audioeffect.cur_effect_para->user_effect_list->sample_rate);
 		
 		temp[13] = 0x01;//EOM
 		temp[14] = 0x16;
@@ -277,7 +277,7 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 			}
 			else if(buf[0] == V3_PACKAGE_TYPE_STREAM)
 			{
-				char_pp = (const char*)AudioCore.Audioeffect.user_effects_script;
+				char_pp = (const char*)AudioCore.Audioeffect.cur_effect_para->user_effects_script;
 				total_len = AudioCore.Audioeffect.user_effects_script_len;
 			}
 
@@ -349,6 +349,59 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 			Communication_Effect_Send(temp, len + 7);
 		}
 	}
+	else if (buf[0] == V3_PACKAGE_TYPE_EFFECT_NAME)
+	{
+		extern AUDIOEFFECT_EFFECT_PARA_TABLE * GetCurEffectParaNode(void);
+		AUDIOEFFECT_EFFECT_PARA_TABLE *param_t = GetCurEffectParaNode();
+		uint8_t index,len = 0;
+		for (index = param_t->effect_id; index < (param_t->effect_id + param_t->effect_id_count); index++)
+		{
+			AUDIOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(index);
+			memcpy(&tx_buf[7 + len + 1], para->user_effect_name, strlen((char *)para->user_effect_name));
+			len += strlen((char *)para->user_effect_name);
+//			APP_DBG("effect_name:%s, len:%d\n", para->user_effect_name, len);
+			tx_buf[7 + len + 1] = 0x3b;//';'
+			len += 1;//';'
+		}
+		len -= 1;
+
+		temp[0] = 0xA5;
+		temp[1] = 0x5A;
+		temp[2] = 0x80;
+		temp[3] = len + 5;//len including EOM
+		temp[4] = 0x00;//package id
+		temp[5] = 0xFF;
+		temp[6] = 0x00;
+		temp[7] = V3_PACKAGE_TYPE_EFFECT_NAME;//type
+
+		temp[7 + len + 1] = 0x01;//EOM
+		temp[7 + len + 2] = 0x16;
+		Communication_Effect_Send(temp, 7 + len + 3);
+
+		package_id = 0;
+	}
+	else if (buf[0] == V3_PACKAGE_TYPE_EFFECT_ID)
+	{
+		extern AUDIOEFFECT_EFFECT_PARA_TABLE * GetCurEffectParaNode(void);
+		AUDIOEFFECT_EFFECT_PARA_TABLE *param_t = GetCurEffectParaNode();
+		temp[0] = 0xA5;
+		temp[1] = 0x5A;
+		temp[2] = 0x80;
+		temp[3] = 6;//len including EOM
+		temp[4] = 0x00;//package id
+		temp[5] = 0xFF;
+		temp[6] = 0x00;
+		temp[7] = V3_PACKAGE_TYPE_EFFECT_ID;//type
+
+		temp[8] = mainAppCt.EffectMode - param_t->effect_id;
+//		APP_DBG("effect mode: %d\n", temp[9]);
+
+		temp[9] = 0x01;//EOM
+		temp[10] = 0x16;
+		Communication_Effect_Send(temp, temp[3] + 5);
+
+		package_id = 0;
+	}
 }
 
 void Communication_Effect_0x00(void)
@@ -358,7 +411,7 @@ void Communication_Effect_0x00(void)
 	tx_buf[0]  = 0xa5;
 	tx_buf[1]  = 0x5a;
 	tx_buf[2]  = 0x00;
-	tx_buf[3]  = 0x0A;
+	tx_buf[3]  = 0x0E;
 	tx_buf[4]  = 0x42;//41=B1; 42=B5
 
 	tx_buf[5]  = CFG_SDK_MAJOR_VERSION;
@@ -380,9 +433,14 @@ void Communication_Effect_0x00(void)
 	tx_buf[12] = atoi(++pp);
 	while(pp-RoboeffectLibVer < strlen(RoboeffectLibVer) && *pp != '.'){pp++;}
 	tx_buf[13] = atoi(++pp);
+
+	tx_buf[14] = 0x02;
+	tx_buf[15] = 'B';
+	tx_buf[16] = '5';
+	tx_buf[17] = 0x01;
 	//-----------------------------------//
-	tx_buf[14] = 0x16;
-	Communication_Effect_Send(tx_buf, 15);
+	tx_buf[18] = 0x16;
+	Communication_Effect_Send(tx_buf, 19);
 }
 
 void Communication_Effect_0x01(uint8_t *buf, uint32_t len)
@@ -414,13 +472,14 @@ void Communication_Effect_0x02(void)///systme ram
 	uint16_t CpuMaxFreq = Clock_CoreClockFreqGet() / 1000000;
 	uint16_t cpu_mips = (uint16_t)(((10000 - SysemMipsPercent) * (Clock_CoreClockFreqGet()/1000000)) / 10000);
 	uint16_t CpuMaxRamSize = CFG_CHIP_RAM_SIZE/1024;//
+	uint16_t cpu_core_clk = roboeffect_get_error_code(AudioCore.Audioeffect.context_memory);
 
 	memset(tx_buf, 0, sizeof(tx_buf));
 
 	tx_buf[0]  = 0xa5;
 	tx_buf[1]  = 0x5a;
 	tx_buf[2]  = 0x02;
-	tx_buf[3]  = 1 +  1 + 2*4 ;
+	tx_buf[3]  = 1 +  1 + 2*5 ;
 	tx_buf[4]  = 0xff;
 
 	memcpy(&tx_buf[5], &UsedRamSize, 2);
@@ -431,8 +490,9 @@ void Communication_Effect_0x02(void)///systme ram
 
 	memcpy(&tx_buf[10], &CpuMaxFreq, 2);
 	memcpy(&tx_buf[12], &CpuMaxRamSize, 2);
-	tx_buf[14] = 0x16;
-	Communication_Effect_Send(tx_buf, 15);
+	memcpy(&tx_buf[14], &cpu_core_clk, 2);
+	tx_buf[16] = 0x16;
+	Communication_Effect_Send(tx_buf, tx_buf[3] + 5);
 }
 
 void Comm_PGA0_0x03(uint8_t * buf)
@@ -1275,9 +1335,18 @@ void Communication_Effect_0x80(uint8_t *buf, uint32_t len)
 	{
 		roboeffect_effect_enquiry_stream(buf, len);
 	}
-	else //set not allowed
+	else if (len == 2)
 	{
-
+		if (buf[0] == V3_PACKAGE_TYPE_EFFECT_ID)
+		{
+			extern AUDIOEFFECT_EFFECT_PARA_TABLE * GetCurEffectParaNode(void);
+			AUDIOEFFECT_EFFECT_PARA_TABLE *param_t = GetCurEffectParaNode();
+			AudioCore.Audioeffect.effect_mode_expected = buf[1] + param_t->effect_id;
+			APP_DBG("mode change:%d\n", AudioCore.Audioeffect.effect_mode_expected);
+			MessageContext msgSend;
+			msgSend.msgId = MSG_EFFECTMODE;
+			MessageSend(GetMainMessageHandle(), &msgSend);
+		}
 	}
 }
 
@@ -1293,7 +1362,7 @@ void Communication_Effect_0xfb(uint8_t *buf, uint32_t len)
 	for(int i = 0; i < num; i++)
 	{
 		uint32_t t_size;
-		roboeffect_get_effect_memory_size_runtime(AudioCore.Audioeffect.context_memory, addr[i], &t_size);
+		roboeffect_get_effect_size(AudioCore.Audioeffect.context_memory, addr[i], &t_size);
 		// printf("-->0x%02X: %d\n", addr[i], t_size);
 		if(t_size < 0) break;//not enough nodes to get
 		*ptr_size = t_size;
@@ -1323,8 +1392,21 @@ void Communication_Effect_0xfc(uint8_t *buf, uint8_t len)//user define tag
 	tx_buf[2]  = 0xfc;//control
 	if(len == 0)
 	{
-		tx_buf[3]  = strlen((char *)AudioCore.Audioeffect.effect_name);//len
-		memcpy(&tx_buf[4], AudioCore.Audioeffect.effect_name, tx_buf[3]);
+		uint8_t temp[64] = {0};
+#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
+		if(AudioCore.Audioeffect.EffectFlashUseFlag)
+		{
+			strcpy(temp,EFFECT_FLASH_MODE_NAME);
+			strcat(temp,AudioCore.Audioeffect.cur_effect_para->user_effect_name);
+		}
+		else
+#endif
+		{
+			strcpy(temp,AudioCore.Audioeffect.cur_effect_para->user_effect_name);
+		}
+
+		tx_buf[3]  = strlen((char *)temp);//len
+		memcpy(&tx_buf[4], temp, tx_buf[3]);
 		tx_buf[4+tx_buf[3]] = 0x16;
 		Communication_Effect_Send(tx_buf, 4+tx_buf[3]+1);
 	}

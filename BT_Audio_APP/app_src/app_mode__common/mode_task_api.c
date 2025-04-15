@@ -48,6 +48,50 @@ extern int32_t RemindMp3DecoderInit(void);
 extern int32_t RemindMp3DecoderDeinit(void);
 #endif
 
+const DACParamCt DACDefaultParamCt =
+{
+#ifdef CHIP_DAC_USE_DIFF
+	.DACModel = DAC_Diff,
+#else
+	.DACModel = DAC_Single,
+#endif
+
+#ifdef CHIP_DAC_USE_PVDD16
+	.PVDDModel = PVDD16,
+#else
+	.PVDDModel = PVDD33,
+#endif
+	.DACLoadStatus = DAC_NOLoad,
+	.DACEnergyModel = DACCommonEnergy,
+
+#ifdef CFG_VCOM_DRIVE_EN
+	.DACVcomModel = Direct,
+#else
+	.DACVcomModel = Disable,
+#endif
+};
+
+uint32_t get_audioeffect_default_frame_size(roboeffect_effect_list_info *user_effect_list)
+{
+	uint32_t offset;
+	roboeffect_effect_list_info *p;
+
+	extern char __data_lmastart;
+	extern char __data_start;
+	extern char _edata;
+
+	if((uint32_t)user_effect_list <  (uint32_t)&__data_start ||
+	   (uint32_t)user_effect_list >  (uint32_t)&_edata)
+	{
+		//不在需要初始化值的全局变量区
+		return 0;
+	}
+	offset = (uint32_t)user_effect_list - (uint32_t)(&__data_start);
+	p = (roboeffect_effect_list_info *)((uint32_t)&__data_lmastart + offset);
+
+	return p->frame_size;
+}
+
 #ifdef CFG_APP_USB_PLAY_MODE_EN
 void WaitUdiskUnlock(void)
 {
@@ -138,48 +182,56 @@ bool AudioEffectInit()
 			//先释放资源
 			osPortFree(AudioCore.Audioeffect.user_effect_parameters);
 		}
-#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
-		if (AudioCore.Audioeffect.effect_name)
-		{
-			osPortFree(AudioCore.Audioeffect.effect_name);
-		}
-#endif
 		
 		AUDIOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(mainAppCt.EffectMode);
 
 		AudioCore.Audioeffect.effect_count = para->user_effect_list->count + 0x80;
-		AudioCore.Audioeffect.user_effect_steps = para->user_effect_steps;
-		AudioCore.Audioeffect.user_effects_script = para->user_effects_script;
+		AudioCore.Audioeffect.cur_effect_para = para;
 		AudioCore.Audioeffect.user_effects_script_len = para->get_user_effects_script_len();
-		AudioCore.Audioeffect.user_effect_list = para->user_effect_list;
 		AudioCore.Audioeffect.user_effect_parameters = osPortMalloc(get_user_effect_parameters_len(para->user_effect_parameters) * sizeof(uint8_t));
 		memcpy(AudioCore.Audioeffect.user_effect_parameters, para->user_effect_parameters,get_user_effect_parameters_len(para->user_effect_parameters) * sizeof(uint8_t));
-		AudioCore.Audioeffect.user_module_parameters = para->user_module_parameters;
-		AudioCore.Audioeffect.audioeffect_frame_size = para->user_effect_list->frame_size;
+		//数组中的值可能被切换帧长改变,获取初始化原始帧长(data段)
+		AudioCore.Audioeffect.audioeffect_frame_size = get_audioeffect_default_frame_size(para->user_effect_list);
+		if(AudioCore.Audioeffect.audioeffect_frame_size == 0)
+		{
+			AudioCore.Audioeffect.audioeffect_frame_size = para->user_effect_list->frame_size;
+		}
+		else
+		{
+			para->user_effect_list->frame_size = AudioCore.Audioeffect.audioeffect_frame_size;
+			DBG("audioeffect_default_frame_size: %lu\n",AudioCore.Audioeffect.audioeffect_frame_size);
+		}
 		para->user_effect_list->sample_rate = AudioCoreMixSampleRateGet(DefaultNet);
 
 #ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
+		AudioCore.Audioeffect.EffectFlashUseFlag = FALSE;
 		if (AudioEffect_GetFlashEffectParam(mainAppCt.EffectMode, AudioCore.Audioeffect.user_effect_parameters))
 		{
-			AudioCore.Audioeffect.effect_name = osPortMalloc(strlen((char *)para->user_effect_name) + 6 + 1);
-			strcpy((char *)AudioCore.Audioeffect.effect_name, "Flash_");
-			memcpy(AudioCore.Audioeffect.effect_name + 6, para->user_effect_name, strlen((char *)para->user_effect_name) + 1);
+			AudioCore.Audioeffect.EffectFlashUseFlag = TRUE;
 			DBG("read effect parameters from flash ok\n");
+			DBG("EFFECT_MODE: %s%s\n", EFFECT_FLASH_MODE_NAME,AudioCore.Audioeffect.cur_effect_para->user_effect_name);
 		}
 		else
 #endif
 		{
-			AudioCore.Audioeffect.effect_name = osPortMalloc(strlen((char *)para->user_effect_name) + 1);
-			memcpy(AudioCore.Audioeffect.effect_name, para->user_effect_name, strlen((char *)para->user_effect_name) + 1);
+			DBG("EFFECT_MODE: %s\n", AudioCore.Audioeffect.cur_effect_para->user_effect_name);
 		}
-		DBG("EFFECT_MODE: %s\n", AudioCore.Audioeffect.effect_name);
+
 	}
 
-	AudioCore.Audioeffect.audioeffect_memory_size = roboeffect_get_memory_current_size(
-			AudioCore.Audioeffect.user_effect_steps, AudioCore.Audioeffect.user_effect_list, AudioCore.Audioeffect.user_effect_parameters);
+	AudioCore.Audioeffect.audioeffect_memory_size = roboeffect_estimate_memory_size(
+			AudioCore.Audioeffect.cur_effect_para->user_effect_steps, AudioCore.Audioeffect.cur_effect_para->user_effect_list, AudioCore.Audioeffect.user_effect_parameters);
 	DBG("Audio effect need malloc memory: %ld\n", AudioCore.Audioeffect.audioeffect_memory_size);
 
-
+	if(AudioCore.Audioeffect.audioeffect_memory_size == ROBOEFFECT_FRAME_SIZE_ERROR
+		&& AudioCore.Audioeffect.cur_effect_para->user_effect_list->frame_size != roboeffect_estimate_frame_size(AudioCore.Audioeffect.cur_effect_para->user_effect_list, AudioCore.Audioeffect.user_effect_parameters))
+	{
+		//帧长错误  重新配置帧长
+		AudioCore.Audioeffect.cur_effect_para->user_effect_list->frame_size = roboeffect_estimate_frame_size(AudioCore.Audioeffect.cur_effect_para->user_effect_list, AudioCore.Audioeffect.user_effect_parameters);
+		AudioCore.Audioeffect.audioeffect_memory_size = roboeffect_estimate_memory_size(
+				AudioCore.Audioeffect.cur_effect_para->user_effect_steps, AudioCore.Audioeffect.cur_effect_para->user_effect_list, AudioCore.Audioeffect.user_effect_parameters);
+		DBG("Audio effect need malloc memory: %ld %lu\n", AudioCore.Audioeffect.audioeffect_memory_size,AudioCore.Audioeffect.cur_effect_para->user_effect_list->frame_size);
+	}
 	if(AudioCore.Audioeffect.audioeffect_memory_size < 0)
 	{
 		DBG("**************************************\n!!!ERROR!!!\n");
@@ -239,9 +291,9 @@ bool AudioEffectInit()
 		DBG("**************************************\n");
 		AudioCore.Audioeffect.effect_enable = 0;
 		AudioEffect_update_local_effect_status(AudioCore.Audioeffect.effect_addr, AudioCore.Audioeffect.effect_enable);
-		AudioCore.Audioeffect.user_effect_list->frame_size = AudioCoreFrameSizeGet(DefaultNet);
-		AudioCore.Audioeffect.audioeffect_memory_size = roboeffect_get_memory_current_size(
-				AudioCore.Audioeffect.user_effect_steps, AudioCore.Audioeffect.user_effect_list, AudioCore.Audioeffect.user_effect_parameters);
+		AudioCore.Audioeffect.cur_effect_para->user_effect_list->frame_size = AudioCoreFrameSizeGet(DefaultNet);
+		AudioCore.Audioeffect.audioeffect_memory_size = roboeffect_estimate_memory_size(
+				AudioCore.Audioeffect.cur_effect_para->user_effect_steps, AudioCore.Audioeffect.cur_effect_para->user_effect_list, AudioCore.Audioeffect.user_effect_parameters);
 		DBG("Finally malloc:%ld, leave:%ld\n", AudioCore.Audioeffect.audioeffect_memory_size, xPortGetFreeHeapSize());
 	}
 	/**
@@ -259,8 +311,8 @@ bool AudioEffectInit()
 		*/
 		if(ROBOEFFECT_ERROR_OK != roboeffect_init(AudioCore.Audioeffect.context_memory,
 												  AudioCore.Audioeffect.audioeffect_memory_size,
-												  AudioCore.Audioeffect.user_effect_steps,
-												  AudioCore.Audioeffect.user_effect_list,
+												  AudioCore.Audioeffect.cur_effect_para->user_effect_steps,
+												  AudioCore.Audioeffect.cur_effect_para->user_effect_list,
 												  AudioCore.Audioeffect.user_effect_parameters) )
 		{
 			DBG("roboeffect_init failed.\n");
@@ -277,7 +329,7 @@ bool AudioEffectInit()
 	}
 
 	//After effect init done, AudioCore know what frame size should be set.
-	AudioCoreFrameSizeSet(DefaultNet, roboeffect_estimate_frame_size(AudioCore.Audioeffect.user_effect_list, AudioCore.Audioeffect.user_effect_parameters));
+	AudioCoreFrameSizeSet(DefaultNet, roboeffect_estimate_frame_size(AudioCore.Audioeffect.cur_effect_para->user_effect_list, AudioCore.Audioeffect.user_effect_parameters));
 
 	roboeffect_prot_init();
 	return TRUE;
@@ -381,34 +433,13 @@ bool ModeCommonInit(void)
 			DBG("Dac init error");
 			return FALSE;
 		}
-
-		DACParamCt ct;
 		uint16_t BitWidth;
-	#ifdef CHIP_DAC_USE_DIFF
-		ct.DACModel = DAC_Diff;
-	#else
-		ct.DACModel = DAC_Single;
-	#endif
-
-	#ifdef CHIP_DAC_USE_PVDD16
-		ct.PVDDModel = PVDD16;
-	#else
-		ct.PVDDModel = PVDD33;
-	#endif
-		ct.DACLoadStatus = DAC_NOLoad;
-		ct.DACEnergyModel = DACCommonEnergy;
 	#ifdef	CFG_AUDIO_WIDTH_24BIT
 		BitWidth = 24;
 	#else
 		BitWidth = 16;
 	#endif
-
-	#ifdef CFG_VCOM_DRIVE_EN
-		ct.DACVcomModel = Direct;
-	#else
-		ct.DACVcomModel = Disable;
-	#endif
-		AudioDAC_Init(&ct,mainAppCt.SampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
+		AudioDAC_Init(&DACDefaultParamCt,mainAppCt.SampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
 
 	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 		Clock_AudioMclkSel(AUDIO_DAC0, gCtrlVars.HwCt.DAC0Ct.dac_mclk_source);
@@ -925,34 +956,13 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 			return FALSE;
 		}
 
-
-		DACParamCt ct;
 		uint16_t BitWidth;
-	#ifdef CHIP_DAC_USE_DIFF
-		ct.DACModel = DAC_Diff;
-	#else
-		ct.DACModel = DAC_Single;
-	#endif
-
-	#ifdef CHIP_DAC_USE_PVDD16
-		ct.PVDDModel = PVDD16;
-	#else
-		ct.PVDDModel = PVDD33;
-	#endif
-		ct.DACLoadStatus = DAC_NOLoad;
-		ct.DACEnergyModel = DACCommonEnergy;
 	#ifdef	CFG_AUDIO_WIDTH_24BIT
 		BitWidth = 24;
 	#else
 		BitWidth = 16;
 	#endif
-
-	#ifdef CFG_VCOM_DRIVE_EN
-		ct.DACVcomModel = Direct;
-	#else
-		ct.DACVcomModel = Disable;
-	#endif
-		AudioDAC_Init(&ct,sampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
+		AudioDAC_Init(&DACDefaultParamCt,sampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
 
 	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 		Clock_AudioMclkSel(AUDIO_DAC0, gCtrlVars.HwCt.DAC0Ct.dac_mclk_source);
@@ -1099,6 +1109,35 @@ bool AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 			extern void LineinADCDigitalInit(void);
 			LineinADCDigitalInit();
 		}
+#endif
+
+#ifdef CFG_RES_I2S_MODULE
+		extern void RST_I2SModule(I2S_MODULE I2SModuleIndex);
+		RST_I2SModule(CFG_RES_I2S_MODULE);
+#ifdef CFG_APP_I2SIN_MODE_EN
+		DMA_ChannelDisable(PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_I2S_MODULE);
+		DMA_CircularFIFOClear(PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_I2S_MODULE);
+		DMA_ChannelEnable(PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_I2S_MODULE);
+#endif
+#ifdef CFG_RES_AUDIO_I2SOUT_EN
+		DMA_ChannelDisable(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE);
+		DMA_CircularFIFOClear(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE);
+		DMA_ChannelEnable(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE);
+#endif
+#endif
+#ifdef CFG_RES_MIX_I2S_MODULE
+		extern void RST_I2SModule(I2S_MODULE I2SModuleIndex);
+		RST_I2SModule(CFG_RES_MIX_I2S_MODULE);
+#ifdef CFG_RES_AUDIO_I2S_MIX_IN_EN
+		DMA_ChannelDisable(PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX_I2S_MODULE);
+		DMA_CircularFIFOClear(PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX_I2S_MODULE);
+		DMA_ChannelEnable(PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX_I2S_MODULE);
+#endif
+#ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
+		DMA_ChannelDisable(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX_I2S_MODULE);
+		DMA_CircularFIFOClear(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX_I2S_MODULE);
+		DMA_ChannelEnable(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX_I2S_MODULE);
+#endif
 #endif
 
 		SoftFlagDeregister(SoftFlagAudioCoreSourceIsDeInit);
@@ -1472,20 +1511,27 @@ void CommonMsgProccess(uint16_t Msg)
 			{
 				HardWareMuteOrUnMute();
 			}
-#ifdef CFG_FUNC_MIC_KARAOKE_EN
-			if((mainAppCt.EffectMode >= EFFECT_MODE_WaWaYin)|| (mainAppCt.EffectMode < EFFECT_MODE_HunXiang))
+			if(AudioCore.Audioeffect.effect_mode_expected)
 			{
-				mainAppCt.EffectMode = EFFECT_MODE_HunXiang;
+				mainAppCt.EffectMode = AudioCore.Audioeffect.effect_mode_expected;
 			}
-#else
-			if((mainAppCt.EffectMode >= EFFECT_MODE_MUSIC) || (mainAppCt.EffectMode < EFFECT_MODE_MIC))
-			{
-				mainAppCt.EffectMode = EFFECT_MODE_MIC;
-			}
-#endif
 			else
 			{
-				mainAppCt.EffectMode++;
+#ifdef CFG_FUNC_MIC_KARAOKE_EN
+				if((mainAppCt.EffectMode >= EFFECT_MODE_WaWaYin)|| (mainAppCt.EffectMode < EFFECT_MODE_HunXiang))
+				{
+					mainAppCt.EffectMode = EFFECT_MODE_HunXiang;
+				}
+	#else
+				if((mainAppCt.EffectMode >= EFFECT_MODE_MUSIC) || (mainAppCt.EffectMode < EFFECT_MODE_MIC))
+				{
+					mainAppCt.EffectMode = EFFECT_MODE_MIC;
+				}
+	#endif
+				else
+				{
+					mainAppCt.EffectMode++;
+				}
 			}
 #ifdef CFG_FUNC_BREAKPOINT_EN
 			BackupInfoUpdata(BACKUP_SYS_INFO);
@@ -1541,7 +1587,24 @@ void CommonMsgProccess(uint16_t Msg)
 			{
 				HardWareMuteOrUnMute();
 			}
-			gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
+			if(AudioCore.Audioeffect.effect_mode_expected)
+			{
+				AudioCore.Audioeffect.effect_mode_expected = 0;
+				gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
+			}
+			else
+			{
+				extern AUDIOEFFECT_EFFECT_PARA_TABLE * GetCurEffectParaNode(void);
+				AUDIOEFFECT_EFFECT_PARA_TABLE *param_t = GetCurEffectParaNode();
+				if((EffectMode < param_t->effect_id ) || (EffectMode >= (param_t->effect_id + param_t->effect_id_count)))
+				{
+					gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
+				}
+				else
+				{
+					gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
+				}
+			}
 #endif
 #endif
 			break;
@@ -1556,7 +1619,7 @@ void CommonMsgProccess(uint16_t Msg)
 			if (para->user_effect_list->sample_rate != AudioCoreMixSampleRateGet(DefaultNet))
 			{
 				AudioEffectModeSel(mainAppCt.EffectMode, 1);//sel: 0=init hw, 1=effect, 2=hw + effect
-				gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
+				gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
 			}
 			else
 			{
@@ -1564,24 +1627,24 @@ void CommonMsgProccess(uint16_t Msg)
 				uint8_t addr = AudioCore.Audioeffect.effect_addr;
 				uint32_t FrameSize = AudioCoreFrameSizeGet(DefaultNet);
 
-				if(roboeffect_get_suit_frame_size(
+				if(roboeffect_get_frame_size_after_effect_change(
 						AudioCore.Audioeffect.context_memory, AudioCore.Audioeffect.audioeffect_frame_size, AudioCore.Audioeffect.effect_addr, opera)
-					&& AudioCoreFrameSizeGet(DefaultNet) != roboeffect_get_suit_frame_size(
+					&& AudioCoreFrameSizeGet(DefaultNet) != roboeffect_get_frame_size_after_effect_change(
 						AudioCore.Audioeffect.context_memory, AudioCore.Audioeffect.audioeffect_frame_size, AudioCore.Audioeffect.effect_addr, opera))
 				{
-					AudioCore.Audioeffect.user_effect_list->frame_size = roboeffect_get_suit_frame_size(
+					AudioCore.Audioeffect.cur_effect_para->user_effect_list->frame_size = roboeffect_get_frame_size_after_effect_change(
 							AudioCore.Audioeffect.context_memory, AudioCore.Audioeffect.audioeffect_frame_size, AudioCore.Audioeffect.effect_addr, opera);
-					APP_DBG("Need Change FrameSize to %ld\n", AudioCore.Audioeffect.user_effect_list->frame_size);
+					APP_DBG("Need Change FrameSize to %ld\n", AudioCore.Audioeffect.cur_effect_para->user_effect_list->frame_size);
 
 					if(!SysCurModeReboot())
 					{
 						//当前模式重启失败，恢复上次参数，再次重启模式
 						if(AudioCore.Audioeffect.effect_enable)
 							AudioCore.Audioeffect.effect_enable = 0;
-						AudioCore.Audioeffect.user_effect_list->frame_size = FrameSize;
+						AudioCore.Audioeffect.cur_effect_para->user_effect_list->frame_size = FrameSize;
 						SysCurModeReboot();
 					}
-					gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
+					gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
 				}
 				else
 				{
@@ -1647,21 +1710,23 @@ void CommonMsgProccess(uint16_t Msg)
 			break;
 
 #ifdef CFG_APP_BT_MODE_EN
-		#ifdef POWER_ON_BT_ACCESS_MODE_SET
 		case MSG_BT_OPEN_ACCESS:
-			if (GetBtManager()->btAccessModeEnable == 0)
+			if (GetBtManager()->btAccessModeEnable != BT_ACCESSBLE_GENERAL)
 			{
-				GetBtManager()->btAccessModeEnable = 1;
+				GetBtManager()->btAccessModeEnable = BT_ACCESSBLE_GENERAL;
 				BtStackServiceMsgSend(MSG_BTSTACK_ACCESS_MODE_SET);
 				DBG("open bt access\n");
 			}
 			break;
-		#endif
 			
 		//蓝牙连接断开消息,用于提示音
 		case MSG_BT_STATE_CONNECTED:
 			APP_DBG("[BT_STATE]:BT Connected...\n");
 			//异常回连过程中，不提示连接断开提示音
+
+			#ifdef BT_REAL_STATE
+			SetBtUserState(BT_USER_STATE_CONNECTED);
+			#endif
 
 			BtStackServiceMsgSend(MSG_BTSTACK_ACCESS_MODE_SET);
 
@@ -1696,6 +1761,10 @@ void CommonMsgProccess(uint16_t Msg)
 		case MSG_BT_STATE_DISCONNECT:
 			APP_DBG("[BT_STATE]:BT Disconnected...\n");
 			SoftFlagDeregister(SoftFlagDiscDelayMask);
+
+			#ifdef BT_REAL_STATE
+			SetBtUserState(BT_USER_STATE_DISCONNECTED);
+			#endif
 			
 			if(btManager.btDutModeEnable)
 				break;

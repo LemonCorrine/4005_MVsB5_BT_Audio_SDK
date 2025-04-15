@@ -41,7 +41,7 @@
 
 #define  MAX_BUF_LEN   4096
 
-uint8_t spimPort = SPIM_PORT0_A5_A6_A7_A9;
+uint8_t spimPort = SPIM_PORT1_A20_A21_A22_A28;
 uint8_t spimRate  = SPIM_CLK_DIV_6M;
 uint8_t spimMode = 0;
 uint8_t SpimBuf_TX[MAX_BUF_LEN];

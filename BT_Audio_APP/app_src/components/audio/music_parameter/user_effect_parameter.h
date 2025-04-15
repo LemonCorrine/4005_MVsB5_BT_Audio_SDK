@@ -97,20 +97,7 @@ typedef struct _AUDIOEFFECT_SINK_NUM
 	uint8_t		spdif_sink;			/**< AUDIO_SPDIF_SINK_NUM                      */
 } AUDIOEFFECT_SINK_NUM;
 
-/**
- * @brief Effect parameters for roboeffect engine
- */
-typedef struct _AUDIOEFFECT_EFFECT_PARA
-{
-	roboeffect_effect_list_info 	*user_effect_list;
-	roboeffect_effect_steps_table 	*user_effect_steps;
-	uint8_t 						*user_effects_script;
-	uint8_t 						*user_effect_name;
 
-	uint8_t 						*user_effect_parameters;
-	uint8_t 						*user_module_parameters;
-	uint32_t 						(*get_user_effects_script_len)(void);
-}AUDIOEFFECT_EFFECT_PARA;
 
 /**
  * @brief Audio Effect parameters table

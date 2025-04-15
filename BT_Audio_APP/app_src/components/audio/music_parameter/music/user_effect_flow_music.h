@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_music.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.8.12                 
+ * @author  ACPWorkbench: 3.9.1                 
  * @version V1.1.0                                  
- * @Created 2024-02-06T16:39:25                                      
+ * @Created 2024-03-01T14:06:39                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define MUSIC_ROBOEFFECT_LIB_VER "2.15.0"
+#define MUSIC_ROBOEFFECT_LIB_VER "2.16.2"
 
 typedef enum _MUSIC_roboeffect_io_enum
 {
@@ -34,8 +34,7 @@ typedef enum _MUSIC_roboeffect_io_enum
 
 
 typedef enum _MUSIC_roboeffect_effect_list_enum{
-    MUSIC_START_ADDR = 0x80,
-    MUSIC_silence_detector_mic_ADDR,
+    MUSIC_silence_detector_mic_ADDR = 0x81,
     MUSIC_mic_eq0_ADDR,
     MUSIC_mic_ns_ADDR,
     MUSIC_mic_EQ_ADDR,
@@ -68,4 +67,7 @@ extern roboeffect_effect_list_info user_effect_list_music;
 
 extern const roboeffect_effect_steps_table user_effect_steps_music;
 
+extern char *parameter_group_name_music[1];
+extern const unsigned char user_effect_parameters_music_Music[];
+extern const unsigned char user_module_parameters_music_Music[];
 #endif/*__USER_EFFECT_FLOW_MUSIC_H__*/

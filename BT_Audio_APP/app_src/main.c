@@ -177,6 +177,13 @@ void SystemClockInit(bool FristPoweron)
 #if (SYS_CORE_SET_MODE == CORE_ONLY_APLL_MODE)
 	Clock_PllClose();
 #endif
+
+#ifdef CHIP_USE_DCDC
+//	ldo_switch_to_dcdc(7);  //3-1.9V;7-1.8;12-1.7V;18-1.6V;27-1.5V;39-1.4V;57-1.3V 18:Default:1.6V //max power
+	ldo_switch_to_dcdc(27); // 3-1.9V;7-1.8;12-1.7V;18-1.6V;27-1.5V;39-1.4V;57-1.3V 18:Default:1.6V //max power
+#else
+	Power_LDO16Config(1);
+#endif
 }
 
 void LogUartConfig(bool InitBandRate)
@@ -203,11 +210,17 @@ void LogUartConfig(bool InitBandRate)
 extern void FshcClkSwitch(FSHC_CLK_MODE ClkSrc, uint32_t flash_clk);
 void SleepMain(void)
 {
-//	Power_DeepSleepLDO12ConfigTest(0,5,0);//进入deepsleep后将1V2 调整为1.0V可以更加省电。
+	WDG_Feed();
+
+#ifdef CHIP_USE_DCDC
+	ldo_switch_to_dcdc(18); // 3-1.9V;7-1.8;12-1.7V;18-1.6V;27-1.5V;39-1.4V;57-1.3V 18:Default:1.6V //max power
+#else
+	Power_LDO16Config(0);
+#endif
+
 	Clock_UARTClkSelect(RC_CLK_MODE);//先切换log clk。避免后续慢速处理
 	LogUartConfig(TRUE); //scan不打印时 可屏蔽
-	SysTickDeInit();
-//	Efuse_ReadDataDisable(); //////////关闭EFUSE////////
+
 	SpiFlashInit(80000000, MODE_1BIT, 0, FSHC_PLL_CLK_MODE);//rc时钟 不支持flash 4bit，系统恢复时重配。
 	FshcClkSwitch(FSHC_RC_CLK_MODE, 80000000);//再切RC
 	Clock_DeepSleepSysClkSelect(RC_CLK_MODE, FSHC_RC_CLK_MODE, 1);
@@ -217,24 +230,17 @@ void SleepMain(void)
 	Clock_HOSCDisable();//若有RTC应用并且RTC所用时钟是HOSC，则不关闭HOSC，即24M晶振
 #endif
 //	Clock_LOSCDisable(); //若有RTC应用并且RTC所用时钟是LOSC，则不关闭LOSC，即32K晶振
-
-	SysTickInit();
 }
 
 void WakeupMain(void)
 {
+	WDG_Feed();
+
 	Chip_Init(1);
-	SysTickDeInit();
-	WDG_Enable(WDG_STEP_4S);
-	SystemClockInit(FALSE);
-	SysTickInit();
-//	Efuse_ReadDataEnable();
+	SystemClockInit(TRUE);
 	LogUartConfig(TRUE);//调整时钟后，重配串口前不要打印。
-	//Clock_Pll5ClkDivSet(8);// 
-	//B0B1为SW调式端口，在调试阶段若系统进入了低功耗模式时关闭了GPIO复用模式，请在此处开启
-	//GPIO_PortBModeSet(GPIOB0, 0x3); //B0 sw_clk(i) 
-	//GPIO_PortBModeSet(GPIOB1, 0x4); //B1 sw_d(io)
-	//APP_DBG("Main:wakeup\n");
+
+	SysTickInit();
 }
 #endif
 
@@ -279,28 +285,13 @@ int main(void)
 	WDG_Enable(WDG_STEP_4S);
 //	WDG_Disable();
 
-//#if FLASH_BOOT_EN
-//	RstFlag = Reset_FlagGet_Flash_Boot();
-//#else
 	RstFlag = Reset_FlagGet();
 	Reset_FlagClear();
-//#endif
 
 	//如果需要使用NVM内存时，需要调用该API，第一次系统上电需要清除对NVM内存清零操作，在breakpoint 内实施。
 	PMU_NVMInit();
 
-	//Power_DeepSleepLDO12Config(1);//Power_LDO12Config(1250);	//使用320M主频时需要提升到1.25v，使用288M则可以屏蔽掉这行 //ZSQ
-
 	SystemClockInit(TRUE);
-
-#ifdef CHIP_USE_DCDC
-//	ldo_switch_to_dcdc(7);  //3-1.9V;7-1.8;12-1.7V;18-1.6V;27-1.5V;39-1.4V;57-1.3V 18:Default:1.6V //max power
-	ldo_switch_to_dcdc(27); // 3-1.9V;7-1.8;12-1.7V;18-1.6V;27-1.5V;39-1.4V;57-1.3V 18:Default:1.6V //max power
-#else
-	Power_LDO16Config(7);// 7: 1.69V; 6:1.75; 0:1.65 default max power
-#endif
-
-//	Power_DeepSleepLDO11DConfig(0x0F); //trim LDO11 //0x2F=0.9V, 0x0F=1V
 
 	LogUartConfig(TRUE);
 
@@ -310,8 +301,6 @@ int main(void)
 #endif
 	
 	DBUS_Access_Area_Init(0);//设置Databus访问区间为codesize
-
-	//Clock_RC32KClkDivSet(Clock_RcFreqGet(TRUE) / 32000);//不可屏蔽//ZSQ
 	
 	//考虑到大容量的8M flash，写之前需要Unlock，SDK默认不做加锁保护
 	//用户为了增加flash 安全性，请根据自己flash大小和实际情况酌情做flash加锁保护机制
@@ -364,7 +353,7 @@ int main(void)
 	APP_DBG("Audio Decoder Version: %s\n", (unsigned char *)audio_decoder_get_lib_version());
 	APP_DBG("Audio Effect  Lib Version: %s\n", (char *)effect_lib_version_return());
 	APP_DBG("Roboeffect  Lib Version: %s\n", ROBOEFFECT_LIB_VER);
-	APP_DBG("Driver Version: %s %x\n", GetLibVersionDriver(),Read_ChipECO_Version());
+	APP_DBG("Driver Version: %s\n", GetLibVersionDriver());
 #ifdef CFG_FUNC_LRC_EN
     APP_DBG("Lrc Version: %s\n", GetLibVersionLrc()); 
 #endif
@@ -378,6 +367,7 @@ int main(void)
 #ifdef CFG_FUNC_ALARM_EN
 	APP_DBG("RTC Version: %s\n", GetLibVersionRTC());//bkd 
 #endif
+	APP_DBG("ECO Flag: %x\n",Read_ChipECO_Version());
 	APP_DBG("\n");
 #ifdef LED_IO_TOGGLE
 	LedPortInit();  //在此之后可以使用LedOn LedOff 观测 调试时序 特别是逻分

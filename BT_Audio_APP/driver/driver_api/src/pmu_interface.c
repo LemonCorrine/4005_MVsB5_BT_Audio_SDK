@@ -1,5 +1,6 @@
 #include "type.h"
 #include "pmu_interface.h"
+#include "efuse.h"
 #include "debug.h"
 
 /**
@@ -17,6 +18,7 @@
  */
 static TE_PWRKEYINIT_RET SystemPowerKeySetting(TE_PWRKEY_MODE eMode, uint8_t u8_spTime, uint8_t u8_lpTime, uint8_t u8_longPressResetIime, POWERKEY_LONGORSHORT_PRESS_SEL ePressMode, POWER_LONG_RESET_MODE eRstMode)
 {
+	uint32_t KeyState = 0;
 	//check eMode
 	if (E_PWRKEY_MODE_SLIDESWITCH < eMode)
 	{
@@ -64,6 +66,10 @@ static TE_PWRKEYINIT_RET SystemPowerKeySetting(TE_PWRKEY_MODE eMode, uint8_t u8_
 		return E_PWRKEYINIT_LTIME_GE_RSTTIME_ERR;
 	}
 
+	if ((E_PWRKEY_MODE_SLIDESWITCH == eMode) && PMU_FristPowerOnFlagGet())
+	{
+		KeyState = PMU_PowerKeyPinStateGet();
+	}
 	//enable powerkey
 	PMU_PowerKeyEnable();
 
@@ -103,6 +109,10 @@ static TE_PWRKEYINIT_RET SystemPowerKeySetting(TE_PWRKEY_MODE eMode, uint8_t u8_
 	//LONGR_RST_MODE_TIMEOUT: reset release when press time reached 8s no matter when press release
 	PMU_PowerLongResetModeSet(eRstMode);
 
+	if((KeyState == 1) && (E_PWRKEY_MODE_SLIDESWITCH == eMode))
+	{
+		PMU_SystemPowerDown();
+	}
 	return E_PWRKEYINIT_OK;
 }
 
@@ -156,10 +166,6 @@ static bool SystemPowerKeyDetectEvt(POWERKEY_LONGORSHORT_PRESS_SEL ePressMode)
 	{
 		case E_PWRKEY_MODE_SLIDESWITCH:
 			bIsFlagSet = PMU_PowerKeyTrigStateGet();
-			if(PMU_PowerKeyPinStateGet())
-			{
-				SystemPowerKeyStateClear();
-			}
 			break;
 
 		case E_PWRKEY_MODE_PUSHBUTTON:
@@ -172,22 +178,16 @@ static bool SystemPowerKeyDetectEvt(POWERKEY_LONGORSHORT_PRESS_SEL ePressMode)
 				bIsFlagSet = PMU_PowerKeyShortPressTrigStateGet();
 			}
 
-			if (bIsFlagSet)
-			{
-				//check if powerkey is released
-				if(PMU_PowerKeyPinStateGet())
-				{
-					SystemPowerKeyStateClear();
-				}
-				else
-				{
-					bIsFlagSet = FALSE;
-				}
-			}
+
 			break;
 
 		default:
 			break;
+	}
+
+	if (bIsFlagSet)
+	{
+		SystemPowerKeyStateClear();
 	}
 
 	return bIsFlagSet;
@@ -205,6 +205,12 @@ TE_PWRKEYINIT_RET SystemPowerKeyInit(TE_PWRKEY_MODE eMode, TE_KEYDET_TIME eTime)
 {
 	uint8_t  lpTime = 0;
 	uint8_t  spTime = 0;
+
+	if (Read_ChipECO_Version() == 0)
+	{
+		//eco1 chip not support powerkey function
+		return E_PWRKEYINIT_NOTSUPPORT;
+	}
 
 	if (E_PWRKEY_MODE_PUSHBUTTON == eMode)
 	{

@@ -26,8 +26,6 @@ void BtAccessModeUpdate(BtAccessMode accessMode);
 
 void BtGetRemoteName(BT_STACK_CALLBACK_PARAMS * param);
 
-void BtLinkModeChanged(BT_STACK_CALLBACK_PARAMS * param);
-
 void BtLinkPageTimeout(BT_STACK_CALLBACK_PARAMS * param);
 
 void BtDevConnectionAborted(void);

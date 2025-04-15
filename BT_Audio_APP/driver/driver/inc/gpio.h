@@ -411,30 +411,6 @@ typedef enum
 						1010:sadc_test[2](o)
 						 */
 
-	GPIOA11 = (1 << 11),/** GpioMode
-						0:gpio default register value
-						1:btdm_rf_debug[10](io)
-						10:fshc_cs(o)
-						 */
-
-	GPIOA12 = (1 << 12),/** GpioMode
-						0:gpio default register value
-						1:fshc_miso(io)
-						10:btdm_rf_debug[11](io)
-						 */
-
-	GPIOA13 = (1 << 13),/** GpioMode
-						0:gpio default register value
-						1:fshc_mosi(io)
-						10:btdm_rf_debug[12](io)
-						 */
-
-	GPIOA14 = (1 << 14),/** GpioMode
-						0:gpio default register value
-						1:btdm_rf_debug[13](io)
-						10:fshc_sck(o)
-						 */
-
 	GPIOA15 = (1 << 15),/** GpioMode
 						0:gpio default register value
 						1:sd_dat_0(io)

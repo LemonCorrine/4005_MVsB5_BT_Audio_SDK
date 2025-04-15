@@ -219,9 +219,6 @@ static void SysVarInit(void)
 	mainAppCt.HfVolume = CFG_PARA_MAX_VOLUME_NUM;
 	#endif
 	
-	#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
-	mainAppCt.EffectMode = AudioEffect_GetFlashEffectMode();
-	#else
 #ifdef CFG_FUNC_EFFECT_BYPASS_EN
 	mainAppCt.EffectMode = EFFECT_MODE_BYPASS;
 #else
@@ -231,7 +228,7 @@ static void SysVarInit(void)
 	mainAppCt.EffectMode = EFFECT_MODE_MIC;
 #endif
 #endif
-	#endif	
+
 	mainAppCt.MicVolume = CFG_PARA_MAX_VOLUME_NUM;
 	
 #ifdef CFG_FUNC_MUSIC_EQ_MODE_EN
@@ -449,11 +446,6 @@ static void MainAppServiceStarting(uint16_t msgId)
 
 static void PublicDetect(void)
 {
-
-#if defined(BT_SNIFF_ENABLE) && defined(CFG_APP_BT_MODE_EN)
-		tws_sniff_check_adda_process();//¼ì²âsniffºóaddaÊÇ·ñ»Ö¸´µÄÂÖÑ¯
-#endif
-
 #ifdef CFG_FUNC_SILENCE_AUTO_POWER_OFF_EN
 		switch(GetSystemMode())
 		{
@@ -656,15 +648,7 @@ static void PublicMsgPross(MessageContext msg)
 
 		case MSG_BTSTACK_BB_ERROR:
 			APP_DBG("bb and bt stack reset\n");
-			RF_PowerDownBySw();
-			WDG_Feed();
-			//reset bb and bt stack
-			rwip_reset();
-			BtStackServiceKill();
-			WDG_Feed();
-			vTaskDelay(50);
-			RF_PowerDownByHw();
-			WDG_Feed();
+			BtResetAndKill();
 			//reset bb and bt stack
 			BtStackServiceStart();
 
@@ -683,14 +667,7 @@ static void PublicMsgPross(MessageContext msg)
 #ifdef CFG_FUNC_BT_OTA_EN
 		case MSG_BT_START_OTA:
 			APP_DBG("\nMSG_BT_START_OTA\n");
-			RF_PowerDownBySw();
-			WDG_Feed();
-			rwip_reset();
-			BtStackServiceKill();
-			WDG_Feed();
-			vTaskDelay(50);
-			RF_PowerDownByHw();
-			WDG_Feed();
+			BtResetAndKill();
 			start_up_grate(SysResourceBtOTA);
 			break;
 #endif

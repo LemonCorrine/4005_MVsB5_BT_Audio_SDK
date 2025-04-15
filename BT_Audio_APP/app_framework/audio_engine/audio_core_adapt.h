@@ -121,7 +121,8 @@ typedef struct _AudioCoreIO_
 
 #define SRC_FIFO_SIZE(FRAME)			(FRAME + SRC_INPUT_MIN * SRC_SCALE_MAX + SRC_OUPUT_JITTER)
 
-#define SRA_FIFO_SIZE(FRAME)			(FRAME + SRA_BLOCK + SRA_MAX_CHG + 1)
+//预防帧小时接口fifo配2帧 微调Low 40%故障，要求后级fifo要放大
+#define SRA_FIFO_SIZE(FRAME)			((FRAME > 128) ? (FRAME + SRA_BLOCK + SRA_MAX_CHG + 1) : (FRAME + SRA_BLOCK * 2))
 
 //配置通路参数，申请所需buf
 bool AudioCoreSourceInit(AudioCoreIO * AudioIO, uint8_t Index);

@@ -36,18 +36,12 @@ bool BtStackServiceStart(void);
  * @param	NONE
  * @return  
  */
-bool BtStackServiceKill(void);
+void BtResetAndKill(void);
 void BtBbStart(void);
 void BT_IntDisable(void);
 void BT_ModuleClose(void);
 void BtStackServiceWaitResume(void);
 void BtStackServiceWaitClear(void);
-#ifdef	BT_SNIFF_ENABLE
-void BtStartEnterSniffMode(void);
-void BtStartEnterSniffStep(void);
-void BtExitSniffReconnectPhone(void);
-void BtExitSniffReconnectFlagSet(void);
-#endif//BT_SNIFF_ENABLE
 /***********************************************************************************
  * 蓝牙进入DUT模式
  * 退出DUT后,最好系统重启

@@ -33,15 +33,12 @@
 #include "bt_manager.h"
 #include "bt_app_sniff.h"
 #include "hdmi_in_api.h"
+#include "adc_interface.h"
+#include "dac_interface.h"
 #ifdef CFG_IDLE_MODE_DEEP_SLEEP
 HDMIInfo  			 *gHdmiCt;
 void GIE_ENABLE(void);
-void SystemOscConfig(void);
-void SleepMainAppTask(void);
-void SleepAgainConfig(void);
-
 void WakeupMain(void);
-
 void SleepMain(void);
 void LogUartConfig(bool InitBandRate);
 
@@ -111,13 +108,11 @@ void SystermGPIOWakeupConfig(PWR_SYSWAKEUP_SOURCE_SEL source,PWR_WAKEUP_GPIO_SEL
 
 void SystermIRWakeupConfig(IR_MODE_SEL ModeSel, IR_IO_SEL GpioSel, IR_CMD_LEN_SEL CMDLenSel)
 {
-#if 0
 	Clock_BTDMClkSelect(RC_CLK32_MODE);//sniff开启时使用影响蓝牙功能呢
 	Reset_FunctionReset(IR_FUNC_SEPA);
 	IRKeyInit();
 	IR_WakeupEnable();
 
-
 	if(GpioSel == IR_GPIOB6)
 	{
 		GPIO_RegOneBitSet(GPIO_B_IE,   GPIO_INDEX6);
@@ -126,57 +121,15 @@ void SystermIRWakeupConfig(IR_MODE_SEL ModeSel, IR_IO_SEL GpioSel, IR_CMD_LEN_SE
 		GPIO_RegOneBitClear(GPIO_B_OUT, GPIO_INDEX6);
 		GPIO_RegOneBitClear(GPIO_B_PD, GPIO_INDEX6);
 	}
-	else if(GpioSel == IR_GPIOB7)
+	else if(GpioSel == IR_GPIOA1)
 	{
-		GPIO_RegOneBitSet(GPIO_B_IE,   GPIO_INDEX7);
-		GPIO_RegOneBitClear(GPIO_B_OE, GPIO_INDEX7);
-		GPIO_RegOneBitSet(GPIO_B_IN,   GPIO_INDEX7);
-		GPIO_RegOneBitClear(GPIO_B_OUT, GPIO_INDEX7);
-		GPIO_RegOneBitClear(GPIO_B_PD, GPIO_INDEX7);
+		GPIO_RegOneBitSet(GPIO_A_IE,   GPIO_INDEX1);
+		GPIO_RegOneBitClear(GPIO_A_OE, GPIO_INDEX1);
+		GPIO_RegOneBitSet(GPIO_A_IN,   GPIO_INDEX1);
+		GPIO_RegOneBitClear(GPIO_A_OUT, GPIO_INDEX1);
+		GPIO_RegOneBitClear(GPIO_A_PD, GPIO_INDEX1);
 	}
-	else
-	{
-		GPIO_RegOneBitSet(GPIO_A_IE,   GPIO_INDEX29);
-		GPIO_RegOneBitClear(GPIO_A_OE, GPIO_INDEX29);
-		GPIO_RegOneBitSet(GPIO_A_IN,   GPIO_INDEX29);
-		GPIO_RegOneBitClear(GPIO_A_OUT, GPIO_INDEX29);
-		GPIO_RegOneBitClear(GPIO_A_PD, GPIO_INDEX29);
-	}
-	NVIC_EnableIRQ(Wakeup_IRQn);
-	NVIC_SetPriority(Wakeup_IRQn, 0);
-	GIE_ENABLE();
-
-	Power_WakeupSourceClear();
-	Power_WakeupSourceSet(SYSWAKEUP_SOURCE9_IR, 0, 0);
-	Power_WakeupEnable(SYSWAKEUP_SOURCE9_IR);
-#endif
-}
-
-void SystermIRWakeupConfig_sniff(IR_MODE_SEL ModeSel, IR_IO_SEL GpioSel, IR_CMD_LEN_SEL CMDLenSel)
-{
-#if zsq
-	Reset_FunctionReset(IR_FUNC_SEPA);
-	IRKeyInit();
-	IR_WakeupEnable();
-
-
-	if(GpioSel == IR_GPIOB6)
-	{
-		GPIO_RegOneBitSet(GPIO_B_IE,   GPIO_INDEX6);
-		GPIO_RegOneBitClear(GPIO_B_OE, GPIO_INDEX6);
-		GPIO_RegOneBitSet(GPIO_B_IN,   GPIO_INDEX6);
-		GPIO_RegOneBitClear(GPIO_B_OUT, GPIO_INDEX6);
-		GPIO_RegOneBitClear(GPIO_B_PD, GPIO_INDEX6);
-	}
-	else if(GpioSel == IR_GPIOB7)
-	{
-		GPIO_RegOneBitSet(GPIO_B_IE,   GPIO_INDEX7);
-		GPIO_RegOneBitClear(GPIO_B_OE, GPIO_INDEX7);
-		GPIO_RegOneBitSet(GPIO_B_IN,   GPIO_INDEX7);
-		GPIO_RegOneBitClear(GPIO_B_OUT, GPIO_INDEX7);
-		GPIO_RegOneBitClear(GPIO_B_PD, GPIO_INDEX7);
-	}
-	else
+	else if(GpioSel == IR_GPIOA29)
 	{
 		GPIO_RegOneBitSet(GPIO_A_IE,   GPIO_INDEX29);
 		GPIO_RegOneBitClear(GPIO_A_OE, GPIO_INDEX29);
@@ -184,16 +137,26 @@ void SystermIRWakeupConfig_sniff(IR_MODE_SEL ModeSel, IR_IO_SEL GpioSel, IR_CMD_
 		GPIO_RegOneBitClear(GPIO_A_OUT, GPIO_INDEX29);
 		GPIO_RegOneBitClear(GPIO_A_PD, GPIO_INDEX29);
 	}
+	else if(GpioSel == IR_GPIOA31)
+	{
+		GPIO_RegOneBitSet(GPIO_A_IE,   GPIO_INDEX31);
+		GPIO_RegOneBitClear(GPIO_A_OE, GPIO_INDEX31);
+		GPIO_RegOneBitSet(GPIO_A_IN,   GPIO_INDEX31);
+		GPIO_RegOneBitClear(GPIO_A_OUT, GPIO_INDEX31);
+		GPIO_RegOneBitClear(GPIO_A_PD, GPIO_INDEX31);
+	}
+	else
+	{
+		return;
+	}
 	NVIC_EnableIRQ(Wakeup_IRQn);
 	NVIC_SetPriority(Wakeup_IRQn, 0);
 	GIE_ENABLE();
 
 	Power_WakeupSourceClear();
-	Power_WakeupSourceSet(SYSWAKEUP_SOURCE9_IR, 0, 0);
-	Power_WakeupEnable(SYSWAKEUP_SOURCE9_IR);
-#endif
+	Power_WakeupSourceSet(CFG_PARA_WAKEUP_SOURCE_IR, 0, 0);
+	Power_WakeupEnable(CFG_PARA_WAKEUP_SOURCE_IR);
 }
-
 
 
 #ifdef CFG_PARA_WAKEUP_SOURCE_RTC
@@ -222,72 +185,6 @@ void SystermRTCWakeupConfig(uint32_t SleepSecond)
 	Power_WakeupEnable(SYSWAKEUP_SOURCE7_RTC);
 }
 #endif //CFG_PARA_WAKEUP_RTC
-
-void DeepSleepIOConfig()
-{
-#if zsq
-	//cansle all IO AF
-	{
-		int IO_cnt = 0;
-		for(IO_cnt = 0;IO_cnt < 32;IO_cnt++)
-		{
-			if(IO_cnt == 30)
-				continue;//A30是sw口
-			if(IO_cnt == 31)
-				continue;//A31是sw口
-			if(IO_cnt == 23)
-				continue;//A23是唤醒源
-
-			GPIO_PortAModeSet(GPIOA0 << IO_cnt,0);
-		}
-		for(IO_cnt = 0;IO_cnt < 8;IO_cnt++)
-		{
-			if(IO_cnt == 0)
-				continue;//B1是sw口
-			if(IO_cnt == 1)
-				continue;//B0是sw口
-
-			GPIO_PortBModeSet(GPIOB0 << IO_cnt,0);
-		}
-	}
-
-	SleepAgainConfig();//配置相同
-#endif
-}
-
-void SystermDeepSleepConfig(void)
-{
-#if zsq
-	uint32_t IO_cnt;
-
-	for(IO_cnt = 0;IO_cnt < 32;IO_cnt++)
-	{
-#if (CFG_PARA_WAKEUP_GPIO_CEC != WAKEUP_GPIOA27)
-		if(IO_cnt == 27)
-			continue;
-#endif
-		GPIO_PortAModeSet(GPIOA0 << IO_cnt, 0);
-	}
-
-	for(IO_cnt = 0;IO_cnt < 8;IO_cnt++)
-	{
-		GPIO_PortBModeSet(GPIOB0 << IO_cnt, 0);
-	}
-
-	SleepAgainConfig();//配置相同
-
-	SleepMain();
-
-#ifdef CFG_PARA_WAKEUP_SOURCE_RTC
-	alarm = 0;
-#else
-
-	//Clock_LOSCDisable(); //若有RTC应用则不关闭32K晶振 BKD mark sleep
-//	BACKUP_32KDisable(OSC32K_SOURCE);// bkd add
-
-#endif
-#endif
-}
 
 //启用多个唤醒源时，source通道配置灵活，但不可重复。
 void WakeupSourceSet(void)
@@ -319,20 +216,25 @@ void DeepSleeping(void)
 
 //	WDG_Disable();
 	WDG_Feed();
-	
+
+#if CFG_RES_MIC_SELECT
+	AudioADC_DeInit(ADC1_MODULE);
+	AudioCoreSourceDisable(MIC_SOURCE_NUM);
+#endif
+	AudioDAC_AllPowerDown();
+
 	GpioAPU_Back = GPIO_RegGet(GPIO_A_PU);
 	GpioAPD_Back = GPIO_RegGet(GPIO_A_PD);
 	GpioBPU_Back = GPIO_RegGet(GPIO_B_PU);
 	GpioBPD_Back = GPIO_RegGet(GPIO_B_PD);
-	SystermDeepSleepConfig();
 	WakeupSourceSet();
+	SleepMain();
 	waitCECTimeFlag = 0;
 	WDG_Disable();
 	Power_GotoDeepSleep();
 	WDG_Enable(WDG_STEP_4S);
 	while(!SystermWackupSourceCheck())
 	{
-		SleepAgainConfig();
 		Power_WakeupDisable(0xff);
 		WakeupSourceSet();
 		waitCECTimeFlag = 0;
@@ -355,7 +257,6 @@ void DeepSleeping(void)
 #endif
 	WDG_Feed();
 	WakeupMain();
-	SysTickInit();
 	WDG_Feed();
 #if defined(CFG_RES_ADC_KEY_SCAN) || defined(CFG_RES_IR_KEY_SCAN) || defined(CFG_RES_CODE_KEY_USE)|| defined(CFG_ADC_LEVEL_KEY_EN) || defined(CFG_RES_IO_KEY_SCAN)
 	KeyInit();//Init keys
@@ -378,6 +279,9 @@ void DeepSleeping(void)
 #if defined(CFG_FUNC_DISPLAY_EN)
     DispInit(0);
 #endif
+
+    extern const DACParamCt DACDefaultParamCt;
+    AudioDAC_AllPowerOn(DACDefaultParamCt.DACModel, DACDefaultParamCt.DACLoadStatus, DACDefaultParamCt.PVDDModel, DACDefaultParamCt.DACEnergyModel, DACDefaultParamCt.DACVcomModel);
 }
 
 
@@ -473,409 +377,20 @@ bool SystermWackupSourceCheck(void)
 }
 
 
-void SleepAgainConfig(void)
-{
-#if zsq
-#ifndef	BT_SNIFF_ENABLE
-	GPIO_RegSet(GPIO_A_IE,0x00000000);
-	GPIO_RegSet(GPIO_A_OE,0x00000000);
-	GPIO_RegSet(GPIO_A_OUTDS,0x00000000);//bkd GPIO_A_REG_OUTDS
-	GPIO_RegSet(GPIO_A_PD,0xffffffff);
-	GPIO_RegSet(GPIO_A_PU,0x00000000);//此时的flash的CS必须拉高0x00400000
-	GPIO_RegSet(GPIO_A_ANA_EN,0x00000000);
-	GPIO_RegSet(GPIO_A_PULLDOWN0,0x00000000);//bkd
-	GPIO_RegSet(GPIO_A_PULLDOWN1,0x00000000);//bkd
-
-	GPIO_RegSet(GPIO_B_IE,0x00);
-	GPIO_RegSet(GPIO_B_OE,0x00); 
-	GPIO_RegSet(GPIO_B_OUTDS,0x00); // bkd mark GPIO_B_REG_OUTDS
-	GPIO_RegSet(GPIO_B_PD,0xff);//B2、B3下拉，B4,B5高阻 0x1cc
-	GPIO_RegSet(GPIO_B_PU,0x00);//B0、B1上拉 0x03
-	GPIO_RegSet(GPIO_B_ANA_EN,0x00);
-	GPIO_RegSet(GPIO_B_PULLDOWN,0x00);//bkd mark GPIO_B_REG_PULLDOWN
-
-#else
-
-	GPIO_RegSet(GPIO_A_IE,0x00000000 | (BIT(23)));
-	GPIO_RegSet(GPIO_A_OE,0x00000000);
-	GPIO_RegSet(GPIO_A_OUTDS,0x00000000);//bkd GPIO_A_REG_OUTDS
-	GPIO_RegSet(GPIO_A_PD,0xffffffff & (~ BIT(23)));
-	GPIO_RegSet(GPIO_A_PU,0x00000000 | (BIT(23)));//此时的flash的CS必须拉高0x00400000
-	GPIO_RegSet(GPIO_A_ANA_EN,0x00000000);
-	GPIO_RegSet(GPIO_A_PULLDOWN0,0x00000000);//bkd
-	GPIO_RegSet(GPIO_A_PULLDOWN1,0x00000000);//bkd
-
-	GPIO_RegSet(GPIO_B_IE,0x00);
-	GPIO_RegSet(GPIO_B_OE,0x00);
-	GPIO_RegSet(GPIO_B_OUTDS,0x00); // bkd mark GPIO_B_REG_OUTDS
-	GPIO_RegSet(GPIO_B_PD,0xff);//B2、B3下拉，B4,B5高阻 0x1cc
-	GPIO_RegSet(GPIO_B_PU,0x00);//B0、B1上拉 0x03
-	GPIO_RegSet(GPIO_B_ANA_EN,0x00);
-	GPIO_RegSet(GPIO_B_PULLDOWN,0x00);//bkd mark GPIO_B_REG_PULLDOWN
-#endif
-#endif
-}
-
 #endif//CFG_FUNC_DEEPSLEEP_EN
 
-
-
-#ifdef BT_SNIFF_ENABLE
-
-//IR退出sniff轮询
-void IrWakeupProcess(void)
+void BtDeepSleepForUsr(void)	//蓝牙休眠配置入口
 {
-	uint32_t Cmd = 0;
-	uint8_t val = 0;
-
-	//printf("IrWakeupProcess\n");
-	if(IR_CommandFlagGet())
-	{
-		Cmd = IR_CommandDataGet();
-		val = IRKeyIndexGet_BT(Cmd);
-
-		SetIrKeyValue((uint8_t)2,(uint16_t)val);
-		//APP_DBG("cmd:0x%lx,0x%d,%x\n",Cmd,GetIrKeyValue(),val);
-		if(GetIrKeyValue() == MSG_BT_SNIFF)
-		{
-			extern void BtSniffExit_process(void);
-#ifdef CFG_IDLE_MODE_DEEP_SLEEP
-			sources = 0;
-#endif
-			ClrGlobalKeyValue();
-			IR_Disable();
-			BtSniffExit_process();
-		}
-		IR_IntFlagClear();
-		IR_CommandFlagClear();
-	}
-}
-
-uint8_t GetDebugPrintPort(void);
-void UartClkChange(CLK_MODE clk_change)//蓝牙唤醒配置入口
-{
-	//串口时钟切换
-#ifdef FUNC_OS_EN
-	if(GetDebugPrintPort())
-	{
-		osMutexLock(UART1Mutex);
-	}
-	else
-	{
-		osMutexLock(UART0Mutex);
-	}
-#endif
-	Clock_UARTClkSelect(clk_change);//先切换log clk。避免后续慢速处理
-	LogUartConfig(TRUE);
-#ifdef FUNC_OS_EN
-	if(GetDebugPrintPort())
-	{
-		osMutexUnlock(UART1Mutex);;
-	}
-	else
-	{
-		osMutexUnlock(UART0Mutex);;
-	}
-
-#endif
-}
-
-uint8_t sniffiocnt = 0;
-uint8_t sniff_wakeup_check()
-{
-//	bool CecRest = FALSE;
-
-//	if(!GPIO_RegOneBitGet(GPIO_A_IN,GPIOA23))
-//	{//唤醒流程，按键大于两个sniff周期就唤醒。如果用时间判断可能导致sniff功能不正常
-//
-//		if(sniffiocnt > 2)//按键超过两个周期就退出。
-//		{//退出sniff。
-//			sniffiocnt = 0;
-//			extern void BtSniffExit_process(void);
-//			BtSniffExit_process();
-//
-//			return 1;
-//		}
-//		else
-//		{
-//			sniffiocnt++;
-//
-//			return 1;
-//		}
-//
-//	}
-
-#if defined(CFG_PARA_WAKEUP_SOURCE_ADCKEY) && defined(CFG_RES_ADC_KEY_SCAN)
-		if(sources & (CFG_PARA_WAKEUP_SOURCE_ADCKEY))
-		{
-			AdcKeyMsg AdcKeyVal;
-
-			SarADC_Init();
-			AdcKeyInit();
-
-			sources = 0;
-			//如果没出现RELEASED就在while里面
-			do
-			{
-				AdcKeyVal = AdcKeyScan();
-
-				if(AdcKeyVal.index != ADC_CHANNEL_EMPTY && AdcKeyVal.type != ADC_KEY_UNKOWN_TYPE)
-				{
-//					APP_DBG("KeyID:%d,type:%d\n", AdcKeyVal.index, AdcKeyVal.type);
-					SetAdcKeyValue(AdcKeyVal.type,AdcKeyVal.index);
-					if((GetGlobalKeyValue() == MSG_DEEPSLEEP)||(GetGlobalKeyValue() == MSG_BT_SNIFF))
-					{
-						ClrGlobalKeyValue();
-						extern void BtSniffExit_process(void);
-						BtSniffExit_process();
-						return 1;
-					}
-					ClrGlobalKeyValue();
-				}
-			}while((AdcKeyVal.type != ADC_KEY_RELEASED) && (AdcKeyVal.type != ADC_KEY_LONG_RELEASED));
-			return 1;
-		}
-#endif
-
-#ifdef CFG_PARA_WAKEUP_SOURCE_POWERKEY
-		if(sources & SYSWAKEUP_SOURCE6_POWERKEY)
-		{
-			APP_DBG("POWER_Key!\n");
-			sources = 0;
-			extern void BtSniffExit_process(void);
-			BtSniffExit_process();
-			return 1;
-		}
-#endif
-
-#if defined(CFG_PARA_WAKEUP_SOURCE_IR)
-	if(sources & CFG_PARA_WAKEUP_SOURCE_IR)
-	{
-		sources = 0;
-		IrWakeupProcess();
-		return 1;
-	}
-#endif
-
-	return 0;
-
-}
-
-void BtDeepSleepForUsr(void)//蓝牙休眠配置入口，目前没做处理
-{
-	//快速启动pll有点问题
-//	uint32_t SLOPE, NDAC, OS, K1, FC;
-//	uint32_t GpioAPU_Back,GpioAPD_Back,GpioBPU_Back,GpioBPD_Back;
-//
-//	Clock_GetDPll(&NDAC, &OS, &K1, &FC);
-//	SLOPE = DPLL_QUICK_START_SLOPE;//获取快速启动，参数。
-
-//	GPIO_PortAModeSet(GPIOA30,0);		  //去掉Sw复用。调试口
-//	GPIO_PortAModeSet(GPIOA31,0);
-
-	UartClkChange(RC_CLK_MODE);
-	GIE_DISABLE();
-	DeepSleepIOConfig();
-	Power_DeepSleepLDO12ConfigTest(0,5,0);//进入deepsleep时电压降为1V0
-	SysTickDeInit();
-
 	NVIC_EnableIRQ(Wakeup_IRQn);
 	NVIC_SetPriority(Wakeup_IRQn, 0);
 	Power_WakeupSourceClear();
-	Power_WakeupSourceSet(SYSWAKEUP_SOURCE13_BT, 0, 0);//设置蓝牙为唤醒源，无需IO所以随便填了0
-	Power_WakeupEnable(SYSWAKEUP_SOURCE13_BT);
+	Power_WakeupSourceSet(SYSWAKEUP_SOURCE15_BT, 0, 0);//设置蓝牙为唤醒源，无需IO所以随便填了0
+	Power_WakeupEnable(SYSWAKEUP_SOURCE15_BT);
 
-#if defined(CFG_PARA_WAKEUP_SOURCE_IR)
-	SystermIRWakeupConfig_sniff(CFG_PARA_IR_SEL, CFG_RES_IR_PIN, CFG_PARA_IR_BIT);
-#endif
-
-	NVIC_DisableForDeepsleep();//关闭所有中断，只开唤醒中断
-
-	Clock_DeepSleepSysClkSelect(RC_CLK_MODE, FSHC_RC_CLK_MODE, TRUE);
-
-	Clock_PllClose();
-	Clock_LOSCDisable();
-//	Clock_HOSCDisable();
-#ifdef CFG_IDLE_MODE_DEEP_SLEEP
-	sources = 0;
-	waitCECTimeFlag = 0;
-//	GIE_ENABLE();//Power_GotoDeepSleep里面有开时钟动作
-#endif
+	NVIC_DisableForDeepsleep();
+	SleepMain();
 	Power_GotoDeepSleep();
-
-	GIE_DISABLE();
-//	Clock_PllQuicklock(288000, K1, OS, NDAC, FC, SLOPE);
-    Clock_PllLock(288000);
-
-	Clock_DeepSleepSysClkSelect(PLL_CLK_MODE,FSHC_PLL_CLK_MODE,FALSE);
-
-	NVIC_EnableForDeepsleep();//中断恢复
-
-//	GIE_ENABLE();
-
-	SysTickInit();//开始OS 打开全局时钟
-
-	UartClkChange(PLL_CLK_MODE);
-
-//	GPIO_PortAModeSet(GPIOA30, 0x0005);//调试口 SW恢复 方便下载
-//	GPIO_PortAModeSet(GPIOA31, 0x0004);
-
-//	extern uint8_t OtgPortLinkState;
-//	Timer_Config(TIMER2,1000,0);
-//	Timer_Start(TIMER2);
-//	NVIC_EnableIRQ(Timer2_IRQn);
-//	OtgPortLinkState = 0;
-
-
+	WakeupMain();
+	NVIC_EnableForDeepsleep();
+	APP_DBG("LogUartConfig\n");
 }
-
-uint8_t sniff_wakeup_flag = 0;//本次休眠唤醒是否触发sniff标志，为保系统稳定，此标志可确保系统不受stack影响
-							  //0sniff流程没触发   1sniff已经触发
-void sniff_wakeup_set(uint8_t set)
-{
-	sniff_wakeup_flag = set;
-}
-uint8_t sniff_wakeup_get(void)
-{
-	return sniff_wakeup_flag;
-}
-
-uint8_t sniff_lmp_sync_flag = 0;//sniff的lmp同步命令已经发送过标志，防止用于UI多次发送lmp导致异常,此标志可确保协议栈不受系统影响
-								//0表示未发送可接受，1表示已经有命令请等待。
-void sniff_lmpsend_set(uint8_t set)
-{
-	sniff_lmp_sync_flag = set;
-}
-uint8_t sniff_lmpsend_get()
-{
-	return sniff_lmp_sync_flag;
-}
-
-void tws_stop_callback()//进入sniff时库里会调用
-{
-	//SysDeepsleepStandbyStatus();
-	printf("SysDeepsleepStandbyStatus\n");
-}
-
-void tws_sniff_check_adda_process()
-{
-//	if(GetBtManager()->twsRole == BT_TWS_SLAVE)
-	{
-
-//		if(BtSniffADDAReadyGet() == 3)
-//		{
-//			printf("wakeup all ready\n");
-//			if(sniff_lmpsend_get() == 1)
-//			{
-//				//##__退出sniff，标志位恢复__##
-//				sniff_lmpsend_set(0);
-//				printf("sniff_lmpsend_set(0)\n");
-//				//##____________________##
-//			}
-//			BtSniffADDAReadySet(0);//清空ADDA准备标志
-//			tws_link_status_set(1);
-//			printf("tws_link_status_set(1)\n");
-//		}
-
-		//链路层断开后，发现sniff有标志没清。
-		if((sniff_wakeup_get() /*|| sniff_lmpsend_get()*/)
-			)
-		{
-			//断开后的sniff状态恢复
-			sniff_wakeup_set(0);
-			//sniff_lmpsend_set(0);
-
-		}
-	}
-}
-
-TIMER   sniffrerequsettimer;
-#define RESEND_SCAN_TIME				2000		//醒来确认有效唤醒源 扫描限时ms。
-void DeepSleeping_BT(void)
-{
-	uint32_t GpioAPU_Back,GpioAPD_Back,GpioBPU_Back,GpioBPD_Back;
-
-	//Efuse_ReadDataDisable();
-//	SysDeepsleepStart();
-
-	BtStartEnterSniffMode();
-	TimeOutSet(&sniffrerequsettimer, RESEND_SCAN_TIME);
-	while((Bt_sniff_sniff_start_state_get() == 0) ||
-			(Bt_sniff_sleep_state_get() == 0))
-	{
-
-		if(IsTimeOut(&sniffrerequsettimer))
-		{
-			APP_DBG("LMP sniff state ERR!!!\r\n");
-			BtStartEnterSniffMode();
-			TimeOutSet(&sniffrerequsettimer, RESEND_SCAN_TIME);
-		}
-
-		vTaskDelay(2);
-	}
-
-
-	GpioAPU_Back = GPIO_RegGet(GPIO_A_PU);//保存上下拉
-	GpioAPD_Back = GPIO_RegGet(GPIO_A_PD);
-	GpioBPU_Back = GPIO_RegGet(GPIO_B_PU);
-	GpioBPD_Back = GPIO_RegGet(GPIO_B_PD);
-
-#ifdef CFG_PARA_WAKEUP_SOURCE_POWERKEY
-	SystermGPIOWakeupConfig(SYSWAKEUP_SOURCE6_POWERKEY, 42, SYSWAKEUP_SOURCE_NEGE_TRIG);
-#endif
-
-#if defined(CFG_PARA_WAKEUP_SOURCE_ADCKEY)
-	SystermGPIOWakeupConfig(CFG_PARA_WAKEUP_SOURCE_ADCKEY, CFG_PARA_WAKEUP_GPIO_ADCKEY, SYSWAKEUP_SOURCE_NEGE_TRIG);
-#endif
-
-#ifdef CFG_IDLE_MODE_DEEP_SLEEP
-	sources = 0;//休眠前清除所有唤醒中断。
-	waitCECTimeFlag = 0;
-#endif
-	BTSniffSet();//准备进入sniff
-
-	while(Bt_sniff_sniff_start_state_get())//没退出sniff消息，进入sniff休眠轮询。
-	{
-		vTaskDelay(1);
-		if(Bt_sniff_sleep_state_get())
-		{
-			Bt_sniff_sleep_exit();
-			BtDeepSleepForUsr();
-		}
-	}
-
-	GPIO_RegSet(GPIO_A_PU, GpioAPU_Back);
-	GPIO_RegSet(GPIO_A_PD, GpioAPD_Back);
-	GPIO_RegSet(GPIO_B_PU, GpioBPU_Back);
-	GPIO_RegSet(GPIO_B_PD, GpioBPD_Back);
-
-	Efuse_ReadDataEnable();
-
-	UartClkChange(APLL_CLK_MODE);
-
-
-#ifdef CFG_FUNC_LED_REFRESH
-	//默认优先级为0，旨在提高刷新速率，特别是断点记忆等写flash操作有影响刷屏，必须严格遵守所有timer6中断调用都是TCM代码，含调用的driver库代码
-	//已确认GPIO_RegOneBitSet、GPIO_RegOneBitClear在TCM区，其他api请先确认。
-	NVIC_SetPriority(Timer6_IRQn, 0);
- 	Timer_Config(TIMER6,1000,0);
- 	Timer_Start(TIMER6);
- 	NVIC_EnableIRQ(Timer6_IRQn);
-
- 	//此行代码仅仅用于延时，配合Timer中断处理函数，客户一定要做修改调整
- 	//GPIO_RegOneBitSet(GPIO_A_OE, GPIO_INDEX2);//only test，user must modify
-#endif
-
-#if defined(CFG_FUNC_DISPLAY_EN)
-    DispInit(0);
-#endif
-}
-
-#else
-void tws_stop_callback()//进入sniff时库里会调用
-{
-
-}
-
-#endif //BT_SNIFF_ENABLE
-
