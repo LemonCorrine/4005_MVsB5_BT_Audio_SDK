@@ -57,6 +57,7 @@ Examples/examples/Example_PWM/Debug/
 Examples/examples/Example_RTC/Debug/
 Examples/examples/Example_SDIO/Debug/
 Examples/examples/Example_SPDIF/Debug/
+Examples/examples/Example_SPIM/Debug/ 
 Examples/examples/Example_SPIS/Debug/
 Examples/examples/Example_Timer/Debug/
 Examples/examples/Example_UART/Debug/
