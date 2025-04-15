@@ -16,10 +16,10 @@
 *.txt
 # *.ld
 # *.sag
-*.ini
-*.bat
-*.chm
-*.pdf
+# *.ini
+# *.bat
+# *.chm
+# *.pdf
 # *.S
 # *.apk
 # *.project
