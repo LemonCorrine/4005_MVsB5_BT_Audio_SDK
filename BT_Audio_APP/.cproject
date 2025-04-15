@@ -165,132 +165,328 @@
 							<tool command="$(ANDESIGHT_ROOT)/utils/nds_ldsag" commandLinePattern="${COMMAND} ${FLAGS} ${INPUTS} ${OUTPUT_FLAG} $(LDSAG_OUT)" errorParsers="" id="tool.nds32le-elf-mculib-v3s.ldsag.base.367638005" name="LdSaG Tool" superClass="tool.nds32le-elf-mculib-v3s.ldsag.base"/>
 						</toolChain>
 					</folderInfo>
-					<folderInfo id="config.nds32le-elf-mculib-v3s.exe.debug.1519929465.1609667904" name="/" resourcePath="tools/audioeffect_effect_ini_to_bin_script/source_file">
-						<toolChain id="nds.nds32le-elf-mculib-v3s.base.1799752722" name="nds32le-elf-mculib-v3s" superClass="nds.nds32le-elf-mculib-v3s.base" unusedChildren="">
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CPU.458838856.549174856" name="CPU" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CPU.458838856"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIST_CPU.1573164539.1233463317" name="LIST_CPU" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIST_CPU.1573164539"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CORE.1550214933.335910712" name="CORE" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CORE.1550214933"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ARCH.1861413996.1952885759" name="ARCH" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ARCH.1861413996"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ISA_REDUCE_REGS.563950954.511615813" name="ISA_REDUCE_REGS" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ISA_REDUCE_REGS.563950954"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_TARGET.309680814.1591018838" name="TARGET" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_TARGET.309680814"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ENDIAN.527945288.1609577778" name="ENDIAN" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ENDIAN.527945288"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_C_DEFAULT.511999699.994450967" name="LIB_C_DEFAULT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_C_DEFAULT.511999699"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_CPP_DEFAULT.569455571.251348999" name="LIB_CPP_DEFAULT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_CPP_DEFAULT.569455571"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET.859767876.2025750716" name="RSE_TARGET" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET.859767876"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_CONNECT.1317288224.1944510821" name="RSE_CONNECT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_CONNECT.1317288224"/>
+					<folderInfo id="config.nds32le-elf-mculib-v3s.exe.debug.1519929465.1932862319" name="/" resourcePath="app_src">
+						<toolChain id="nds.nds32le-elf-mculib-v3s.base.1152017101" name="nds32le-elf-mculib-v3s" superClass="nds.nds32le-elf-mculib-v3s.base" unusedChildren="">
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CPU.458838856.876363533" name="CPU" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CPU.458838856"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIST_CPU.1573164539.1958365692" name="LIST_CPU" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIST_CPU.1573164539"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CORE.1550214933.1614032259" name="CORE" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CORE.1550214933"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ARCH.1861413996.1870893743" name="ARCH" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ARCH.1861413996"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ISA_REDUCE_REGS.563950954.215107126" name="ISA_REDUCE_REGS" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ISA_REDUCE_REGS.563950954"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_TARGET.309680814.643469852" name="TARGET" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_TARGET.309680814"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ENDIAN.527945288.1843693576" name="ENDIAN" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ENDIAN.527945288"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_C_DEFAULT.511999699.1371088090" name="LIB_C_DEFAULT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_C_DEFAULT.511999699"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_CPP_DEFAULT.569455571.354781253" name="LIB_CPP_DEFAULT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_CPP_DEFAULT.569455571"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET.859767876.1294787176" name="RSE_TARGET" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET.859767876"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_CONNECT.1317288224.974124106" name="RSE_CONNECT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_CONNECT.1317288224"/>
 							<targetPlatform archList="all" binaryParser="com.andestech.ide.cdt.managedbuilder.core.CROSS_GNU_ELF" id="target.nds.platform.base" name="Debug Platform" osList="all" superClass="target.nds.platform.base"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.archiver.base.1215727244" name="Andes Archiver" superClass="tool.nds32le-elf-mculib-v3s.archiver.base.599789221"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.cpp.compiler.base.2013692148" name="Andes C++ Compiler" superClass="tool.nds32le-elf-mculib-v3s.cpp.compiler.base.1071303482"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.cpp.linker.base.160320497" name="Andes C++ Linker" superClass="tool.nds32le-elf-mculib-v3s.cpp.linker.base.425081196"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.c.compiler.base.622854200" name="Andes C Compiler" superClass="tool.nds32le-elf-mculib-v3s.c.compiler.base.548536476">
-								<inputType id="tool.nds.c.compiler.input.1238231346" superClass="tool.nds.c.compiler.input"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.archiver.base.1795609591" name="Andes Archiver" superClass="tool.nds32le-elf-mculib-v3s.archiver.base.599789221"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.cpp.compiler.base.230760421" name="Andes C++ Compiler" superClass="tool.nds32le-elf-mculib-v3s.cpp.compiler.base.1071303482"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.cpp.linker.base.658284410" name="Andes C++ Linker" superClass="tool.nds32le-elf-mculib-v3s.cpp.linker.base.425081196"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.c.compiler.base.59627438" name="Andes C Compiler" superClass="tool.nds32le-elf-mculib-v3s.c.compiler.base.548536476">
+								<option id="nds.c.compiler.option.include.paths.1269487238" name="Include paths (-I)" superClass="nds.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/otg/host/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/otg/device/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/audio/music_parameter}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/third_part_effect}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/third_part_effect/simple_gain}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/src/materials}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/cec/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_hdmi}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/audio}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/soft_watchdog}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_spdif}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_framework/slow_device_engine}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode__common}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_bt}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_i2s}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_idle}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_linein}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_media}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_radio}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_usb_audio}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/bluetooth}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/ble}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/flash_manage}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/rtc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/upgrade}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/hmi/detect}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/hmi/display}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/hmi/fm}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/hmi/key}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/system_config}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/flashboot}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_framework/mode_engine}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_framework/bluetooth_engine}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_framework/audio_engine}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/driver/driver_api/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/driver/driver/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/power}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/rtc/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/fatfs/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/bluetooth/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/audio/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/mv_utils/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/lrc/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/rtos/rtos_api}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/rtos/freertos/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BT_Audio_APP/middleware/roboeffect/src}&quot;"/>
+								</option>
+								<inputType id="tool.nds.c.compiler.input.1043909644" superClass="tool.nds.c.compiler.input"/>
 							</tool>
-							<tool id="tool.nds32le-elf-mculib-v3s.c.linker.base.1287411599" name="Andes C Linker" superClass="tool.nds32le-elf-mculib-v3s.c.linker.base.1485094752"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.assembler.base.1213415007" name="Andes Assembler" superClass="tool.nds32le-elf-mculib-v3s.assembler.base.117608961">
-								<inputType id="tool.nds.assembler.input.1107022436" superClass="tool.nds.assembler.input"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.c.linker.base.1676940028" name="Andes C Linker" superClass="tool.nds32le-elf-mculib-v3s.c.linker.base.1485094752"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.assembler.base.1125524414" name="Andes Assembler" superClass="tool.nds32le-elf-mculib-v3s.assembler.base.117608961">
+								<inputType id="tool.nds.assembler.input.33620828" superClass="tool.nds.assembler.input"/>
 							</tool>
-							<tool id="tool.nds32le-elf-mculib-v3s.nm.base.1135689476" name="NM (symbol listing)" superClass="tool.nds32le-elf-mculib-v3s.nm.base.1539676136"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.readelf.base.1889268009" name="Readelf (ELF info listing)" superClass="tool.nds32le-elf-mculib-v3s.readelf.base.2079687443"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.objdump.base.1387900826" name="Objdump (disassembly)" superClass="tool.nds32le-elf-mculib-v3s.objdump.base.1479603782"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.objcopy.base.1394523637" name="Objcopy (object content copy)" superClass="tool.nds32le-elf-mculib-v3s.objcopy.base.1692092306"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.size.base.559184226" name="Size (section size listing)" superClass="tool.nds32le-elf-mculib-v3s.size.base.1918770417"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.ldsag.base.405140925" name="LdSaG Tool" superClass="tool.nds32le-elf-mculib-v3s.ldsag.base.367638005"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.nm.base.224073080" name="NM (symbol listing)" superClass="tool.nds32le-elf-mculib-v3s.nm.base.1539676136"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.readelf.base.2091123579" name="Readelf (ELF info listing)" superClass="tool.nds32le-elf-mculib-v3s.readelf.base.2079687443"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.objdump.base.248238638" name="Objdump (disassembly)" superClass="tool.nds32le-elf-mculib-v3s.objdump.base.1479603782"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.objcopy.base.1823797173" name="Objcopy (object content copy)" superClass="tool.nds32le-elf-mculib-v3s.objcopy.base.1692092306"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.size.base.1051069341" name="Size (section size listing)" superClass="tool.nds32le-elf-mculib-v3s.size.base.1918770417"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.ldsag.base.1054061040" name="LdSaG Tool" superClass="tool.nds32le-elf-mculib-v3s.ldsag.base.367638005"/>
 						</toolChain>
 					</folderInfo>
-					<folderInfo id="config.nds32le-elf-mculib-v3s.exe.debug.1519929465.1988882032" name="/" resourcePath="tools/audioeffect_list_to_parameters_script/source_file">
-						<toolChain id="nds.nds32le-elf-mculib-v3s.base.2070096959" name="nds32le-elf-mculib-v3s" superClass="nds.nds32le-elf-mculib-v3s.base" unusedChildren="">
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CPU.458838856.1548130795" name="CPU" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CPU.458838856"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIST_CPU.1573164539.1838372011" name="LIST_CPU" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIST_CPU.1573164539"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CORE.1550214933.1585303023" name="CORE" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CORE.1550214933"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ARCH.1861413996.2070070570" name="ARCH" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ARCH.1861413996"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ISA_REDUCE_REGS.563950954.1833752734" name="ISA_REDUCE_REGS" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ISA_REDUCE_REGS.563950954"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_TARGET.309680814.680107666" name="TARGET" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_TARGET.309680814"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ENDIAN.527945288.2144267858" name="ENDIAN" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ENDIAN.527945288"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_C_DEFAULT.511999699.189224139" name="LIB_C_DEFAULT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_C_DEFAULT.511999699"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_CPP_DEFAULT.569455571.1944195198" name="LIB_CPP_DEFAULT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_CPP_DEFAULT.569455571"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET.859767876.2044768880" name="RSE_TARGET" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET.859767876"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_CONNECT.1317288224.1221252672" name="RSE_CONNECT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_CONNECT.1317288224"/>
+					<folderInfo id="config.nds32le-elf-mculib-v3s.exe.debug.1519929465.1116282499" name="/" resourcePath="middleware">
+						<toolChain id="nds.nds32le-elf-mculib-v3s.base.1041886326" name="nds32le-elf-mculib-v3s" superClass="nds.nds32le-elf-mculib-v3s.base" unusedChildren="">
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CPU.458838856.129661286" name="CPU" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CPU.458838856"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIST_CPU.1573164539.1057430121" name="LIST_CPU" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIST_CPU.1573164539"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CORE.1550214933.132509605" name="CORE" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CORE.1550214933"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ARCH.1861413996.1248981053" name="ARCH" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ARCH.1861413996"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ISA_REDUCE_REGS.563950954.2049178163" name="ISA_REDUCE_REGS" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ISA_REDUCE_REGS.563950954"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_TARGET.309680814.307169171" name="TARGET" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_TARGET.309680814"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ENDIAN.527945288.1089832097" name="ENDIAN" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ENDIAN.527945288"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_C_DEFAULT.511999699.1985477396" name="LIB_C_DEFAULT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_C_DEFAULT.511999699"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_CPP_DEFAULT.569455571.2142827147" name="LIB_CPP_DEFAULT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_CPP_DEFAULT.569455571"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET.859767876.385646596" name="RSE_TARGET" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET.859767876"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_CONNECT.1317288224.2074752487" name="RSE_CONNECT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_CONNECT.1317288224"/>
 							<targetPlatform archList="all" binaryParser="com.andestech.ide.cdt.managedbuilder.core.CROSS_GNU_ELF" id="target.nds.platform.base" name="Debug Platform" osList="all" superClass="target.nds.platform.base"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.archiver.base.311908721" name="Andes Archiver" superClass="tool.nds32le-elf-mculib-v3s.archiver.base.599789221"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.cpp.compiler.base.2116284334" name="Andes C++ Compiler" superClass="tool.nds32le-elf-mculib-v3s.cpp.compiler.base.1071303482"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.cpp.linker.base.107355724" name="Andes C++ Linker" superClass="tool.nds32le-elf-mculib-v3s.cpp.linker.base.425081196"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.c.compiler.base.1721522443" name="Andes C Compiler" superClass="tool.nds32le-elf-mculib-v3s.c.compiler.base.548536476">
-								<inputType id="tool.nds.c.compiler.input.1601535042" superClass="tool.nds.c.compiler.input"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.archiver.base.1328468905" name="Andes Archiver" superClass="tool.nds32le-elf-mculib-v3s.archiver.base.599789221"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.cpp.compiler.base.1233307304" name="Andes C++ Compiler" superClass="tool.nds32le-elf-mculib-v3s.cpp.compiler.base.1071303482"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.cpp.linker.base.294552219" name="Andes C++ Linker" superClass="tool.nds32le-elf-mculib-v3s.cpp.linker.base.425081196"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.c.compiler.base.2057724529" name="Andes C Compiler" superClass="tool.nds32le-elf-mculib-v3s.c.compiler.base.548536476">
+								<option id="nds.c.compiler.option.include.paths.888375135" name="Include paths (-I)" superClass="nds.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/otg/host/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/otg/device/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/audio/music_parameter}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/src/materials}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/cec/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_hdmi}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/audio}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/soft_watchdog}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_spdif}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_framework/slow_device_engine}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode__common}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_bt}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_i2s}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_idle}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_linein}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_media}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_radio}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_usb_audio}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/bluetooth}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/ble}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/flash_manage}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/rtc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/upgrade}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/hmi/detect}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/hmi/display}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/hmi/fm}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/hmi/key}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/system_config}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/flashboot}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_framework/mode_engine}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_framework/bluetooth_engine}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_framework/audio_engine}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/driver/driver_api/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/driver/driver/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/power}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/rtc/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/fatfs/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/bluetooth/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/audio/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/mv_utils/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/lrc/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/rtos/rtos_api}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/rtos/freertos/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BT_Audio_APP/middleware/roboeffect/src}&quot;"/>
+								</option>
+								<inputType id="tool.nds.c.compiler.input.1958519008" superClass="tool.nds.c.compiler.input"/>
 							</tool>
-							<tool id="tool.nds32le-elf-mculib-v3s.c.linker.base.887189328" name="Andes C Linker" superClass="tool.nds32le-elf-mculib-v3s.c.linker.base.1485094752"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.assembler.base.2013033704" name="Andes Assembler" superClass="tool.nds32le-elf-mculib-v3s.assembler.base.117608961">
-								<inputType id="tool.nds.assembler.input.124743079" superClass="tool.nds.assembler.input"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.c.linker.base.329864266" name="Andes C Linker" superClass="tool.nds32le-elf-mculib-v3s.c.linker.base.1485094752"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.assembler.base.1333707708" name="Andes Assembler" superClass="tool.nds32le-elf-mculib-v3s.assembler.base.117608961">
+								<inputType id="tool.nds.assembler.input.1641855010" superClass="tool.nds.assembler.input"/>
 							</tool>
-							<tool id="tool.nds32le-elf-mculib-v3s.nm.base.1475475779" name="NM (symbol listing)" superClass="tool.nds32le-elf-mculib-v3s.nm.base.1539676136"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.readelf.base.813874793" name="Readelf (ELF info listing)" superClass="tool.nds32le-elf-mculib-v3s.readelf.base.2079687443"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.objdump.base.2141506093" name="Objdump (disassembly)" superClass="tool.nds32le-elf-mculib-v3s.objdump.base.1479603782"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.objcopy.base.1100109189" name="Objcopy (object content copy)" superClass="tool.nds32le-elf-mculib-v3s.objcopy.base.1692092306"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.size.base.874464321" name="Size (section size listing)" superClass="tool.nds32le-elf-mculib-v3s.size.base.1918770417"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.ldsag.base.1739698754" name="LdSaG Tool" superClass="tool.nds32le-elf-mculib-v3s.ldsag.base.367638005"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.nm.base.1248124352" name="NM (symbol listing)" superClass="tool.nds32le-elf-mculib-v3s.nm.base.1539676136"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.readelf.base.895822721" name="Readelf (ELF info listing)" superClass="tool.nds32le-elf-mculib-v3s.readelf.base.2079687443"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.objdump.base.749847020" name="Objdump (disassembly)" superClass="tool.nds32le-elf-mculib-v3s.objdump.base.1479603782"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.objcopy.base.1433367997" name="Objcopy (object content copy)" superClass="tool.nds32le-elf-mculib-v3s.objcopy.base.1692092306"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.size.base.917128973" name="Size (section size listing)" superClass="tool.nds32le-elf-mculib-v3s.size.base.1918770417"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.ldsag.base.1211974380" name="LdSaG Tool" superClass="tool.nds32le-elf-mculib-v3s.ldsag.base.367638005"/>
 						</toolChain>
 					</folderInfo>
-					<folderInfo id="config.nds32le-elf-mculib-v3s.exe.debug.1519929465.838257001" name="/" resourcePath="tools/audioeffect_parameters_script/source_file">
-						<toolChain id="nds.nds32le-elf-mculib-v3s.base.431593294" name="nds32le-elf-mculib-v3s" superClass="nds.nds32le-elf-mculib-v3s.base" unusedChildren="">
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CPU.458838856.1182820031" name="CPU" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CPU.458838856"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIST_CPU.1573164539.373832506" name="LIST_CPU" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIST_CPU.1573164539"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CORE.1550214933.2076196252" name="CORE" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CORE.1550214933"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ARCH.1861413996.1490872965" name="ARCH" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ARCH.1861413996"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ISA_REDUCE_REGS.563950954.445254172" name="ISA_REDUCE_REGS" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ISA_REDUCE_REGS.563950954"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_TARGET.309680814.1617696867" name="TARGET" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_TARGET.309680814"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ENDIAN.527945288.855332040" name="ENDIAN" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ENDIAN.527945288"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_C_DEFAULT.511999699.2075133208" name="LIB_C_DEFAULT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_C_DEFAULT.511999699"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_CPP_DEFAULT.569455571.1420723806" name="LIB_CPP_DEFAULT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_CPP_DEFAULT.569455571"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET.859767876.1588310824" name="RSE_TARGET" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET.859767876"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_CONNECT.1317288224.376098508" name="RSE_CONNECT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_CONNECT.1317288224"/>
+					<folderInfo id="config.nds32le-elf-mculib-v3s.exe.debug.1519929465.1973693235" name="/" resourcePath="middleware/roboeffect">
+						<toolChain id="nds.nds32le-elf-mculib-v3s.base.1243873667" name="nds32le-elf-mculib-v3s" superClass="nds.nds32le-elf-mculib-v3s.base" unusedChildren="">
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CPU.458838856.129661286.1659419441" name="CPU" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CPU.458838856.129661286"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIST_CPU.1573164539.1057430121.50538604" name="LIST_CPU" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIST_CPU.1573164539.1057430121"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CORE.1550214933.132509605.748041616" name="CORE" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CORE.1550214933.132509605"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ARCH.1861413996.1248981053.1013301182" name="ARCH" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ARCH.1861413996.1248981053"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ISA_REDUCE_REGS.563950954.2049178163.2102721201" name="ISA_REDUCE_REGS" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ISA_REDUCE_REGS.563950954.2049178163"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_TARGET.309680814.307169171.1303823738" name="TARGET" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_TARGET.309680814.307169171"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ENDIAN.527945288.1089832097.598634687" name="ENDIAN" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ENDIAN.527945288.1089832097"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_C_DEFAULT.511999699.1985477396.938993053" name="LIB_C_DEFAULT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_C_DEFAULT.511999699.1985477396"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_CPP_DEFAULT.569455571.2142827147.1077910062" name="LIB_CPP_DEFAULT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_CPP_DEFAULT.569455571.2142827147"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET.859767876.385646596.59732685" name="RSE_TARGET" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET.859767876.385646596"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_CONNECT.1317288224.2074752487.59569800" name="RSE_CONNECT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_CONNECT.1317288224.2074752487"/>
 							<targetPlatform archList="all" binaryParser="com.andestech.ide.cdt.managedbuilder.core.CROSS_GNU_ELF" id="target.nds.platform.base" name="Debug Platform" osList="all" superClass="target.nds.platform.base"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.archiver.base.2097555320" name="Andes Archiver" superClass="tool.nds32le-elf-mculib-v3s.archiver.base.599789221"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.cpp.compiler.base.1722944996" name="Andes C++ Compiler" superClass="tool.nds32le-elf-mculib-v3s.cpp.compiler.base.1071303482"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.cpp.linker.base.1209613822" name="Andes C++ Linker" superClass="tool.nds32le-elf-mculib-v3s.cpp.linker.base.425081196"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.c.compiler.base.861984250" name="Andes C Compiler" superClass="tool.nds32le-elf-mculib-v3s.c.compiler.base.548536476">
-								<inputType id="tool.nds.c.compiler.input.1896245571" superClass="tool.nds.c.compiler.input"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.archiver.base.986520850" name="Andes Archiver" superClass="tool.nds32le-elf-mculib-v3s.archiver.base.1328468905"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.cpp.compiler.base.682457101" name="Andes C++ Compiler" superClass="tool.nds32le-elf-mculib-v3s.cpp.compiler.base.1233307304"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.cpp.linker.base.393525637" name="Andes C++ Linker" superClass="tool.nds32le-elf-mculib-v3s.cpp.linker.base.294552219"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.c.compiler.base.1012198793" name="Andes C Compiler" superClass="tool.nds32le-elf-mculib-v3s.c.compiler.base.2057724529">
+								<option id="nds.c.compiler.option.include.paths.1017064011" name="Include paths (-I)" superClass="nds.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/otg/host/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/otg/device/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/audio/music_parameter}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/third_part_effect}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/third_part_effect/simple_gain}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/src/materials}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/cec/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_hdmi}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/audio}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/soft_watchdog}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_spdif}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_framework/slow_device_engine}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode__common}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_bt}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_i2s}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_idle}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_linein}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_media}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_radio}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_usb_audio}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/bluetooth}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/ble}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/flash_manage}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/rtc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/upgrade}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/hmi/detect}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/hmi/display}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/hmi/fm}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/hmi/key}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/system_config}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/flashboot}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_framework/mode_engine}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_framework/bluetooth_engine}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_framework/audio_engine}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/driver/driver_api/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/driver/driver/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/power}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/rtc/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/fatfs/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/bluetooth/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/audio/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/mv_utils/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/lrc/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/rtos/rtos_api}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/rtos/freertos/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BT_Audio_APP/middleware/roboeffect/src}&quot;"/>
+								</option>
+								<inputType id="tool.nds.c.compiler.input.474082862" superClass="tool.nds.c.compiler.input"/>
 							</tool>
-							<tool id="tool.nds32le-elf-mculib-v3s.c.linker.base.1935776148" name="Andes C Linker" superClass="tool.nds32le-elf-mculib-v3s.c.linker.base.1485094752"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.assembler.base.936975938" name="Andes Assembler" superClass="tool.nds32le-elf-mculib-v3s.assembler.base.117608961">
-								<inputType id="tool.nds.assembler.input.1459218404" superClass="tool.nds.assembler.input"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.c.linker.base.764819102" name="Andes C Linker" superClass="tool.nds32le-elf-mculib-v3s.c.linker.base.329864266"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.assembler.base.2096872364" name="Andes Assembler" superClass="tool.nds32le-elf-mculib-v3s.assembler.base.1333707708">
+								<inputType id="tool.nds.assembler.input.1409812779" superClass="tool.nds.assembler.input"/>
 							</tool>
-							<tool id="tool.nds32le-elf-mculib-v3s.nm.base.1363643387" name="NM (symbol listing)" superClass="tool.nds32le-elf-mculib-v3s.nm.base.1539676136"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.readelf.base.818663763" name="Readelf (ELF info listing)" superClass="tool.nds32le-elf-mculib-v3s.readelf.base.2079687443"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.objdump.base.61221562" name="Objdump (disassembly)" superClass="tool.nds32le-elf-mculib-v3s.objdump.base.1479603782"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.objcopy.base.2020204070" name="Objcopy (object content copy)" superClass="tool.nds32le-elf-mculib-v3s.objcopy.base.1692092306"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.size.base.1377469941" name="Size (section size listing)" superClass="tool.nds32le-elf-mculib-v3s.size.base.1918770417"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.ldsag.base.897335685" name="LdSaG Tool" superClass="tool.nds32le-elf-mculib-v3s.ldsag.base.367638005"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.nm.base.239391998" name="NM (symbol listing)" superClass="tool.nds32le-elf-mculib-v3s.nm.base.1248124352"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.readelf.base.1185362254" name="Readelf (ELF info listing)" superClass="tool.nds32le-elf-mculib-v3s.readelf.base.895822721"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.objdump.base.497864163" name="Objdump (disassembly)" superClass="tool.nds32le-elf-mculib-v3s.objdump.base.749847020"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.objcopy.base.192790164" name="Objcopy (object content copy)" superClass="tool.nds32le-elf-mculib-v3s.objcopy.base.1433367997"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.size.base.1602402532" name="Size (section size listing)" superClass="tool.nds32le-elf-mculib-v3s.size.base.917128973"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.ldsag.base.637153040" name="LdSaG Tool" superClass="tool.nds32le-elf-mculib-v3s.ldsag.base.1211974380"/>
 						</toolChain>
 					</folderInfo>
-					<folderInfo id="config.nds32le-elf-mculib-v3s.exe.debug.1519929465.818139569" name="/" resourcePath="tools/audioeffect_parameters_script/target_file">
-						<toolChain id="nds.nds32le-elf-mculib-v3s.base.279584808" name="nds32le-elf-mculib-v3s" superClass="nds.nds32le-elf-mculib-v3s.base" unusedChildren="">
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CPU.458838856.22612564" name="CPU" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CPU.458838856"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIST_CPU.1573164539.1075347926" name="LIST_CPU" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIST_CPU.1573164539"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CORE.1550214933.1645465645" name="CORE" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CORE.1550214933"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ARCH.1861413996.932216392" name="ARCH" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ARCH.1861413996"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ISA_REDUCE_REGS.563950954.1763103875" name="ISA_REDUCE_REGS" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ISA_REDUCE_REGS.563950954"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_TARGET.309680814.1039155970" name="TARGET" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_TARGET.309680814"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ENDIAN.527945288.801944621" name="ENDIAN" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ENDIAN.527945288"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_C_DEFAULT.511999699.908947592" name="LIB_C_DEFAULT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_C_DEFAULT.511999699"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_CPP_DEFAULT.569455571.1931526686" name="LIB_CPP_DEFAULT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_CPP_DEFAULT.569455571"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET.859767876.588667564" name="RSE_TARGET" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET.859767876"/>
-							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_CONNECT.1317288224.433428021" name="RSE_CONNECT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_CONNECT.1317288224"/>
+					<folderInfo id="config.nds32le-elf-mculib-v3s.exe.debug.1519929465.1299426885" name="/" resourcePath="middleware/roboeffect/third_part_effect">
+						<toolChain id="nds.nds32le-elf-mculib-v3s.base.1235657326" name="nds32le-elf-mculib-v3s" superClass="nds.nds32le-elf-mculib-v3s.base" unusedChildren="">
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CPU.458838856.129661286.727287129" name="CPU" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CPU.458838856.129661286"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIST_CPU.1573164539.1057430121.108817659" name="LIST_CPU" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIST_CPU.1573164539.1057430121"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CORE.1550214933.132509605.891667885" name="CORE" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_CORE.1550214933.132509605"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ARCH.1861413996.1248981053.170199109" name="ARCH" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ARCH.1861413996.1248981053"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ISA_REDUCE_REGS.563950954.2049178163.1425634781" name="ISA_REDUCE_REGS" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ISA_REDUCE_REGS.563950954.2049178163"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_TARGET.309680814.307169171.719303398" name="TARGET" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_TARGET.309680814.307169171"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ENDIAN.527945288.1089832097.116419990" name="ENDIAN" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_ENDIAN.527945288.1089832097"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_C_DEFAULT.511999699.1985477396.833040007" name="LIB_C_DEFAULT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_C_DEFAULT.511999699.1985477396"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_CPP_DEFAULT.569455571.2142827147.1439586895" name="LIB_CPP_DEFAULT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.NDS32_LIB_CPP_DEFAULT.569455571.2142827147"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET.859767876.385646596.1202923624" name="RSE_TARGET" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET.859767876.385646596"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_CONNECT.1317288224.2074752487.1931274578" name="RSE_CONNECT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_CONNECT.1317288224.2074752487"/>
 							<targetPlatform archList="all" binaryParser="com.andestech.ide.cdt.managedbuilder.core.CROSS_GNU_ELF" id="target.nds.platform.base" name="Debug Platform" osList="all" superClass="target.nds.platform.base"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.archiver.base.2142000126" name="Andes Archiver" superClass="tool.nds32le-elf-mculib-v3s.archiver.base.599789221"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.cpp.compiler.base.1581165696" name="Andes C++ Compiler" superClass="tool.nds32le-elf-mculib-v3s.cpp.compiler.base.1071303482"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.cpp.linker.base.819149803" name="Andes C++ Linker" superClass="tool.nds32le-elf-mculib-v3s.cpp.linker.base.425081196"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.c.compiler.base.1078500993" name="Andes C Compiler" superClass="tool.nds32le-elf-mculib-v3s.c.compiler.base.548536476">
-								<inputType id="tool.nds.c.compiler.input.910666242" superClass="tool.nds.c.compiler.input"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.archiver.base.130019070" name="Andes Archiver" superClass="tool.nds32le-elf-mculib-v3s.archiver.base.1328468905"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.cpp.compiler.base.1292418607" name="Andes C++ Compiler" superClass="tool.nds32le-elf-mculib-v3s.cpp.compiler.base.1233307304"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.cpp.linker.base.846939507" name="Andes C++ Linker" superClass="tool.nds32le-elf-mculib-v3s.cpp.linker.base.294552219"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.c.compiler.base.1295521110" name="Andes C Compiler" superClass="tool.nds32le-elf-mculib-v3s.c.compiler.base.2057724529">
+								<option id="nds.c.compiler.option.include.paths.954844127" name="Include paths (-I)" superClass="nds.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/otg/host/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/otg/device/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/audio/music_parameter}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/src/materials}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/cec/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_hdmi}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/audio}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/soft_watchdog}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_spdif}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_framework/slow_device_engine}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode__common}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_bt}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_i2s}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_idle}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_linein}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_media}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_radio}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/app_mode_usb_audio}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/bluetooth}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/ble}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/flash_manage}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/rtc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/upgrade}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/hmi/detect}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/hmi/display}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/hmi/fm}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/hmi/key}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/system_config}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/flashboot}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_framework/mode_engine}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_framework/bluetooth_engine}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_framework/audio_engine}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/driver/driver_api/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/driver/driver/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/power}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/rtc/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/fatfs/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/bluetooth/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/audio/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/mv_utils/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/lrc/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/rtos/rtos_api}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/rtos/freertos/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BT_Audio_APP/middleware/roboeffect/src}&quot;"/>
+								</option>
+								<inputType id="tool.nds.c.compiler.input.97028345" superClass="tool.nds.c.compiler.input"/>
 							</tool>
-							<tool id="tool.nds32le-elf-mculib-v3s.c.linker.base.1219739565" name="Andes C Linker" superClass="tool.nds32le-elf-mculib-v3s.c.linker.base.1485094752"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.assembler.base.647326957" name="Andes Assembler" superClass="tool.nds32le-elf-mculib-v3s.assembler.base.117608961">
-								<inputType id="tool.nds.assembler.input.1507897573" superClass="tool.nds.assembler.input"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.c.linker.base.355236923" name="Andes C Linker" superClass="tool.nds32le-elf-mculib-v3s.c.linker.base.329864266"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.assembler.base.1699217738" name="Andes Assembler" superClass="tool.nds32le-elf-mculib-v3s.assembler.base.1333707708">
+								<inputType id="tool.nds.assembler.input.2132979404" superClass="tool.nds.assembler.input"/>
 							</tool>
-							<tool id="tool.nds32le-elf-mculib-v3s.nm.base.712669931" name="NM (symbol listing)" superClass="tool.nds32le-elf-mculib-v3s.nm.base.1539676136"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.readelf.base.1786650143" name="Readelf (ELF info listing)" superClass="tool.nds32le-elf-mculib-v3s.readelf.base.2079687443"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.objdump.base.2017098456" name="Objdump (disassembly)" superClass="tool.nds32le-elf-mculib-v3s.objdump.base.1479603782"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.objcopy.base.661355854" name="Objcopy (object content copy)" superClass="tool.nds32le-elf-mculib-v3s.objcopy.base.1692092306"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.size.base.1843790615" name="Size (section size listing)" superClass="tool.nds32le-elf-mculib-v3s.size.base.1918770417"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.ldsag.base.215487383" name="LdSaG Tool" superClass="tool.nds32le-elf-mculib-v3s.ldsag.base.367638005"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.nm.base.1242689478" name="NM (symbol listing)" superClass="tool.nds32le-elf-mculib-v3s.nm.base.1248124352"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.readelf.base.1348588972" name="Readelf (ELF info listing)" superClass="tool.nds32le-elf-mculib-v3s.readelf.base.895822721"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.objdump.base.67005658" name="Objdump (disassembly)" superClass="tool.nds32le-elf-mculib-v3s.objdump.base.749847020"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.objcopy.base.250988055" name="Objcopy (object content copy)" superClass="tool.nds32le-elf-mculib-v3s.objcopy.base.1433367997"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.size.base.1433930251" name="Size (section size listing)" superClass="tool.nds32le-elf-mculib-v3s.size.base.917128973"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.ldsag.base.733531700" name="LdSaG Tool" superClass="tool.nds32le-elf-mculib-v3s.ldsag.base.1211974380"/>
 						</toolChain>
 					</folderInfo>
 					<fileInfo id="config.nds32le-elf-mculib-v3s.exe.debug.1519929465.185105233" name="libfatfs.a" rcbsApplicability="disable" resourcePath="middleware/fatfs/libfatfs.a" toolsToInvoke=""/>

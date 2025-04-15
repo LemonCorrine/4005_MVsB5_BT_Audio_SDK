@@ -25,6 +25,15 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 联系山景的技术工程人员，谢谢！
 
 ------------------------------------------------------------------------------------------------
+date: 2023_11_30：v2.10.0
+1. 启用分离式第三方音效库的集成方案，今后第三方音效库不再和标准库绑定在一起发布。
+  A. 第三方库由独立的目录进行维护，见\middleware\roboeffect\third_part_effect\simple_gain\作为一个例子。
+  A. 编辑子目录中的UserLibsData.xlsx文件进行参数调整，接口实现和参数定义与原方案无异。
+  B. 双击third_party_effects_data_gen.pyc脚本后自动生成挂钩文件：user_defined_effect_api.h
+  C. 编译后，即可快速生成带有第三方库功能的固件。
+2. 删除总音效库描述文件 AudioEffectLibsData.xlsx，且不再提供相关脚本。
+
+------------------------------------------------------------------------------------------------
 date: 2023_11_17：v2.9.1
 1. 修复多输入音效在关闭的情况下，数据位宽计算错误的问题。
 2. 修复silence_detector在24bit下，返回值溢出的问题。
