@@ -26,6 +26,20 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 
 
 ------------------------------------------------------------------------------------------------
+date: 2024_01_16：v2.14.0
+1. 音效库升级到2.36.0，新增robot_tone音效，virtual_surround_2ch开放24bit，等若干其他改动。
+2. 修复pcm_delay的参数在v2.13.1版本改动后，tips显示错误的问题。
+3. roboeffect_config.h文件中，删去一些已经废弃的开关宏。
+4. 更新第三方音效的内嵌代码脚本third_party_effects_data_gen.exe，增加裁剪宏开关，位于user_defined_effect_api.h内。
+
+------------------------------------------------------------------------------------------------
+date: 2024_01_12：v2.13.1
+1. 音效库升级到2.35.1，silence_detector音效取消对采样率最高到48k的限制。
+2. 新增2声道输入的虚拟环绕音效：virtual_surround_2ch。
+3. pcm_delay的参数：delay，max_delay单位改为smaples，参数含义有改动，请针对此音效重新导出参数。
+4. 新增roboeffect_get_buffer_size()接口，用以检查buffer长度。
+
+------------------------------------------------------------------------------------------------
 date: 2023_12_25：v2.12.2
 1. 修复冗余代码访问空指针的bug。
 

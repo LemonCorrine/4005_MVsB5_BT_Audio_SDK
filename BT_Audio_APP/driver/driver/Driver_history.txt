@@ -26,6 +26,13 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 --------------------------------------------------------------------------------------
 版本历史：（采用倒序排列，最新版置顶）
 
+2024-1-17【0.1.17  build @ Jan 17 2024 09:33:54】
+size:359,802 bytes
+更新内容：
+	1、新增SPDIF_SPDIFDatatoAudioData
+	2、优化I2S_SampleRateGet
+
+------------------------------
 2024-1-11【0.1.16  build @ Jan 11 2024 16:24:24】
 size:349,130 bytes
 更新内容：
