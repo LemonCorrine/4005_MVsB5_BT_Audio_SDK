@@ -66,6 +66,7 @@ SECTIONS
 	__sdk_code_start =  LOADADDR (.vector);
 	.vector 	: { KEEP(*(.vector )) }
 	.stub_section 	: { KEEP(*(.stub_section )) }
+	.tcm_section 	: { KEEP(*(.tcm_section )) }
 	".nds32_init_*tws_time_sync.o" 	: { KEEP(*tws_time_sync.o(.nds32_init )) }
 	".interp_*tws_time_sync.o" 	: { KEEP(*tws_time_sync.o(.interp )) }
 	".hash_*tws_time_sync.o" 	: { KEEP(*tws_time_sync.o(.hash )) }
@@ -236,7 +237,6 @@ SECTIONS
 	".eh_frame_hdr_*co_utils.o" 	: { KEEP(*co_utils.o(.eh_frame_hdr )) }
 	.deepsleep_section 	: { KEEP(*(.deepsleep_section )) }
 	.startup_section 	: { KEEP(*(.startup_section )) }
-	.tcm_section 	: { KEEP(*(.tcm_section )) }
 	.driver.isr 	: { KEEP(*(.driver.isr )) }
 	.nds32_vector 	: { KEEP(*(.nds32_vector )) KEEP(*(SORT(.nds32_vector.* ))) }
 	.nds32_nmih 	: { *(.nds32_nmih ) }
