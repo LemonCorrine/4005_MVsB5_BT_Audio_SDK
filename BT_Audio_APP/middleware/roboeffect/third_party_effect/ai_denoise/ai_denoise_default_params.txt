@@ -1,0 +1,3 @@
+0x03, /*length*/
+0x00, /*enable*/
+0x1E, 0x00,	//denoise_level
