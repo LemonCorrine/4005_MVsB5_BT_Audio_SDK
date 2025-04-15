@@ -3,23 +3,20 @@
 #include "dma.h"
 #include "clk.h"
 #include "debug.h"
+#include "dac_interface.h"
 #ifdef CFG_APP_CONFIG
 #include "app_config.h"
+#else
+#define	SYS_AUDIO_CLK_SELECT		APLL_CLK_MODE
 #endif
 
 static uint8_t DAC_BitWidth = 24;
 
-void AudioDAC_Init(uint32_t SampleRate, uint16_t BitWidth, void *Buf, uint16_t Len,  void *BufEXT, uint16_t LenEXT)
+void AudioDAC_Init(DACParamCt *ct, uint32_t SampleRate, uint16_t BitWidth, void *Buf, uint16_t Len,  void *BufEXT, uint16_t LenEXT)
 {
-#ifdef USB_CRYSTA_FREE_EN
-	//CLK select
-	Clock_AudioPllClockSet(PLL_CLK_MODE, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
-	Clock_AudioPllClockSet(PLL_CLK_MODE, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ);
-#else
-	//CLK select
-	Clock_AudioPllClockSet(APLL_CLK_MODE, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
-	Clock_AudioPllClockSet(APLL_CLK_MODE, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ);
-#endif
+	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
+	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ);
+
 	if(IsSelectMclkClk1(SampleRate))
 	{
 		Clock_AudioMclkSel(AUDIO_DAC0, PLL_CLOCK1);
@@ -75,6 +72,7 @@ void AudioDAC_Init(uint32_t SampleRate, uint16_t BitWidth, void *Buf, uint16_t L
 //	AudioDAC_Enable(DAC0);//使能放在模拟上电部分 避免上电pop声
 	AudioDAC_Reset(DAC0);
 	AudioDAC_SoftMute(DAC0,FALSE, FALSE);
+	AudioDAC_AllPowerOn(ct->DACModel, ct->DACLoadStatus, ct->PVDDModel, ct->DACEnergyModel);
 }
 
 
@@ -91,7 +89,7 @@ void AudioDAC0_SampleRateChange(uint32_t SampleRate)
 	AudioDAC_SampleRateSet(DAC0, SampleRate);
 }
 
-uint16_t AudioDAC0DataSpaceLenGet(void)
+uint16_t AudioDAC0_DataSpaceLenGet(void)
 {
 	if(DAC_BitWidth == 16)
 		return DMA_CircularSpaceLenGet(PERIPHERAL_ID_AUDIO_DAC0_TX) / 4;
@@ -99,7 +97,7 @@ uint16_t AudioDAC0DataSpaceLenGet(void)
 		return DMA_CircularSpaceLenGet(PERIPHERAL_ID_AUDIO_DAC0_TX) / 8;
 }
 
-uint16_t AudioDAC0DataLenGet(void)
+uint16_t AudioDAC0_DataLenGet(void)
 {
 	if(DAC_BitWidth == 16)
 		return DMA_CircularDataLenGet(PERIPHERAL_ID_AUDIO_DAC0_TX) / 4;
@@ -107,7 +105,7 @@ uint16_t AudioDAC0DataLenGet(void)
 		return DMA_CircularDataLenGet(PERIPHERAL_ID_AUDIO_DAC0_TX) / 8;
 }
 
-uint16_t AudioDAC0DataSet(void* Buf, uint16_t Len)
+uint16_t AudioDAC0_DataSet(void* Buf, uint16_t Len)
 {
 	uint16_t Length;
 

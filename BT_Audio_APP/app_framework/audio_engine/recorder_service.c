@@ -501,9 +501,8 @@ bool RecordDiskMount(void)
 	{
 		if(!SoftFlagGet(SoftFlagUDiskEnum))
 		{
-			OTG_HostControlInit();
-			OTG_HostEnumDevice();
-			if(UDiskInit() == FALSE)
+			OTG_HostFifoInit();
+			if(!OTG_HostInit())
 			{
 				ret = FALSE;
 			}
@@ -530,6 +529,7 @@ bool RecordDiskMount(void)
 	{
 		ret = FALSE;
 	}
+#ifdef CFG_APP_CARD_PLAY_MODE_EN
 	if(!ret)
 	{
 		ret = TRUE;
@@ -561,6 +561,7 @@ bool RecordDiskMount(void)
 			ret = FALSE;
 		}
 	}
+#endif
 #else
 	if(ResourceValue(AppResourceCard))
 	{
@@ -597,9 +598,8 @@ bool RecordDiskMount(void)
 		{
 			if(SoftFlagGet(SoftFlagUDiskEnum))
 			{
-				OTG_HostControlInit();
-				OTG_HostEnumDevice();
-				if(UDiskInit() == FALSE)
+				OTG_HostFifoInit();
+				if(!OTG_HostInit())
 				{
 					ret = FALSE;
 				}				
@@ -783,7 +783,16 @@ static bool MediaRecorder_Init(MessageHandle parentMsgHandle)
 	RecorderCt->parentMsgHandle = parentMsgHandle;
 	RecorderCt->state = TaskStateCreating;
 	//para
-	RecorderCt->SampleRate = CFG_PARA_SAMPLE_RATE; //注意采样率同步，从sink1获取。
+#if (BT_HFP_SUPPORT == 1)
+	if(GetSystemMode() == ModeBtHfPlay)
+	{
+		RecorderCt->SampleRate = CFG_BTHF_PARA_SAMPLE_RATE; //注意采样率同步，从sink1获取。
+	}
+	else
+#endif
+	{
+		RecorderCt->SampleRate = CFG_PARA_SAMPLE_RATE; //注意采样率同步，从sink1获取。
+	}
 	RecorderCt->RecorderOn = FALSE;
 	RecorderCt->EncodeOn = FALSE;
 
@@ -1010,6 +1019,7 @@ bool MediaRecorderServiceKill(void)
 		}
 		else
 		{
+#ifdef CFG_APP_CARD_PLAY_MODE_EN
 			f_unmount(MEDIA_VOLUME_STR_C);
 		//	ResourceRegister(AppResourceCard | AppResourceCardForPlay);
 			if(SDIOMutex)
@@ -1020,6 +1030,7 @@ bool MediaRecorderServiceKill(void)
 			{
 				osMutexUnlock(SDIOMutex);
 			}
+#endif
 		}
 #endif
 

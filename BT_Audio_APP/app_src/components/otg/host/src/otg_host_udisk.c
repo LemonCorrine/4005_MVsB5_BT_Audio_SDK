@@ -170,9 +170,9 @@ bool UDiskBulkTransport(uint8_t* Buf, uint16_t Len)
 			//OUT PACKET
 			//DBG("O");
 #ifdef FUNC_OS_EN
-			//osTaskDelay(1);// bkd del 2020/03/24
+			osTaskDelay(1);// bkd del 2020/03/24
 #else
-			//DelayMs(1);
+			DelayMs(1);
 #endif
 
 			RemainTime = 10000 - PastTimeGet(&ComTimer);

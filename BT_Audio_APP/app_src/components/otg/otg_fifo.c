@@ -10,8 +10,8 @@
 #include "otg_host_hcd.h"
 
 #define  HOST_EP0_DEPTH    64
-#define  HOST_EP1_TX_DEPTH HOST_FS_ISO_OUT_MPS
-#define  HOST_EP1_RX_DEPTH HOST_FS_ISO_IN_MPS
+#define  HOST_EP1_TX_DEPTH 128
+#define  HOST_EP1_RX_DEPTH 1024
 #define  HOST_EP2_TX_DEPTH 128
 #define  HOST_EP2_RX_DEPTH 128
 

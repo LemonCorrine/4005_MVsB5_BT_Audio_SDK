@@ -420,10 +420,6 @@ void SetBtHfSyncVolume(uint8_t gain)
 	BtStackServiceMsgSend(MSG_BTSTACK_MSG_BT_HF_VOLUME_SET);
 }
 
-uint8_t GetBtHfSyncVolume(void)
-{
-	return gBtHfCt->BtSyncVolume;
-}
 
 
 /***********************************************************************************

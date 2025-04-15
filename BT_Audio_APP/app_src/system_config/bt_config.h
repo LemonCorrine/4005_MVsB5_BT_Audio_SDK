@@ -8,7 +8,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 #ifndef __BT_DEVICE_CFG_H__
 #define __BT_DEVICE_CFG_H__
-#include "type.h"
 #include "app_config.h"
 
 /* "sys_param.h"À¶ÑÀ»ù´¡²ÎÊý*/

@@ -59,15 +59,28 @@ typedef struct _MainAppContext
 	uint32_t			DACFIFO_LEN;
 #endif
 
-#ifdef CFG_RES_AUDIO_DACX_EN
-	uint32_t			*DACXFIFO;
-	uint32_t			DACXFIFO_LEN;
-#endif
 #ifdef CFG_RES_AUDIO_I2SOUT_EN
 	uint32_t			*I2SFIFO;
 	uint32_t			I2SFIFO_LEN;
 #endif
 
+#ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
+	uint32_t			*I2S_MIX_TX_FIFO;
+	uint32_t			I2S_MIX_TX_FIFO_LEN;
+#endif
+
+#ifdef CFG_RES_AUDIO_I2S_MIX_IN_EN
+	uint32_t			*I2S_MIX_RX_FIFO;
+	uint32_t			I2S_MIX_RX_FIFO_LEN;
+#endif
+
+#ifdef CFG_RES_AUDIO_USB_IN_EN
+	uint32_t			*SourceBuf_UsbIn;
+#endif
+
+#ifdef CFG_RES_AUDIO_USB_OUT_EN
+	uint32_t			*SinkBuf_UsbOut;
+#endif
 	uint32_t			*ADCFIFO;
 /******************************************************************/
 

@@ -525,17 +525,18 @@ void DefaultParamgsInit(void)
 	}
 	else
 	{
+		ROBOEFFECT_EFFECT_PARA *para;
 #ifdef CFG_FUNC_MIC_KARAOKE_EN
-		ROBOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(ROBOEFFECT_EFFECT_MODE_HUNXIANG);
+		mainAppCt.EffectMode = EFFECT_MODE_HunXiang;
 #else
-		ROBOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(ROBOEFFECT_EFFECT_MODE_MIC);
+		mainAppCt.EffectMode = EFFECT_MODE_MIC;
 #endif
+		para = get_user_effect_parameters(mainAppCt.EffectMode);
 		memcpy(&gCtrlVars.HwCt, para->user_module_parameters, sizeof(gCtrlVars.HwCt));
 	}
 
     //system define
 	gCtrlVars.sample_rate		= CFG_PARA_SAMPLE_RATE;
-	gCtrlVars.SamplesPerFrame	= CFG_PARA_SAMPLES_PER_FRAME;
 	gCtrlVars.sample_rate_index = SampleRateIndexGet(gCtrlVars.sample_rate);
 
 	//scramble默认开启，设置成POS_NEG

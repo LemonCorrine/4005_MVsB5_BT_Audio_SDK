@@ -229,6 +229,13 @@ void BtAppiFunc_BtAvrcpConProcess(FUNC_BT_AVRCP_CON_PROCESS CallbackFunc)
 	BtAvrcpConProcess = CallbackFunc;
 }
 
+//蓝牙AVRCP断开连接函数接口
+FUNC_BT_AVRCP_DISCON_PROCESS BtAvrcpDisconProcess = NULL;
+void BtAppiFunc_BtAvrcpDisconProcess(FUNC_BT_AVRCP_DISCON_PROCESS CallbackFunc)
+{
+	BtAvrcpDisconProcess = CallbackFunc;
+}
+
 //蓝牙通话中自动获取手机端的通话状态
 FUNC_BT_HFP_GET_CUR_CALL_STATE_PROCESS BtHfpGetCurCallStateProcess = NULL;
 void BtAppiFunc_BtHfpGetCurCallStateProcess(FUNC_BT_HFP_GET_CUR_CALL_STATE_PROCESS CallbackFunc)

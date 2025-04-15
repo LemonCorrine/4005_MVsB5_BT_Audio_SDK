@@ -137,37 +137,43 @@ void Timer6Interrupt(void)
 }
 #endif
 
-void SystemClockInit(void)
+void SystemClockInit(bool FristPoweron)
 {
+#ifndef USB_CRYSTA_FREE_EN
+	if(FristPoweron)
+		Clock_HOSCCurrentSet(31);//initial set 31, after clock start set to 9
+#endif
+
 #ifdef USB_CRYSTA_FREE_EN
-	Clock_USBCrystaFreeSet(240000);
-	Clock_SysClkSelect(PLL_CLK_MODE);
-	//Note: USB和UART时钟配置DPLL和APLL必须是同一个时钟,但是UART可以单独选择RC
-	Clock_USBClkSelect(PLL_CLK_MODE);
-	Clock_UARTClkSelect(PLL_CLK_MODE);
-	Clock_SpdifClkSelect(PLL_CLK_MODE);
+	Clock_USBCrystaFreeSet(SYS_CORE_DPLL_FREQ);
 #else
-	Clock_Config(1, 24000000);
-#ifdef CFG_SYS_CLK_264M
-	Clock_PllLock(264000);
-	Clock_APllLock(240000);//蓝牙使用APLL 240M
-	Clock_SysClkSelect(PLL_CLK_MODE);
-#else
-	Clock_PllLock(240000);
-	Clock_APllLock(240000);//蓝牙使用APLL 240M
-	Clock_SysClkSelect(APLL_CLK_MODE);
+	Clock_Config(1, SYS_CRYSTAL_FREQ);
+	Clock_PllLock(SYS_CORE_DPLL_FREQ);
+	Clock_APllLock(SYS_CORE_APLL_FREQ);//蓝牙使用APLL 240M
 #endif
 
-	//Note: USB和UART时钟配置DPLL和APLL必须是同一个时钟,但是UART可以单独选择RC
-	Clock_USBClkSelect(APLL_CLK_MODE);
-	Clock_UARTClkSelect(APLL_CLK_MODE);
+	Clock_SysClkSelect(SYS_CORE_CLK_SELECT);
 
-	Clock_SpdifClkSelect(APLL_CLK_MODE);
-#endif
+	//Note: USB和UART时钟配置DPLL和APLL必须是同一个时钟,但是UART可以单独选择RC
+	Clock_USBClkSelect(SYS_USB_CLK_SELECT);
+	Clock_UARTClkSelect(SYS_UART_CLK_SELECT);
+
+	Clock_SpdifClkSelect(SYS_SPDIF_CLK_SELECT);
 	//模块时钟使能配置
 	Clock_Module1Enable(ALL_MODULE1_CLK_SWITCH);
 	Clock_Module2Enable(ALL_MODULE2_CLK_SWITCH);
 	Clock_Module3Enable(ALL_MODULE3_CLK_SWITCH);
+
+#ifndef USB_CRYSTA_FREE_EN
+	if(FristPoweron)
+		Clock_HOSCCurrentSet(9);
+#endif
+
+	SpiFlashInit(SYS_FLASH_FREQ_SELECT, MODE_4BIT, 0, SYS_FLASH_CLK_SELECT);
+
+#if (SYS_CORE_SET_MODE == CORE_ONLY_APLL_MODE)
+	Clock_PllClose();
+#endif
 }
 
 void LogUartConfig(bool InitBandRate)
@@ -213,11 +219,9 @@ void WakeupMain(void)
 	Chip_Init(1);
 	SysTickDeInit();
 	WDG_Enable(WDG_STEP_4S);
-	SystemClockInit();
+	SystemClockInit(FALSE);
 	SysTickInit();
 //	Efuse_ReadDataEnable();
-	SpiFlashInit(80000000, MODE_4BIT, 0, FSHC_APLL_CLK_MODE);
-	//SpiFlashInit(96000000, MODE_4BIT, 0, FSHC_PLL_CLK_MODE);
 	LogUartConfig(TRUE);//调整时钟后，重配串口前不要打印。
 	//Clock_Pll5ClkDivSet(8);// 
 	//B0B1为SW调式端口，在调试阶段若系统进入了低功耗模式时关闭了GPIO复用模式，请在此处开启
@@ -267,9 +271,7 @@ int main(void)
 	//Chip_Init(1);
 	WDG_Enable(WDG_STEP_4S);
 //	WDG_Disable();
-#ifndef USB_CRYSTA_FREE_EN
-	Clock_HOSCCurrentSet(31);//initial set 31, after clock start set to 5
-#endif
+
 //#if FLASH_BOOT_EN
 //	RstFlag = Reset_FlagGet_Flash_Boot();
 //#else
@@ -282,17 +284,16 @@ int main(void)
 
 	//Power_DeepSleepLDO12Config(1);//Power_LDO12Config(1250);	//使用320M主频时需要提升到1.25v，使用288M则可以屏蔽掉这行 //ZSQ
 
-	SystemClockInit();
-#ifndef USB_CRYSTA_FREE_EN
-	Clock_HOSCCurrentSet(9);
-#endif
+	SystemClockInit(TRUE);
+
 #ifdef CHIP_USE_DCDC
-//	ldo_switch_to_dcdc(7); // //3-1.9V;7-1.8;12-1.7V;18-1.6V;27-1.5V;39-1.4V;57-1.3V 18:Default:1.6V //max power
-	ldo_switch_to_dcdc(12);
+//	ldo_switch_to_dcdc(7);  //3-1.9V;7-1.8;12-1.7V;18-1.6V;27-1.5V;39-1.4V;57-1.3V 18:Default:1.6V //max power
+	ldo_switch_to_dcdc(27); // 3-1.9V;7-1.8;12-1.7V;18-1.6V;27-1.5V;39-1.4V;57-1.3V 18:Default:1.6V //max power
 #else
-//	Power_LDO16Config(6); // 7: 1.69V; 6:1.75; 0:1.65 default max power
-	Power_LDO16Config(7);
+	Power_LDO16Config(7);// 7: 1.69V; 6:1.75; 0:1.65 default max power
 #endif
+
+//	Power_DeepSleepLDO11DConfig(0x0F); //trim LDO11 //0x2F=0.9V, 0x0F=1V
 
 	LogUartConfig(TRUE);
 
@@ -302,11 +303,7 @@ int main(void)
 #endif
 	
 	DBUS_Access_Area_Init(0);//设置Databus访问区间为codesize
-#ifndef USB_CRYSTA_FREE_EN
-	SpiFlashInit(80000000, MODE_4BIT, 0, FSHC_APLL_CLK_MODE);
-#else
-	SpiFlashInit(80000000, MODE_4BIT, 0, FSHC_PLL_CLK_MODE);
-#endif
+
 	//Clock_RC32KClkDivSet(Clock_RcFreqGet(TRUE) / 32000);//不可屏蔽//ZSQ
 	
 	//考虑到大容量的8M flash，写之前需要Unlock，SDK默认不做加锁保护

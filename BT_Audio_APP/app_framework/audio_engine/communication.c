@@ -399,7 +399,7 @@ void Communication_Effect_0x01(uint8_t *buf, uint32_t len)
 		tx_buf[10]  = 0x1;//System Sample Rate Enable
 		memcpy(&tx_buf[11], &gCtrlVars.sample_rate_index, 2);//注意需要确认使用哪个变量Sam mask
 		tx_buf[13]  = 0x1;//SDK MCLK为全局
-		memcpy(&tx_buf[19], &gCtrlVars.SamplesPerFrame, 2);//注意需要确认使用哪个变量Sam mask
+		memcpy(&tx_buf[19], &AudioCore.Roboeffect.user_effect_list->frame_size, 2);//注意需要确认使用哪个变量Sam mask
 		tx_buf[5 + 8*2] = 0x16;
 		Communication_Effect_Send(tx_buf, 6 + 8*2);
 	}

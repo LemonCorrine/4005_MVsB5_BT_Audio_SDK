@@ -43,8 +43,11 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 	{
 		if(!pAudioCore->AudioSource[s].Active)
 		{
-			memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(s)),
+			if(AudioCoreSourceToRoboeffect(s) != AUDIOCORE_SOURCE_SINK_ERROR)
+			{
+				memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(s)),
 									0, n * sizeof(PCM_DATA_TYPE) * 2);
+			}
 		}
 	}
 
@@ -89,6 +92,7 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 void AudioEffectProcessBTHF(AudioCoreContext *pAudioCore)
 {
 	uint16_t n = AudioCoreFrameSizeGet(AudioCore.CurrentMix);
+	int16_t  s;
 
 #ifdef BTHF_AUDIOEFFECT_BYPASS
 	int16_t  *hf_mic_in     = pAudioCore->AudioSource[MIC_SOURCE_NUM].PcmInBuf;//蓝牙通话mic采样buffer
@@ -99,40 +103,19 @@ void AudioEffectProcessBTHF(AudioCoreContext *pAudioCore)
 //	int16_t  *hf_rec_out    = NULL;//pBuf->hf_rec_out;//蓝牙通话送录音的buffer
 #endif
 
-#ifdef CFG_FUNC_REMIND_SOUND_EN
-	if(!pAudioCore->AudioSource[REMIND_SOURCE_NUM].Active)
+	for(s = 0; s < AUDIO_CORE_SOURCE_MAX_NUM; s++)
 	{
-		memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(REMIND_SOURCE_NUM)),
-								0, n * 2 * 2);
+		if(!pAudioCore->AudioSource[s].Active)
+		{
+			if(AudioCoreSourceToRoboeffect(s) != AUDIOCORE_SOURCE_SINK_ERROR)
+			{
+				memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(s)),
+									0, n * 2 * 2);
+			}
+		}
 	}
-#else
-	memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, SOURCE_REMIND_SOURCE), 0, n * 2 * 2);
-#endif
-	if(!pAudioCore->AudioSource[MIC_SOURCE_NUM].Active)
-	{
-		memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(MIC_SOURCE_NUM)),
-								0, n * 2 * 2);
-	}
-	if(!pAudioCore->AudioSource[APP_SOURCE_NUM].Active)
-	{
-		memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(APP_SOURCE_NUM)),
-								0, n * 2 * 2);
-	}
-
-//	memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, SOURCE_TWS_SOURCE), 0, n * sizeof(PCM_DATA_TYPE) * 2);
-
-#ifdef CFG_FUNC_RECORDER_EN
-	if(!pAudioCore->AudioSource[PLAYBACK_SOURCE_NUM].Active)
-	{
-		memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(PLAYBACK_SOURCE_NUM)),
-								0, n * 2 * 2);
-	}
-#else
-//	memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, SOURCE_PLAYBACK_SOURCE), 0, n * sizeof(PCM_DATA_TYPE) * 2);
-#endif
 
 #ifdef BTHF_AUDIOEFFECT_BYPASS //audio effect bypass
-	int16_t  s;
 	for(s = n-1; s >= 0; s--)
 	{
 		hf_dac_out[s*2 + 0] = hf_pcm_in[s];
@@ -177,8 +160,11 @@ void AudioBypassProcess(AudioCoreContext *pAudioCore)
 	{
 		if(!pAudioCore->AudioSource[s].Active)
 		{
-			memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(s)),
+			if(AudioCoreSourceToRoboeffect(s) != AUDIOCORE_SOURCE_SINK_ERROR)
+			{
+				memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(s)),
 									0, n * sizeof(PCM_DATA_TYPE) * 2);
+			}
 		}
 	}
 

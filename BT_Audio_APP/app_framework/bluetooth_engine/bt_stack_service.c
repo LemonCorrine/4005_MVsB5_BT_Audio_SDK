@@ -163,7 +163,7 @@ void BtStack_BtDisconnectProcess(void)
 }
 
 /***********************************************************************************
- * 蓝牙AVRCP快速连接状态确认
+ * 蓝牙A2DP连接成功后,主动发起一次AVRCP连接
  **********************************************************************************/
 extern FUNC_BT_AVRCP_CON_PROCESS BtAvrcpConProcess;
 static uint32_t btAvrcpConIndex = 0;
@@ -194,6 +194,42 @@ void BtStack_BtAvrcpConRegister(uint8_t index)
 	{
 		btAvrcpConIndex = index;
 		BtAppiFunc_BtAvrcpConProcess(BtStack_BtAvrcpConProcess);
+	}
+}
+
+/***********************************************************************************
+ * 蓝牙A2DP断链后,主动发起一次AVRCP断开
+ * A2DP断开后，开启检测AVRCP断开机制(3S超时)
+ **********************************************************************************/
+extern FUNC_BT_AVRCP_DISCON_PROCESS BtAvrcpDisconProcess;
+static uint32_t btAvrcpDisconIndex = 0;
+void BtStack_BtAvrcpDisconProcess(void)
+{
+	static uint32_t btAvrcpDisconCnt = 0;
+
+	btAvrcpDisconCnt++;
+	if(btAvrcpDisconCnt>=3000) //3s
+	{
+		btAvrcpDisconCnt=0;
+		if((btManager.btLinked_env[btAvrcpDisconIndex].a2dpState == BT_A2DP_STATE_NONE)
+			&&(btManager.btLinked_env[btAvrcpDisconIndex].avrcpState != BT_AVRCP_STATE_NONE))
+		{
+			AvrcpDisconnect(btAvrcpDisconIndex);
+		}
+		//else
+		{
+			//注销
+			BtAppiFunc_BtAvrcpDisconProcess(NULL);
+		}
+	}
+}
+
+void BtStack_BtAvrcpDisconRegister(uint8_t index)
+{
+	if(btAvrcpDisconIndex < BT_LINK_DEV_NUM)
+	{
+		btAvrcpDisconIndex = index;
+		BtAppiFunc_BtAvrcpDisconProcess(BtStack_BtAvrcpDisconProcess);
 	}
 }
 
@@ -917,6 +953,9 @@ static void BtStackServiceEntrance(void * param)
 
 		if(BtAvrcpConProcess)
 			BtAvrcpConProcess();
+
+		if(BtAvrcpDisconProcess)
+			BtAvrcpDisconProcess();
 
 		if(BtScoSendProcess)
 			BtScoSendProcess();

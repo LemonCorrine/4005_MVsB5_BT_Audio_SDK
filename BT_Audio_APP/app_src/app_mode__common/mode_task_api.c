@@ -34,6 +34,15 @@
 extern volatile SysModeStruct SysMode[];
 extern uint32_t GetModeIndexInModeLoop(SysModeNumber *sys_mode);
 
+#ifdef CFG_FUNC_I2S_MIX_MODE
+extern void I2S_MixInit(void);
+extern void I2S_MixDeinit(void);
+#endif
+#ifdef CFG_FUNC_LINEIN_MIX_MODE
+extern bool LineInMixPlayInit(void);
+extern bool LineInMixPlayDeinit(void);
+#endif
+
 #ifdef CFG_REMIND_SOUND_DECODING_USE_LIBRARY
 extern int32_t RemindMp3DecoderInit(void);
 extern int32_t RemindMp3DecoderDeinit(void);
@@ -102,76 +111,12 @@ bool RoboeffectInit()
 			osPortFree(AudioCore.Roboeffect.user_effect_parameters);
 		}
 		
-		if(mainAppCt.EffectMode == EFFECT_MODE_MIC)
-		{
-			AudioCore.Roboeffect.flow_chart_mode = ROBOEFFECT_EFFECT_MODE_MIC;
-			AudioCore.Roboeffect.effect_count = MIC_COUNT_ADDR - 1;
-			DBG("EFFECT_MODE Mic\n");
-		}
-		else if(mainAppCt.EffectMode == EFFECT_MODE_MUSIC)
-		{
-			AudioCore.Roboeffect.flow_chart_mode = ROBOEFFECT_EFFECT_MODE_MUSIC;
-			AudioCore.Roboeffect.effect_count = MUSIC_COUNT_ADDR - 1;
-			DBG("EFFECT_MODE Music\n");
-		}
-		else if(mainAppCt.EffectMode == EFFECT_MODE_HFP_AEC)
-		{
-			AudioCore.Roboeffect.flow_chart_mode = ROBOEFFECT_EFFECT_MODE_HFP;
-			AudioCore.Roboeffect.effect_count = HFP_COUNT_ADDR - 1;
-			DBG("EFFECT_MODE HFP\n");
-		}
-#ifdef CFG_FUNC_MIC_KARAOKE_EN
-		else if(mainAppCt.EffectMode >= EFFECT_MODE_HunXiang && mainAppCt.EffectMode <= EFFECT_MODE_WaWaYin)
-		{
-			AudioCore.Roboeffect.effect_count = KARAOKE_COUNT_ADDR - 1;
-
-			switch(mainAppCt.EffectMode){
-				case EFFECT_MODE_HunXiang:
-					AudioCore.Roboeffect.flow_chart_mode = ROBOEFFECT_EFFECT_MODE_HUNXIANG;
-					DBG("EFFECT_MODE HunXiang\n");
-					break;
-				case EFFECT_MODE_DianYin:
-					AudioCore.Roboeffect.flow_chart_mode = ROBOEFFECT_EFFECT_MODE_DIANYIN;
-					DBG("EFFECT_MODE DianYin\n");
-					break;
-				case EFFECT_MODE_MoYin:
-					AudioCore.Roboeffect.flow_chart_mode = ROBOEFFECT_EFFECT_MODE_MOYIN;
-					DBG("EFFECT_MODE MoYin\n");
-					break;
-				case EFFECT_MODE_HanMai:
-					AudioCore.Roboeffect.flow_chart_mode = ROBOEFFECT_EFFECT_MODE_HANMAI;
-					DBG("EFFECT_MODE HanMai\n");
-					break;
-				case EFFECT_MODE_NanBianNv:
-					AudioCore.Roboeffect.flow_chart_mode = ROBOEFFECT_EFFECT_MODE_NANBIANNV;
-					DBG("EFFECT_MODE NanBianNv\n");
-					break;
-				case EFFECT_MODE_NvBianNan:
-					AudioCore.Roboeffect.flow_chart_mode = ROBOEFFECT_EFFECT_MODE_NVBIANNAN;
-					DBG("EFFECT_MODE NvBianNan\n");
-					break;
-				case EFFECT_MODE_WaWaYin:
-					AudioCore.Roboeffect.flow_chart_mode = ROBOEFFECT_EFFECT_MODE_WAWAYIN;
-					DBG("EFFECT_MODE WaWaYin\n");
-					break;
-				default:
-					AudioCore.Roboeffect.flow_chart_mode = ROBOEFFECT_EFFECT_MODE_HUNXIANG;
-					DBG("EFFECT_MODE HunXiang\n");
-			}
-		}
-#else
-		else
-		{
-			AudioCore.Roboeffect.flow_chart_mode = ROBOEFFECT_EFFECT_MODE_MIC;
-			AudioCore.Roboeffect.effect_count = MIC_COUNT_ADDR - 1;
-			DBG("EFFECT_MODE Mic\n");
-		}
-#endif
-		ROBOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(AudioCore.Roboeffect.flow_chart_mode);
+		ROBOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(mainAppCt.EffectMode);
 
 		AudioCore.Roboeffect.user_effect_list = get_local_effect_list_buf();
 		memcpy(AudioCore.Roboeffect.user_effect_list,para->user_effect_list,sizeof(roboeffect_effect_list_info));
 
+		AudioCore.Roboeffect.effect_count = para->user_effect_list->count + 0x80;
 		AudioCore.Roboeffect.user_effect_steps = para->user_effect_steps;
 		AudioCore.Roboeffect.user_effects_script = para->user_effects_script;
 		AudioCore.Roboeffect.user_effects_script_len = para->get_user_effects_script_len();
@@ -270,31 +215,11 @@ void AudioI2sOutParamsSet(void)
 }
 #endif
 
-void AudioDacPowerOn(void)
-{
-	DAC_Model DACModel = DAC_Single;
-	PVDD_Model PVDDModel = PVDD33;
-
-#ifdef CHIP_DAC_USE_DIFF
-	DACModel = DAC_Diff;
-#endif
-
-#ifdef CHIP_DAC_USE_PVDD16
-	PVDDModel = PVDD16;
-#endif
-
-	AudioDAC_AllPowerOn(DACModel,DAC_NOLoad,PVDDModel,DACCommonEnergy);
-
-	AudioDAC_Enable(DAC0);
-}
-
 //配置系统标准通路
 bool ModeCommonInit(void)
 {
 	AudioCoreIO AudioIOSet;
-	uint16_t SampleLen = AudioCoreFrameSizeGet(DefaultNet);
-	uint16_t FifoLenStereo = SampleLen * sizeof(PCM_DATA_TYPE) * 2 * 2;//立体声8倍大小于帧长，单位byte
-//	uint16_t FifoLenMono = SampleLen * sizeof(PCM_DATA_TYPE) * 2;//单声到4倍大小于帧长，单位byte
+	uint16_t FifoLenStereo;
 
 	if(!RoboeffectInit())
 	{
@@ -305,6 +230,9 @@ bool ModeCommonInit(void)
 			DBG("roboeffect init again because cannot enable effect:%d\n", RoboeffectInit());
 		}
 	}
+
+	FifoLenStereo = AudioCoreFrameSizeGet(DefaultNet) * sizeof(PCM_DATA_TYPE) * 2 * 2;//立体声8倍大小于帧长，单位byte
+
 	DefaultParamgsInit();	//refresh local hardware config params(just storage not set)
 
 	//////////申请DMA fifo
@@ -334,18 +262,35 @@ bool ModeCommonInit(void)
 		AudioIOSet.Sync = TRUE;
 		AudioIOSet.Channels = 2;
 		AudioIOSet.Net = DefaultNet;
-		AudioIOSet.DataIOFunc = AudioDAC0DataSet;
-		AudioIOSet.LenGetFunc = AudioDAC0DataSpaceLenGet;
+		AudioIOSet.DataIOFunc = AudioDAC0_DataSet;
+		AudioIOSet.LenGetFunc = AudioDAC0_DataSpaceLenGet;
 		if(!AudioCoreSinkInit(&AudioIOSet, AUDIO_DAC0_SINK_NUM))
 		{
 			DBG("Dac init error");
 			return FALSE;
 		}
-#ifdef	CFG_AUDIO_WIDTH_24BIT
-		AudioDAC_Init(mainAppCt.SampleRate,24, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
-#else
-		AudioDAC_Init(mainAppCt.SampleRate,16, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
-#endif
+
+		DACParamCt ct;
+		uint16_t BitWidth;
+	#ifdef CHIP_DAC_USE_DIFF
+		ct.DACModel = DAC_Diff;
+	#else
+		ct.DACModel = DAC_Single;
+	#endif
+
+	#ifdef CHIP_DAC_USE_PVDD16
+		ct.PVDDModel = PVDD16;
+	#else
+		ct.PVDDModel = PVDD33;
+	#endif
+		ct.DACLoadStatus = DAC_NOLoad;
+		ct.DACEnergyModel = DACCommonEnergy;
+	#ifdef	CFG_AUDIO_WIDTH_24BIT
+		BitWidth = 24;
+	#else
+		BitWidth = 16;
+	#endif
+		AudioDAC_Init(&ct,mainAppCt.SampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
 	}
 	else//sam add,20230221
 	{
@@ -384,9 +329,9 @@ bool ModeCommonInit(void)
 
 		//Mic1   digital
 	#ifdef CFG_AUDIO_WIDTH_24BIT
-		AudioADC_DigitalInit(ADC1_MODULE, mainAppCt.SampleRate, (void*)mainAppCt.ADCFIFO, AudioCoreFrameSizeGet(DefaultNet) * 2 * 2 * 2 * 2,ADC_WIDTH_24BITS);
+		AudioADC_DigitalInit(ADC1_MODULE, mainAppCt.SampleRate,ADC_WIDTH_24BITS,(void*)mainAppCt.ADCFIFO, FifoLenStereo);
 	#else
-		AudioADC_DigitalInit(ADC1_MODULE, mainAppCt.SampleRate, (void*)mainAppCt.ADCFIFO, AudioCoreFrameSizeGet(DefaultNet) * 2 * 2 * 2,ADC_WIDTH_16BITS);
+		AudioADC_DigitalInit(ADC1_MODULE, mainAppCt.SampleRate,ADC_WIDTH_16BITS,(void*)mainAppCt.ADCFIFO, FifoLenStereo);
 	#endif
 
 		//Soure0.
@@ -395,8 +340,8 @@ bool ModeCommonInit(void)
 		AudioIOSet.Sync = TRUE;
 		AudioIOSet.Channels = 1;
 		AudioIOSet.Net = DefaultNet;
-		AudioIOSet.DataIOFunc = AudioADC1DataGet;
-		AudioIOSet.LenGetFunc = AudioADC1DataLenGet;
+		AudioIOSet.DataIOFunc = AudioADC1_DataGet;
+		AudioIOSet.LenGetFunc = AudioADC1_DataLenGet;
 	#ifdef	CFG_AUDIO_WIDTH_24BIT
 		AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
 		AudioIOSet.IOBitWidthConvFlag = 0;//需要数据进行位宽扩展
@@ -407,7 +352,11 @@ bool ModeCommonInit(void)
 			return FALSE;
 		}
 	}
-	AudioADC_AnaInit(ADC1_MODULE,MIC_LEFT,Single,ADCCommonEnergy);
+#ifdef CFG_ADCDAC_SEL_LOWPOWERMODE
+	AudioADC_AnaInit(ADC1_MODULE,CHANNEL_LEFT,MIC_LEFT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC1PGACt.pga_mic_gain);
+#else
+	AudioADC_AnaInit(ADC1_MODULE,CHANNEL_LEFT,MIC_LEFT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC1PGACt.pga_mic_gain);
+#endif // CFG_ADCDAC_SEL_LOWPOWERMODE
 	//MADC_MIC_PowerUP(SingleEnded);
 	AudioCoreSourceEnable(MIC_SOURCE_NUM);
 #endif
@@ -524,7 +473,16 @@ bool ModeCommonInit(void)
 	}
 #endif
 
-	AudioDacPowerOn();
+#ifdef CFG_FUNC_I2S_MIX_MODE
+	I2S_MixInit();
+#endif
+#ifdef CFG_FUNC_LINEIN_MIX_MODE
+	LineInMixPlayInit();
+#endif
+#ifdef CFG_FUNC_USB_AUDIO_MIX_MODE
+	UsbDevicePlayMixInit();
+#endif
+	AudioDAC_Enable(DAC0);
 	return TRUE;
 }
 
@@ -590,6 +548,15 @@ void ModeCommonDeinit(void)
 #endif
 #endif
 
+#ifdef CFG_FUNC_I2S_MIX_MODE
+	I2S_MixDeinit();
+#endif
+#ifdef CFG_FUNC_LINEIN_MIX_MODE
+	LineInMixPlayDeinit();
+#endif
+#ifdef CFG_FUNC_USB_AUDIO_MIX_MODE
+	UsbDevicePlayMixDeinit();
+#endif
 	roboeffect_free(AudioCore.Roboeffect.context_memory);
 	AudioCore.Roboeffect.context_memory = NULL;
 }
@@ -597,17 +564,14 @@ void ModeCommonDeinit(void)
 bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 {
 	AudioCoreIO AudioIOSet;
-	uint16_t SampleLen = AudioCoreFrameSizeGet(DefaultNet);
-	uint16_t FifoLenStereo = SampleLen * 2 * 2 * 2;//立体声8倍大小于帧长，单位byte
+	uint16_t FifoLenStereo;
 //	uint16_t FifoLenMono = SampleLen * 2 * 2;//单声到4倍大小于帧长，单位byte
-	uint8_t EffectMode = mainAppCt.EffectMode;
 
-	mainAppCt.EffectMode = EFFECT_MODE_HFP_AEC;
 	if(!RoboeffectInit())
 	{
 		DBG("!!!roboeffect init must be earlier than sink init!!!.\n");
 	}
-	mainAppCt.EffectMode = EffectMode;
+	FifoLenStereo = AudioCoreFrameSizeGet(DefaultNet) * 2 * 2 * 2;//立体声8倍大小于帧长，单位byte
 
 #if CFG_RES_MIC_SELECT
 	AudioCoreSourceDisable(MIC_SOURCE_NUM);
@@ -636,7 +600,7 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 //		AudioADC_PGAGainSet(ADC1_MODULE, CHANNEL_RIGHT, LINEIN3_RIGHT_OR_MIC2, 15, 4);
 
 		//Mic1   digital
-		AudioADC_DigitalInit(ADC1_MODULE, sampleRate, (void*)mainAppCt.ADCFIFO, AudioCoreFrameSizeGet(DefaultNet) * 2 * 2 * 2,ADC_WIDTH_16BITS);
+		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_16BITS,(void*)mainAppCt.ADCFIFO,FifoLenStereo);
 
 		//Soure0.
 		memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
@@ -644,8 +608,8 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 		AudioIOSet.Sync = TRUE;
 		AudioIOSet.Channels = 1;
 		AudioIOSet.Net = DefaultNet;
-		AudioIOSet.DataIOFunc = AudioADC1DataGet;
-		AudioIOSet.LenGetFunc = AudioADC1DataLenGet;
+		AudioIOSet.DataIOFunc = AudioADC1_DataGet;
+		AudioIOSet.LenGetFunc = AudioADC1_DataLenGet;
 #ifdef CFG_AUDIO_WIDTH_24BIT
 		AudioIOSet.IOBitWidth = PCM_DATA_16BIT_WIDTH;			//0,16bit,1:24bit
 		AudioIOSet.IOBitWidthConvFlag = 0;	//需要数据位宽不扩展
@@ -656,7 +620,11 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 			return FALSE;
 		}
 		//MADC_MIC_PowerUP(SingleEnded);
-		AudioADC_AnaInit(ADC1_MODULE,MIC_LEFT,Single,ADCCommonEnergy);
+#ifdef CFG_ADCDAC_SEL_LOWPOWERMODE
+		AudioADC_AnaInit(ADC1_MODULE,CHANNEL_LEFT,MIC_LEFT,Single,ADCLowEnergy,gain);
+#else
+		AudioADC_AnaInit(ADC1_MODULE,CHANNEL_LEFT,MIC_LEFT,Single,ADCCommonEnergy,gain);
+#endif // CFG_ADCDAC_SEL_LOWPOWERMODE
 		AudioCoreSourceEnable(MIC_SOURCE_NUM);
 	}
 	else //采样率等 重配
@@ -670,8 +638,8 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 //		AudioADC_PGAGainSet(ADC1_MODULE, CHANNEL_RIGHT, LINEIN3_RIGHT_OR_MIC2, gain);
 
 		//Mic1	 digital
-		memset(mainAppCt.ADCFIFO, 0, AudioCoreFrameSizeGet(DefaultNet) * 2 * 2 * 2);
-		AudioADC_DigitalInit(ADC1_MODULE, sampleRate, (void*)mainAppCt.ADCFIFO, AudioCoreFrameSizeGet(DefaultNet) * 2 * 2 * 2,ADC_WIDTH_16BITS);
+		memset(mainAppCt.ADCFIFO, 0, FifoLenStereo);
+		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_16BITS, (void*)mainAppCt.ADCFIFO, FifoLenStereo);
 	}
 #endif
 
@@ -732,15 +700,37 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 		AudioIOSet.Sync = TRUE;
 		AudioIOSet.Channels = 2;
 		AudioIOSet.Net = DefaultNet;
-		AudioIOSet.DataIOFunc = AudioDAC0DataSet;
-		AudioIOSet.LenGetFunc = AudioDAC0DataSpaceLenGet;
+		AudioIOSet.DataIOFunc = AudioDAC0_DataSet;
+		AudioIOSet.LenGetFunc = AudioDAC0_DataSpaceLenGet;
 
 		if(!AudioCoreSinkInit(&AudioIOSet, AUDIO_DAC0_SINK_NUM))
 		{
 			DBG("Dac init error");
 			return FALSE;
 		}
-		AudioDAC_Init(sampleRate,24, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
+
+
+		DACParamCt ct;
+		uint16_t BitWidth;
+	#ifdef CHIP_DAC_USE_DIFF
+		ct.DACModel = DAC_Diff;
+	#else
+		ct.DACModel = DAC_Single;
+	#endif
+
+	#ifdef CHIP_DAC_USE_PVDD16
+		ct.PVDDModel = PVDD16;
+	#else
+		ct.PVDDModel = PVDD33;
+	#endif
+		ct.DACLoadStatus = DAC_NOLoad;
+		ct.DACEnergyModel = DACCommonEnergy;
+	#ifdef	CFG_AUDIO_WIDTH_24BIT
+		BitWidth = 24;
+	#else
+		BitWidth = 16;
+	#endif
+		AudioDAC_Init(&ct,sampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
 	}
 	else
 	{
@@ -831,7 +821,7 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 	}
 #endif
 
-	AudioDacPowerOn();
+	AudioDAC_Enable(DAC0);
 	return TRUE;
 }
 
@@ -863,14 +853,29 @@ void AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 
 		for(i = 0; i < AUDIO_CORE_SOURCE_MAX_NUM; i++)
 		{
-			AudioCore.AudioSource[i].PcmInBuf = roboeffect_get_source_buffer(
-							AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(i));
+			if(AudioCoreSourceToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
+			{
+				AudioCore.AudioSource[i].PcmInBuf = roboeffect_get_source_buffer(
+								AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(i));
+			}
 		}
 		for(i = 0; i < AUDIO_CORE_SINK_MAX_NUM; i++)
 		{
-			AudioCore.AudioSink[i].PcmOutBuf = roboeffect_get_sink_buffer(
-							AudioCore.Roboeffect.context_memory, AudioCoreSinkToRoboeffect(i));
+			if(AudioCoreSinkToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
+			{
+				AudioCore.AudioSink[i].PcmOutBuf = roboeffect_get_sink_buffer(
+								AudioCore.Roboeffect.context_memory, AudioCoreSinkToRoboeffect(i));
+			}
 		}
+
+#ifdef CFG_APP_LINEIN_MODE_EN
+		if(GetSystemMode() == ModeLineAudioPlay)
+		{
+			//linein模式需要重新初始化ADC0，否则delay会变大
+			extern void LineinADCDigitalInit(void);
+			LineinADCDigitalInit();
+		}
+#endif
 
 		SoftFlagDeregister(SoftFlagAudioCoreSourceIsDeInit);
 		AudioCoreServiceResume();
@@ -1034,7 +1039,7 @@ void CommonMsgProccess(uint16_t Msg)
 				mainAppCt.ReverbStep = 0;
 			}
 			Roboeffect_ReverbStep_Ajust(mainAppCt.ReverbStep);
-			APP_DBG("MSG_MIC_EFFECT_UP\n");
+			APP_DBG("MSG_MIC_EFFECT_DW\n");
 			APP_DBG("ReverbStep = %d\n", mainAppCt.ReverbStep);
 			#ifdef CFG_FUNC_BREAKPOINT_EN
 			BackupInfoUpdata(BACKUP_SYS_INFO);
@@ -1249,6 +1254,7 @@ void CommonMsgProccess(uint16_t Msg)
 			APP_DBG("EffectMode = %d\n", mainAppCt.EffectMode);
 
 			AudioEffectModeSel(mainAppCt.EffectMode, 2);//sel: 0=init hw, 1=effect, 2=hw + effect
+			Roboeffect_ReverbStep_Ajust(mainAppCt.ReverbStep);		//Switch effect mode also need to sync reverb step
 
 			if(IsAudioPlayerMute() == TRUE)
 			{
@@ -1332,15 +1338,17 @@ void CommonMsgProccess(uint16_t Msg)
 				HardWareMuteOrUnMute();
 			}
 			int8_t opera = AudioCore.Roboeffect.effect_enable ? 1 : -1;
+			ROBOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(mainAppCt.EffectMode);
+
 //			APP_DBG("Roboeffect FrameSize %d, %d\n", opera, roboeffect_get_suit_frame_size(
 //					AudioCore.Roboeffect.context_memory, CFG_PARA_SAMPLES_PER_FRAME, AudioCore.Roboeffect.effect_addr, opera));
 			if(roboeffect_get_suit_frame_size(
-					AudioCore.Roboeffect.context_memory, CFG_PARA_SAMPLES_PER_FRAME, AudioCore.Roboeffect.effect_addr, opera)
+					AudioCore.Roboeffect.context_memory, para->user_effect_list->frame_size, AudioCore.Roboeffect.effect_addr, opera)
 				&& AudioCoreFrameSizeGet(DefaultNet) != roboeffect_get_suit_frame_size(
-					AudioCore.Roboeffect.context_memory, CFG_PARA_SAMPLES_PER_FRAME, AudioCore.Roboeffect.effect_addr, opera))
+					AudioCore.Roboeffect.context_memory, para->user_effect_list->frame_size, AudioCore.Roboeffect.effect_addr, opera))
 			{
 				AudioCore.Roboeffect.user_effect_list->frame_size = roboeffect_get_suit_frame_size(
-						AudioCore.Roboeffect.context_memory, CFG_PARA_SAMPLES_PER_FRAME, AudioCore.Roboeffect.effect_addr, opera);
+						AudioCore.Roboeffect.context_memory, para->user_effect_list->frame_size, AudioCore.Roboeffect.effect_addr, opera);
 				APP_DBG("Need Change FrameSize to %ld\n", AudioCore.Roboeffect.user_effect_list->frame_size);
 
 				SysMode[GetModeIndexInModeLoop(&mainAppCt.SysCurrentMode)].SysModeDeInit();

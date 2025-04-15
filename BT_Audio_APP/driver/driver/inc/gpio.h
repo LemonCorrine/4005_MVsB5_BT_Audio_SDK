@@ -266,19 +266,12 @@ typedef enum __GPIO_TimerRemapIndex{
 	GPIO_TimerRemapIndexB9 = 41,
 }GPIO_TimerRemapIndex;
 
-typedef enum __GPIO_PortA_PULLDOWN_MODE{
-	GPIO_PortA_PULLDOWN_CLOSE = 0,           /**<GPIO PortA PULLDOWN Mode:0/1.6/3.2/4.8mA (bit:A0~A31) macro*/
-	GPIO_PortA_PULLDOWN_1MA6 = 1,
-	GPIO_PortA_PULLDOWN_3MA2 = 2,
-	GPIO_PortA_PULLDOWN_4MA8 = 3,
-}GPIO_PortA_PULLDOWN_MODE;
-
-typedef enum __GPIO_PortB_PULLDOWN_MODE{
-	GPIO_PortB_PULLDOWN_CLOSE = 0,           /**<GPIO PortBPULLDOWN Mode:0/1.6/3.2/4.8mA (bit:b0~b9) macromacro*/
-	GPIO_PortB_PULLDOWN_1MA6 = 1,
-	GPIO_PortB_PULLDOWN_3MA2 = 2,
-	GPIO_PortB_PULLDOWN_4MA8 = 3,
-}GPIO_PortB_PULLDOWN_MODE;
+typedef enum __GPIO_PULLDOWN_MODE{
+	GPIO_PULLDOWN_CLOSE = 0,           /**<GPIO PortA PULLDOWN Mode:0/1.6/3.2/4.8mA (bit:A0~A31) macro*/
+	GPIO_PULLDOWN_1MA6 = 1,			   /**<GPIO PortB PULLDOWN Mode:0/1.6/3.2/4.8mA (bit:b0~b9) macro*/
+	GPIO_PULLDOWN_3MA2 = 2,
+	GPIO_PULLDOWN_4MA8 = 3,
+}GPIO_PULLDOWN_MODE;
 
 typedef enum __GPIO_10K_PULLUP_MODE{
 	DISABLE_10K_OHMS_PULL_UP = 0,           /**enable 10k ohms resistor pull-up A0~A31 b0~b9*/
@@ -288,19 +281,12 @@ typedef enum __GPIO_10K_PULLUP_MODE{
 /**
  * Define GPIO output Driving Strength
  */
-typedef enum __GPIO_PortA_OUTDS_MODE{
-	GPIO_PortA_OUTDS_4MA = 0,          /**<GPIO PortA digital output driving strength mode select:4/8/12/24mA(bit:A0~A31) macro*/
-	GPIO_PortA_OUTDS_8MA = 1,
-	GPIO_PortA_OUTDS_12MA = 2,
-	GPIO_PortA_OUTDS_24MA = 3,
-}GPIO_PortA_OUTDS_MODE;
-
-typedef enum __GPIO_PortB_OUTDS_MODE{
-	GPIO_PortB_OUTDS_4MA = 0,          /**<GPIO PortB digital output driving strength mode select:4/8/12/24mA(bit:B0~B9) macro*/
-	GPIO_PortB_OUTDS_8MA = 1,
-	GPIO_PortB_OUTDS_12MA = 2,
-	GPIO_PortB_OUTDS_24MA = 3,
-}GPIO_PortB_OUTDS_MODE;
+typedef enum __GPIO_OUTDS_MODE{
+	GPIO_OUTDS_4MA = 0,          /**<GPIO PortA digital output driving strength mode select:4/8/12/24mA(bit:A0~A31) macro*/
+	GPIO_OUTDS_8MA = 1,		   	 /**<GPIO PortB digital output driving strength mode select:4/8/12/24mA(bit:B0~B9) macro*/
+	GPIO_OUTDS_12MA = 2,
+	GPIO_OUTDS_24MA = 3,
+}GPIO_OUTDS_MODE;
 
 typedef enum
 {
@@ -928,14 +914,14 @@ bool GPIO_TimerRemapConfig(TIMER_INDEX TimerSel, GPIO_TimerRemapIndex GpioTimerR
  * @param[in]  Port: GPIO A port，例如： GPIOA1
  *
  * @param[in]  PullDownModeSel: 下拉电流源的 模式：
- *                                   GPIO_PortA_PULLDOWN_Close: 0mA(bit:A0~A31);
- *                                   GPIO_PortA_PULLDOWN_1MA6: 1.6mA
- *                                   GPIO_PortA_PULLDOWN_3MA2: 3.2mA
- *                                   GPIO_PortA_PULLDOWN_4MA8: 4.8mA
+ *                                   GPIO_PULLDOWN_Close: 0mA(bit:A0~A31);
+ *                                   GPIO_PULLDOWN_1MA6: 1.6mA
+ *                                   GPIO_PULLDOWN_3MA2: 3.2mA
+ *                                   GPIO_PULLDOWN_4MA8: 4.8mA
  * @return     TRUE:设置成功
  *             FALSE:设置失败
  */
-bool GPIO_PortAPulldownSet( GPIO_PortA Port,  GPIO_PortA_PULLDOWN_MODE PulldownModeSel);
+bool GPIO_PortAPulldownSet( GPIO_PortA Port,  GPIO_PULLDOWN_MODE PulldownModeSel);
 
 /**
  * @brief      GPIO下拉电流源设置
@@ -943,14 +929,14 @@ bool GPIO_PortAPulldownSet( GPIO_PortA Port,  GPIO_PortA_PULLDOWN_MODE PulldownM
  * @param[in]  Port: GPIO B port，例如： GPIOB1
  *
  * @param[in]  PullDownModeSel: 下拉电流源的 模式：
- *                                   GPIO_PortB_PULLDOWN_Close: 0mA(bit:B0~B9);
- *                                   GPIO_PortB_PULLDOWN_1MA6: 1.6mA
- *                                   GPIO_PortB_PULLDOWN_3MA2: 3.2mA
- *                                   GPIO_PortB_PULLDOWN_4MA8: 4.8mA
+ *                                   GPIO_PULLDOWN_Close: 0mA(bit:B0~B9);
+ *                                   GPIO_PULLDOWN_1MA6: 1.6mA
+ *                                   GPIO_PULLDOWN_3MA2: 3.2mA
+ *                                   GPIO_PULLDOWN_4MA8: 4.8mA
  * @return     TRUE:设置成功
  *             FALSE:设置失败
  */
-bool GPIO_PortBPulldownSet( GPIO_PortB Port,  GPIO_PortB_PULLDOWN_MODE PulldownModeSel);
+bool GPIO_PortBPulldownSet( GPIO_PortB Port,  GPIO_PULLDOWN_MODE PulldownModeSel);
 
 //*************************   GPIO输出驱动能力设置  ***************************** //
 /**
@@ -959,15 +945,15 @@ bool GPIO_PortBPulldownSet( GPIO_PortB Port,  GPIO_PortB_PULLDOWN_MODE PulldownM
  * @param[in]  PortAGpioIndex: 例如： GPIO_INDEX1(即为GPIO_A1)
  *
  * @param[in]  PortAOutDsModeSel: 输出驱动能力的模式选择：
- *                                   GPIO_PortA_OUTDS_4MA : 4mA (bit:A0~A31);
- *                                   GPIO_PortA_OUTDS_8MA : 8mA
- *                                   GPIO_PortA_OUTDS_12MA : 12mA
- *                                   GPIO_PortA_OUTDS_24MA : 24mA
+ *                                   GPIO_OUTDS_4MA : 4mA (bit:A0~A31);
+ *                                   GPIO_OUTDS_8MA : 8mA
+ *                                   GPIO_OUTDS_12MA : 12mA
+ *                                   GPIO_OUTDS_24MA : 24mA
  *
  * @return     TRUE:设置成功
  *             FALSE:设置失败
  */
-bool GPIO_PortAOutDsSet( GPIO_PortA PortAGpioIndex,  GPIO_PortA_OUTDS_MODE PortAOutDsModeSel);
+bool GPIO_PortAOutDsSet( GPIO_PortA PortAGpioIndex,  GPIO_OUTDS_MODE PortAOutDsModeSel);
 
 /**
  * @brief      GPIO输出驱动能力
@@ -975,14 +961,14 @@ bool GPIO_PortAOutDsSet( GPIO_PortA PortAGpioIndex,  GPIO_PortA_OUTDS_MODE PortA
  * @param[in]  PortBGpioIndex: GPIO_INDEX1(即为GPIO_B1)
  *
  * @param[in]  PullDownModeSel: 下拉电流源的 模式：
- *                                   GPIO_PortB_OUTDS_4MA : 4mA(bit:B0~B9);
- *                                   GPIO_PortB_OUTDS_8MA : 8mA
- *                                   GPIO_PortB_OUTDS_12MA : 19mA
- *                                   GPIO_PortB_OUTDS_24MA : 34mA
+ *                                   GPIO_OUTDS_4MA : 4mA(bit:B0~B9);
+ *                                   GPIO_OUTDS_8MA : 8mA
+ *                                   GPIO_OUTDS_12MA : 12mA
+ *                                   GPIO_OUTDS_24MA : 24mA
  * @return     TRUE:设置成功
  *             FALSE:设置失败
  */
-bool GPIO_PortBOutDsSet( GPIO_PortB PortBGpioIndex,  GPIO_PortB_OUTDS_MODE PortBOutDsModeSel);
+bool GPIO_PortBOutDsSet( GPIO_PortB PortBGpioIndex,  GPIO_OUTDS_MODE PortBOutDsModeSel);
 
 /**
  * @brief      Avoid unwanted reset source to reset gpio register and only reset gpio register at power on reset

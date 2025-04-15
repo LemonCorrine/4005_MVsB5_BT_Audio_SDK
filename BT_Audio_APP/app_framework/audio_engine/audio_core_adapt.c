@@ -520,7 +520,7 @@ bool AudioCoreSinkInit(AudioCoreIO * AudioIO, uint8_t Index)
 	if(AudioCoreSinkIsInit(Index)
 			|| AudioIO == NULL
 			|| AudioIO->Channels > 2
-			|| AudioIO->Depth <= CFG_PARA_MIN_SAMPLES_PER_FRAME
+			|| AudioIO->Depth <= AudioCoreFrameSizeGet(DefaultNet)
 			|| AudioIO->Adapt > SRC_ADJUST
 			|| AudioIO->Net >= MaxNet
 			|| AudioIO->DataIOFunc == NULL

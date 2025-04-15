@@ -32,7 +32,7 @@ extern "C" {
 
 
 
-#define	SPIS_PORT0_A0A1A2A3			0
+#define	SPIS_PORT0_B4B5A0A1			0
 #define	SPIS_PORT1_A20A21A22A23		1
 
 
@@ -40,7 +40,7 @@ extern "C" {
  * @brief
  *    SPIS功能IO初始化
  * @param	PortSel
- *					0 - SPIS_PORT0_A0A1A2A3
+ *					0 - SPIS_PORT0_B4B5A0A1
  *					1 - SPIS_PORT1_A20A21A22A23
  * @return
  *   无

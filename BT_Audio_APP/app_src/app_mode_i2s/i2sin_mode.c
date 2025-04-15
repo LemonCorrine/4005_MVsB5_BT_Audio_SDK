@@ -60,7 +60,6 @@ typedef struct _I2SInPlayContext
 
 
 static const uint8_t DmaChannelMap[6] = {
-	PERIPHERAL_ID_SDIO_RX,
 	PERIPHERAL_ID_AUDIO_ADC0_RX,
 	PERIPHERAL_ID_AUDIO_ADC1_RX,
 	PERIPHERAL_ID_AUDIO_DAC0_TX,
@@ -68,7 +67,12 @@ static const uint8_t DmaChannelMap[6] = {
 #ifdef CFG_RES_AUDIO_I2SOUT_EN
 	PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE,
 #else
-	255
+	255,
+#endif
+#ifdef CFG_RES_AUDIO_I2S_MIX_IN_EN
+	PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX_I2S_MODULE,
+#else
+	PERIPHERAL_ID_SDIO_RX,
 #endif
 };
 

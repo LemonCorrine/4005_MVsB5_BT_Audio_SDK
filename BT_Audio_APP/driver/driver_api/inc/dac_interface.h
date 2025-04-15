@@ -19,12 +19,20 @@ extern "C"{
 #endif // __cplusplus 
 #include "dac.h"
 
-void AudioDAC_Init(uint32_t SampleRate, uint16_t BitWidth, void *Buf, uint16_t Len,  void *BufEXT, uint16_t LenEXT);
+typedef struct __DACParamCt
+{
+	DAC_Model DACModel;
+	DAC_LoadStatus DACLoadStatus;
+	PVDD_Model PVDDModel;
+	DAC_EnergyModel DACEnergyModel;
+} DACParamCt;
+
+void AudioDAC_Init(DACParamCt *ct, uint32_t SampleRate, uint16_t BitWidth, void *Buf, uint16_t Len,  void *BufEXT, uint16_t LenEXT);
 void AudioDAC0_SampleRateChange(uint32_t SampleRate);
 
-uint16_t AudioDAC0DataSpaceLenGet(void);
-uint16_t AudioDAC0DataSet(void* Buf, uint16_t Len);
-uint16_t AudioDAC0DataLenGet(void);
+uint16_t AudioDAC0_DataSpaceLenGet(void);
+uint16_t AudioDAC0_DataSet(void* Buf, uint16_t Len);
+uint16_t AudioDAC0_DataLenGet(void);
 
 #ifdef __cplusplus
 }

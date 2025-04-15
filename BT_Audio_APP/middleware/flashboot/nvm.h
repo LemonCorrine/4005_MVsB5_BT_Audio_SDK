@@ -66,7 +66,7 @@ typedef enum _ERRNO{
 	ERRNO_BLE_READ_TIMEOUT_ERR,
 	ERRNO_BLE_SEND_ERR,
 	ERRNO_UART_UPGRADE_NONE = 0x400,    //升级途径 UART
-	ERRNO_UART_NO_LINK,
+
 	ERRNO_UDISK_UPGRADE_NONE = 0x500,    //升级途径 u盘
 	ERRNO_UDISK_NO_LINK,
 	ERRNO_UDISK_MOUNT_ERR,
@@ -88,8 +88,6 @@ typedef enum _ERRNO{
 	ERRNO_OTA_READ_HEAD_ERR,
 	ERRNO_OTA_SEND_CONFIG_ERR,
 	ERRNO_OTA_CHECKSUM_ERR,
-
-
 	ERRNO_USER_UPGRADE_NONE = 0xF00,    //升级途径 USER
 	ERRNO_NO_USER_FUNCTION,
 }ENUM_ERRNO;//最多4096个状态
@@ -101,10 +99,13 @@ typedef enum{
 	CHN_MASK_USBCDC = (1<<3),
 	CHN_MASK_BLE = (1<<4),
 	CHN_MASK_BT = (1<<5),
-	CHN_MASK_EXFLASH = (1<<6),
-	CHN_MASK_UART = (1<<7),
+	CHN_MASK_EXFLASH = (1<<6),			//SPIM_
+	CHN_MASK_EXFLASH1 = (1<<7),
+    CHN_MASK_UART0 = (1<<8),   //0x104
+    CHN_MASK_UART1 = (1<<9),   //0x104
+    CHN_MASK_INFLASH = (1<<11),  //0x104   具体参数再0x105~0x107
+	CHN_MASK_MAX = (1<<12),
 }UPGRADE_APPLY_PARAM;
-
 typedef struct BOOT_REGISETR{
 	volatile  unsigned int RombootState:4;
 	volatile  unsigned int RombootParam:12;

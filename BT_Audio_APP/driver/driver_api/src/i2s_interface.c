@@ -7,17 +7,14 @@
 #include "reset.h"
 #ifdef CFG_APP_CONFIG
 #include "app_config.h"
+#else
+#define	SYS_AUDIO_CLK_SELECT		APLL_CLK_MODE
 #endif
 
 void AudioI2S_Init(I2S_MODULE Module, I2SParamCt *ct)
 {
-#ifdef USB_CRYSTA_FREE_EN
-	Clock_AudioPllClockSet(PLL_CLK_MODE, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
-	Clock_AudioPllClockSet(PLL_CLK_MODE, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ);
-#else
-	Clock_AudioPllClockSet(APLL_CLK_MODE, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
-	Clock_AudioPllClockSet(APLL_CLK_MODE, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ);
-#endif
+	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
+	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ);
 
 	//tx
 	if(ct->I2sTxRxEnable & 0x1)

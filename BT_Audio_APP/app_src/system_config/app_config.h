@@ -16,13 +16,13 @@
 #include "type.h"
 #include "chip_config.h"
 
+#define ENABLE			TRUE
+#define DISABLE			FALSE
+
 //************************************************************************************************************
 //    本系统默认开启2个系统全局宏，在IDE工程配置(Build Settings-Compiler-Symbols)，此处用于提醒
 //*CFG_APP_CONFIG 和 FUNC_OS_EN*/
 //************************************************************************************************************
-
-//系统时钟
-//#define CFG_SYS_CLK_264M	//系统时钟超频到264M宏定义开关
 
 //************************************************************************************************************
 //    功能开关说明：
@@ -44,7 +44,7 @@
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(0)
 #define  CFG_SDK_MINOR_VERSION		(2)
-#define  CFG_SDK_PATCH_VERSION	    (6)
+#define  CFG_SDK_PATCH_VERSION	    (7)
 
 
 //****************************************************************************************
@@ -92,7 +92,6 @@
 	#define CFG_PARA_AUDIO_USB_OUT_SRC	//转采样准备
 	#define CFG_RES_AUDIO_USB_VOL_SET_EN
 	//#define USB_READER_EN
-//	#define USB_CRYSTA_FREE_EN			//usb声卡免晶体功能
 #endif
 
 //IDLE模式(假待机),powerkey/deepsleep可以同时选中也可以单独配置
@@ -134,7 +133,6 @@
 /**I2S音频输出通道配置选择**/
 //#define CFG_RES_AUDIO_I2SOUT_EN
 
-
 //****************************************************************************************
 //     I2S相关配置选择
 //说明:
@@ -149,7 +147,7 @@
 #define I2S_LRCLK_GPIO					I2S1_LRCLK_A7
 #define I2S_BCLK_GPIO					I2S1_BCLK_A9
 #ifdef CFG_RES_AUDIO_I2SOUT_EN
-	#define I2S_DOUT_GPIO				I2S1_DOUT_A30
+	#define I2S_DOUT_GPIO				I2S1_DOUT_A10
 #endif
 #ifdef CFG_APP_I2SIN_MODE_EN
 	#define I2S_DIN_GPIO				I2S1_DIN_A10
@@ -187,7 +185,41 @@
 //    1.此功能是基于MUSIC EQ进行手动设置的，需要在调音参数中使能此EQ；
 //    2.可在flat/classic/pop/jazz/pop/vocal boost之间通过KEY来切换   
 #if CFG_RES_MIC_SELECT
-//#define	CFG_FUNC_MIC_KARAOKE_EN      //MIC karaoke功能选择
+//	#define	CFG_FUNC_MIC_KARAOKE_EN      //MIC karaoke功能选择
+#endif
+
+#ifdef CFG_FUNC_MIC_KARAOKE_EN
+//Line in mix for Karaoke
+#ifndef CFG_APP_LINEIN_MODE_EN
+	#define CFG_FUNC_LINEIN_MIX_MODE
+#endif
+// I2S mix mode for Karaoke
+//#define CFG_RES_AUDIO_I2S_MIX_OUT_EN
+//#define CFG_RES_AUDIO_I2S_MIX_IN_EN
+//USB Audio mix for Karaoke
+#ifdef CFG_APP_USB_AUDIO_MODE_EN
+	#define CFG_FUNC_USB_AUDIO_MIX_MODE //USB Audio mix需要开启USB_AUDIO_MODE
+#endif
+#if defined(CFG_RES_AUDIO_I2S_MIX_IN_EN) || defined(CFG_RES_AUDIO_I2S_MIX_OUT_EN)
+	#define CFG_FUNC_I2S_MIX_MODE
+	#include"i2s.h"
+	#define I2S_MIX_MCLK_GPIO					I2S1_MCLK_OUT_A6 //选择MCLK_OUT/MCLK_IN脚，I2S自动配置成master/slave
+	#define I2S_MIX_LRCLK_GPIO					I2S1_LRCLK_A7
+	#define I2S_MIX_BCLK_GPIO					I2S1_BCLK_A9
+
+#ifdef CFG_RES_AUDIO_I2S_MIX_IN_EN
+	#define I2S_MIX_DIN_GPIO				I2S1_DIN_A10
+#endif
+#ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
+	#define I2S_MIX_DOUT_GPIO				I2S1_DOUT_A10
+#endif
+
+	#define CFG_RES_MIX_I2S_MODE				GET_I2S_MODE(I2S_MIX_MCLK_GPIO)		//根据I2S_MCLK_GPIO自动配置master/slave
+	#define	CFG_RES_MIX_I2S_MODULE				GET_I2S_I2S_PORT(I2S_MIX_MCLK_GPIO)	//根据I2S_MCLK_GPIO自动配置i2s1/i2s0
+	#define CFG_PARA_MIX_I2S_SAMPLERATE		44100
+	#define CFG_FUNC_MIX_I2S_IN_SYNC_EN		//缺省为SRA
+	#define CFG_FUNC_MIX_I2S_OUT_SYNC_EN
+#endif
 #endif
 
 #define CFG_FUNC_AUDIO_EFFECT_EN //总音效使能开关
@@ -251,10 +283,6 @@
 //****************************************************************************************
 #define	CFG_PARA_SAMPLE_RATE				(44100)
 #define CFG_BTHF_PARA_SAMPLE_RATE			(16000)//蓝牙HFP模式下统一采样率为16K
-#define	CFG_PARA_SAMPLES_PER_FRAME          (256)//(512)	//系统默认的帧数大小 //注:关闭总音效开关时,必须配置为256,和通话sample配置参数保持一致
-#define	CFG_BTHF_PARA_SAMPLES_PER_FRAME     (256)			//蓝牙通话模式下帧数大小
-#define CFG_PARA_MIN_SAMPLES_PER_FRAME		(256)//         //系统帧最小值，保证mic delay最小,注意:改为128时 tws带音效播U盘mips余量不足。
-#define CFG_PARA_MAX_SAMPLES_PER_FRAME		(512)//(512)
 
 #if (BT_AVRCP_VOLUME_SYNC == ENABLE) && defined(CFG_APP_BT_MODE_EN)
 #define CFG_PARA_MAX_VOLUME_NUM		        (16)	//SDK 16 级音量,针对iphone手机蓝牙音量同步功能定制，音量表16级能一一对应手机端音量级别
@@ -364,6 +392,15 @@
 #define CFG_FUNC_IDLE_TASK_LOW_POWER
 #ifdef	CFG_FUNC_IDLE_TASK_LOW_POWER
 	#define	CFG_GOTO_SLEEP_USE
+#endif
+
+//************************************************************************************************************
+//* 低功耗优化,根据各个功能模块的优化,达到降低功耗的目的
+//* 注意: 各个模块的低功耗优化方式和模块性能有关系
+//************************************************************************************************************
+#define CFG_FUNC_SYSTEM_LOW_POWER
+#ifdef CFG_FUNC_SYSTEM_LOW_POWER
+#define CFG_ADCDAC_SEL_LOWPOWERMODE  //ADC/DAC使用低功耗模式
 #endif
 
 //****************************************************************************************
@@ -488,7 +525,11 @@
 //基于标准SDK更新，暂时不做分支处理
 //#define  VD51_REDMINE_13199
 
+//flash系统参数在线调整
+#define CFG_FUNC_FLASH_PARAM_ONLINE_TUNING_EN
+
 #include "sys_gpio.h"
+#include "power_config.h"
 
 //************************************************************************************************************
 //dump工具,可以将数据发送到dump工具,用于分析

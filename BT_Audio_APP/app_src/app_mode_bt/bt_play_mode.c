@@ -60,12 +60,24 @@ typedef struct _btPlayContext
 
 
 static const uint8_t DmaChannelMap[6] = {
-		PERIPHERAL_ID_SDIO_RX,
 		PERIPHERAL_ID_AUDIO_ADC0_RX,
 		PERIPHERAL_ID_AUDIO_ADC1_RX,
 		PERIPHERAL_ID_AUDIO_DAC0_TX,
-		PERIPHERAL_ID_I2S1_TX,
+	#ifdef CFG_RES_AUDIO_I2S_MIX_IN_EN
+		PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX_I2S_MODULE,
+	#else
+		PERIPHERAL_ID_SDIO_RX,
+	#endif
+	#ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
+		PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX_I2S_MODULE,
+	#else
 		255,
+	#endif
+	#ifdef CFG_RES_AUDIO_I2SOUT_EN
+		PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE,
+	#else
+		255
+	#endif
 };
 
 static BtPlayContext	*BtPlayCt;

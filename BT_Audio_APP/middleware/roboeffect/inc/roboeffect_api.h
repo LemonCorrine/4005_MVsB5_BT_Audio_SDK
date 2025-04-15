@@ -13,7 +13,7 @@
 #define __ROBOEFFECT_API_H__
 
 /*Roboeffect Library version*/
-#define ROBOEFFECT_LIB_VER "2.7.11"
+#define ROBOEFFECT_LIB_VER "2.7.12"
 
 #include <stdio.h>
 #include <nds32_intrinsic.h>
@@ -91,6 +91,7 @@ typedef enum _roboeffect_effect_type_enum
 	ROBOEFFECT_HOWLING_GUARD,
 	ROBOEFFECT_VIRTUAL_BASS_TD,
 	ROBOEFFECT_OVER_DRIVE_PLOY,
+	ROBOEFFECT_TREMOLO,
 
 
 	/*node type below*/

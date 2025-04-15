@@ -23,6 +23,9 @@ extern "C"{
 bool UsbDevicePlayInit(void);
 bool UsbDevicePlayDeinit(void);
 void UsbDevicePlayRun(uint16_t msgId);
+
+bool UsbDevicePlayMixInit(void);
+bool UsbDevicePlayMixDeinit(void);
 #ifdef __cplusplus
 }
 #endif // __cplusplus 

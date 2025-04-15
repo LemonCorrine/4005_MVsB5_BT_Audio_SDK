@@ -81,12 +81,21 @@ extern void	HDMI_CEC_DDC_Init(void);
 /*a、默认在线调音使用USB HID*/
 
 static const uint8_t DmaChannelMap[6] = {
-	PERIPHERAL_ID_SDIO_RX,
 	PERIPHERAL_ID_AUDIO_ADC0_RX,
 	PERIPHERAL_ID_AUDIO_ADC1_RX,
 	PERIPHERAL_ID_AUDIO_DAC0_TX,
-#ifdef CFG_DUMP_DEBUG_EN
-	CFG_DUMP_UART_TX_DMA_CHANNEL,
+//#ifdef CFG_DUMP_DEBUG_EN
+//	CFG_DUMP_UART_TX_DMA_CHANNEL,
+//#else
+//	255,
+//#endif
+#ifdef CFG_RES_AUDIO_I2S_MIX_IN_EN
+	PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX_I2S_MODULE,
+#else
+	PERIPHERAL_ID_SDIO_RX,
+#endif
+#ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
+	PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX_I2S_MODULE,
 #else
 	255,
 #endif
@@ -362,7 +371,6 @@ static void SystemInit(void)
 	memset(mainAppCt.AudioCore, 0, sizeof(AudioCoreContext));
 	for(i = 0; i < MaxNet; i++)
 	{
-		AudioCoreFrameSizeSet(i, CFG_PARA_SAMPLES_PER_FRAME);//默认数据帧大小
 		AudioCoreMixSampleRateSet(i, CFG_PARA_SAMPLE_RATE);//默认系统采样率
 	}
 	mainAppCt.SampleRate = CFG_PARA_SAMPLE_RATE;
