@@ -25,7 +25,7 @@
 #include "audio_adc.h"
 #include "dac.h"
 #include "main_task.h"
-#include "user_defined_effect_api.h"
+#include "user_effect_parameter.h"
 
 ControlVariablesContext gCtrlVars;
 
@@ -526,11 +526,11 @@ void DefaultParamgsInit(void)
 	else
 	{
 #ifdef CFG_FUNC_MIC_KARAOKE_EN
-		memcpy(&gCtrlVars.HwCt, &user_module_parameters_Karaoke_HunXiang[0], sizeof(gCtrlVars.HwCt));
-
+		ROBOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(ROBOEFFECT_EFFECT_MODE_HUNXIANG);
 #else
-		memcpy(&gCtrlVars.HwCt, &user_module_parameters_mic_mic[0], sizeof(gCtrlVars.HwCt));
+		ROBOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(ROBOEFFECT_EFFECT_MODE_MIC);
 #endif
+		memcpy(&gCtrlVars.HwCt, para->user_module_parameters, sizeof(gCtrlVars.HwCt));
 	}
 
     //system define
@@ -544,7 +544,7 @@ void DefaultParamgsInit(void)
 	gCtrlVars.HwCt.DAC0Ct.dac_out_mode = MODE1;
 }
 
-void AudioLineSelSet(void)
+void AudioLineSelSet(int8_t ana_input_ch)
 {
 	//模拟通道先配置为NONE，防止上次配置通道残留，然后再配置需要的模拟通道 
 
@@ -557,17 +557,37 @@ void AudioLineSelSet(void)
 	//AudioADC_DynamicElementMatch(ADC0_MODULE, TRUE, TRUE);
 
 	//--------------------line 1-----------------------------------------//
-	if(gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_en)
+	if(ANA_INPUT_CH_LINEIN1 == ana_input_ch)
 	{
-		//APP_DBG("LINE 1L En\n");    	 		  
-		AudioADC_PGASel(ADC0_MODULE, CHANNEL_LEFT,LINEIN1_LEFT);
-		AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_LEFT,  LINEIN1_LEFT,  31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
+		if(gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_en)
+		{
+			//APP_DBG("LINE 1L En\n");
+			AudioADC_PGASel(ADC0_MODULE, CHANNEL_LEFT,LINEIN1_LEFT);
+			AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_LEFT,  LINEIN1_LEFT,  31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
+		}
+		if(gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_en)
+		{
+			//APP_DBG("LINE 1R En\n");
+			AudioADC_PGASel(ADC0_MODULE, CHANNEL_RIGHT,LINEIN1_RIGHT);
+			AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_RIGHT, LINEIN1_RIGHT,  31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
+		}
 	}
-	if(gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_en)
+
+	//--------------------line 2-----------------------------------------//
+	if(ANA_INPUT_CH_LINEIN2 == ana_input_ch)
 	{
-		//APP_DBG("LINE 1R En\n");
-		AudioADC_PGASel(ADC0_MODULE, CHANNEL_RIGHT,LINEIN1_RIGHT);
-		AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_RIGHT, LINEIN1_RIGHT,  31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
+		if(gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_en)
+		{
+			//APP_DBG("LINE 2L En\n");
+			AudioADC_PGASel(ADC0_MODULE, CHANNEL_LEFT,LINEIN2_LEFT);
+			AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_LEFT,  LINEIN2_LEFT,  31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
+		}
+		if(gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_en)
+		{
+			//APP_DBG("LINE 2R En\n");
+			AudioADC_PGASel(ADC0_MODULE, CHANNEL_RIGHT,LINEIN2_RIGHT);
+			AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_RIGHT, LINEIN2_RIGHT,  31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
+		}
 	}
 }
 
@@ -586,14 +606,14 @@ void AudioLine3MicSelect(void)
 
 void AudioAnaChannelSet(int8_t ana_input_ch)
 {
-//	gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_en = 0;
-//	gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_en = 0;
-//
-//	if(ANA_INPUT_CH_LINEIN1 == ana_input_ch)
+	gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_en = 0;
+	gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_en = 0;
+
+	if(ANA_INPUT_CH_LINEIN1 == ana_input_ch || ANA_INPUT_CH_LINEIN2 == ana_input_ch)
 	{
 		gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_en = 1;
 		gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_en = 1;
-		AudioLineSelSet();
+		AudioLineSelSet(ana_input_ch);
 	}
 }
 

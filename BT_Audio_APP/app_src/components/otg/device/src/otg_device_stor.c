@@ -382,9 +382,13 @@ void DeviceStorWrite10(void)
 			OTG_DeviceBulkReceive(DEVICE_BULK_OUT_EP, (ReqCnt % 2) ? (uint8_t*)CARD_BUF_A : (uint8_t*)CARD_BUF_B, 512, &DataLength, 10000);
 		}
 		TimeOutSet(&Timer, 500);
-		while((!DMA_InterruptFlagGet(PERIPHERAL_ID_SDIO_TX, DMA_DONE_INT) || !SDIO_DataIsDone()) && !IsTimeOut(&Timer));
+		while(!IsTimeOut(&Timer) && (!DMA_InterruptFlagGet(PERIPHERAL_ID_SDIO_TX, DMA_DONE_INT) || !SDIO_DataIsDone()))
+		{
+				;
+		}
 		if(IsTimeOut(&Timer))//for SD Plus out
 		{
+			DBG("sdio Write10 time out!!!\n");
 			break;
 		}
 		DMA_InterruptFlagClear(PERIPHERAL_ID_SDIO_TX, DMA_DONE_INT);
@@ -396,13 +400,15 @@ void DeviceStorWrite10(void)
 	SDIO_CmdDoneCheckBusy(1);
 	SDIO_CmdSend(CMD12_STOP_TRANSMISSION, 0, 300);
 	SDIO_CmdDoneCheckBusy(0);
-	SDIO_DataTransfer(0);
-	SDIO_ClkDisable();
 #ifdef FUNC_OS_EN
 	osMutexUnlock(SDIOMutex);
 #endif
 	DeviceStorSendCSW(0);
 	Reset_FunctionReset(SDIO_FUNC_SEPA);
+	while(SDIO_IsDataLineBusy())
+	{
+		DBG("SDIO_IsDataLineBusy 2\n");
+	}
 	//DBG("6");
 }
 
@@ -632,7 +638,14 @@ void OTG_DeviceStorProcess(void)
 			break;
 
 		default:
-			//DBG("default\n");
+			DBG("default\n");
+			uint32_t temp = 0;
+			temp = ((gCBW[8]) | (gCBW[9]<<8) | (gCBW[10]<<16) | (gCBW[11]<<24));
+			if(temp > 0)
+			{
+				DBG("CMD %x send DATA %ld\n",gCBW[15],temp);
+				OTG_DeviceBulkSend(DEVICE_BULK_IN_EP, NULL, 0, 10000);
+			}
 			DeviceStorSendCSW(1);
 			break;
 	}

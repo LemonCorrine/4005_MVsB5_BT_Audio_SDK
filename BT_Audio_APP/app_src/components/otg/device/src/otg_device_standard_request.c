@@ -255,15 +255,19 @@ void OTG_DeviceStandardRequest()
 			break;
 
 		case USB_REQ_SET_CONFIGURATION:
-			OTG_DeviceEndpointReset(DEVICE_INT_IN_EP,TYPE_INT_IN);
 #ifdef CFG_COMMUNICATION_BY_USB
 #ifndef CFG_BT_KARAOKE_APP
 			if(GetSystemMode() == ModeUsbDevicePlay)
 #endif
 #endif
 			{
-			//	DBG("Audio_ISO sam test\n");
+				//	DBG("Audio_ISO sam test\n");
+#if(CFG_PARA_USB_MODE == READER)
+				OTG_DeviceEndpointReset(DEVICE_BULK_OUT_EP,TYPE_BULK_OUT);
+				OTG_DeviceEndpointReset(DEVICE_BULK_IN_EP,TYPE_BULK_IN);
+#else
 				OTG_DeviceEndpointReset(DEVICE_INT_IN_EP,TYPE_INT_IN);
+#endif
 				OTG_DeviceEndpointReset(DEVICE_ISO_OUT_EP,TYPE_ISO_OUT);
 				OTG_DeviceEndpointReset(DEVICE_ISO_IN_EP,TYPE_ISO_IN);
 #ifdef CFG_APP_USB_AUDIO_MODE_EN

@@ -1,9 +1,9 @@
 /***************************************************
  * @file     music.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.5.4                 
+ * @author  ACPWorkbench: 3.6.11
  * @version V1.1.0                                  
- * @Created 2023-09-12T16:42:52                                      
+ * @Created 2023-10-12T15:19:06
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,17 +16,19 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define MUSIC_ROBOEFFECT_LIB_VER "2.7.4"
+#define MUSIC_ROBOEFFECT_LIB_VER "2.7.8"
 
 typedef enum _MUSIC_roboeffect_io_enum
 {
     MUSIC_SOURCE_MIC_SOURCE,
     MUSIC_SOURCE_APP_SOURCE,
     MUSIC_SOURCE_REMIND_SOURCE,
+    MUSIC_SOURCE_REC_SOURCE,
 
     MUSIC_SINK_DAC0_SINK,
     MUSIC_SINK_APP_SINK,
     MUSIC_SINK_STEREO_SINK,
+    MUSIC_SINK_REC_SINK,
 } MUSIC_roboeffect_io_enum;
 
 
@@ -61,6 +63,5 @@ extern const unsigned char user_effects_script_music[];
 extern roboeffect_effect_list_info user_effect_list_music;
 
 extern const roboeffect_effect_steps_table user_effect_steps_music;
-
 
 #endif/*__USER_EFFECT_FLOW_MUSIC_H__*/

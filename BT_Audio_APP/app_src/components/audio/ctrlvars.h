@@ -311,7 +311,7 @@ void CtrlVarsInit(void);
 void DefaultParamgsInit(void);
 void Line3MicPinSet(void);
 void UsbLoadAudioMode(uint16_t len,uint8_t *buff);
-void AudioLineSelSet(void);
+void AudioLineSelSet(int8_t ana_input_ch);
 void AudioAnaChannelSet(int8_t ana_input_ch);
 void AudioLine3MicSelect(void);
 

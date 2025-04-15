@@ -35,7 +35,6 @@ void SystemVolUp(void);
 void SystemVolDown(void);
 void SystemVolSet(void);
 void SystemVolSetChannel(int8_t SetChannel, uint8_t volume);
-void AudioEffectParamSync(void);
 void CommonMsgProccess(uint16_t Msg);
 void SetRecMusic(uint8_t if_para_use);
 

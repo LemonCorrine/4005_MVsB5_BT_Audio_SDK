@@ -102,17 +102,27 @@ void AudioADC_DigitalInit(ADC_MODULE Module, uint32_t SampleRate, void* Buf, uin
     }
 }
 
-void AudioADC_AnaInit(ADC_MODULE ADCMODULE, AUDIO_ADC_INPUT InputSel, AUDIO_Mode AUDIOMode)
+void AudioADC_AnaInit(ADC_MODULE ADCMODULE, AUDIO_ADC_INPUT InputSel, AUDIO_Mode AUDIOMode, ADC_EnergyModel ADCEnergyModel)
 {
     if(ADC0_MODULE ==ADCMODULE)
     {
-        // 设置初值
     	AudioADC_BIASPowerOn();
-        AudioADC_ComparatorIBiasSet(ADC0_MODULE, 4, 4);
-        AudioADC_OTA1IBiasSet(ADC0_MODULE, 4, 4);
-        AudioADC_OTA2IBiasSet(ADC0_MODULE, 4, 4);
-        AudioADC_LatchDelayIBiasSet(ADC0_MODULE, 4, 4);
-        AudioADC_PGAIBiasSet(ADC0_MODULE, 4, 4);
+        if(ADCEnergyModel == ADCCommonEnergy)
+        {
+            AudioADC_ComparatorIBiasSet(ADC0_MODULE, 4, 4);
+            AudioADC_OTA1IBiasSet(ADC0_MODULE, 4, 4);
+            AudioADC_OTA2IBiasSet(ADC0_MODULE, 4, 4);
+            AudioADC_LatchDelayIBiasSet(ADC0_MODULE, 4, 4);
+            AudioADC_PGAIBiasSet(ADC0_MODULE, 4, 4);
+        }
+        else
+        {
+            AudioADC_BufferIBiasSet(ADC0_MODULE, 2, 2);
+            AudioADC_ComparatorIBiasSet(ADC0_MODULE, 2, 2);
+            AudioADC_OTA1IBiasSet(ADC0_MODULE, 1, 1);
+            AudioADC_OTA2IBiasSet(ADC0_MODULE, 3, 3);
+            AudioADC_PGAIBiasSet(ADC0_MODULE, 4, 4);
+        }
 
         // 选择linein1通路
         if(LINEIN1_LEFT == InputSel)
@@ -148,13 +158,23 @@ void AudioADC_AnaInit(ADC_MODULE ADCMODULE, AUDIO_ADC_INPUT InputSel, AUDIO_Mode
     {
         if(MIC_LEFT == InputSel)
         {
-            // 设置初值
-        	AudioADC_BIASPowerOn();
-            AudioADC_ComparatorIBiasSet(ADC1_MODULE, 4, 4);
-            AudioADC_OTA1IBiasSet(ADC1_MODULE, 4, 4);
-            AudioADC_OTA2IBiasSet(ADC1_MODULE, 4, 4);
-            AudioADC_LatchDelayIBiasSet(ADC1_MODULE, 4, 4);
-            AudioADC_PGAIBiasSet(ADC1_MODULE, 4, 4);
+			AudioADC_BIASPowerOn();
+        	if(ADCEnergyModel == ADCCommonEnergy)
+        	{
+        		AudioADC_ComparatorIBiasSet(ADC1_MODULE, 4, 4);
+        		AudioADC_OTA1IBiasSet(ADC1_MODULE, 4, 4);
+        		AudioADC_OTA2IBiasSet(ADC1_MODULE, 4, 4);
+        		AudioADC_LatchDelayIBiasSet(ADC1_MODULE, 4, 4);
+        		AudioADC_PGAIBiasSet(ADC1_MODULE, 4, 4);
+        	}
+        	else
+        	{
+        	     AudioADC_BufferIBiasSet(ADC1_MODULE, 1, 1);
+        	     AudioADC_ComparatorIBiasSet(ADC1_MODULE, 1, 1);
+        	     AudioADC_OTA1IBiasSet(ADC1_MODULE, 0, 0);
+        	     AudioADC_OTA2IBiasSet(ADC1_MODULE, 2, 2);
+        	     AudioADC_PGAIBiasSet(ADC1_MODULE, 2, 2);
+        	}
 
             AudioADC_PGAPowerUp(ADC1_MODULE, 1, 1);
             AudioADC_PGAAbsMute(ADC1_MODULE, 0, 0);

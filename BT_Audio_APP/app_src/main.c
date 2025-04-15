@@ -149,10 +149,15 @@ void SystemClockInit(void)
 	Clock_SpdifClkSelect(PLL_CLK_MODE);
 #else
 	Clock_Config(1, 24000000);
+#ifdef CFG_SYS_CLK_264M
+	Clock_PllLock(264000);
+	Clock_APllLock(240000);//蓝牙使用APLL 240M
+	Clock_SysClkSelect(PLL_CLK_MODE);
+#else
 	Clock_PllLock(240000);
 	Clock_APllLock(240000);//蓝牙使用APLL 240M
-
 	Clock_SysClkSelect(APLL_CLK_MODE);
+#endif
 
 	//Note: USB和UART时钟配置DPLL和APLL必须是同一个时钟,但是UART可以单独选择RC
 	Clock_USBClkSelect(APLL_CLK_MODE);
@@ -347,7 +352,7 @@ int main(void)
 
 	APP_DBG("\n");
 	APP_DBG("****************************************************************\n");
-	APP_DBG("|                    MVsilicon B5X SDK                          |\n");
+	APP_DBG("|                    MVsB5_Audio_24BitV3_SDK                   |\n");
 	APP_DBG("|            Mountain View Silicon Technology Co.,Ltd.         |\n");
 	APP_DBG("|            SDK Version: %d.%d.%d                                |\n", CFG_SDK_MAJOR_VERSION, CFG_SDK_MINOR_VERSION, CFG_SDK_PATCH_VERSION);
 	APP_DBG("****************************************************************\n");

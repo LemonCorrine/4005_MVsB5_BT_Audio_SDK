@@ -1,9 +1,9 @@
 /***************************************************
- * @file     karaoke.h                      
+ * @file     Karaoke.h
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.5.3                 
+ * @author  ACPWorkbench: 3.6.11
  * @version V1.1.0                                  
- * @Created 2023-09-08T19:46:00                                      
+ * @Created 2023-10-12T15:27:59
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,17 +16,19 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define KARAOKE_ROBOEFFECT_LIB_VER "2.7.4"
+#define KARAOKE_ROBOEFFECT_LIB_VER "2.7.8"
 
 typedef enum _KARAOKE_roboeffect_io_enum
 {
     KARAOKE_SOURCE_APP_SOURCE,
     KARAOKE_SOURCE_MIC_SOURCE,
     KARAOKE_SOURCE_REMIND_SOURCE,
+    KARAOKE_SOURCE_REC_SOURCE,
 
     KARAOKE_SINK_DAC0_SINK,
     KARAOKE_SINK_APP_SINK,
     KARAOKE_SINK_STEREO_SINK,
+    KARAOKE_SINK_REC_SINK,
 } KARAOKE_roboeffect_io_enum;
 
 

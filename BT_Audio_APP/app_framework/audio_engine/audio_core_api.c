@@ -31,7 +31,7 @@
 #endif
 #include "dac_interface.h"
 #include "audio_vol.h"
-#include "user_defined_effect_api.h"
+#include "user_effect_parameter.h"
 
 
 /*******************************************************************************************************************************
@@ -346,7 +346,7 @@ void AudioProcessMain(void)
 	}
     #endif
 
-    AudioCoreSinkVolApply();//调音量
+//    AudioCoreSinkVolApply();//调音量
 }
 
 //音量淡入淡出					

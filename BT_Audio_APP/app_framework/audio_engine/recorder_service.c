@@ -79,8 +79,6 @@ typedef struct _MediaRecorderContext
 	TaskState			state;
 	RecorderState		RecState;			
 
-	AudioCoreSink 		*AudioCoreSinkRecorder;
-	uint16_t			*Sink1Buf_Carry;//audiocore输出通道，
 	uint16_t			*Sink1Fifo;//sink和recorder之间缓冲。
 	MCU_CIRCULAR_CONTEXT	Sink1FifoCircular;
 
@@ -768,45 +766,10 @@ uint32_t GetRecState(void)//0: go 1:pause
  * @Others      数据流从Adc到audiocore配有函数指针，audioCore到Dac同理，由audiocoreService任务按需驱动
  * Record
  */
-
-
-bool MallocRecorderCtSink1Buf(uint16_t sampleperframe)
-{
-	if(RecorderCt!=NULL&&RecorderCt->Sink1Buf_Carry == NULL)
-	{
-		RecorderCt->Sink1Buf_Carry = (uint16_t*)osPortMallocFromEnd(sampleperframe * 2 * 2);//DAC fifo
-		if(RecorderCt->Sink1Buf_Carry != NULL)
-		{
-			memset(RecorderCt->Sink1Buf_Carry, 0, sampleperframe * 2 * 2);
-			return TRUE;
-		}
-		else
-		{
-			APP_DBG("malloc RecorderCt Sink1Buf  error\n");
-			return FALSE;
-		}
-	}
-	return TRUE;
-}
-
-void ReleaseRecorderCtSink1Buf(void)
-{
-	if(RecorderCt!=NULL&&RecorderCt->Sink1Buf_Carry!=NULL)
-	{
-		APP_DBG("Release RecorderCt Sink1Buf \n");
-		osPortFree(RecorderCt->Sink1Buf_Carry);
-		RecorderCt->Sink1Buf_Carry = NULL;
-	}
-}
-void AudioRecResInit(void)
-{
-	if(RecorderCt!=NULL&&RecorderCt->Sink1Buf_Carry!=NULL)
-		RecorderCt->AudioCoreSinkRecorder->PcmOutBuf = (int16_t *)RecorderCt->Sink1Buf_Carry;
-}
-
 static bool MediaRecorder_Init(MessageHandle parentMsgHandle)
 {
 	bool ret = TRUE;
+	AudioCoreIO AudioIOSet;
 
 	RecorderCt = (MediaRecorderContext*)osPortMalloc(sizeof(MediaRecorderContext));
 	if(RecorderCt == NULL)
@@ -841,34 +804,38 @@ static bool MediaRecorder_Init(MessageHandle parentMsgHandle)
 		APP_DBG("Encoder frame error!!!");//保护性检测
 	}
 
-	// Audio core map;
-//	ReleaseRecorderCtSink1Buf();
-
-	if(!MallocRecorderCtSink1Buf(SOURCEFRAME(0))) //One frame
-	{
-		return FALSE;
-	}
-
 	RecorderCt->Sink1Fifo = (uint16_t*)osPortMalloc(MEDIA_RECORDER_FIFO_LEN);
 	if(RecorderCt->Sink1Fifo  == NULL)
 	{
 		return FALSE;
 	}
-//	if((RecorderCt->Sink1Fifo = (uint16_t*)osPortMalloc(MEDIA_RECORDER_FIFO_LEN)) == NULL)
-//	{
-//		return FALSE;
-//	}
 	MCUCircular_Config(&RecorderCt->Sink1FifoCircular, RecorderCt->Sink1Fifo, MEDIA_RECORDER_FIFO_LEN);
 
-	
-	//Core	Sink1 Para
-	RecorderCt->AudioCoreSinkRecorder =  &AudioCore.AudioSink[AUDIO_RECORDER_SINK_NUM];
 
-	RecorderCt->AudioCoreSinkRecorder->Enable = 0;
-	RecorderCt->AudioCoreSinkRecorder->Channels = 2;//stereo
-	RecorderCt->AudioCoreSinkRecorder->DataSetFunc = MediaRecorderDataSet;
-	RecorderCt->AudioCoreSinkRecorder->SpaceLenFunc = MediaRecorderDataSpaceLenGet;
-	RecorderCt->AudioCoreSinkRecorder->PcmOutBuf = (int16_t *)RecorderCt->Sink1Buf_Carry;
+	AudioCoreSinkDisable(AUDIO_RECORDER_SINK_NUM);
+	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
+	AudioIOSet.Depth = AudioCore.FrameSize[DefaultNet] * 2 ;
+
+#ifdef	CFG_AUDIO_WIDTH_24BIT
+	AudioIOSet.IOBitWidth = PCM_DATA_16BIT_WIDTH;//0,16bit,1:24bit
+	AudioIOSet.IOBitWidthConvFlag = 0;//DAC 24bit ,sink最后一级输出时需要转变为24bi
+#endif
+
+	if(!AudioCoreSinkIsInit(AUDIO_RECORDER_SINK_NUM))
+	{
+		AudioIOSet.Adapt = STD;
+		AudioIOSet.Sync = TRUE;
+		AudioIOSet.Channels = 2;
+		AudioIOSet.Net = DefaultNet;
+		AudioIOSet.DataIOFunc = MediaRecorderDataSet;
+		AudioIOSet.LenGetFunc = MediaRecorderDataSpaceLenGet;
+
+		if(!AudioCoreSinkInit(&AudioIOSet, AUDIO_RECORDER_SINK_NUM))
+		{
+			DBG("REC init error");
+			return FALSE;
+		}
+	}
 
 
 	//编码输入buf
@@ -1055,6 +1022,8 @@ bool MediaRecorderServiceKill(void)
 			}
 		}
 #endif
+
+	AudioCoreSinkDeinit(AUDIO_RECORDER_SINK_NUM);
 	//PortFree
 	if(RecorderCt->Mp3EncCon != NULL)
 	{
@@ -1091,12 +1060,7 @@ bool MediaRecorderServiceKill(void)
 		osPortFree(RecorderCt->Sink1Fifo);
 		RecorderCt->Sink1Fifo = NULL;
 	}
-	RecorderCt->AudioCoreSinkRecorder = NULL;
-	if(RecorderCt->Sink1Buf_Carry != NULL)
-	{
-		osPortFree(RecorderCt->Sink1Buf_Carry);
-		RecorderCt->Sink1Buf_Carry = NULL;
-	}
+
 	osPortFree(RecorderCt);
 	RecorderCt = NULL;
 	return TRUE;
@@ -1266,7 +1230,7 @@ void RecServierMsg(uint16_t *msg)
 					}
 					MediaRecorderServiceInit(GetSysModeMsgHandle());
 #ifdef CFG_FUNC_REMIND_SOUND_EN
-					RemindSoundServiceItemRequest(SOUND_REMIND_LUYIN, REMIND_SOUND_NEED_MIX);
+					RemindSoundServiceItemRequest(SOUND_REMIND_LUYIN, REMIND_PRIO_NORMAL);
 //					osTaskDelay(350);//即“录音”提示音本身时长
 #endif
 				}
@@ -1274,7 +1238,7 @@ void RecServierMsg(uint16_t *msg)
 				{
 					APP_DBG("SOUND_REMIND_STOPREC\n");
 #ifdef CFG_FUNC_REMIND_SOUND_EN
-					RemindSoundServiceItemRequest(SOUND_REMIND_STOPREC, REMIND_SOUND_NEED_MIX);
+					RemindSoundServiceItemRequest(SOUND_REMIND_STOPREC, REMIND_PRIO_NORMAL);
 #endif
 					MediaRecorderServiceDeinit();
 				}

@@ -37,7 +37,7 @@ static const uint8_t DmaChannelMap[6] = {
 #ifdef CFG_DUMP_DEBUG_EN
 	CFG_DUMP_UART_TX_DMA_CHANNEL,
 #else
-	255,
+	PERIPHERAL_ID_SDIO_TX,
 #endif
 #ifdef CFG_RES_AUDIO_I2SOUT_EN
 	PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE,

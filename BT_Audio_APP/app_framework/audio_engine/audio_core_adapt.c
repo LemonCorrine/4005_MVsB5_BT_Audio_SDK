@@ -19,7 +19,7 @@
 #include "audio_vol.h"
 #include "main_task.h"
 #include "ctrlvars.h"
-#include "user_defined_effect_api.h"
+#include "user_effect_parameter.h"
 
 #ifdef BT_AUDIO_AAC_ENABLE
 #include "bt_play_api.h"
@@ -864,6 +864,58 @@ void AudioCorePcmDataBitWidthConv(PCM_DATA_TYPE *PcmBuf,uint16_t dataSize,PCM_DA
 	}
 }
 #endif
+
+bool AudioCoreDataSpaceCheck(void)
+{
+	uint16_t Index;
+	bool	 flag;
+	AudioCoreSource *Source;
+	AudioCoreSink *Sink;
+
+	flag = FALSE;
+	for(Index = 0; Index < AUDIO_CORE_SOURCE_MAX_NUM; Index++)
+	{
+		Source = &AudioCore.AudioSource[Index];
+		if(Source->Enable
+#ifdef AUDIO_CORE_DEBUG
+			&& Source->DataGetFunc
+			&& Source->DataLenFunc
+#endif
+			)
+		{
+			if(Index == REMIND_SOURCE_NUM) 	//提示音解码在DataLenFunc里进行，屏蔽这个通道防止解码器重入
+				continue;
+			if(Source->DataLenFunc() < SOURCEFRAME(Index))
+			{
+				return FALSE;
+			}
+			flag = TRUE; //Source有数据
+		}
+	}
+
+	if(flag)	//所有的Source都有数据
+	{
+		flag = FALSE;
+		for(Index = 0; Index < AUDIO_CORE_SINK_MAX_NUM; Index++)
+		{
+			Sink = &AudioCore.AudioSink[Index];
+			if(Sink->Enable
+	#ifdef AUDIO_CORE_DEBUG
+				&& Sink->DataSetFunc
+				&& Sink->SpaceLenFunc)
+	#endif
+			{
+				if(Sink->SpaceLenFunc() < SINKFRAME(Index))
+				{
+					return FALSE;
+				}
+				flag = TRUE; //sink有剩余空间
+			}
+		}
+	}
+
+	return flag;
+}
 
 void AudioCoreIOLenProcess(void)
 {
