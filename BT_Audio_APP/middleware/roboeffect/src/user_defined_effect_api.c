@@ -70,7 +70,6 @@ bool roboeffect_ai_denoise_init_if(void *node)
 
 bool roboeffect_ai_denoise_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len)
 {
-	int ret;
 	uint8_t method_flag = 0;
 	roboeffect_user_defined_effect_info info;
 	ai_denoise_struct *ai_info;
@@ -105,10 +104,9 @@ bool roboeffect_ai_denoise_config_if(void *node, int16_t *new_param, uint8_t par
 
 bool roboeffect_ai_denoise_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n)
 {
-	int i;
 	roboeffect_user_defined_effect_info info;
 	ai_denoise_struct *ai_info;
-	int32_t ret, block, clip_size;
+	int32_t block, clip_size;
 	
 	/**
 	 * get information struct from instance
@@ -158,7 +156,6 @@ int32_t roboeffect_user_gain_scratch_size(uint32_t sample_rate, uint16_t frame_s
 */
 bool roboeffect_user_gain_init_if(void *node)
 {
-	uint8_t *context_ptr;
 	roboeffect_user_defined_effect_info info;
 	user_gain_struct *gain_info;
 
@@ -184,10 +181,9 @@ bool roboeffect_user_gain_init_if(void *node)
 
 bool roboeffect_user_gain_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len)
 {
-	int ret;
 	uint8_t method_flag = 0;
 	roboeffect_user_defined_effect_info info;
-	user_gain_struct *gain_info;
+//	user_gain_struct *gain_info;
 
 	/**
 	 * check parameters and update to effect instance
@@ -205,7 +201,7 @@ bool roboeffect_user_gain_config_if(void *node, int16_t *new_param, uint8_t para
 	/**
 	 * get user defined struct context
 	*/
-	gain_info = info.context_memory;
+//	gain_info = info.context_memory;
 
 	if((method_flag & METHOD_CFG_1) && info.is_active)
 	{
@@ -223,10 +219,10 @@ static inline uint32_t db_to_scaling(float db, uint32_t scaling_max)
 
 bool roboeffect_user_gain_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n)
 {
-	int i, s;
+	int s;
 	int32_t pregain, *pcm_in_24 = (int32_t*)pcm_in1, *pcm_out_24 = (int32_t*)pcm_out;
 	roboeffect_user_defined_effect_info info;
-	user_gain_struct *gain_info;
+//	user_gain_struct *gain_info;
 
 	/**
 	 * get information struct from instance
@@ -236,7 +232,7 @@ bool roboeffect_user_gain_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in
 	/**
 	 * get user defined struct context
 	*/
-	gain_info = info.context_memory;
+//	gain_info = info.context_memory;
 	
 	/**
 	 * apply data

@@ -65,9 +65,9 @@ extern HDMIInfo         *gHdmiCt;
 #define PCM_REMAIN_SMAPLES					3//spdif数据丢声道时,返回数据会超过一帧128，用于缓存数据，试听感更加好
 
 //由于采样值从32bit转换为16bit，可以使用同一个buf，否则要独立申请
-#define HDMI_ARC_CARRY_LEN					(MAX_FRAME_SAMPLES * 2 * 2 * 2 + PCM_REMAIN_SMAPLES * 2 * 4)// buf len for get data form dma fifo, deal
+#define HDMI_ARC_CARRY_LEN					(MAX_FRAME_SAMPLES * sizeof(PCM_DATA_TYPE) * 2 * 2 + PCM_REMAIN_SMAPLES * 2 * 4)// buf len for get data form dma fifo, deal
  //转采样输出buf,如果spdif转采样提升大于四倍需要加大此SPDIF_CARRY_LEN，比如输入8000以下转48000,需要缩小单次carry帧大小或调大HDMI_SRC_RESAMPLER_OUT_LEN、HDMI_ARC_PCM_FIFO_LEN
-#define HDMI_SRC_RESAMPLER_OUT_LEN			(MAX_FRAME_SAMPLES * 2 * 2 * 4)
+#define HDMI_SRC_RESAMPLER_OUT_LEN			(MAX_FRAME_SAMPLES * sizeof(PCM_DATA_TYPE) * 2 * 2 * 2 * 2)
 
 
 typedef struct _HdmiInPlayContext
@@ -77,6 +77,7 @@ typedef struct _HdmiInPlayContext
 	uint32_t			*hdmiARCFIFO;	    //ARC的DMA循环fifo
 	uint32_t            *sourceBuf_ARC;		//取ARC数据
 	uint32_t            *hdmiARCCarry;
+	uint32_t            *hdmiARCCarry24;
 	uint32_t			*hdmiARCPcmFifo;
 	MCU_CIRCULAR_CONTEXT hdmiPcmCircularBuf;
 
@@ -128,56 +129,19 @@ typedef struct _HdmiInPlayContext
 /*注意DMA 8个通道配置冲突:*/
 /*a、UART在线调音和DAC-X有冲突,默认在线调音使用USB HID*/
 /*b、UART在线调音与HDMI/SPDIF模式冲突*/
-static const uint8_t DmaChannelMap[29] = {
-	255,//PERIPHERAL_ID_SPIS_RX = 0,	//0
-	255,//PERIPHERAL_ID_SPIS_TX,		//1
-#ifdef CFG_APP_HDMIIN_MODE_EN
-	5,//PERIPHERAL_ID_TIMER3,			//2
+static const uint8_t DmaChannelMap[6] = {
+	PERIPHERAL_ID_SDIO_RX,
+	PERIPHERAL_ID_AUDIO_ADC0_RX,
+	PERIPHERAL_ID_AUDIO_ADC1_RX,
+	PERIPHERAL_ID_AUDIO_DAC0_TX,
+	CFG_HDMI_DMA_CHANNEL,
+#ifdef CFG_RES_AUDIO_I2SOUT_EN
+	PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE,
 #else
-	255,//PERIPHERAL_ID_TIMER3,			//2
+	PERIPHERAL_ID_TIMER5,
 #endif
-	4,//PERIPHERAL_ID_SDIO_RX,		//3
-	4,//PERIPHERAL_ID_SDIO_TX,		//4
-	255,//PERIPHERAL_ID_UART0_RX,		//5
-	255,//PERIPHERAL_ID_TIMER1,			//6
-	255,//PERIPHERAL_ID_TIMER2,			//7
-	6,//PERIPHERAL_ID_SDPIF_RX,			//8 SPDIF_RX /TX same chanell
-	6,//PERIPHERAL_ID_SDPIF_TX,			//8 SPDIF_RX /TX same chanell
-	255,//PERIPHERAL_ID_SPIM_RX,		//9
-	255,//PERIPHERAL_ID_SPIM_TX,		//10
-	255,//PERIPHERAL_ID_UART0_TX,		//11
-
-#ifdef CFG_COMMUNICATION_BY_UART
-	7,//PERIPHERAL_ID_UART1_RX,			//12
-	6,//PERIPHERAL_ID_UART1_TX,			//13
-#else
-	255,//PERIPHERAL_ID_UART1_RX,		//12
-	255,//PERIPHERAL_ID_UART1_TX,		//13
-#endif
-
-	255,//PERIPHERAL_ID_TIMER4,			//14
-	255,//PERIPHERAL_ID_TIMER5,			//15
-	255,//PERIPHERAL_ID_TIMER6,			//16
-	0,//PERIPHERAL_ID_AUDIO_ADC0_RX,	//17
-	1,//PERIPHERAL_ID_AUDIO_ADC1_RX,	//18
-	2,//PERIPHERAL_ID_AUDIO_DAC0_TX,	//19
-	3,//PERIPHERAL_ID_AUDIO_DAC1_TX,	//20
-	255,//PERIPHERAL_ID_I2S0_RX,		//21
-#if	(defined(CFG_RES_AUDIO_I2SOUT_EN )&&(CFG_RES_I2S_PORT==0))
-	7,//PERIPHERAL_ID_I2S0_TX,			//22
-#else
-	255,//PERIPHERAL_ID_I2S0_TX,		//22
-#endif
-	255,//PERIPHERAL_ID_I2S1_RX,		//23
-#if	(defined(CFG_RES_AUDIO_I2SOUT_EN )&&(CFG_RES_I2S_PORT==1))
-	7,	//PERIPHERAL_ID_I2S1_TX,		//24
-#else
-	255,//PERIPHERAL_ID_I2S1_TX,		//24
-#endif
-	255,//PERIPHERAL_ID_PPWM,			//25
-	255,//PERIPHERAL_ID_ADC,     		//26
-	255,//PERIPHERAL_ID_SOFTWARE,		//27
 };
+
 
 typedef enum __HDMI_FAST_SWITCH_ARC_STATUS
 {
@@ -214,13 +178,13 @@ bool HdmiInPlayResMalloc(uint16_t SampleLen)
 	}
 	memset(hdmiInPlayCt->sourceBuf_ARC, 0, SampleLen * 2 * 2);
 
-	hdmiInPlayCt->hdmiARCPcmFifo = (uint32_t *)osPortMalloc(SampleLen * 2 * 2 * 2 * 2);
+	hdmiInPlayCt->hdmiARCPcmFifo = (uint32_t *)osPortMalloc(AudioCoreFrameSizeGet(DefaultNet) * sizeof(PCM_DATA_TYPE) * 2 * 2 * 2);
 	if(hdmiInPlayCt->hdmiARCPcmFifo == NULL)
 	{
 		return FALSE;
 	}
-	MCUCircular_Config(&hdmiInPlayCt->hdmiPcmCircularBuf, hdmiInPlayCt->hdmiARCPcmFifo, SampleLen * 2 * 2 * 2 * 2);
-	memset(hdmiInPlayCt->hdmiARCPcmFifo, 0, SampleLen * 2 * 2 * 2 * 2);
+	MCUCircular_Config(&hdmiInPlayCt->hdmiPcmCircularBuf, hdmiInPlayCt->hdmiARCPcmFifo, AudioCoreFrameSizeGet(DefaultNet) * sizeof(PCM_DATA_TYPE) * 2 * 2 * 2);
+	memset(hdmiInPlayCt->hdmiARCPcmFifo, 0, AudioCoreFrameSizeGet(DefaultNet) * sizeof(PCM_DATA_TYPE) * 2 * 2 * 2);
 
 #if	defined(CFG_FUNC_REMIND_SOUND_EN)
 	hdmiInPlayCt->Source2Decoder = (uint16_t*)osPortMalloc(SampleLen * 2 * 2);//One Frame
@@ -249,9 +213,14 @@ bool HdmiInPlayResMalloc(uint16_t SampleLen)
 	AudioCoreIO AudioIOSet;
 	bool ret;
 	//将SPDIF时钟切换到AUPLL
-	Clock_SpdifClkSelect(APLL_CLK_MODE);
+	// Clock_SpdifClkSelect(APLL_CLK_MODE);
 
 	DMA_ChannelAllocTableSet((uint8_t *)DmaChannelMap);//HdmiIn
+
+	if(!ModeCommonInit())
+	{
+		return FALSE;
+	}
 
 	hdmiInPlayCt = (HdmiInPlayContext*)osPortMalloc(sizeof(HdmiInPlayContext));
 	if(hdmiInPlayCt == NULL)
@@ -274,6 +243,15 @@ bool HdmiInPlayResMalloc(uint16_t SampleLen)
 		return FALSE;
 	}
 	memset(hdmiInPlayCt->hdmiARCCarry, 0, HDMI_ARC_CARRY_LEN);
+
+#ifdef CFG_AUDIO_WIDTH_24BIT
+	hdmiInPlayCt->hdmiARCCarry24 = (uint32_t *)osPortMalloc(HDMI_ARC_CARRY_LEN);
+	if(hdmiInPlayCt->hdmiARCCarry24 == NULL)
+	{
+		return FALSE;
+	}
+	memset(hdmiInPlayCt->hdmiARCCarry24, 0, HDMI_ARC_CARRY_LEN);
+#endif
 
 #if 0
 	hdmiInPlayCt->ResamplerCt = (ResamplerPolyphaseContext*)osPortMalloc(sizeof(ResamplerPolyphaseContext));
@@ -305,18 +283,20 @@ bool HdmiInPlayResMalloc(uint16_t SampleLen)
 	//Audio init
 //	//note Soure0.和sink0已经在main app中配置，不要随意配置
 
-	if(!ModeCommonInit())
-	{
-		return FALSE;
-	}
+
+//#ifdef CFG_FUNC_AUDIO_EFFECT_EN
+//	#ifdef CFG_FUNC_MIC_KARAOKE_EN
+//	hdmiInPlayCt->AudioCoreHdmiIn->AudioEffectProcess = (AudioCoreProcessFunc)AudioEffectProcess;
+//	#else
+//	hdmiInPlayCt->AudioCoreHdmiIn->AudioEffectProcess = (AudioCoreProcessFunc)AudioMusicProcess;
+//	#endif
+//#else
+//	hdmiInPlayCt->AudioCoreHdmiIn->AudioEffectProcess = (AudioCoreProcessFunc)AudioBypassProcess;
+//#endif
 #ifdef CFG_FUNC_AUDIO_EFFECT_EN
-	#ifdef CFG_FUNC_MIC_KARAOKE_EN
-	hdmiInPlayCt->AudioCoreHdmiIn->AudioEffectProcess = (AudioCoreProcessFunc)AudioEffectProcess;
-	#else
-	hdmiInPlayCt->AudioCoreHdmiIn->AudioEffectProcess = (AudioCoreProcessFunc)AudioMusicProcess;
-	#endif
+	AudioCoreProcessConfig((void*)AudioMusicProcess);
 #else
-	hdmiInPlayCt->AudioCoreHdmiIn->AudioEffectProcess = (AudioCoreProcessFunc)AudioBypassProcess;
+	AudioCoreProcessConfig((void*)AudioBypassProcess);
 #endif
 	//HDMI_CEC_InitiateARC();
 
@@ -337,8 +317,11 @@ bool HdmiInPlayResMalloc(uint16_t SampleLen)
 	AudioIOSet.HighLevelCent = 60;
 	AudioIOSet.SampleRate = CFG_PARA_SAMPLE_RATE;
 #ifdef	CFG_AUDIO_WIDTH_24BIT
+	AudioIOSet.IOBitWidth = 1;//0,16bit,1:24bit
+	AudioIOSet.IOBitWidthConvFlag = 0;//需要数据进行位宽扩展
+#else
 	AudioIOSet.IOBitWidth = 0;//0,16bit,1:24bit
-	AudioIOSet.IOBitWidthConvFlag = 1;//需要数据进行位宽扩展
+	AudioIOSet.IOBitWidthConvFlag = 0;//需要数据进行位宽扩展
 #endif
 
 	if(!AudioCoreSourceInit(&AudioIOSet, HDMI_IN_SOURCE_NUM))
@@ -349,10 +332,11 @@ bool HdmiInPlayResMalloc(uint16_t SampleLen)
 
 	AudioCoreSourceAdjust(HDMI_IN_SOURCE_NUM, TRUE);
 
-	DMA_ChannelDisable(PERIPHERAL_ID_SPDIF_RX);
-	DMA_CircularConfig(PERIPHERAL_ID_SPDIF_RX, AudioCoreFrameSizeGet(DefaultNet) * 2 * 2 * 2 * 2, (uint16_t *)hdmiInPlayCt->hdmiARCFIFO, AudioCoreFrameSizeGet(DefaultNet) * 2 * 2 * 2 * 2);
-    DMA_ChannelEnable(PERIPHERAL_ID_SPDIF_RX);
-	SPDIF_ModuleEnable();
+	DMA_ChannelDisable(CFG_HDMI_DMA_CHANNEL);
+	DMA_CircularConfig(CFG_HDMI_DMA_CHANNEL, AudioCoreFrameSizeGet(DefaultNet) * 2 * 2 * 2 * 2, (uint16_t *)hdmiInPlayCt->hdmiARCFIFO, AudioCoreFrameSizeGet(DefaultNet) * 2 * 2 * 2 * 2);
+    DMA_ChannelEnable(CFG_HDMI_DMA_CHANNEL);
+
+	SPDIF_ModuleEnable(CFG_HDMI_SPDIF_NUM);
 
 #ifdef CFG_FUNC_BREAKPOINT_EN
 		BackupInfoUpdata(BACKUP_SYS_INFO);
@@ -416,7 +400,7 @@ void HdmiInPlayRun(uint16_t msgId)
 				//if(hdmiInPlayCt->state == TaskStateRunning)
 				{
 					HdmiInPlayRunning(msgId);
-					if(HdmiSpdifLockFlag && !SPDIF_FlagStatusGet(LOCK_FLAG_STATUS))
+					if(HdmiSpdifLockFlag && !SPDIF_FlagStatusGet(CFG_HDMI_SPDIF_NUM,LOCK_FLAG_STATUS))
 					{
 						APP_DBG("SPDIF RX UNLOCK!\n");
 						HdmiSpdifLockFlag = FALSE;
@@ -427,7 +411,7 @@ void HdmiInPlayRun(uint16_t msgId)
 //				#endif
 					}
 
-					if(!HdmiSpdifLockFlag && SPDIF_FlagStatusGet(LOCK_FLAG_STATUS)/* && HDMI_ARC_IsReady()*/
+					if(!HdmiSpdifLockFlag && SPDIF_FlagStatusGet(CFG_HDMI_SPDIF_NUM,LOCK_FLAG_STATUS)/* && HDMI_ARC_IsReady()*/
 						// #if	defined(CFG_FUNC_REMIND_SOUND_EN)
 						// && hdmiInPlayCt->IsSoundRemindDone
 						// #endif
@@ -452,9 +436,9 @@ void HdmiInPlayRun(uint16_t msgId)
 					if(HdmiSpdifLockFlag == TRUE)
 					{
 						//硬件采样率获取，设定。
-						if(hdmiCurSampleRate != SPDIF_SampleRateGet())
+						if(hdmiCurSampleRate != SPDIF_SampleRateGet(CFG_HDMI_SPDIF_NUM))
 						{
-							hdmiCurSampleRate = SPDIF_SampleRateGet();
+							hdmiCurSampleRate = SPDIF_SampleRateGet(CFG_HDMI_SPDIF_NUM);
 
 							APP_DBG("Get samplerate: %d\n", (int)hdmiCurSampleRate);
 							hdmiInPlayCt->hdmiSampleRate = hdmiCurSampleRate;
@@ -562,14 +546,14 @@ static void HdmiARCScan(void)
 	int16_t *pcmBuf  = (int16_t *)hdmiInPlayCt->hdmiARCCarry;
 	uint16_t cnt;
 
-	spdif_len = DMA_CircularDataLenGet(PERIPHERAL_ID_SPDIF_RX);
-	pcm_space = MCUCircular_GetSpaceLen(&hdmiInPlayCt->hdmiPcmCircularBuf) - 16;
+	spdif_len = DMA_CircularDataLenGet(CFG_HDMI_DMA_CHANNEL);
+	pcm_space = MCUCircular_GetSpaceLen(&hdmiInPlayCt->hdmiPcmCircularBuf) - sizeof(PCM_DATA_TYPE) * 8;
 
 #if 1//def CFG_FUNC_MIXER_SRC_EN
-	pcm_space = (pcm_space * hdmiInPlayCt->hdmiSampleRate) / CFG_PARA_SAMPLE_RATE - 16;
+	pcm_space = (pcm_space * hdmiInPlayCt->hdmiSampleRate) / CFG_PARA_SAMPLE_RATE - sizeof(PCM_DATA_TYPE) * 8;
 #endif
 
-	if(pcm_space < 16)
+	if(pcm_space < sizeof(PCM_DATA_TYPE) * 8)
 	{
 		DBG("hdmi pcm_space err\n");
 		return;
@@ -579,22 +563,47 @@ static void HdmiARCScan(void)
 		spdif_len = pcm_space * 2;
 	}
 
-	spdif_len = spdif_len /(MAX_FRAME_SAMPLES * 2 * 4) * (MAX_FRAME_SAMPLES * 2 * 4);
+	spdif_len = spdif_len /(MAX_FRAME_SAMPLES * sizeof(PCM_DATA_TYPE) * 4) * (MAX_FRAME_SAMPLES * sizeof(PCM_DATA_TYPE) * 4);
 	spdif_len = spdif_len & 0xFFF8;
 	if(!spdif_len)
 	{
 		return ;
 	}
 
-	cnt = (spdif_len / 8) / MAX_FRAME_SAMPLES;
+	cnt = (spdif_len /  (sizeof(PCM_DATA_TYPE) * 4)) / MAX_FRAME_SAMPLES;
 	while(cnt--)
 	{
-		DMA_CircularDataGet(PERIPHERAL_ID_SPDIF_RX, pcmBuf, MAX_FRAME_SAMPLES * 8);
-		//由于从32bit转换为16bit，buf可以使用同一个，否则要独立申请。
-#if zsq
-		SPDIF_SPDIFDatatoAudioData((int32_t *)pcmBuf, MAX_FRAME_SAMPLES * 8, (int32_t *)pcmBuf, SPDIF_WORDLTH_16BIT, &hdmiInPlayCt->AudioInfo);
-#endif
-        pcm_len = hdmiInPlayCt->AudioInfo.output_length;
+
+#ifdef CFG_AUDIO_WIDTH_24BIT
+		DMA_CircularDataGet(CFG_HDMI_DMA_CHANNEL, pcmBuf, MAX_FRAME_SAMPLES * 16);
+		pcm_len = SPDIF_SPDIFDataToPCMData(CFG_HDMI_SPDIF_NUM,(int32_t *)pcmBuf, MAX_FRAME_SAMPLES * 16, (int32_t *)hdmiInPlayCt->hdmiARCCarry24, SPDIF_WORDLTH_24BIT);
+
+		if(pcm_len > 0)
+		{
+			int32_t *pcmBuf32  =  (int32_t *)hdmiInPlayCt->hdmiARCCarry24;
+			uint16_t i;
+			//高8位无符号位，需要移位产生
+			for(i=0;i<pcm_len/4;i++)
+			{
+				pcmBuf32[i] <<= 8;
+				pcmBuf32[i] >>= 8;
+			}
+
+			if(hdmiInPlayCt->AudioInfo.audio_type != SPDIF_AUDIO_PCM_DATA_TYPE)
+			{
+				return;
+			}
+
+			if(!mainAppCt.hdmiArcOnFlg)
+			{
+				memset(pcmBuf, 0, pcm_len);
+			}
+			MCUCircular_PutData(&hdmiInPlayCt->hdmiPcmCircularBuf, hdmiInPlayCt->hdmiARCCarry24, pcm_len);//注意格式转换返回值是byte
+		}
+
+#else
+		DMA_CircularDataGet(CFG_HDMI_DMA_CHANNEL, pcmBuf, MAX_FRAME_SAMPLES * 8);
+		pcm_len = SPDIF_SPDIFDataToPCMData(CFG_HDMI_SPDIF_NUM,(int32_t *)pcmBuf, MAX_FRAME_SAMPLES * 8, (int32_t *)pcmBuf, SPDIF_WORDLTH_16BIT);
 
 		if(hdmiInPlayCt->AudioInfo.audio_type != SPDIF_AUDIO_PCM_DATA_TYPE)
 		{
@@ -605,6 +614,8 @@ static void HdmiARCScan(void)
 			memset(pcmBuf, 0, pcm_len);
 		}
 		MCUCircular_PutData(&hdmiInPlayCt->hdmiPcmCircularBuf, pcmBuf, pcm_len);//注意格式转换返回值是byte
+#endif
+
 	 }
 }
 
@@ -649,6 +660,14 @@ bool HdmiInPlayDeinit(void)
 		osPortFree(hdmiInPlayCt->hdmiARCCarry);
 		hdmiInPlayCt->hdmiARCCarry = NULL;
 	}
+
+#ifdef CFG_AUDIO_WIDTH_24BIT
+	if(hdmiInPlayCt->hdmiARCCarry24 != NULL)
+	{
+		osPortFree(hdmiInPlayCt->hdmiARCCarry24);
+		hdmiInPlayCt->hdmiARCCarry24 = NULL;
+	}
+#endif
 
 	if(hdmiInPlayCt->hdmiARCPcmFifo != NULL)
 	{

@@ -160,10 +160,12 @@ static void AudioCoreServiceEntrance(void * param)
 		&& (GetSystemMode() != ModeUDiskAudioPlay)
 		)
 		{
+#ifdef CFG_COMMUNICATION_BY_USB
 			if(GetUSBDeviceInitState()) 	
 			{
 				OTG_DeviceRequestProcess();
 			}
+#endif
 		}
 #endif
 	}

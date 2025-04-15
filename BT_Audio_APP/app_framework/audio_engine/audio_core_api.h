@@ -160,6 +160,7 @@ typedef struct _RoboeffectContext
 	uint8_t effect_count;
 	uint8_t effect_addr;
 	uint8_t effect_enable;
+	uint8_t reinit_done;
 	//ROBOEFFECT_ERROR_CODE roboeffect_ret;
 }RoboeffectContext;
 

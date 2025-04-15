@@ -821,7 +821,7 @@ static uint32_t Get1of8RecInfo(uint8_t RecIdx/*from 0*/, uint8_t *Data/*size mus
  ****************************************************************************/
 void SaveTotalDevRec2Flash(int OneFullRecBlockSize, int TotalRecNum)
 {
-	SPI_FLASH_ERR_CODE ret;
+//	SPI_FLASH_ERR_CODE ret;
 	uint8_t i, Tmp[5];
 	uint32_t StartOffset = BTDB_TOTAL_RECORD_ADDR;
 	uint8_t OneBtRec[BT_REC_INFO_LEN];
@@ -853,7 +853,7 @@ void SaveTotalDevRec2Flash(int OneFullRecBlockSize, int TotalRecNum)
 				//APP_DBG("Update the profile!!!\n");
 				OneBtRec[24] = ~btManager.btDdbLastProfile;	//新接入的remote device更新profile
 			}
-			ret = SpiFlashWrite(StartOffset, OneBtRec, BT_REC_INFO_LEN, 1);
+			SpiFlashWrite(StartOffset, OneBtRec, BT_REC_INFO_LEN, 1);
 			StartOffset += BT_REC_INFO_LEN;
 #ifdef PRINT_RECORD_INFOR            
 			ShowOneDevSavedPairingInfo(i,StartOffset - BT_REC_INFO_LEN,BT_REC_INFO_LEN);

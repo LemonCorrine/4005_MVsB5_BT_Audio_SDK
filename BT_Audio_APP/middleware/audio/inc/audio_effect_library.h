@@ -77,6 +77,8 @@
 
 #include "motor_wrap.h"
 
+#include "beamforming.h"
+
 // audio effect library version
 #define AUDIO_EFFECT_LIBRARY_VERSION "2.34.1"
 

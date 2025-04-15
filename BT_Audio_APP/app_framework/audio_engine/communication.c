@@ -160,10 +160,11 @@ bool roboeffect_effect_update_params_entrance(uint8_t addr, uint8_t *buf, uint32
 					data_len -= (len + 1);
 				}
 			}
-			if( addr == AudioCore.Roboeffect.effect_count)
+			if (addr == AudioCore.Roboeffect.effect_count || AudioCore.Roboeffect.reinit_done)
 			{
                 AudioCore.Roboeffect.effect_addr = addr;
                 AudioCore.Roboeffect.effect_enable = enable;
+                AudioCore.Roboeffect.reinit_done = 0;
 				MessageContext msgSend;
 				msgSend.msgId = MSG_EFFECTREINIT;
 				MessageSend(GetMainMessageHandle(), &msgSend);
@@ -366,7 +367,7 @@ void Communication_Effect_0x00(void)
 	tx_buf[6]  = CFG_SDK_MINOR_VERSION;
 	tx_buf[7]  = CFG_SDK_PATCH_VERSION;
 
-	pp = AudioLibVer;
+	pp = (char *)AudioLibVer;
 
 	tx_buf[8] = atoi(pp);
 	while(pp-AudioLibVer < strlen(AudioLibVer) && *pp != '.'){pp++;}
@@ -374,7 +375,7 @@ void Communication_Effect_0x00(void)
 	while(pp-AudioLibVer < strlen(AudioLibVer) && *pp != '.'){pp++;}
 	tx_buf[10] = atoi(++pp);
 
-	pp = RoboeffectLibVer;
+	pp = (char *)RoboeffectLibVer;
 
 	tx_buf[11] = atoi(pp);
 	while(pp-RoboeffectLibVer < strlen(RoboeffectLibVer) && *pp != '.'){pp++;}
@@ -428,7 +429,7 @@ void Communication_Effect_0x02(void)///systme ram
 	memcpy(&tx_buf[7], &cpu_mips, 2);
 	//是否自动刷新数据，后续需要改进 Sam mask
 	memcpy(&tx_buf[9], &gCtrlVars.AutoRefresh, 1);
-	if(gCtrlVars.AutoRefresh)  gCtrlVars.AutoRefresh--;
+	if(gCtrlVars.AutoRefresh)  gCtrlVars.AutoRefresh = 0;
 
 	memcpy(&tx_buf[10], &CpuMaxFreq, 2);
 	memcpy(&tx_buf[12], &CpuMaxRamSize, 2);
@@ -453,22 +454,38 @@ void Comm_PGA0_0x03(uint8_t * buf)
 		case 2:///line1 Left en?
 			memcpy(&TmpData, &buf[1], 2);
 			gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_en = !!TmpData;
+#if (LINEIN_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN1)
+			AudioLineSelSet(ANA_INPUT_CH_LINEIN1);
+#else
 			AudioLineSelSet(ANA_INPUT_CH_LINEIN2);
+#endif
 			break;
 		case 3://line1 Right en?
 			memcpy(&TmpData, &buf[1], 2);
 			gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_en = !!TmpData;
+#if (LINEIN_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN1)
+			AudioLineSelSet(ANA_INPUT_CH_LINEIN1);
+#else
 			AudioLineSelSet(ANA_INPUT_CH_LINEIN2);
+#endif
 			break;
 		case 4://line1 Left gain
 			memcpy(&TmpData, &buf[1], 2);
 			gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain = TmpData > 31? 31 : TmpData;
+#if (LINEIN_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN1)
+			AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_LEFT, LINEIN1_LEFT, 31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
+#else
 			AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_LEFT, LINEIN2_LEFT, 31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
+#endif
 			break;
 		case 5://line1 Right gain
 			memcpy(&TmpData, &buf[1], 2);
 			gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain = TmpData > 31? 31 : TmpData;
+#if (LINEIN_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN1)
+			AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_RIGHT, LINEIN1_RIGHT, 31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
+#else
 			AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_RIGHT, LINEIN2_RIGHT, 31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
+#endif
 			break;
 		default:
 			break;

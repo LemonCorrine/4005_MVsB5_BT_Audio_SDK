@@ -67,11 +67,11 @@ static bool GetBtDefaultAddr(uint8_t *devAddr)
 			uint32_t tcm_addr_1k = 0;
 
 			tcm_addr = osPortMalloc(4*1024);
-			tcm_addr_1k = (tcm_addr);
+			tcm_addr_1k = (uint32_t)(tcm_addr);
 			tcm_addr_1k = (tcm_addr_1k/1024 + 1)*1024;
 			
 			Remap_AddrRemapDisable(3);
-			memcpy(tcm_addr_1k, 0x10000, 1*1024);
+			memcpy((void *)tcm_addr_1k, (void *)0x10000, 1*1024);
 			Remap_AddrRemapSet(3, 0x10000, tcm_addr_1k, 1);
 			{
 				uint8_t u8a_tmpBuf[16];
@@ -287,9 +287,8 @@ void LoadBtConfigurationParams(void)
 		APP_DBG("used default bt trim value\n");
 		//在匹配header异常时,将蓝牙频偏值修改为默认参数
 		//note:在使用默认参数时，trimValue一定不能为0xff，否则会导致bb工作不起来；
-#if 0
-		btStackConfigParams->bt_trimValue = sys_parameter.BtTrim;
-#endif
+		
+		btStackConfigParams->bt_trimValue = BT_DEFAULT_TRIM;
 	}
 	
 	//蓝牙公共配置参数,暂时按照宏定义默认的参数进行配置 bt_config.h,频偏值保留flash中数据
@@ -326,6 +325,12 @@ void ConfigBtBbParams(BtBbParams *params)
 
 	params->localDevName = (uint8_t *)btStackConfigParams->bt_LocalDeviceName;
 	memcpy(params->localDevAddr, btManager.btDevAddr, BT_ADDR_SIZE);
+
+	if(btStackConfigParams->bt_trimValue > BT_MAX_TRIM)
+	{
+		APP_DBG("bt trim:%d, overflow!\n", btStackConfigParams->bt_trimValue);
+		btStackConfigParams->bt_trimValue = BT_DEFAULT_TRIM;
+	}
 	params->freqTrim = btStackConfigParams->bt_trimValue;
 
 	//em config

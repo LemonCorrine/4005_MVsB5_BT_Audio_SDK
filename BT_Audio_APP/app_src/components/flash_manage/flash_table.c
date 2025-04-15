@@ -234,8 +234,8 @@ void flash_table_init(void)
 	}
 
 #if 1
-	flash_table_info.user_config_addr = flash_table_info.flash_capacity - USER_CONFIG_OFFSET;
-	flash_table_info.bt_config_addr = flash_table_info.flash_capacity - BT_CONFIG_OFFSET;
+	flash_table_info.user_config_addr = (flash_table_info.flash_capacity - USER_CONFIG_OFFSET);
+	flash_table_info.bt_config_addr = (flash_table_info.flash_capacity - BT_CONFIG_OFFSET);
 #else
 	flash_table_info.user_config_addr = ret->Capacity - USER_CONFIG_OFFSET;
 	flash_table_info.bt_config_addr = ret->Capacity - BT_CONFIG_OFFSET;

@@ -64,6 +64,7 @@ extern "C" {
 #define VIRTUAL_BASS_TD_ENABLE             (0)
 #define OVER_DRIVE_PLOY_ENABLE             (0)
 #define TREMOLO_ENABLE                     (0)
+#define BEAMFORMING_ENABLE                 (0)
 #define FADER_ENABLE                       (1)//do not close as it is a node effect
 #define DOWNMIX_2TO1_ENABLE                (1)//do not close as it is a node effect
 #define UPMIX_1TO2_ENABLE                  (1)//do not close as it is a node effect
@@ -124,7 +125,8 @@ extern "C" {
 #define ROBOEFFECT_VIRTUAL_BASS_TD_PARAM_LEN          3
 #define ROBOEFFECT_OVER_DRIVE_PLOY_PARAM_LEN          2
 #define ROBOEFFECT_TREMOLO_PARAM_LEN                  3
-#define ROBOEFFECT_FADER_PARAM_LEN                    1
+#define ROBOEFFECT_BEAMFORMING_PARAM_LEN              10
+#define ROBOEFFECT_FADER_PARAM_LEN                    3
 #define ROBOEFFECT_DOWNMIX_2TO1_PARAM_LEN             0
 #define ROBOEFFECT_UPMIX_1TO2_PARAM_LEN               0
 #define ROBOEFFECT_CHANNEL_COMBINER_PARAM_LEN         0
@@ -439,6 +441,12 @@ bool roboeffect_tremolo_init_if(void *node);
 bool roboeffect_tremolo_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
 bool roboeffect_tremolo_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
 int32_t roboeffect_tremolo_scratch_size(uint32_t sample_rate, uint16_t frame_size, uint16_t width, uint8_t ch_num, int16_t *parameters);
+
+//beamforming interface
+bool roboeffect_beamforming_init_if(void *node);
+bool roboeffect_beamforming_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
+bool roboeffect_beamforming_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
+int32_t roboeffect_beamforming_scratch_size(uint32_t sample_rate, uint16_t frame_size, uint16_t width, uint8_t ch_num, int16_t *parameters);
 
 //fader interface
 bool roboeffect_fader_init_if(void *node);

@@ -98,7 +98,7 @@ typedef enum _ADC_KEY_STATE
 
 
 
-#ifdef CFG_RES_ADC_KEY_USE
+#ifdef CFG_RES_ADC_KEY_SCAN
 TIMER			AdcKeyWaitTimer;
 //TIMER			AdcKeyScanTimer;
 ADC_KEY_STATE	AdcKeyState;
@@ -297,6 +297,6 @@ KeyScanMsg AdcKeyScan(void)
 	return Msg;
 }
 
-#endif //CFG_RES_ADC_KEY_USE
+#endif //CFG_RES_ADC_KEY_SCAN
 
 

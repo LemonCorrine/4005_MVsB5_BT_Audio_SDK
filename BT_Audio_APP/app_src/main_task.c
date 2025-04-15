@@ -137,17 +137,6 @@ static void SysVarInit(void)
 		mainAppCt.MusicVolume = CFG_PARA_MAX_VOLUME_NUM;
 	}
 	APP_DBG("MusicVolume:%d,%d\n", mainAppCt.MusicVolume, pBpSysInfo->MusicVolume);	
-
-#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
-	mainAppCt.EffectMode = EFFECT_MODE_FLASH_Music;
-#else
-#ifdef CFG_FUNC_MIC_KARAOKE_EN
-	mainAppCt.EffectMode = EFFECT_MODE_HunXiang;
-#else
-	mainAppCt.EffectMode = EFFECT_MODE_MIC;
-#endif
-#endif	
-	APP_DBG("EffectMode:%d,%d\n", mainAppCt.EffectMode, pBpSysInfo->EffectMode);
 	
 	mainAppCt.MicVolume = pBpSysInfo->MicVolume;
 	if((mainAppCt.MicVolume > CFG_PARA_MAX_VOLUME_NUM) || (mainAppCt.MicVolume <= 0))
@@ -229,10 +218,14 @@ static void SysVarInit(void)
 	#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
 	mainAppCt.EffectMode = EFFECT_MODE_FLASH_Music;
 	#else
+#ifdef CFG_FUNC_EFFECT_BYPASS_EN
+	mainAppCt.EffectMode = EFFECT_MODE_BYPASS;
+#else
 #ifdef CFG_FUNC_MIC_KARAOKE_EN
 	mainAppCt.EffectMode = EFFECT_MODE_HunXiang;
 #else
 	mainAppCt.EffectMode = EFFECT_MODE_MIC;
+#endif
 #endif
 	#endif	
 	mainAppCt.MicVolume = CFG_PARA_MAX_VOLUME_NUM;

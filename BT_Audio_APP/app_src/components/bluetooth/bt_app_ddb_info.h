@@ -20,14 +20,14 @@
 #define DDB_NOT_FOUND  0xffff
 
 //蓝牙参数保存位置:size:4KB(0x1ff000~0x1fffff)
-#define BTDB_CONFIGDATA_START_ADDR		(get_bt_config_addr())//BT_CONFIG_ADDR
+#define BTDB_CONFIGDATA_START_ADDR		(get_bt_config_addr())
 
 //参数配置表:0x1ff000-0x1fffff(4K)
 #define BTDB_CONFIG_ADDR				BTDB_CONFIGDATA_START_ADDR
 #define BTDB_CONFIG_MEM_SIZE			(BTDB_CONFIGDATA_SIZE)
 
 //蓝牙连接设备地址保存位置:size:12KB(0x1fb000~0x1fdfff)
-#define BTDB_USERDATA_START_ADDR		(get_bt_data_addr())//BT_DATA_ADDR
+#define BTDB_USERDATA_START_ADDR		(get_bt_data_addr())
 
 //配对设备信息:0x1fb000-0x1fcfff(8K)
 #define BTDB_TOTAL_RECORD_ADDR			(BTDB_USERDATA_START_ADDR)

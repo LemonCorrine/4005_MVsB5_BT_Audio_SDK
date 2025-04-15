@@ -17,7 +17,7 @@
 
 #include "type.h"
 #include "rtos_api.h"
-#include "app_config.h"
+#include "bt_config.h"
 #include "audio_core_api.h"
 #include "app_message.h"
 #include "timeout.h"
@@ -194,6 +194,15 @@ enum _SYS_SOFTWARE_FLAG_
 #define SoftFlagRegister(SoftEvent)			(mainAppCt.SoftwareFlag |= SoftEvent)
 #define SoftFlagDeregister(SoftEvent)		(mainAppCt.SoftwareFlag &= ~SoftEvent)
 #define SoftFlagGet(SoftEvent)				(mainAppCt.SoftwareFlag & SoftEvent ? TRUE : FALSE)
+
+#if (BT_AVRCP_VOLUME_SYNC == ENABLE) && defined(CFG_APP_BT_MODE_EN)
+	#define CFG_PARA_MAX_VOLUME_NUM		        (16)	//SDK 16 级音量,针对iphone手机蓝牙音量同步功能定制，音量表16级能一一对应手机端音量级别
+	#define CFG_PARA_SYS_VOLUME_DEFAULT			(12)	//SDK默认音量
+#else
+	#define CFG_PARA_MAX_VOLUME_NUM		        (32)	//SDK 32 级音量
+	#define CFG_PARA_SYS_VOLUME_DEFAULT			(25)	//SDK默认音量
+#endif
+
 
 int32_t MainAppTaskStart(void);
 MessageHandle GetMainMessageHandle(void);

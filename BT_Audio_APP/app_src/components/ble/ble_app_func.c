@@ -9,337 +9,186 @@
 
 extern BT_CONFIGURATION_PARAMS		*btStackConfigParams;
 
-
 #include "debug.h"
 #if (BLE_SUPPORT == ENABLE)
 
-const uint8_t advertisement_data[] = {
-	0x02, 0x01, 0x02,		//flag:LE General Discoverable
-	0x03, 0x03, 0x00, 0xab,	//16bit service UUIDs
-	9,   0x09, 'B', 'P', '1', '0', '-','B','L','E',//
+extern void SetBleLocalAddress(const char *addr);
+
+#define BLE_DFLT_DEVICE_NAME			("BP10-BLE")	//BLE名称
+#define BLE_DFLT_DEVICE_NAME_LEN		(strlen(BLE_DFLT_DEVICE_NAME))
+
+/// default read perm
+#define RD_P    (PROP(RD)  | SEC_LVL(RP, NOT_ENC))
+/// default write without response perm
+#define WC_P    (PROP(WC)  | SEC_LVL(WP, NOT_ENC))
+/// default write perm
+#define WR_P    (PROP(WR)  | SEC_LVL(WP, NOT_ENC))
+/// default notify perm
+#define NTF_P   (PROP(N)   | SEC_LVL(NIP, NOT_ENC))
+/// ind perm
+#define IND_P   (PROP(I)   | SEC_LVL(NIP, NOT_ENC))
+
+//用户自定义服务
+#define UUID16_SERVICE (0xae30)  // uuid
+#define UDSS_IDX_NB 11           // att index
+#define LE_VAL_MAX_LEN (247)
+#define DEFAULT_MTU_SIZE (250)  // 250
+
+static ble_gatt_att16_desc_t att16_db[UDSS_IDX_NB] = {
+    //  ATT UUID
+    //  | Permission			| EXT PERM | MAX ATT SIZE
+    // User Data Service Service Declaration
+    [0] = {GATT_DECL_PRIMARY_SERVICE, RD_P, 0},  // 0x2800
+
+    // Characteristic1
+    //  DataBase Index Increment Characteristic Declaration
+    [1] = {GATT_DECL_CHARACTERISTIC, WR_P | NTF_P,
+           0},  // 0x2803
+                //  DataBase Index Increment Characteristic Value
+    [2] = {0xae01, WC_P, LE_VAL_MAX_LEN},
+    // Client Characteristic Configuration Descriptor
+    //		[3] = {GATT_DESC_CLIENT_CHAR_CFG,				RD_P | WR_P,
+    //OPT(NO_OFFSET) },//0x2902
+
+    // Characteristic2
+    //  DataBase Index Increment Characteristic Declaration
+    [3] = {GATT_DECL_CHARACTERISTIC, NTF_P,
+           0},  // 0x2803
+                //  DataBase Index Increment Characteristic Value
+    [4] = {0xae02, NTF_P, LE_VAL_MAX_LEN},
+    // Client Characteristic Configuration Descriptor
+    [5] = {GATT_DESC_CLIENT_CHAR_CFG, RD_P | WR_P, OPT(NO_OFFSET)},  // RW
+
+    // Characteristic3
+    //  DataBase Index Increment Characteristic Declaration
+    [6] = {GATT_DECL_CHARACTERISTIC, NTF_P | WR_P,
+           0},  // 0x2803
+                //  DataBase Index Increment Characteristic Value
+    [7] = {0xae05, IND_P, LE_VAL_MAX_LEN},
+    //		// Client Characteristic Configuration Descriptor
+    [8] = {GATT_DESC_CLIENT_CHAR_CFG, RD_P | WR_P, OPT(NO_OFFSET)},  // RW
+
+    // Characteristic3
+    //  DataBase Index Increment Characteristic Declaration
+    [9] = {GATT_DECL_CHARACTERISTIC, WR_P,
+           0},  // 0x2803
+                //  DataBase Index Increment Characteristic Value
+    [10] = {0xae10, WR_P, LE_VAL_MAX_LEN},
+
 };
 
-uint8_t gAdvertisementData[50]; //保存广播数据
-uint8_t gResponseData[50]; //保存广播数据
-	
-const uint8_t profile_data[] =
+#define UDSS_IDX_NB_1 6
+#define MV_CHAR_VAL_LEN_MAX 500
+/* service_uuid and Characteristic_uuid*/
+#define MV_service_uuid128                                            \
+    {                                                                     \
+        0x2F, 0x2A, 0x93, 0xA6, 0xBD, 0xD8, 0x41, 0x52, 0xAC, 0x0B, 0x10, \
+            0x99, 0x2E, 0xC6, 0xFE, 0xED                                  \
+    }
+#define MV_device_info_uuid128                                        \
+    {                                                                     \
+        0xBA, 0x5C, 0x49, 0xD2, 0x04, 0xA3, 0x40, 0x71, 0xA0, 0xB5, 0x35, \
+            0x85, 0x3E, 0xB0, 0x83, 0x07 \
+	                              \
+    }
+#define MV_data_uuid128                                               \
+    {                                                                     \
+        0xe2, 0xa4, 0x1b, 0x54, 0x93, 0xe4, 0x6a, 0xb5, 0x20, 0x4e, 0xd0, \
+            0x65, 0xe2, 0xff, 0x00, 0x00,                                 \
+    }
+#define MV_event_uuid                                                 \
+    {                                                                     \
+        0xB8, 0x5C, 0x49, 0xD2, 0x04, 0xA3, 0x40, 0x71, 0xA0, 0xB5, 0x35, \
+            0x85, 0x3E, 0xB0, 0x83, 0x07,                                 \
+    }
+#define MV_ota_uuid                                                   \
+    {                                                                     \
+        0xe2, 0xa4, 0x1b, 0x54, 0x93, 0xe4, 0x6a, 0xb5, 0x20, 0x4e, 0xd0, \
+            0x65, 0xe1, 0xff, 0x00, 0x00                                  \
+    }
+
+static const uint8_t MV_service[GATT_UUID_128_LEN] = MV_service_uuid128;
+#define GATT_DECL_PRIMARY_SERVICE1 \
+    { 0x00, 0x28 }
+#define GATT_DECL_CHARACTERISTIC_128UUID \
+    { 0x03, 0x28 }
+#define GATT_DESC_CLIENT_CHAR_CFG_128UUID \
+    { 0x02, 0x29 }
+#define GATT_DESC_CHAR_USER_DESCRIPTION_128UUID \
+    { 0x01, 0x29 }
+// gatt_att_desc
+const ble_gatt_att128_desc_t MV_att_db[] = {
+
+    [0] = {GATT_DECL_PRIMARY_SERVICE1, RD_P, 0},  // 0x2800
+    [1] = {GATT_DECL_CHARACTERISTIC_128UUID, PROP(RD), 0},
+    [2] = {MV_device_info_uuid128, WR_P | ATT_UUID(128),
+           MV_CHAR_VAL_LEN_MAX},
+    //[3] = {GATT_DECL_CHARACTERISTIC_128UUID, PROP(RD), 0},
+    //[4] = {MV_data_uuid128, WR_P | ATT_UUID(128), MV_CHAR_VAL_LEN_MAX},
+    [3] = {GATT_DECL_CHARACTERISTIC_128UUID, PROP(RD), 0},
+    [4] = {MV_event_uuid, NTF_P | ATT_UUID(128), MV_CHAR_VAL_LEN_MAX},
+    [5] = {GATT_DESC_CLIENT_CHAR_CFG_128UUID, 0, 0},
+   // [8] = {GATT_DECL_CHARACTERISTIC_128UUID, PROP(RD), 0},
+   // [9] = {MV_ota_uuid, WC_P | ATT_UUID(128), MV_CHAR_VAL_LEN_MAX},
+};
+
+uint8_t ble_app_adv_data[30] = {
+	//length + type + data
+    // Flags general discoverable, BR/EDR not supported
+    2, 0x01, 0x06,
+    // Name
+    9, 0x09, 'B','P','1','0','-','B','L','E',
+};
+
+const uint8_t ble_app_rsp_adv_data[30] = {
+    0x03, 0xff, 0xff,0xff,
+};
+
+static uint8_t adv_len = sizeof(ble_app_adv_data);
+static uint8_t rsp_adv_len = sizeof(ble_app_rsp_adv_data);
+
+/***********************************************************************************
+ * BLE初始化参数配置
+ **********************************************************************************/
+uint8_t LeInitConfigParams(void)
 {
-	// 0x0001 PRIMARY_SERVICE-GAP_SERVICE
-	0x0a, 0x00, 0x02, 0xf0, 0x01, 0x00, 0x00, 0x28, 0x00, 0x18,
-	// 0x0002 CHARACTERISTIC-GAP_DEVICE_NAME-READ | WRITE | DYNAMIC
-	0x0d, 0x00, 0x02, 0xf0, 0x02, 0x00, 0x03, 0x28, 0x0a, 0x03, 0x00, 0x00, 0x2a,
-	// 0x0003 VALUE-GAP_DEVICE_NAME-READ | WRITE | DYNAMIC-'BP10-BLE'
-	// READ_ANYBODY, WRITE_ANYBODY
-	0x10, 0x00, 0x0a, 0xf1, 0x03, 0x00, 0x00, 0x2a, 0x42, 0x50, 0x31, 0x30, 0x2d, 0x42, 0x4c, 0x45,
 
-	// 0x0004 PRIMARY_SERVICE-AB00
-	0x0a, 0x00, 0x02, 0xf0, 0x04, 0x00, 0x00, 0x28, 0x00, 0xab,
-	// 0x0005 CHARACTERISTIC-AB01-READ | WRITE | WRITE_WITHOUT_RESPONSE | DYNAMIC
-	0x0d, 0x00, 0x02, 0xf0, 0x05, 0x00, 0x03, 0x28, 0x0e, 0x06, 0x00, 0x01, 0xab,
-	// 0x0006 VALUE-AB01-READ | WRITE | WRITE_WITHOUT_RESPONSE | DYNAMIC-''
-	// READ_ANYBODY, WRITE_ANYBODY
-	0x08, 0x00, 0x0e, 0xf1, 0x06, 0x00, 0x01, 0xab,
-	// 0x0007 CHARACTERISTIC-AB02-NOTIFY | DYNAMIC
-	0x0d, 0x00, 0x02, 0xf0, 0x07, 0x00, 0x03, 0x28, 0x10, 0x08, 0x00, 0x02, 0xab,
-	// 0x0008 VALUE-AB02-NOTIFY | DYNAMIC-''
-	//
-	0x08, 0x00, 0x00, 0xf1, 0x08, 0x00, 0x02, 0xab,
-	// 0x0009 CLIENT_CHARACTERISTIC_CONFIGURATION
-	// READ_ANYBODY, WRITE_ANYBODY
-	0x0a, 0x00, 0x0e, 0xf1, 0x09, 0x00, 0x02, 0x29, 0x00, 0x00,
-	// 0x000a CHARACTERISTIC-AB03-NOTIFY | DYNAMIC
-	0x0d, 0x00, 0x02, 0xf0, 0x0a, 0x00, 0x03, 0x28, 0x10, 0x0b, 0x00, 0x03, 0xab,
-	// 0x000b VALUE-AB03-NOTIFY | DYNAMIC-''
-	//
-	0x08, 0x00, 0x00, 0xf1, 0x0b, 0x00, 0x03, 0xab,
-	// 0x000c CLIENT_CHARACTERISTIC_CONFIGURATION
-	// READ_ANYBODY, WRITE_ANYBODY
-	0x0a, 0x00, 0x0e, 0xf1, 0x0c, 0x00, 0x02, 0x29, 0x00, 0x00,
+	printf("RD_P: 0x%04x,WR_P: 0x%04x,NTF_P: 0x%04x,IND_P: 0x%04x",RD_P,WR_P,NTF_P,IND_P);
+    LeAppRegCB(AppEventCallBack); // 注册应用层事件回调函数
 
-	// END
-	0x00, 0x00,
-}; // total size 74 bytes
+    // BLE广播数据内容填充
+    le_user_config.ble_device_name_len = BLE_DFLT_DEVICE_NAME_LEN;
+    memcpy(le_user_config.ble_device_name,BLE_DFLT_DEVICE_NAME,le_user_config.ble_device_name_len);
+    ble_app_adv_data[3] = BLE_DFLT_DEVICE_NAME_LEN+1;
+    memcpy(&ble_app_adv_data[5],le_user_config.ble_device_name,le_user_config.ble_device_name_len);
 
+    le_user_config.adv_data.adv_data = (uint8_t *)ble_app_adv_data;
+    le_user_config.adv_data.adv_len = adv_len;
 
-//
-// list service handle ranges
-//
-#define ATT_SERVICE_GAP_SERVICE_START_HANDLE 0x0001
-#define ATT_SERVICE_GAP_SERVICE_END_HANDLE 0x0003
-#define ATT_SERVICE_AF00_START_HANDLE 0x0004
-#define ATT_SERVICE_AF00_END_HANDLE 0x0013
+    // 广播回复数据需要时填写,不需要时填NULL
+    le_user_config.rsp_data.adv_rsp_data = (uint8_t *)ble_app_rsp_adv_data;
+    le_user_config.rsp_data.adv_rsp_len = rsp_adv_len;
 
-//
-// list mapping between characteristics and handles
-//
-#define ATT_CHARACTERISTIC_GAP_DEVICE_NAME_01_VALUE_HANDLE 0x0003
-#define ATT_CHARACTERISTIC_AF01_01_VALUE_HANDLE 0x0006
-#define ATT_CHARACTERISTIC_AF02_01_VALUE_HANDLE 0x0008
-#define ATT_CHARACTERISTIC_AF02_01_CLIENT_CONFIGURATION_HANDLE 0x0009
-#define ATT_CHARACTERISTIC_AF03_01_VALUE_HANDLE 0x000b
-#define ATT_CHARACTERISTIC_AF04_01_VALUE_HANDLE 0x000d
-#define ATT_CHARACTERISTIC_AF04_01_CLIENT_CONFIGURATION_HANDLE 0x000e
-#define ATT_CHARACTERISTIC_AF05_01_VALUE_HANDLE 0x0010
-#define ATT_CHARACTERISTIC_AF06_01_VALUE_HANDLE 0x0012
-#define ATT_CHARACTERISTIC_AF06_01_CLIENT_CONFIGURATION_HANDLE 0x0013
+    //设置广播间隔及广播通道
+    le_user_config.adv_interval_param.adv_intv_max = 0x0200;
+    le_user_config.adv_interval_param.adv_intv_min = 0x0100;
+    le_user_config.adv_interval_param.ch_map = 0x07; //37,38,39 ch map
 
-//
-// list service handle ranges
-//
-//#define ATT_SERVICE_GAP_SERVICE_START_HANDLE 0x0001
-//#define ATT_SERVICE_GAP_SERVICE_END_HANDLE 0x0003
-#define ATT_SERVICE_AB00_START_HANDLE 0x0004
-#define ATT_SERVICE_AB00_END_HANDLE 0x000e
-
-//
-// list mapping between characteristics and handles
-//
-#define ATT_CHARACTERISTIC_GAP_DEVICE_NAME_01_VALUE_HANDLE 0x0003
-#define ATT_CHARACTERISTIC_AB01_01_VALUE_HANDLE 0x0006
-#define ATT_CHARACTERISTIC_AB02_01_VALUE_HANDLE 0x0008
-#define ATT_CHARACTERISTIC_AB02_01_CLIENT_CONFIGURATION_HANDLE 0x0009
-#define ATT_CHARACTERISTIC_AB03_01_VALUE_HANDLE 0x000b
-#define ATT_CHARACTERISTIC_AB03_01_CLIENT_CONFIGURATION_HANDLE 0x000c
-#define ATT_CHARACTERISTIC_AB04_01_VALUE_HANDLE 0x000e
-
-
-BLE_APP_CONTEXT			g_playcontrol_app_context;
-GATT_SERVER_PROFILE		g_playcontrol_profile;
-GAP_MODE				g_gap_mode;
-
-int16_t app_att_read(uint16_t con_handle, uint16_t attribute_handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size);
-int16_t app_att_write(uint16_t con_handle, uint16_t attribute_handle, uint16_t transaction_mode, uint16_t offset, uint8_t *buffer, uint16_t buffer_size);
-int16_t att_read(uint16_t con_handle, uint16_t attribute_handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size);
-int16_t att_write(uint16_t con_handle, uint16_t attribute_handle, uint16_t transaction_mode, uint16_t offset, uint8_t *buffer, uint16_t buffer_size);
-int16_t gap_att_write(uint16_t con_handle, uint16_t attribute_handle, uint16_t transaction_mode, uint16_t offset, uint8_t *buffer, uint16_t buffer_size);
-
-int8_t InitBlePlaycontrolProfile(void)
-{
-	uint8_t adv_len = 0;
-	//register ble callback funciton
-	BleAppCallBackRegister(BLEStackCallBackFunc);
-
-	memcpy(g_playcontrol_app_context.ble_device_addr, btStackConfigParams->ble_LocalDeviceAddr, 6);
-	g_playcontrol_app_context.ble_device_role = PERIPHERAL_DEVICE;
-
-	g_playcontrol_profile.profile_data 	= (uint8_t *)profile_data;//g_profile_data;
-	g_playcontrol_profile.attr_read		= att_read;
-	g_playcontrol_profile.attr_write	= att_write;
-
-	// set advertising interval params
-	SetAdvIntervalParams(0x0020, 0x0100);
-
-	// set gap mode
-	g_gap_mode.broadcase_mode		= NON_BROADCAST_MODE;
-	g_gap_mode.discoverable_mode	= GENERAL_DISCOVERABLE_MODE;
-	g_gap_mode.connectable_mode		= UNDIRECTED_CONNECTABLE_MODE;
-	g_gap_mode.bondable_mode		= NON_BONDABLE_MODE;
-	SetGapMode(g_gap_mode);
-
-	adv_len = sizeof(advertisement_data);
-	memcpy(&gAdvertisementData[0], (uint8_t *)advertisement_data, adv_len);
-
-//	gAdvertisementData[offset] = (strlen(btStackConfigParams->ble_LocalDeviceName)+1);
-//	gAdvertisementData[offset+1] = 0x09;
-//	memcpy(&gAdvertisementData[offset+2], btStackConfigParams->ble_LocalDeviceName, strlen(btStackConfigParams->ble_LocalDeviceName));
-//	adv_len += (2+strlen(btStackConfigParams->ble_LocalDeviceName));
-	
-	SetAdvertisingData((uint8_t *)gAdvertisementData, adv_len);
-
-	return 0;
-}
-
-
-void BleAdvSet(void)
-{
-	uint8_t adv_len = 0;
-    adv_len = sizeof(advertisement_data);
-    memcpy(&gAdvertisementData[0], (uint8_t *)advertisement_data, adv_len);
-
-//    gAdvertisementData[offset] = (strlen(btStackConfigParams->ble_LocalDeviceName)+1);
-//    gAdvertisementData[offset+1] = 0x09;
-//    memcpy(&gAdvertisementData[offset+2], btStackConfigParams->ble_LocalDeviceName, strlen(btStackConfigParams->ble_LocalDeviceName));
-//    adv_len += (2+strlen(btStackConfigParams->ble_LocalDeviceName));
-
-    SetAdvertisingData((uint8_t *)gAdvertisementData, adv_len);
-}
-
-int8_t UninitBlePlaycontrolProfile(void)
-{
-	return 0;
-}
-
-int16_t att_read(uint16_t con_handle, uint16_t attribute_handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size)
-{
-    if( (attribute_handle >= ATT_SERVICE_GAP_SERVICE_START_HANDLE) && (attribute_handle <= ATT_SERVICE_GAP_SERVICE_END_HANDLE))
-	{
-    	//BT_DBG("att_read attribute_handle:%u\n",attribute_handle);
-    	switch(attribute_handle)
-		{
-			case ATT_CHARACTERISTIC_GAP_DEVICE_NAME_01_VALUE_HANDLE:
-				if(buffer)
-				{
-					memcpy(buffer, btStackConfigParams->ble_LocalDeviceName, strlen((char*)btStackConfigParams->ble_LocalDeviceName));
-					return (int16_t)strlen((char*)btStackConfigParams->ble_LocalDeviceName);
-				}
-				return 0;
-				
-	        default:
-	            return 0;
-		}
-	}
-    else if( (attribute_handle >= ATT_SERVICE_AB00_START_HANDLE) && (attribute_handle <= ATT_SERVICE_AB00_END_HANDLE))
-	{
-    	return app_att_read(con_handle, attribute_handle, offset, buffer, buffer_size);
-	}
-	else
-	{
-		//未知句柄
-	}
-
+    //初始化报文
+    le_user_config.ble_service_idxnb = UDSS_IDX_NB_1;
+    le_user_config.profile_uuid128 = MV_att_db;
+    le_user_config.ble_uuid128_service = MV_service;
+    le_user_config.att_default_mtu = DEFAULT_MTU_SIZE;
     return 0;
 }
 
-int16_t att_write(uint16_t con_handle, uint16_t attribute_handle, uint16_t transaction_mode, uint16_t offset, uint8_t *buffer, uint16_t buffer_size)
+/***********************************************************************************
+ * BLE application initialize
+ **********************************************************************************/
+void BleAppInit(void)
 {
-    if( (attribute_handle >= ATT_SERVICE_GAP_SERVICE_START_HANDLE) && (attribute_handle <= ATT_SERVICE_GAP_SERVICE_END_HANDLE))
-	{
-    	//BT_DBG("att_write attribute_handle:%u\n",attribute_handle);
-    	switch(attribute_handle)
-    	{
-			case ATT_CHARACTERISTIC_GAP_DEVICE_NAME_01_VALUE_HANDLE:
-				if((buffer)&&(buffer_size))
-				{
-					//extern int32_t BtDeviceBleNameSet(uint8_t* deviceName, uint8_t deviceLen);
-					//BT_DBG("name: %s\n", buffer);
-
-					if(buffer_size > BT_NAME_SIZE)
-						buffer_size = BT_NAME_SIZE;
-
-					//BtDeviceBleNameSet(buffer, buffer_size);
-
-					{
-						uint8_t offset = 0;
-						uint8_t adv_len = 0;
-						offset = adv_len = sizeof(advertisement_data);
-
-						gAdvertisementData[offset] = (strlen((char*)btStackConfigParams->ble_LocalDeviceName)+1);
-						gAdvertisementData[offset+1] = 0x09;
-						memcpy(&gAdvertisementData[offset+2], btStackConfigParams->ble_LocalDeviceName, strlen((char*)btStackConfigParams->ble_LocalDeviceName));
-						adv_len += (2+strlen((char*)btStackConfigParams->ble_LocalDeviceName));
-						
-						SetAdvertisingData((uint8_t *)gAdvertisementData, adv_len);
-					}
-				}
-				return 0;
-				
-			default:
-				return 0;
-    	}
-	}
-    else if( (attribute_handle >= ATT_SERVICE_AB00_START_HANDLE) && (attribute_handle <= ATT_SERVICE_AB00_END_HANDLE))
-	{
-    	return app_att_write(con_handle, attribute_handle, transaction_mode, offset, buffer, buffer_size);
-	}
-	else
-	{
-		//未知句柄
-	}
-    return 0;
+    LeInitConfigParams(); //le parameters config
+    rwble_enable_init();
 }
-
-
-int16_t app_att_read(uint16_t con_handle, uint16_t attribute_handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size)
-{
-//	BT_DBG("app_att_read for handle %02x,%d,%d,0x%08lx\n", attribute_handle,offset,buffer_size,buffer);
-	switch(attribute_handle)
-	{
-		case ATT_CHARACTERISTIC_AB01_01_VALUE_HANDLE:
-			//BT_DBG("ATT_CHARACTERISTIC_AB01_01_VALUE_HANDLE:\n");
-			if(buffer == 0)//更新传输目标数据的长度
-			{
-
-			}
-			else
-			{
-
-			}
-			break;
-
-		case ATT_CHARACTERISTIC_AB02_01_VALUE_HANDLE:
-			//BT_DBG("ATT_CHARACTERISTIC_AB02_01_VALUE_HANDLE:\n");
-			if(buffer == 0)//更新传输目标数据的长度
-			{
-
-			}
-			else
-			{
-
-			}
-			break;
-
-		case ATT_CHARACTERISTIC_AB03_01_VALUE_HANDLE:
-			//BT_DBG("ATT_CHARACTERISTIC_AB03_01_VALUE_HANDLE:\n");
-			if(buffer == 0)//更新传输目标数据的长度
-			{
-
-			}
-			else
-			{
-
-			}
-			break;
-
-		case ATT_CHARACTERISTIC_AF06_01_CLIENT_CONFIGURATION_HANDLE:
-			if(buffer == 0)//更新传输目标数据的长度
-			{
-
-			}
-			else
-			{
-				return 2;
-			}
-			break;
-
-		default:
-			return 0;
-	}
-	return 0;
-}
-
-int16_t app_att_write(uint16_t con_handle, uint16_t attribute_handle, uint16_t transaction_mode, uint16_t offset, uint8_t *buffer, uint16_t buffer_size)
-{
-//    BT_DBG("app_att_write for handle %02x\n", attribute_handle);
-	switch(attribute_handle)
-	{
-		case ATT_CHARACTERISTIC_AB01_01_VALUE_HANDLE:
-			BT_DBG("ATT_CHARACTERISTIC_AB01_01_VALUE_HANDLE:\n");
-			BT_DBG("write len:%d\n", buffer_size);
-			break;
-
-		case ATT_CHARACTERISTIC_AB02_01_VALUE_HANDLE:
-			//BT_DBG("ATT_CHARACTERISTIC_AB02_01_VALUE_HANDLE:\n");
-			break;
-
-		case ATT_CHARACTERISTIC_AB03_01_VALUE_HANDLE:
-			//BT_DBG("ATT_CHARACTERISTIC_AB03_01_VALUE_HANDLE:\n");
-			break;
-		case ATT_CHARACTERISTIC_AF05_01_VALUE_HANDLE:
-			break;
-
-		case ATT_CHARACTERISTIC_AF06_01_CLIENT_CONFIGURATION_HANDLE:
-
-			if(buffer_size == 2)
-			{
-			}
-
-			break;
-
-		default:
-			return 0;
-	}
-	return 0;
-}
-
 #endif
 
