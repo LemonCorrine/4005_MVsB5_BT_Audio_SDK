@@ -318,6 +318,7 @@ void OTG_DeviceStandardRequest()
 uint32_t pc_upgrade = 0;
 #ifdef CFG_FUNC_USBDEBUG_EN
 extern MCU_CIRCULAR_CONTEXT usb_fifo;
+const uint8_t usbdebug_head[] = {0xA5,0x5A,0x30,0x01};
 #endif
 //设备类请求
 void OTG_DeviceClassRequest()
@@ -379,10 +380,11 @@ void OTG_DeviceClassRequest()
 			extern bool hid_tx_buf_is_used;
 			if(!hid_tx_buf_is_used)
 			{
-				uint32_t datalen = MCUCircular_GetData(&usb_fifo,hid_tx_buf,256);
-				if(datalen < 256)
+				memcpy(hid_tx_buf,usbdebug_head,sizeof(usbdebug_head));
+				uint32_t datalen = MCUCircular_GetData(&usb_fifo,&hid_tx_buf[4],252);
+				if(datalen < 252)
 				{
-					memset(hid_tx_buf+datalen,0,256-datalen);
+					memset(&hid_tx_buf[4]+datalen,0,252-datalen);
 				}
 			}
 			hid_tx_buf_is_used = 0;

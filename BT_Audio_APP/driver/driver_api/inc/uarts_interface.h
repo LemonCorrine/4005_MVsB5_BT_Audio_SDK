@@ -103,9 +103,7 @@ void UARTS_SendByte_In_Interrupt(UART_PORT_T UART_MODULE,uint8_t SendByte);
  * @param[in]  CallBack   	中断回调函数
  * @return     FALSE初始化配置失败	TRUE初始化设置成功
  */
-bool UART0_DMA_RxInit(void* RxBufAddr, uint16_t RxBufLen, uint16_t ThresholdLen, INT_FUNC CallBack);
-bool UART1_DMA_RxInit(void* RxBufAddr, uint16_t RxBufLen, uint16_t ThresholdLen, INT_FUNC CallBack);
-#define UARTS_DMA_RxInit(UartNum, RxBufAddr, RxBufLen, ThresholdLen, CallBack) (*UARTS_DMA_RxInit_MAP[UartNum])(RxBufAddr, RxBufLen, ThresholdLen, CallBack)
+bool UARTS_DMA_RxInit(UART_PORT_T UART_MODULE,void* RxBufAddr, uint16_t RxBufLen, uint16_t ThresholdLen, INT_FUNC CallBack);
 
 /**
  * @brief      UART DMA 传送模式初始化，配置基础参数，发送缓存地址，发送缓存长度，中断触发门槛值，回调函数
@@ -115,9 +113,7 @@ bool UART1_DMA_RxInit(void* RxBufAddr, uint16_t RxBufLen, uint16_t ThresholdLen,
  * @param[in]  CallBack   	中断回调函数
  * @return     FALSE初始化配置失败	TRUE初始化设置成功
  */
-bool UART0_DMA_TxInit(void* TxBufAddr, uint16_t TxBufLen, uint16_t ThresholdLen, INT_FUNC CallBack);
-bool UART1_DMA_TxInit(void* TxBufAddr, uint16_t TxBufLen, uint16_t ThresholdLen, INT_FUNC CallBack);
-#define UARTS_DMA_TxInit(UartNum, TxBufAddr, TxBufLen, ThresholdLen, CallBack) (*UARTS_DMA_TxInit_MAP[UartNum])(TxBufAddr, TxBufLen, ThresholdLen, CallBack)
+bool UARTS_DMA_TxInit(UART_PORT_T UART_MODULE,void* TxBufAddr, uint16_t TxBufLen, uint16_t ThresholdLen, INT_FUNC CallBack);
 
 /**
  * @brief      UART DMA 传送模式初始化，发送缓存区地址，发送缓存长度，中断触发门槛值，回调函数
@@ -126,9 +122,7 @@ bool UART1_DMA_TxInit(void* TxBufAddr, uint16_t TxBufLen, uint16_t ThresholdLen,
  * @param[in]  TimeOut 		超时时间设置，即达到设置的超时时间还未发送完成，则放弃发送
  * @return     实际发送数据长度
  */
-uint32_t UART0_DMA_Send(uint8_t* SendBuf, uint16_t BufLen, uint32_t TimeOut);
-uint32_t UART1_DMA_Send(uint8_t* SendBuf, uint16_t BufLen, uint32_t TimeOut);
-#define UARTS_DMA_Send(UartNum, SendBuf, BufLen, TimeOut) (*UARTS_DMA_Send_MAP[UartNum])(SendBuf, BufLen, TimeOut)
+uint32_t UARTS_DMA_Send(UART_PORT_T UART_MODULE,uint8_t* SendBuf, uint16_t BufLen, uint32_t TimeOut);
 
 /**
  * @brief      UART DMA 接收数据，设置接收缓存地址，接收字符长度，接收超时设置
@@ -137,9 +131,7 @@ uint32_t UART1_DMA_Send(uint8_t* SendBuf, uint16_t BufLen, uint32_t TimeOut);
  * @param[in]  TimeOut		超时时间设置，规定时间内接收没有达到预期长度或者没收到收据则放弃接收
  * @return     接收到数据的实际长度
  */
-uint32_t UART0_DMA_Recv(uint8_t* RecvBuf, uint16_t BufLen, uint32_t TimeOut);
-uint32_t UART1_DMA_Recv(uint8_t* RecvBuf, uint16_t BufLen, uint32_t TimeOut);
-#define UARTS_DMA_Recv(UartNum, RecvBuf, BufLen, TimeOut) (*UARTS_DMA_Recv_MAP[UartNum])(RecvBuf, BufLen, TimeOut)
+uint32_t UARTS_DMA_Recv(UART_PORT_T UART_MODULE,uint8_t* RecvBuf, uint16_t BufLen, uint32_t TimeOut);
 
 /**
  * @brief      UART DMA 传送数据，设置传入传送缓存区地址，传送字符长度
@@ -147,17 +139,13 @@ uint32_t UART1_DMA_Recv(uint8_t* RecvBuf, uint16_t BufLen, uint32_t TimeOut);
  * @param[in]  BufLen   	传送字符长度设置
  * @return     无返回值
  */
-void UART0_DMA_SendDataStart(uint8_t* SendBuf, uint16_t BufLen);
-void UART1_DMA_SendDataStart(uint8_t* SendBuf, uint16_t BufLen);
-#define UARTS_DMA_SendDataStart(UartNum, SendBuf, BufLen) (*UARTS_DMA_SendDataStart_MAP[UartNum])(SendBuf, BufLen)
+void UARTS_DMA_SendDataStart(UART_PORT_T UART_MODULE,uint8_t* SendBuf, uint16_t BufLen);
 
 /**
  * @brief      判断数据传送是否完成
  * @return     TURE传送完成 	 FALSE传送未完成
   */
-bool UART0_DMA_TxIsTransferDone(void);
-bool UART1_DMA_TxIsTransferDone(void);
-#define UARTS_DMA_TxIsTransferDone(UartNum) (*UARTS_DMA_TxIsTransferDone_MAP[UartNum])()
+bool UARTS_DMA_TxIsTransferDone(UART_PORT_T UART_MODULE);
 
 /**
  * @brief      UART DMA 	非阻塞方式使能接收，设置接收缓存地址，接收字符长度
@@ -165,33 +153,25 @@ bool UART1_DMA_TxIsTransferDone(void);
  * @param[in]  BufLen   	接收长度设置
  * @return     接收到数据的实际长度
  */
-int32_t UART0_DMA_RecvDataStart(uint8_t* RecvBuf, uint16_t BufLen);
-int32_t UART1_DMA_RecvDataStart(uint8_t* RecvBuf, uint16_t BufLen);
-#define UARTS_DMA_RecvDataStart(UartNum, RecvBuf, BufLen) (*UARTS_DMA_RecvDataStart_MAP[UartNum])(RecvBuf, BufLen)
+int32_t UARTS_DMA_RecvDataStart(UART_PORT_T UART_MODULE,uint8_t* RecvBuf, uint16_t BufLen);
 
 /**
  * @brief      判断是否传输完成
  * @return     TURE传送完成 	 FALSE传送未完成
   */
-bool UART0_DMA_RxIsTransferDone(void);
-bool UART1_DMA_RxIsTransferDone(void);
-#define UARTS_DMA_RxIsTransferDone(UartNum) (*UARTS_DMA_RxIsTransferDone_MAP[UartNum])()
+bool UARTS_DMA_RxIsTransferDone(UART_PORT_T UART_MODULE);
 
 /**
  * @brief      查询DMA接收缓存区数据长度
  * @return     返回数据长度
   */
-int32_t UART0_DMA_RxDataLen(void);
-int32_t UART1_DMA_RxDataLen(void);
-#define UARTS_DMA_RxDataLen(UartNum) (*UARTS_DMA_RxDataLen_MAP[UartNum])()
+int32_t UARTS_DMA_RxDataLen(UART_PORT_T UART_MODULE);
 
 /**
  * @brief      查询DMA发送缓存区数据长度
  * @return     返回数据长度
   */
-int32_t UART0_DMA_TxDataLen(void);
-int32_t UART1_DMA_TxDataLen(void);
-#define UARTS_DMA_TxDataLen(UartNum) (*UARTS_DMA_TxDataLen_MAP[UartNum])()
+int32_t UARTS_DMA_TxDataLen(UART_PORT_T UART_MODULE);
 
 /**
  * @brief      注册UART_DMA模式下的中断回调函数，注意配置中断类型
@@ -199,50 +179,24 @@ int32_t UART1_DMA_TxDataLen(void);
  * param[in]   CallBack		需注册的中断回掉函数，若写入NULL，则关闭回调功能
  * @return     返回数据长度
   */
-void UART0_DMA_RxSetInterruptFun(DMA_INT_TYPE IntType, INT_FUNC CallBack);
-void UART1_DMA_RxSetInterruptFun(DMA_INT_TYPE IntType, INT_FUNC CallBack);
-#define UARTS_DMA_RxSetInterruptFun(UartNum, IntType, CallBack) (*UARTS_DMA_RxSetInterruptFun_MAP[UartNum])(IntType, CallBack)
-void UART0_DMA_TxSetInterruptFun(DMA_INT_TYPE IntType, INT_FUNC CallBack);
-void UART1_DMA_TxSetInterruptFun(DMA_INT_TYPE IntType, INT_FUNC CallBack);
-#define UARTS_DMA_TxSetInterruptFun(UartNum, IntType, CallBack) (*UARTS_DMA_TxSetInterruptFun_MAP[UartNum])(IntType, CallBack)
-
-
-/**
- * @brief      注册UART_DMA模式下的传输完成的中断回调函数，注意配置中断类型
- *             注：该函数等同于，上面的函数的特殊情况->中断类型设置	DMA_DONE_INT
- * param[in]   CallBack		需注册的中断回掉函数，若写入NULL，则关闭回调功能
- * @return     返回数据长度
-  */
-void UART0_DMA_TxSetTransmitDoneFun(INT_FUNC CallBack);
-void UART1_DMA_TxSetTransmitDoneFun(INT_FUNC CallBack);
-#define UARTS_DMA_TxSetTransmitDoneFun(UartNum, CallBack) (*UARTS_DMA_TxSetTransmitDoneFun_MAP[UartNum])(CallBack)
-void UART0_DMA_RxSetTransmitDoneFun(INT_FUNC CallBack);
-void UART1_DMA_RxSetTransmitDoneFun(INT_FUNC CallBack);
-#define UARTS_DMA_RxSetTransmitDoneFun(UartNum, CallBack) (*UARTS_DMA_RxSetTransmitDoneFun_MAP[UartNum])(CallBack)
+void UARTS_DMA_RxSetInterruptFun(UART_PORT_T UART_MODULE,DMA_INT_TYPE IntType, INT_FUNC CallBack);
+void UARTS_DMA_TxSetInterruptFun(UART_PORT_T UART_MODULE,DMA_INT_TYPE IntType, INT_FUNC CallBack);
 
 /**
  * @brief      UART_DMA使能函数
  * @param[in]
  * @return
   */
-void UART0_DMA_RxChannelEn(void);
-void UART1_DMA_RxChannelEn(void);
-#define UARTS_DMA_RxChannelEn(UartNum) (*UARTS_DMA_RxChannelEn_MAP[UartNum])()
-void UART0_DMA_TxChannelEn(void);
-void UART1_DMA_TxChannelEn(void);
-#define UARTS_DMA_TxChannelEn(UartNum) (*UARTS_DMA_TxChannelEn_MAP[UartNum])()
+void UARTS_DMA_RxChannelEn(UART_PORT_T UART_MODULE);
+void UARTS_DMA_TxChannelEn(UART_PORT_T UART_MODULE);
 
 /**
  * @brief      UART_DMA禁用函数
  * @param[in]
  * @return
   */
-void UART0_DMA_RxChannelDisable(void);
-void UART1_DMA_RxChannelDisable(void);
-#define UARTS_DMA_RxChannelDisable(UartNum) (*UARTS_DMA_RxChannelDisable_MAP[UartNum])()
-void UART0_DMA_TxChannelDisable(void);
-void UART1_DMA_TxChannelDisable(void);
-#define UARTS_DMA_TxChannelDisable(UartNum) (*UARTS_DMA_TxChannelDisable_MAP[UartNum])()
+void UARTS_DMA_RxChannelDisable(UART_PORT_T UART_MODULE);
+void UARTS_DMA_TxChannelDisable(UART_PORT_T UART_MODULE);
 
 /**
  * @brief      UART_DMA 中断标志位清除
@@ -250,45 +204,10 @@ void UART1_DMA_TxChannelDisable(void);
  * @return  	DMA_ERROR
  * @note	中断标志在不开启中断的情况下也会置位
   */
-int32_t UART0_DMA_TxIntFlgClr(DMA_INT_TYPE IntType);
-int32_t UART1_DMA_TxIntFlgClr(DMA_INT_TYPE IntType);
-#define UARTS_DMA_TxIntFlgClr(UartNum, IntType) (*UARTS_DMA_TxIntFlgClr_MAP[UartNum])(IntType)
+int32_t UARTS_DMA_TxIntFlgClr(UART_PORT_T UART_MODULE,DMA_INT_TYPE IntType);
 //RX flag clear
-int32_t UART0_DMA_RxIntFlgClr(DMA_INT_TYPE IntType);
-int32_t UART1_DMA_RxIntFlgClr(DMA_INT_TYPE IntType);
-#define UARTS_DMA_RxIntFlgClr(UartNum, IntType) (*UARTS_DMA_RxIntFlgClr_MAP[UartNum])(IntType)
+int32_t UARTS_DMA_RxIntFlgClr(UART_PORT_T UART_MODULE,DMA_INT_TYPE IntType);
 //add new APIs here...
-
-/*UART MCU MAP*/
-bool (*UARTS_Init_MAP[2])(uint32_t BaudRate, uint8_t DataBits, uint8_t Parity, uint8_t StopBits);
-uint32_t (*UARTS_Recv_MAP[2])(uint8_t* RecvBuf, uint32_t BufLen,uint32_t TimeOut);
-bool (*UARTS_RecvByte_MAP[2])(uint8_t* Val);
-uint32_t (*UARTS_Send_MAP[2])(uint8_t* SendBuf, uint32_t BufLen,uint32_t TimeOut);
-void (*UARTS_SendByte_MAP[2])(uint8_t SendByte);
-void (*UARTS_SendByte_In_Interrupt_MAP[2])(uint8_t SendByte);
-int32_t (*UARTS_IOCTL_MAP[2])(UART_IOCTL_CMD_T Cmd, uint32_t Arg);
-
-/*UART DMA MAP*/
-bool (*UARTS_DMA_RxInit_MAP[2])(void* RxBufAddr, uint16_t RxBufLen, uint16_t ThresholdLen, INT_FUNC CallBack);
-bool (*UARTS_DMA_TxInit_MAP[2])(void* TxBufAddr, uint16_t TxBufLen, uint16_t ThresholdLen, INT_FUNC CallBack);
-uint32_t (*UARTS_DMA_Send_MAP[2])(uint8_t* SendBuf, uint16_t BufLen, uint32_t TimeOut);
-uint32_t (*UARTS_DMA_Recv_MAP[2])(uint8_t* RecvBuf, uint16_t BufLen, uint32_t TimeOut);
-void (*UARTS_DMA_SendDataStart_MAP[2])(uint8_t* SendBuf, uint16_t BufLen);
-bool (*UARTS_DMA_TxIsTransferDone_MAP[2])(void);
-int32_t (*UARTS_DMA_RecvDataStart_MAP[2])(uint8_t* RecvBuf, uint16_t BufLen);
-bool (*UARTS_DMA_RxIsTransferDone_MAP[2])(void);
-int32_t (*UARTS_DMA_RxDataLen_MAP[2])(void);
-int32_t (*UARTS_DMA_TxDataLen_MAP[2])(void);
-void (*UARTS_DMA_RxSetInterruptFun_MAP[2])(DMA_INT_TYPE IntType, INT_FUNC CallBack);
-void (*UARTS_DMA_TxSetInterruptFun_MAP[2])(DMA_INT_TYPE IntType, INT_FUNC CallBack);
-void (*UARTS_DMA_RxChannelEn_MAP[2])(void);
-void (*UARTS_DMA_TxChannelEn_MAP[2])(void);
-void (*UARTS_DMA_RxChannelDisable_MAP[2])(void);
-void (*UARTS_DMA_TxChannelDisable_MAP[2])(void);
-int32_t (*UARTS_DMA_TxIntFlgClr_MAP[2])(DMA_INT_TYPE IntType);
-int32_t (*UARTS_DMA_RxIntFlgClr_MAP[2])(DMA_INT_TYPE IntType);
-void (*UARTS_DMA_TxSetTransmitDoneFun_MAP[2])(INT_FUNC CallBack);
-void (*UARTS_DMA_RxSetTransmitDoneFun_MAP[2])(INT_FUNC CallBack);
 
 #ifdef __cplusplus
 }

@@ -29,6 +29,7 @@ const ROBOEFFECT_EFFECT_PARA_TABLE music_node =
 	{
 		.APP_SOURCE_GAIN_ADDR = MUSIC_gain_control0_ADDR,
 		.MIC_SOURCE_GAIN_ADDR = MUSIC_mic_gain_ADDR,
+		.REMIND_SOURCE_GAIN_ADDR = MUSIC_gain_control3_ADDR,
 	},
 
 	//ROBOEFFECT effect SOURCEÓ³Éä
@@ -51,6 +52,7 @@ const ROBOEFFECT_EFFECT_PARA_TABLE music_node =
 		.stereo_sink = MUSIC_SINK_STEREO_SINK,
 		.rec_sink = MUSIC_SINK_REC_SINK,
 		.i2s_mix_sink = AUDIOCORE_SOURCE_SINK_ERROR,
+		.spdif_sink = MUSIC_SINK_SPDIF_SINK,
 	},
 
 	//ROBOEFFECT effect ²ÎÊý

@@ -676,7 +676,10 @@ void BreakPointSave(uint16_t device_msgId)
 #ifdef CFG_APP_BT_MODE_EN
 			pBpSysInfo->HfVolume     = mainAppCt.HfVolume;
 #endif
-			pBpSysInfo->EffectMode   = mainAppCt.EffectMode;			
+			if(mainAppCt.EffectMode != EFFECT_MODE_HFP_AEC)//蓝牙通话模式下，不保存音效模式
+			{
+				pBpSysInfo->EffectMode   = mainAppCt.EffectMode;
+			}
 			pBpSysInfo->MicVolume    = mainAppCt.MicVolume;
 #ifdef CFG_FUNC_MUSIC_EQ_MODE_EN
 			pBpSysInfo->EqMode		 = mainAppCt.EqMode;

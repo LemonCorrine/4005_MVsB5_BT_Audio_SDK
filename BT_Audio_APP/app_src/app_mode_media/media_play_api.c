@@ -29,9 +29,16 @@
 #include "lrc.h"
 #endif
 #include "bt_manager.h"
+
 #if defined(CFG_APP_USB_PLAY_MODE_EN) || defined(CFG_APP_CARD_PLAY_MODE_EN)
 
+#if  (defined(FUNC_BROWSER_PARALLEL_EN)||defined(FUNC_BROWSER_TREE_EN))
+#include "browser_parallel.h"
+#include "browser_tree.h"
+char current_vol[8];//disk volume like 0:/, 1:/
+#else
 static char current_vol[8];//disk volume like 0:/, 1:/
+#endif
 #ifdef CFG_FUNC_LRC_EN
 static int32_t LrcStartTime = -1;
 #endif
@@ -59,6 +66,16 @@ extern uint8_t MediaPlayDevice(void);
 FRESULT f_open_recfile_by_num(FIL *filehandle, UINT Index);
 bool RecFilePlayerInit(void);
 #endif
+
+#ifdef FUNC_BROWSER_PARALLEL_EN
+extern uint32_t gStartFolderIndex;
+extern uint32_t gFolderFocusing;
+extern uint32_t gFileFocusing;// 1-N
+extern uint32_t gStartFileIndex;
+extern ff_file_win gBrowserFileWin[GUI_ROW_CNT_MAX];
+extern ff_dir_win gBrowserDirWin[GUI_ROW_CNT_MAX];
+#endif
+
 bool FolderExclude_callback(FILINFO *finfo)
 {
 
@@ -757,6 +774,12 @@ bool MediaPlayerOpenSongFile(void)
 #endif
 #endif
 	{
+#ifdef FUNC_BROWSER_PARALLEL_EN
+		if(gMediaPlayer->CurPlayMode == PLAY_MODE_BROWSER)
+		{
+			gMediaPlayer->PlayerFolder.FolderIndex = 0;
+		}
+#endif
 		APP_DBG("CurFileIndex = %d\n", gMediaPlayer->CurFileIndex);
 		{
 			if(FR_OK != f_open_by_num(current_vol, &gMediaPlayer->PlayerFolder, &gMediaPlayer->PlayerFile, gMediaPlayer->CurFileIndex, gMediaPlayer->file_longname))
@@ -961,7 +984,41 @@ void MediaPlayerNextSong(bool IsSongPlayEnd)
 			}
 			APP_DBG("Cur File Num = %d\n", gMediaPlayer->CurFileIndex);
 			break;
-		
+#ifdef FUNC_BROWSER_PARALLEL_EN
+		case PLAY_MODE_BROWSER:
+			if(gMediaPlayer->CurPlayMode == PLAY_MODE_BROWSER && GetBrowserPlay_state() == Browser_Play_Normal)
+			{
+				APP_DBG("browser normal play,next song\n");
+				BrowserDn(Browser_File);
+			}
+			else if(gMediaPlayer->CurPlayMode == PLAY_MODE_BROWSER && (GetBrowserPlay_state() != Browser_Play_Normal))
+			{
+
+				if(!gMediaPlayer->PlayerFolder.FileNumLen
+					|| gMediaPlayer->CurFileIndex < gMediaPlayer->PlayerFolder.FirstFileIndex
+					|| gMediaPlayer->CurFileIndex > gMediaPlayer->PlayerFolder.FirstFileIndex + gMediaPlayer->PlayerFolder.FileNumLen - 1)
+				{//合法性检查
+					APP_DBG("No file in dir or file Index out dir!\n ");
+				}
+				gMediaPlayer->CurFileIndex++;
+				if(gMediaPlayer->CurFileIndex > gMediaPlayer->PlayerFolder.FirstFileIndex + gMediaPlayer->PlayerFolder.FileNumLen - 1)
+				{
+					gMediaPlayer->CurFileIndex = gMediaPlayer->PlayerFolder.FirstFileIndex;
+				}
+				APP_DBG("Cur File Num = %d in Folder %d\n", gMediaPlayer->CurFileIndex - gMediaPlayer->PlayerFolder.FirstFileIndex + 1, gMediaPlayer->PlayerFolder.FolderIndex);
+			}
+			else
+			{
+				//PLAY_MODE_BROWSER mode ,but not play,so play as repeat all
+				gMediaPlayer->CurFileIndex++;
+				if(gMediaPlayer->CurFileIndex > gMediaPlayer->TotalFileSumInDisk)
+				{
+					gMediaPlayer->CurFileIndex = 1;
+				}
+				//APP_DBG("browser not normal play,next song=CurFileIndex TotalFileSumInDisk\n",gpMediaPlayer->CurFileIndex,gpMediaPlayer->TotalFileSumInDisk);
+			}
+		break;
+#endif
 		default:
 			break;
 	}
@@ -1037,6 +1094,42 @@ void MediaPlayerPreSong(void)
 				APP_DBG("gMediaPlayer->CurFileIndex = %d\n", gMediaPlayer->CurFileIndex);
 			}			
 			break;
+#ifdef FUNC_BROWSER_PARALLEL_EN
+		case PLAY_MODE_BROWSER:
+			if(gMediaPlayer->CurPlayMode == PLAY_MODE_BROWSER && GetBrowserPlay_state() == Browser_Play_Normal)
+			{
+				APP_DBG("browser normal play,prev song\n");
+				BrowserUp(Browser_File);
+			}
+			else if(gMediaPlayer->CurPlayMode == PLAY_MODE_BROWSER && (GetBrowserPlay_state() != Browser_Play_Normal))
+			{
+
+				if(!gMediaPlayer->PlayerFolder.FileNumLen
+				|| gMediaPlayer->CurFileIndex < gMediaPlayer->PlayerFolder.FirstFileIndex
+				|| gMediaPlayer->CurFileIndex > gMediaPlayer->PlayerFolder.FirstFileIndex + gMediaPlayer->PlayerFolder.FileNumLen - 1)
+				{//合法性检查
+					APP_DBG("No file in dir or file Index out dir!\n ");
+				}
+				gMediaPlayer->CurFileIndex--;
+				if(gMediaPlayer->CurFileIndex < gMediaPlayer->PlayerFolder.FirstFileIndex)
+				{
+					gMediaPlayer->CurFileIndex = gMediaPlayer->PlayerFolder.FirstFileIndex + gMediaPlayer->PlayerFolder.FileNumLen - 1;
+				}
+				APP_DBG("Cur File Num = %d in Folder %d\n", gMediaPlayer->CurFileIndex - gMediaPlayer->PlayerFolder.FirstFileIndex + 1, gMediaPlayer->PlayerFolder.FolderIndex);
+
+			}
+			else
+			{
+				//PLAY_MODE_BROWSER mode ,but not play,so play as repeat all
+				gMediaPlayer->CurFileIndex--;
+				if(gMediaPlayer->CurFileIndex < 1)
+				{
+					gMediaPlayer->CurFileIndex = gMediaPlayer->TotalFileSumInDisk;
+					APP_DBG("gpMediaPlayer->CurFileIndex = %d\n", gMediaPlayer->CurFileIndex);
+				}
+			}
+			break;
+#endif
 		default:
 			break;
 	}	
@@ -1195,8 +1288,21 @@ void MediaPlayerSwitchPlayMode(uint8_t PlayMode)
 		}
 		else
 		{
-			gMediaPlayer->CurPlayMode++;
-			gMediaPlayer->CurPlayMode %= PLAY_MODE_SUM;
+#ifdef FUNC_BROWSER_PARALLEL_EN
+			if(gMediaPlayer->CurPlayMode == PLAY_MODE_RANDOM_FOLDER)
+			{
+				EnterBrowserPlayMode();
+			}
+			else if(gMediaPlayer->CurPlayMode == PLAY_MODE_BROWSER)
+			{
+				ExitBrowserPlayMode();
+			}
+			else
+#endif
+			{
+				gMediaPlayer->CurPlayMode++;
+				gMediaPlayer->CurPlayMode %= PLAY_MODE_SUM;
+			}
 			
 			if(gMediaPlayer->CurPlayMode==PLAY_MODE_PREVIEW_PLAY)
 			{
@@ -1432,75 +1538,108 @@ void MediaPlayerTimeUpdate(void)
 	if((GetMediaPlayerState() == PLAYER_STATE_PLAYING) || (GetMediaPlayerState() == PLAYER_STATE_FF) || (GetMediaPlayerState() == PLAYER_STATE_FB))
 	{
 		gMediaPlayer->CurPlayTime = DecoderServicePlayTimeGet(DECODER_MODE_CHANNEL);
-		if(MediaPlayDevice() == DEV_ID_USB)
-		{
-			APP_DBG("USB ");
-		}
-		else if(MediaPlayDevice() == DEV_ID_SD)
-		{
-			APP_DBG("SD ");
-		}
-		
-		if((gMediaPlayer->CurPlayMode == PLAY_MODE_RANDOM_FOLDER) || (gMediaPlayer->CurPlayMode == PLAY_MODE_REPEAT_FOLDER))
-		{
-			APP_DBG("F(%d/%d, %d/%d) ",(int)gMediaPlayer->CurFolderIndex,(int)gMediaPlayer->ValidFolderSumInDisk,(int)(gMediaPlayer->CurFileIndex - gMediaPlayer->PlayerFolder.FirstFileIndex + 1),(int)gMediaPlayer->PlayerFolder.FileNumLen);
-		}
-		else
-		{
-			APP_DBG("D(%d/%d, %d/%d) ",(int)gMediaPlayer->CurFolderIndex,(int)gMediaPlayer->ValidFolderSumInDisk,(int)gMediaPlayer->CurFileIndex,(int)gMediaPlayer->TotalFileSumInDisk);
-		}
-#ifdef CFG_FUNC_RECORDER_EN
-#if defined(CFG_FUNC_RECORD_SD_UDISK)
-		if(GetSystemMode() == ModeUDiskPlayBack || GetSystemMode() == ModeCardPlayBack)
-		{
-			TCHAR NameStr[FILE_PATH_LEN];
-			IntToStrMP3Name(NameStr, gMediaPlayer->RecFileList[gMediaPlayer->CurFileIndex - 1]);
-			APP_DBG("^%s, %02d:%02d ",
-					NameStr,
-					(int)(gMediaPlayer->CurPlayTime ) / 60,
-					(int)(gMediaPlayer->CurPlayTime ) % 60);
-
-		}
-		else
-#elif defined(CFG_FUNC_RECORD_FLASHFS)
-		if(GetSystemMode() == AppModeFlashFsPlayBack)
-		{
-			APP_DBG("^%s, %02d:%02d ",
-					CFG_PARA_FLASHFS_FILE_NAME,
-					(int)(gMediaPlayer->CurPlayTime ) / 60,
-					(int)(gMediaPlayer->CurPlayTime ) % 60);
-		}
-		else
-#endif
+#if  (defined(FUNC_BROWSER_PARALLEL_EN) || defined(FUNC_BROWSER_TREE_EN))
+		if(GetShowGuiTime()==0)
 #endif
 		{
-			APP_DBG("%s, %02d:%02d ",gMediaPlayer->PlayerFile.fn,(int)(gMediaPlayer->CurPlayTime ) / 60,(int)(gMediaPlayer->CurPlayTime ) % 60);
-		}
-		switch(gMediaPlayer->CurPlayMode)
-		{
-			case PLAY_MODE_REPEAT_ONE:
-				APP_DBG("RP_ONE ");
-				break;
-			case PLAY_MODE_REPEAT_ALL:
-				APP_DBG("RP_ALL ");
-				break;
-			case PLAY_MODE_REPEAT_FOLDER:
-				APP_DBG("RP_FOLDER ");
-				break;
-			case PLAY_MODE_RANDOM_FOLDER:
-				APP_DBG("RDM_FOLDER ");
-				break;
-			case PLAY_MODE_RANDOM_ALL:
-				APP_DBG("RDM_ALL ");
-				break;
-			case PLAY_MODE_REPEAT_OFF:
-				APP_DBG("RP_OFF ");
-				break;
-			default:
-				break;
-		}
-		APP_DBG("\n");
+			if(MediaPlayDevice() == DEV_ID_USB)
+			{
+				APP_DBG("USB ");
+			}
+			else if(MediaPlayDevice() == DEV_ID_SD)
+			{
+				APP_DBG("SD ");
+			}
 
+			if((gMediaPlayer->CurPlayMode == PLAY_MODE_RANDOM_FOLDER) || (gMediaPlayer->CurPlayMode == PLAY_MODE_REPEAT_FOLDER))
+			{
+				APP_DBG("F(%d/%d, %d/%d) ",(int)gMediaPlayer->CurFolderIndex,(int)gMediaPlayer->ValidFolderSumInDisk,(int)(gMediaPlayer->CurFileIndex - gMediaPlayer->PlayerFolder.FirstFileIndex + 1),(int)gMediaPlayer->PlayerFolder.FileNumLen);
+			}
+#ifdef FUNC_BROWSER_PARALLEL_EN
+			else if(gMediaPlayer->CurPlayMode == PLAY_MODE_BROWSER && GetBrowserPlay_state() == Browser_Play_Normal)
+			{
+				APP_DBG("^F(%d/%d, %d/%d) ",
+						//(int)gpMediaPlayer->PlayerFolder.FolderIndex,
+						(int)(gStartFolderIndex+gFolderFocusing-1),
+						(int)gMediaPlayer->ValidFolderSumInDisk,
+						(int)(gMediaPlayer->CurFileIndex - gMediaPlayer->PlayerFolder.FirstFileIndex + 1),
+						(int)gMediaPlayer->PlayerFolder.FileNumLen);
+			}
+			else if(gMediaPlayer->CurPlayMode == PLAY_MODE_BROWSER && GetBrowserPlay_state() != Browser_Play_Normal)
+			{
+				APP_DBG("^F(%d/%d, %d/%d) ",
+						//(int)gpMediaPlayer->PlayerFolder.FolderIndex,
+						(int)gMediaPlayer->CurFolderIndex, //(int)(f_dir_with_song_real_quantity_cur()),
+						(int)gMediaPlayer->ValidFolderSumInDisk,
+						(int)(gMediaPlayer->CurFileIndex - gMediaPlayer->PlayerFolder.FirstFileIndex + 1),
+						(int)gMediaPlayer->PlayerFolder.FileNumLen);
+			}
+#endif
+			else
+			{
+				APP_DBG("D(%d/%d, %d/%d) ",(int)gMediaPlayer->CurFolderIndex,(int)gMediaPlayer->ValidFolderSumInDisk,(int)gMediaPlayer->CurFileIndex,(int)gMediaPlayer->TotalFileSumInDisk);
+			}
+	#ifdef CFG_FUNC_RECORDER_EN
+	#if defined(CFG_FUNC_RECORD_SD_UDISK)
+			if(GetSystemMode() == ModeUDiskPlayBack || GetSystemMode() == ModeCardPlayBack)
+			{
+				TCHAR NameStr[FILE_PATH_LEN];
+				IntToStrMP3Name(NameStr, gMediaPlayer->RecFileList[gMediaPlayer->CurFileIndex - 1]);
+				APP_DBG("^%s, %02d:%02d ",
+						NameStr,
+						(int)(gMediaPlayer->CurPlayTime ) / 60,
+						(int)(gMediaPlayer->CurPlayTime ) % 60);
+
+			}
+			else
+	#elif defined(CFG_FUNC_RECORD_FLASHFS)
+			if(GetSystemMode() == AppModeFlashFsPlayBack)
+			{
+				APP_DBG("^%s, %02d:%02d ",
+						CFG_PARA_FLASHFS_FILE_NAME,
+						(int)(gMediaPlayer->CurPlayTime ) / 60,
+						(int)(gMediaPlayer->CurPlayTime ) % 60);
+			}
+			else
+	#endif
+	#endif
+			{
+				APP_DBG("%s, %02d:%02d ",gMediaPlayer->PlayerFile.fn,(int)(gMediaPlayer->CurPlayTime ) / 60,(int)(gMediaPlayer->CurPlayTime ) % 60);
+			}
+			switch(gMediaPlayer->CurPlayMode)
+			{
+				case PLAY_MODE_REPEAT_ONE:
+					APP_DBG("RP_ONE ");
+					break;
+				case PLAY_MODE_REPEAT_ALL:
+					APP_DBG("RP_ALL ");
+					break;
+				case PLAY_MODE_REPEAT_FOLDER:
+					APP_DBG("RP_FOLDER ");
+					break;
+				case PLAY_MODE_RANDOM_FOLDER:
+					APP_DBG("RDM_FOLDER ");
+					break;
+				case PLAY_MODE_RANDOM_ALL:
+					APP_DBG("RDM_ALL ");
+					break;
+				case PLAY_MODE_REPEAT_OFF:
+					APP_DBG("RP_OFF ");
+					break;
+#ifdef FUNC_BROWSER_PARALLEL_EN
+				case PLAY_MODE_BROWSER:
+					APP_DBG("BROWSER ");
+					break;
+#endif
+				default:
+					break;
+			}
+			APP_DBG("\n");
+		}
+#if  (defined(FUNC_BROWSER_PARALLEL_EN)||defined(FUNC_BROWSER_TREE_EN))
+		else
+			DecShowGuiTime();
+#endif
 #ifdef BP_PART_SAVE_TO_NVM
 		if((GetSystemMode() == ModeUDiskAudioPlay || GetSystemMode() == ModeCardAudioPlay))
 		{
@@ -1802,6 +1941,10 @@ void MediaPlayerBrowserEnter(void)
 	gMediaPlayer->CurPlayTime = 0;
 	gMediaPlayer->SongSwitchFlag = 0;
 	SetMediaPlayerState(PLAYER_STATE_PLAYING);
+
+	MediaPlayerRepeatABClear();
+	SoftFlagRegister(SoftFlagMediaNextOrPrev);
+	MediaPlayerSong();
 }
 
 void SetMediaPlayMode(uint8_t playmode)
@@ -1847,13 +1990,15 @@ void MediaPlayerBrowserEnter(void)
 		gMediaPlayer->CurPlayTime = 0;
 		gMediaPlayer->SongSwitchFlag = 0;
 		SetMediaPlayerState(PLAYER_STATE_PLAYING);
+		APP_DBG("browser song refresh\n");
+		MediaPlayerSongBrowserRefresh();
 	}
 }
 
 void MediaPlayerSongBrowserRefresh(void)
 {
 
-	SoftFlagDeregister(SoftFlagDecoderMask & ~SoftFlagDecoderApp);//清理非App对解码器的登记
+//	SoftFlagDeregister(SoftFlagDecoderMask & ~SoftFlagDecoderApp);//清理非App对解码器的登记
 	MediaPlayerCloseSongFile();//存在重复关闭情况，需兼容。
 
 	/*
@@ -1889,7 +2034,7 @@ void MediaPlayerSongBrowserRefresh(void)
 					MessageContext		msgSend;
 
 					msgSend.msgId		= MSG_MEDIA_PLAY_BROWER_RETURN;
-					MessageSend(GetAppMessageHandle(), &msgSend);
+					MessageSend(GetSysModeMsgHandle(), &msgSend);
 					APP_DBG("Can't play ,please select again");
 					vTaskDelay(5);
 					return;
@@ -1902,7 +2047,7 @@ void MediaPlayerSongBrowserRefresh(void)
 			MessageContext		msgSend;
 
 			msgSend.msgId		= MSG_PRE;
-			MessageSend(GetAppMessageHandle(), &msgSend);
+			MessageSend(GetSysModeMsgHandle(), &msgSend);
 
 		}
 		else
@@ -1910,7 +2055,7 @@ void MediaPlayerSongBrowserRefresh(void)
 			MessageContext		msgSend;
 
 			msgSend.msgId		= MSG_NEXT;
-			MessageSend(GetAppMessageHandle(), &msgSend);
+			MessageSend(GetSysModeMsgHandle(), &msgSend);
 		}
 		vTaskDelay(5);
 
@@ -1918,16 +2063,16 @@ void MediaPlayerSongBrowserRefresh(void)
 	}
 
 	SetMediaPlayerState(PLAYER_STATE_PLAYING);
-	DecoderPlay();
+	DecoderPlay(DECODER_MODE_CHANNEL);
 
 	//此处是否判断快进超过歌曲长度，改为下一首，当前是解码器自动。
 #ifdef CFG_FUNC_BREAKPOINT_EN
-	if(GetSystemMode() == AppModeCardAudioPlay || GetSystemMode() == AppModeUDiskAudioPlay)
+	if(GetSystemMode() == ModeCardAudioPlay || GetSystemMode() == ModeUDiskAudioPlay)
 	{
 		BackupInfoUpdata(BACKUP_SYS_INFO);
 		BackupInfoUpdata(BACKUP_PLAYER_INFO);
 #ifdef BP_PART_SAVE_TO_NVM
-			BackupInfoUpdata(BACKUP_PLAYER_INFO_2NVM);
+		BackupInfoUpdata(BACKUP_PLAYER_INFO_2NVM);
 #endif
 	}
 #endif

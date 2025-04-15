@@ -54,7 +54,7 @@ const static BP_SYS_INFO sInitSysInfo =
 #endif
 	CFG_PARA_SYS_VOLUME_DEFAULT,     			//Music Volume default value
 	
-    EFFECT_MODE_NORMAL,                         //Audio effect mode default value  
+	EFFECT_MODE_DEFAULT,                         //Audio effect mode default value
 
     MAX_MIC_DIG_STEP,                           //Mic Volume default value
     

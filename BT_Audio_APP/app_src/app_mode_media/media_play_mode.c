@@ -330,6 +330,12 @@ static void MediaPlayMsgProcess(uint16_t msgId)
 					MediaPlayerSong();
 				}
 			}
+#ifdef FUNC_BROWSER_PARALLEL_EN
+			else if(GetBrowserPlay_state()==Browser_Play_None)
+			{
+				APP_DBG("browser normal playing,not support ir number key select song \n");
+			}
+#endif
 			else
 			{
 				if((Number_value <= gMediaPlayer->TotalFileSumInDisk) && (Number_value))
@@ -488,6 +494,10 @@ bool MediaPlayInit(void)
 
 	AudioCodecGainUpdata();//update hardware config
 	
+#ifdef FUNC_BROWSER_PARALLEL_EN
+	BrowserVarDefaultSet();
+#endif
+
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 	if(GetSystemMode() == ModeUDiskAudioPlay)
 		ret = RemindSoundServiceItemRequest(SOUND_REMIND_UPANMODE, REMIND_ATTR_NEED_MUTE_APP_SOURCE);
@@ -575,6 +585,9 @@ void MediaPlayRun(uint16_t msgId)
 	}
 
 	MediaPlayMsgProcess(msgId);	
+#if (defined(FUNC_BROWSER_PARALLEL_EN) || defined(FUNC_BROWSER_TREE_EN))
+	BrowserMsgProcess(msgId);
+#endif
 	ModeDecodeProcess();//  decode step 4
 
 }

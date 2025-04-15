@@ -14,7 +14,9 @@ typedef struct _ROBOEFFECT_EFFECT_ADDR
 	uint8_t MUSIC_EQ_ADDR;
 	uint8_t MIC_EQ_ADDR;
 	uint8_t REVERB_ADDR;
+	uint8_t REVERBPLATE_ADDR;
 	uint8_t ECHO_ADDR;
+	uint8_t VOCAL_CUT_ADDR;
 	uint8_t SILENCE_DETECTOR_ADDR;
 	uint8_t VOICE_CHANGER_ADDR;
 	uint8_t APP_SOURCE_GAIN_ADDR;
@@ -32,16 +34,22 @@ typedef enum _ROBOEFFECT_EFFECT_TYPE
 	MUSIC_EQ = 0,
 	MIC_EQ,
 	REVERB,
+	REVERBPLATE,
 	ECHO,
+	VOCAL_CUT,
 	SILENCE_DETECTOR,
 	VOICE_CHANGER,
 	APP_SOURCE_GAIN,
+	I2S_MIX_SOURCE_GAIN,
+	USB_SOURCE_GAIN,
+	LINEIN_MIX_SOURCE_GAIN,
 	REMIND_SOURCE_GAIN,
 	MIC_SOURCE_GAIN,
 	REC_SOURCE_GAIN,
 	DAC0_SINK_GAIN,
 	APP_SINK_GAIN,
 	STEREO_SINK_GAIN,
+	I2S_MIX_SINK_GAIN,
 	REC_SINK_GAIN,
 } ROBOEFFECT_EFFECT_TYPE;
 
@@ -61,8 +69,9 @@ typedef struct _ROBOEFFECT_SINK_NUM
 	uint8_t dac0_sink;		//AUDIO_DAC0_SINK_NUM		//主音频输出在audiocore Sink中的通道，必须配置，audiocore借用此通道buf处理数据
 	uint8_t app_sink;		//AUDIO_APP_SINK_NUM
 	uint8_t stereo_sink;	//AUDIO_STEREO_SINK_NUM     //模式无关Dac0之外的 立体声输出
-	uint8_t rec_sink;	//AUDIO_RECORDER_SINK_NUM		//录音通道
-	uint8_t i2s_mix_sink;  //AUDIO_I2S_MIX_OUT_SINK_NUM //I2S MIX OUT通道
+	uint8_t rec_sink;		//AUDIO_RECORDER_SINK_NUM		//录音通道
+	uint8_t i2s_mix_sink;  	//AUDIO_I2S_MIX_OUT_SINK_NUM //I2S MIX OUT通道
+	uint8_t spdif_sink;		//AUDIO_SPDIF_SINK_NUM
 } ROBOEFFECT_SINK_NUM;
 
 typedef struct _ROBOEFFECT_EFFECT_PARA
@@ -171,6 +180,7 @@ typedef struct __ReverbMaxUnit
 	int16_t  		 max_echo_depth;
 	int16_t  		 max_reverb_wet_scale;
 	int16_t  		 max_reverb_roomsize;
+	int16_t  		 max_reverbplate_wetdrymix;
 } ReverbMaxUnit;
 
 void Roboeffect_GetAudioEffectMaxValue(void);
@@ -178,6 +188,8 @@ void Roboeffect_GetAudioEffectMaxValue(void);
 void Roboeffect_EQ_Ajust(ROBOEFFECT_EFFECT_TYPE type,uint8_t BassGain, uint8_t TrebGain);
 
 void Roboeffect_ReverbStep_Ajust(uint8_t ReverbStep);
+
+void Roboeffect_ReverbPlateStep_Ajust(uint8_t ReverbStep);
 
 uint16_t Roboeffect_SilenceDetector_Get(uint8_t node);
 
@@ -190,8 +202,6 @@ void Roboeffect_EQMode_Set(uint8_t EQMode);
 void Roboeffect_SourceGain_Update(uint8_t Index);
 
 void Roboeffect_SinkGain_Update(uint8_t Index);
-
-void Roboeffect_SinkMute_Set(bool muteFlag);
 
 void roboeffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t *param_input, uint8_t param_len);
 
@@ -209,10 +219,9 @@ uint16_t get_user_effect_parameters_len(uint8_t *user_effect_parameters);
 
 ROBOEFFECT_EFFECT_PARA * get_user_effect_parameters(uint8_t mode);
 
-roboeffect_effect_list_info *get_local_effect_list_buf(void);
-
 uint8_t get_roboeffect_addr(ROBOEFFECT_EFFECT_TYPE effect_name);
 
 uint16_t get_roboeffectVolArr(uint8_t vol);
 
+void AudioEffectParamSync(void);
 #endif

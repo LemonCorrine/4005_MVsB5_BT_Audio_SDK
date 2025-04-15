@@ -71,8 +71,6 @@ extern "C" {
 #define CHANNEL_COMBINER_ENABLE            (1)//do not close as it is a node effect
 #define CHANNEL_SELECTOR_ENABLE            (1)//do not close as it is a node effect
 #define ROUTE_SELECTOR_ENABLE              (1)//do not close as it is a node effect
-#define AI_DENOISE_ENABLE                  (0)
-#define USER_GAIN_ENABLE                   (0)
 
 //effects parameters length
 #define ROBOEFFECT_AUTO_TUNE_PARAM_LEN                3
@@ -132,8 +130,6 @@ extern "C" {
 #define ROBOEFFECT_CHANNEL_COMBINER_PARAM_LEN         0
 #define ROBOEFFECT_CHANNEL_SELECTOR_PARAM_LEN         1
 #define ROBOEFFECT_ROUTE_SELECTOR_PARAM_LEN           1
-#define ROBOEFFECT_AI_DENOISE_PARAM_LEN               1
-#define ROBOEFFECT_USER_GAIN_PARAM_LEN                1
 
 
 //null interface
@@ -483,18 +479,6 @@ bool roboeffect_route_selector_init_if(void *node);
 bool roboeffect_route_selector_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
 bool roboeffect_route_selector_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
 int32_t roboeffect_route_selector_scratch_size(uint32_t sample_rate, uint16_t frame_size, uint16_t width, uint8_t ch_num, int16_t *parameters);
-
-//ai_denoise interface
-bool roboeffect_ai_denoise_init_if(void *node);
-bool roboeffect_ai_denoise_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
-bool roboeffect_ai_denoise_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
-int32_t roboeffect_ai_denoise_scratch_size(uint32_t sample_rate, uint16_t frame_size, uint16_t width, uint8_t ch_num, int16_t *parameters);
-
-//user_gain interface
-bool roboeffect_user_gain_init_if(void *node);
-bool roboeffect_user_gain_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
-bool roboeffect_user_gain_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
-int32_t roboeffect_user_gain_scratch_size(uint32_t sample_rate, uint16_t frame_size, uint16_t width, uint8_t ch_num, int16_t *parameters);
 
 //user callback
 uint16_t effect_property_for_robo_size(void);

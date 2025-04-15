@@ -84,26 +84,26 @@ bool UsbDevicePlayResMalloc(uint16_t SampleLen)
 //pc->chip
 #ifdef CFG_RES_AUDIO_USB_IN_EN
 	//Speaker FIFO
-	UsbAudioSpeaker.PCMBuffer = osPortMalloc(SampleLen * 16);
+	UsbAudioSpeaker.PCMBuffer = osPortMalloc(SampleLen * 16 * (USBD_AUDIO_FREQ / CFG_PARA_SAMPLE_RATE));
 	if(UsbAudioSpeaker.PCMBuffer == NULL)
 	{
 		APP_DBG("UsbAudioSpeaker.PCMBuffer memory error\n");
 		return FALSE;
 	}
-	memset(UsbAudioSpeaker.PCMBuffer, 0, SampleLen * 16);
-	MCUCircular_Config(&UsbAudioSpeaker.CircularBuf, UsbAudioSpeaker.PCMBuffer, SampleLen * 16);
+	memset(UsbAudioSpeaker.PCMBuffer, 0, SampleLen * 16 * (USBD_AUDIO_FREQ / CFG_PARA_SAMPLE_RATE));
+	MCUCircular_Config(&UsbAudioSpeaker.CircularBuf, UsbAudioSpeaker.PCMBuffer, SampleLen * 16  * (USBD_AUDIO_FREQ / CFG_PARA_SAMPLE_RATE));
 #endif//end of CFG_RES_USB_IN_EN
 
 #ifdef CFG_RES_AUDIO_USB_OUT_EN
 	//MIC FIFO
-	UsbAudioMic.PCMBuffer = osPortMalloc(SampleLen * 16);
+	UsbAudioMic.PCMBuffer = osPortMalloc(SampleLen * 16 * (USBD_AUDIO_MIC_FREQ / CFG_PARA_SAMPLE_RATE));
 	if(UsbAudioMic.PCMBuffer == NULL)
 	{
 		APP_DBG("UsbAudioMic.PCMBuffer memory error\n");
 		return FALSE;
 	}
-	memset(UsbAudioMic.PCMBuffer, 0, SampleLen * 16);
-	MCUCircular_Config(&UsbAudioMic.CircularBuf, UsbAudioMic.PCMBuffer, SampleLen * 16);
+	memset(UsbAudioMic.PCMBuffer, 0, SampleLen * 16 * (USBD_AUDIO_MIC_FREQ / CFG_PARA_SAMPLE_RATE));
+	MCUCircular_Config(&UsbAudioMic.CircularBuf, UsbAudioMic.PCMBuffer, SampleLen * 16 * (USBD_AUDIO_MIC_FREQ / CFG_PARA_SAMPLE_RATE));
 #endif///end of CFG_REGS_AUDIO_USB_OUT_EN
 
 	return TRUE;
@@ -133,7 +133,7 @@ void UsbDevicePlayResInit(void)
 	AudioIOSet.Net = DefaultNet;
 	AudioIOSet.DataIOFunc = UsbAudioSpeakerDataGet;
 	AudioIOSet.LenGetFunc = UsbAudioSpeakerDataLenGet;
-	AudioIOSet.Depth = AudioCoreFrameSizeGet(DefaultNet) * 2;//fifo 采样点深度  便于微调监测
+	AudioIOSet.Depth = UsbAudioSpeakerDepthGet();
 	AudioIOSet.LowLevelCent = 40;
 	AudioIOSet.HighLevelCent = 60;
 	if(UsbAudioSpeaker.AudioSampleRate) //已枚举
@@ -166,7 +166,7 @@ void UsbDevicePlayResInit(void)
 #if !defined(CFG_PARA_AUDIO_USB_OUT_SRC)
 	AudioIOSet.Adapt = SRA_ONLY;//CLK_ADJUST_ONLY;
 #else
-	AudioIOSet.Adapt = SRC_ONLY;//SRC_ADJUST;
+	AudioIOSet.Adapt = SRC_SRA;//SRC_ADJUST;
 #endif
 #endif
 	AudioIOSet.Sync = FALSE;//FALSE;//
@@ -174,7 +174,7 @@ void UsbDevicePlayResInit(void)
 	AudioIOSet.Net = DefaultNet;
 	AudioIOSet.DataIOFunc = UsbAudioMicDataSet;
 	AudioIOSet.LenGetFunc = UsbAudioMicSpaceLenGet;
-	AudioIOSet.Depth = AudioCoreFrameSizeGet(DefaultNet) * 2;//fifo 采样点深度
+	AudioIOSet.Depth = UsbAudioMicDepthGet();
 	AudioIOSet.LowLevelCent = 40;
 	AudioIOSet.HighLevelCent = 60;
 
@@ -194,6 +194,7 @@ void UsbDevicePlayResInit(void)
 	{
 		DBG("Usbout sink error!\n");
 	}
+	AudioCoreSinkAdjust(USB_AUDIO_SINK_NUM,TRUE);
 #endif //CFG_RES_AUDIO_USB_OUT_EN
 }
 //usb声卡模式硬件相关初始化
@@ -207,7 +208,7 @@ void UsbDevicePlayHardwareInit(void)
 		memset(&UsbAudioSpeaker,0,24);
 		memset(&UsbAudioMic,0,24);
 
-		UsbAudioSpeaker.Channels    = PACKET_CHANNELS_NUM;
+		UsbAudioSpeaker.Channels    = 2;
 		UsbAudioSpeaker.LeftVol    = AUDIO_MAX_VOLUME;
 		UsbAudioSpeaker.RightVol   = AUDIO_MAX_VOLUME;
 

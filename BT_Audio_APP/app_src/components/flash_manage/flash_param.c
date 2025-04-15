@@ -1,6 +1,7 @@
 #include "type.h"
 #include "sys_param.h"
 #include "flash_param.h"
+#include "bt_config.h"
 
 const FLASH_PARAMETER SysDefaultParm =
 {
@@ -17,16 +18,16 @@ const FLASH_PARAMETER SysDefaultParm =
 			BT_PAGE_TX_POWER_LEVEL},//蓝牙回连发射功率
 
 	.BtTrim = {BT_PARA_TRIM_VAL_ID,sizeof(SysDefaultParm.BtTrim.para_val),
-			BT_TRIM},//trim值
+			BT_DEFAULT_TRIM},//trim值
 	.bt_CallinRingType = {BT_PARA_CallinRingType_ID,sizeof(SysDefaultParm.bt_CallinRingType.para_val),
-			USE_LOCAL_AND_PHONE_RING},//2 -> 使用手机铃声，若没有则播本地铃声
+			SYS_DEFAULT_RING_TYPE},
 	.bt_BackgroundType = {BT_PARA_BackgroundType_ID,sizeof(SysDefaultParm.bt_BackgroundType.para_val),
-			BT_BACKGROUND_FAST_POWER_ON_OFF},//0 -> BT后台不能连接手机
+			SYS_BT_BACKGROUND_TYPE},
 
 	.bt_SimplePairingEnable = {BT_PARA_SimplePairingEnable_ID,sizeof(SysDefaultParm.bt_SimplePairingEnable.para_val),
-			1},// SIMPLEPAIRING 开启
+			BT_SIMPLEPAIRING_FLAG},// SIMPLEPAIRING 开启
 	.bt_PinCode = {BT_PARA_PinCode_ID,sizeof(SysDefaultParm.bt_PinCode.code),
-			"0000"},// Pin code设置
+			BT_PINCODE},// Pin code设置
 
 	.bt_Reconnection =  {BT_PARA_ReconnectionEnable_ID,sizeof(SysDefaultParm.bt_Reconnection.para),
 			{1,5,3,1,90,5}},//参数1 BT自动重连(开机或者切换模式)  --- 1 开启

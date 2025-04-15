@@ -51,6 +51,7 @@ const ROBOEFFECT_EFFECT_PARA_TABLE hfp_node =
 		.stereo_sink = HFP_SINK_STEREO_SINK,
 		.rec_sink = HFP_SINK_REC_SINK,
 		.i2s_mix_sink = AUDIOCORE_SOURCE_SINK_ERROR,
+		.spdif_sink = HFP_SINK_SPDIF_SINK,
 	},
 
 	//ROBOEFFECT effect ²ÎÊý

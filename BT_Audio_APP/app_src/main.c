@@ -268,7 +268,7 @@ int main(void)
 	uint16_t RstFlag = 0;
 //	extern char __sdk_code_start;
 
-	//Chip_Init(1);
+	Chip_Init(1);
 	WDG_Enable(WDG_STEP_4S);
 //	WDG_Disable();
 
@@ -370,7 +370,7 @@ int main(void)
 	APP_DBG("Audio Decoder Version: %s\n", (unsigned char *)audio_decoder_get_lib_version());
 	APP_DBG("Audio Effect  Lib Version: %s\n", (char *)effect_lib_version_return());
 	APP_DBG("Roboeffect  Lib Version: %s\n", ROBOEFFECT_LIB_VER);
-	APP_DBG("Driver Version: %s %x\n", GetLibVersionDriver(),Chip_Version());
+	APP_DBG("Driver Version: %s %x\n", GetLibVersionDriver(),Read_ChipECO_Version());
 #ifdef CFG_FUNC_LRC_EN
     APP_DBG("Lrc Version: %s\n", GetLibVersionLrc()); 
 #endif

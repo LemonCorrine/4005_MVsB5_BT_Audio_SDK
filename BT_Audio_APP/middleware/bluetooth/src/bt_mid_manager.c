@@ -683,22 +683,22 @@ void BtCurIndex_Set(uint8_t index)
 	}		
 
 
-	extern void Acl_duration_cancel(uint8_t* addr);
-	if(index == 0)
-		unused_index = 1;
-	else
-		unused_index = 0;
-	if(btManager.btLinked_env[unused_index].btLinkState)
-		Acl_duration_cancel(btManager.btLinked_env[unused_index].remoteAddr);
-	if(GetSystemMode() != ModeBtHfPlay)
-	{
-		extern void Acl_duartion_update(uint8_t* addr,uint32_t duration_plus);
-		Acl_duartion_update(btManager.btLinked_env[btManager.cur_index].remoteAddr,2*625);//4*625);//8*625);
-	}
-	else
-	{
-		Acl_duration_cancel(btManager.btLinked_env[btManager.cur_index].remoteAddr);
-	}
+//	extern void Acl_duration_cancel(uint8_t* addr);
+//	if(index == 0)
+//		unused_index = 1;
+//	else
+//		unused_index = 0;
+//	if(btManager.btLinked_env[unused_index].btLinkState)
+//		Acl_duration_cancel(btManager.btLinked_env[unused_index].remoteAddr);
+//	if(GetSystemMode() != ModeBtHfPlay)
+//	{
+//		extern void Acl_duartion_update(uint8_t* addr,uint32_t duration_plus);
+//		Acl_duartion_update(btManager.btLinked_env[btManager.cur_index].remoteAddr,2*625);//4*625);//8*625);
+//	}
+//	else
+//	{
+//		Acl_duration_cancel(btManager.btLinked_env[btManager.cur_index].remoteAddr);
+//	}
 #else
 	btManager.cur_index = 0;
 #endif

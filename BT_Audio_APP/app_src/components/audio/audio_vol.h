@@ -20,7 +20,6 @@ extern "C" {
 
 #include "app_config.h"
 
-extern const uint16_t gSysVolArr[];
 void AudioMusicVol(uint8_t musicVol);
 bool IsAudioPlayerMute(void);
 void AudioPlayerMenu(void);
@@ -34,9 +33,7 @@ void AudioMusicVolUp(void);
 void SystemVolUp(void);
 void SystemVolDown(void);
 void SystemVolSet(void);
-void SystemVolSetChannel(int8_t SetChannel, uint8_t volume);
 void CommonMsgProccess(uint16_t Msg);
-void SetRecMusic(uint8_t if_para_use);
 
 uint8_t BtAbsVolume2VolLevel(uint8_t absValue);
 uint8_t BtLocalVolLevel2AbsVolme(uint8_t localValue);

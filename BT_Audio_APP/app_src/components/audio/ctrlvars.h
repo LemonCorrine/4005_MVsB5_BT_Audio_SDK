@@ -22,14 +22,7 @@ extern "C" {
 #include "app_config.h"
 #include "bt_config.h"
 #include "audio_core_api.h"
-#include "blue_aec.h"
-#include "vocalcut.h"
 
-#define  CTRL_VARS_SYNC_WORD            (0x43564347)
-
-#define  MIN_VOLUME                     (0)
-#define  MAX_VOLUME                     (63)
-#define  VOLUME_COUNT                   (MAX_VOLUME - MIN_VOLUME + 1)
 #define  MIN_BASS_TREB_GAIN             (0)
 #define  MAX_BASS_TREB_GAIN             (15)
 #define  MIN_MIC_DIG_STEP               (0)
@@ -40,29 +33,20 @@ extern "C" {
 #define  MAX_MIC_EFFECT_DELAY_STEP      (32)
 #define  MIN_MUSIC_DIG_STEP             (0)
 #define  MAX_MUSIC_DIG_STEP             (32)
-#define  BASS_TREB_GAIN_STEP            (1)
-#define  MIN_AUTOTUNE_STEP              (0)
-#define  MAX_AUTOTUNE_STEP              (11)
 
 	
 typedef enum _EFFECT_MODE
 {
-	//0-9的音效编号存储于flash固定区域中
-	EFFECT_MODE_FLASH_HFP_AEC = 0,
-	EFFECT_MODE_FLASH_USBPHONE0_AEC = 1,
-	EFFECT_MODE_FLASH_Music=2,
-	EFFECT_MODE_FLASH_Movie,
-	EFFECT_MODE_FLASH_News,
-	EFFECT_MODE_FLASH_Game=5,
-//	EFFECT_MODE_FLASH_NORMAL6,
-//	EFFECT_MODE_FLASH_NORMAL7,
-//	EFFECT_MODE_FLASH_NORMAL8,
-//	EFFECT_MODE_FLASH_NORMAL9,
-    EFFECT_MODE_NORMAL=10,//固化到代码中的第一个音效
+	EFFECT_MODE_DEFAULT = 0,
+	/**********mic node****************/
 	EFFECT_MODE_MIC,
+	/**********music node**************/
 	EFFECT_MODE_MUSIC,
+	/**********bypass node*************/
 	EFFECT_MODE_BYPASS,
+	/**********hfp node****************/
 	EFFECT_MODE_HFP_AEC,
+	/**********karaoke node************/
     EFFECT_MODE_HunXiang,
     EFFECT_MODE_DianYin,
     EFFECT_MODE_MoYin,
@@ -70,27 +54,8 @@ typedef enum _EFFECT_MODE
     EFFECT_MODE_NanBianNv,
     EFFECT_MODE_NvBianNan,
     EFFECT_MODE_WaWaYin,
-	EFFECT_MODE_ECHO, 
-	EFFECT_MODE_REVERB,
-	EFFECT_MODE_ECHO_REVERB,
-    EFFECT_MODE_PITCH_SHIFTER,    
-    EFFECT_MODE_VOICE_CHANGER,   
-    EFFECT_MODE_AUTO_TUNE, 
-    EFFECT_MODE_BOY,
-    EFFECT_MODE_GIRL,
-    EFFECT_MODE_KTV,
-    EFFECT_MODE_BaoYin,
-    #ifdef BT_TWS_SUPPORT
-	EFFECT_MODE_NORMAL_SLAVE,
-	EFFECT_MODE_HunXiang_Slave,    
-    EFFECT_MODE_DianYin_Slave,
-    EFFECT_MODE_MoYin_Slave,
-    EFFECT_MODE_HanMai_Slave,
-    EFFECT_MODE_NanBianNv_Slave,
-    EFFECT_MODE_NvBianNan_Slave,
-    EFFECT_MODE_WaWaYin_Slave,
-	#endif
-	EFFECT_MODE_YuanSheng,
+
+	EFFECT_MODE_COUNT,
     //User can add other effect mode
 } EFFECT_MODE;
 
@@ -125,16 +90,6 @@ typedef enum _EQ_MODE
 #define ANA_INPUT_CH_LINEIN3 3
 #define ANA_INPUT_CH_LINEIN4 4
 #define ANA_INPUT_CH_LINEIN5 5
-
-//原音效多组参数
-typedef struct
-{
-	uint8_t       	eff_mode;
-	const uint8_t*	EffectParamas;
-	uint16_t	  	len;
-	const uint8_t*	CommParam;
-	const char* 	EffectNameStr;
-}AUDIO_EFF_PARAMAS;
 
 //for ADC0 PGA      0x03
 typedef struct _ADC0PGAContext
@@ -304,7 +259,6 @@ typedef struct _ControlVariablesContext
 
 extern ControlVariablesContext gCtrlVars;
 
-extern const uint8_t MIC_BOOST_LIST[5];
 extern const uint16_t HPCList[3];
 
 void CtrlVarsInit(void);
@@ -319,22 +273,10 @@ void AudioLine3MicSelect(void);
 //只更新增益相关参数，其他参数比如通道选择不会同步更新，必须由SDK代码来实现
 void AudioCodecGainUpdata(void);
 
-extern const uint8_t AutoTuneKeyTbl[13];
-extern const uint8_t AutoTuneSnapTbl[3];
-extern const int16_t DeltafTable[8];
-extern const AUDIO_EFF_PARAMAS EFFECT_TAB[EFFECT_MODE_NUM_ACTIVCE];
-#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
-extern const AUDIO_EFF_PARAMAS EFFECT_TAB_FLASH[CFG_EFFECT_PARAM_IN_FLASH_ACTIVCE_NUM];
-#endif
 extern const uint16_t DigVolTab_256[256];
 extern const int16_t DigVolTab_64[64];
 extern const int16_t DigVolTab_32[32];
 extern const int16_t DigVolTab_16[16];
-extern const int16_t EchoDlyTab_16[16];
-extern const uint8_t ReverbRoomTab[16];
-extern const uint8_t PlateReverbRoomTab[16];
-extern const int32_t EXPANDER_DEFAULT_TABLE[][2];
-extern const int32_t GAIN_CONTROL_TABLE[][16];
 extern const int16_t BassTrebGainTable[16];
 
 #ifdef CFG_FUNC_MUSIC_EQ_MODE_EN

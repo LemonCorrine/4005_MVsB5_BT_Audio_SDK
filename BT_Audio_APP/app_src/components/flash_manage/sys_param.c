@@ -6,7 +6,7 @@
 #include "flash_param.h"
 #include "rtos_api.h"
 #include "debug.h"
-#include "app_config.h"
+#include "bt_config.h"
 
 SYS_PARAMETER sys_parameter;
 
@@ -16,12 +16,12 @@ static const SYS_PARAMETER default_parameter =
 	.ble_LocalDeviceName	= BLE_NAME,
 	.bt_TxPowerLevel		= BT_TX_POWER_LEVEL,
 	.bt_PagePowerLevel		= BT_PAGE_TX_POWER_LEVEL,
-	.BtTrim					= BT_TRIM,
+	.BtTrim					= BT_DEFAULT_TRIM,
 	.TwsVolSyncEnable		= TRUE,	//主从之间音量控制同步
-	.bt_CallinRingType		= USE_LOCAL_AND_PHONE_RING,
-	.bt_BackgroundType		= BT_BACKGROUND_FAST_POWER_ON_OFF,
-	.bt_SimplePairingEnable	= TRUE,
-	.bt_PinCode				= "0000",
+	.bt_CallinRingType		= SYS_DEFAULT_RING_TYPE,
+	.bt_BackgroundType		= SYS_BT_BACKGROUND_TYPE,
+	.bt_SimplePairingEnable	= BT_SIMPLEPAIRING_FLAG,
+	.bt_PinCode				= BT_PINCODE,
 	.bt_ReconnectionEnable			= TRUE,
 	.bt_ReconnectionTryCounts		= 5,
 	.bt_ReconnectionInternalTime	= 3,

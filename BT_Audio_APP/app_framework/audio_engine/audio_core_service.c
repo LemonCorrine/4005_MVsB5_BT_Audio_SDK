@@ -148,10 +148,6 @@ static void AudioCoreServiceEntrance(void * param)
 		{
 			//audiocore 在转模式的时候可能暂停 Mark
 			AudioCoreRun();
-#ifdef CFG_FUNC_RECORDER_EN
-			void MediaRecorderEncode(void);
-			MediaRecorderEncode();
-#endif
 		}
 
 #ifdef CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN//usb path

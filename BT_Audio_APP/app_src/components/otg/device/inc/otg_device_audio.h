@@ -28,6 +28,8 @@ extern "C" {
 #define AUDIO_MAX_VOLUME	4096
 #define AUDIO_MIN_VOLUME	0
 #define AUDIO_RES_VOLUME	1
+
+
 typedef struct _UsbAudio
 {
 	uint8_t					InitOk;
@@ -60,11 +62,12 @@ void PCAudioVolDn(void);
 uint16_t UsbAudioSpeakerDataGet(void *Buffer,uint16_t Len);
 //pc->chip 获取缓存区数据长度
 uint16_t UsbAudioSpeakerDataLenGet(void);
+uint16_t UsbAudioSpeakerDepthGet(void);
 //chip->pc 保存数据到缓存区
 uint16_t UsbAudioMicDataSet(void *Buffer,uint16_t Len);
 //chip->pc 数据缓存区剩余空间
 uint16_t UsbAudioMicSpaceLenGet(void);
-
+uint16_t UsbAudioMicDepthGet(void);
 #ifdef  __cplusplus
 }
 #endif//__cplusplus

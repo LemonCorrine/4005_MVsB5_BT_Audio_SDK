@@ -227,66 +227,6 @@ uint32_t Power_WakeupGpioGet(PWR_SYSWAKEUP_SOURCE_SEL SourSel);
  */
 uint8_t Power_WakeupEdgeGet(PWR_SYSWAKEUP_SOURCE_SEL SourSel);
 
-// /**
-//  * @brief  配置限流值
-//  * @param  Mode = 1，限流值280mA； Mode = 0，限流值60mA
-//  * @return 无
-//  */
-// void Power_CurrentLimitcConfig(uint32_t Mode);
-
-// /**
-//  * @brief  配置限流值
-//  * @param  PowerMode: 1高电压输入，大于3.6V; 0:低于3.6V
-//  * @param  IsChipWork:
-//  * @return 无
-//  */
-// void Power_PowerModeConfig(uint32_t PowerMode, bool IsChipWork);
-
-// /**
-//  * @brief  设置Rtc32K闹钟
-//  * @param  alarm:闹钟时间（单位秒）
-//  * @param  start:时钟计数初值：单位秒，一般为0
-//  * @param  stop时钟计数初值：单位秒，一般为0
-//  * @return 无
-//  */
-// void Power_AlarmSet(uint32_t alarm, uint32_t start, uint32_t stop);
-
-// /**
-//  * @brief  配置underpower的LDO电压需要调用此函数
-//  * @param  src:systerm core src base address0
-//  * @param  dest:systerm core dest base address0
-//  * @param  size:systerm core base address0 map size
-//  * @return 无
-//  */
-// void Power_FlashRemap2Sram(uint32_t src, uint32_t dest, uint32_t size);
-
-// /**
-//  * @brief  配置underpower的LDO电压需要调用此函数
-//  * @param  TRUE:进入DeepSleep关闭RC时钟; FALSE:进入DeepSleep不会关闭RC时钟
-//  * @return 无
-//  */
-// void Power_DeepSleepLDO12Config(bool IsAudoCutRcClk);
-
-// /**
-//  * @brief  配置LDO12电压需要调用此函数
-//  * @param  value:单位：mV；
-//  *               范围：1000mV~1300mV
-//  * @return 无
-//  * @note  芯片个体之间会有稍许差异和偏差，偏差范围在0mV~9mV之间；
-//  */
-// void Power_LDO12Config(uint32_t value);
-
-
-/**
- * @brief  配置LDO_33A电压需要调用此函数
- * @param  value:单位：mV；
- *               范围：2950mV~3600mV
- * @return 无
- * @note  芯片个体之间会有稍许差异和偏差，偏差范围在0mV~20mV之间；
- * @note  33A电压调整之后对33D电压有影响
- */
-void Power_LDO33AConfig(uint32_t value);
-
 /**
  * @brief  使能LVD低电压检测（VIN电压）
  * @param  无
@@ -318,26 +258,6 @@ void Power_LVDThresholdSel(PWR_LVD_Threshold_SEL Lvd_Threshold_Sel);
  * @note   无
  */
 void Power_LVDWakeupConfig(PWR_LVD_Threshold_SEL Lvd_Threshold_Sel);
-
-// /**
-//  * @brief  使用DeepSleep功能时决定是否开启LPM模式
-//  * @param  IsLDO33A_LPM  TRUE:开启LDO33A的LPM模式；FALSE:默认值（开启LDO33A的HPM模式）
-//  * @param  IsLDO33D_LPM  TRUE:开启LDO33D的LPM模式；FALSE:默认值（开启LDO33D的HPM模式）
-//  * @param  IsLDO12_LPM   TRUE:开启LDO12的LPM模式；FALSE:默认值（开启LDO12的HPM模式）
-//  * @return 无
-//  * @note   无
-//  */
-// void Power_PowerModeConfigTest(bool IsLDO33A_LPM, bool IsLDO33D_LPM, bool IsLDO12_LPM);
-
-// /**
-//  * @brief  使用DeepSleep功能时调节LDO12的电压
-//  * @param  LDO1V2_HV_Val  LDO12往高电压方向调节的参数(只有1个档位，即1增加1V)
-//  * @param  LDO1V2_LV_Val  LDO12往低电压方向调节的参数(0~15共16个档位，电压按照线性降低，每档位降低40mV)
-//  * @param  LDO1V2_TRIM_Val  LDO12电压会向两个方向变化；0~31按照线性降低，每个档位3mV；32电压最大，32~63按照线性降低，每个档位3mV；
-//  * @return 无
-//  * @note   无
-//  */
-// void Power_DeepSleepLDO12ConfigTest(uint8_t LDO1V2_LV_Val, uint8_t LDO1V2_HV_Val, uint8_t LDO1V2_TRIM_Val);
 
 /**
  * @brief   Is HRC run during deepsleep?
@@ -386,14 +306,21 @@ void Power_LDO16DConfigHighCurrentLimit(uint8_t OCSel_val);
  */
 void Power_LDO33AConfigHighCurrentLimit(uint8_t OCSel_val);
 
-/*
- * ldo_switch_to_dcdc
- * trim_cfg: 3-1.9V;7-1.8;12-1.7V;18-1.6V;27-1.5V;39-1.4V;57-1.3V
- */
+/**
+* @brief  ldo_switch_to_dcdc
+* @param  trim_cfg: 3-1.9V;7-1.8;12-1.7V;18-1.6V;27-1.5V;39-1.4V;57-1.3V
+* @return void
+* @note   注意：不支持DCDC的芯片型号请勿调用该接口，否则会导致芯片因无法正常供电而无法工作！
+*/
 void ldo_switch_to_dcdc(uint8_t trim_cfg);
 
 
-// value: 7: 1.69V; 6:1.75; 0:1.65 1:1.60V default max power
+/**
+ * @brief  Power config LDO16 voltage
+ * @param  value: 0-1.6V, 1-1.7V, 2-1.8V
+ * @return void
+ * @note   none
+ */
 void Power_LDO16Config(uint8_t value);
 
 #ifdef  __cplusplus

@@ -23,6 +23,7 @@
 #include "audio_core_service.h"
 #include "audio_vol.h"
 #include "recorder_service.h"
+#include "watchdog.h"
 #define SYS_MODE_NUM_MESSAGE_QUEUE			20
 #define SYS_MODE_MSG_TIMEOUT 				1
 #define MODE_TASK_PRIO						4
@@ -398,6 +399,18 @@ void SysModeGenerate(uint16_t Msg)
 	uint32_t count=0;
 	SysModeNumber mode_search_count=0;
 	
+#ifdef CFG_FUNC_RECORDER_EN
+	extern TaskState GetMediaRecorderState(void);
+	extern void RecServierToParentAgain(uint16_t id);
+	if(GetMediaRecorderState() == TaskStateRunning &&
+	  (Msg == MSG_MODE||Msg ==MSG_SOFT_MODE || Msg == MSG_ENTER_IDLE_MODE || Msg == MSG_QUIT_IDLE_MODE)
+	   )//Í£Ö¹Â¼Òô
+	{
+		RecServierToParentAgain(Msg);
+		return;
+	}
+#endif
+
 	if(Msg == MSG_MODE||Msg ==MSG_SOFT_MODE)
 	{
 		if(Msg == MSG_MODE)
@@ -497,7 +510,14 @@ static void SysModeDeinit(void)
 				TimeOutSet(&time_out,1000);
 				while(ModeInputFunction.RemindRun(ModeStateDeinit) && (!IsTimeOut(&time_out)));
 				if(IsTimeOut(&time_out))
+				{
+			#ifdef SOFT_WACTH_DOG_ENABLE
+					big_dog_feed();
+			#else
+					WDG_Feed();
+			#endif
 					APP_DBG("RemindRun Deinit time out!\n");
+				}
 			}
 
 			APP_DBG("--Deinit mode-- %s\n",GetModeNameStr(SysMode[Deinit_count].ModeNumber));
@@ -573,10 +593,6 @@ static void SysModeInit(void)
 			{
 				ModeInputFunction.RemindRun(ModeStateInit);
 			}
-			#ifdef TWS_SLAVE_MODE_SWITCH_EN
-			extern void TwsSlaveModeSwitchDeal(SysModeNumber pre, SysModeNumber Cur);
-			TwsSlaveModeSwitchDeal(mainAppCt.SysPrevMode, mainAppCt.SysCurrentMode);
-			#endif
 			
 			APP_DBG("\n SysModeInit-----SysPrevMode = %s SysCurrentMode = %s-----\n",GetModeNameStr(mainAppCt.SysPrevMode),GetModeNameStr(mainAppCt.SysCurrentMode));
 			if(SysMode[init_count].SysModeInit() == TRUE)
@@ -635,12 +651,16 @@ static void SysModeEntrance(void * param)
 	MessageContext		msg;
 	
 	SysModeCt.msgHandle = MessageRegister(SYS_MODE_NUM_MESSAGE_QUEUE);
-	
 	while(1)
 	{
 		MessageRecv(SysModeCt.msgHandle, &msg, SYS_MODE_MSG_TIMEOUT);
 #ifdef SOFT_WACTH_DOG_ENABLE
 		little_dog_feed(DOG_INDEX1_ModeTask);
+#endif
+
+#ifdef CFG_FUNC_RECORDER_EN
+			void MediaRecorderEncode(void);
+			MediaRecorderEncode();
 #endif
 
 		SysModeDeinit();

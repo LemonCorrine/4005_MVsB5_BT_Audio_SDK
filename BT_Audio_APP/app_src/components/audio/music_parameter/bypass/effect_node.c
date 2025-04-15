@@ -49,6 +49,7 @@ const ROBOEFFECT_EFFECT_PARA_TABLE bypass_node =
 		.stereo_sink = BYPASS_SINK_STEREO_SINK,
 		.rec_sink = BYPASS_SINK_REC_SINK,
 		.i2s_mix_sink = AUDIOCORE_SOURCE_SINK_ERROR,
+		.spdif_sink = BYPASS_SINK_SPDIF_SINK,
 	},
 
 	//ROBOEFFECT effect ²ÎÊý

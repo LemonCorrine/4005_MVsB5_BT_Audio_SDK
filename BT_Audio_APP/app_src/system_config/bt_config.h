@@ -13,7 +13,7 @@
 /*****************************************************************
  * 蓝牙频偏参数
  *****************************************************************/
-#define BT_DEFAULT_TRIM				0x8 //trim范围:0x00~0x0f
+#define BT_DEFAULT_TRIM				0x7 //trim范围:0x00~0x0f
 #define BT_MIN_TRIM					0x0
 #define BT_MAX_TRIM					0xf
 
@@ -33,13 +33,71 @@
 //蓝牙双手机连接开关
 //#define BT_MULTI_LINK_SUPPORT
 
-/*****************************************************************
- * Note: 蓝牙部分参数已移植到system_config/parameter.ini文件内进行配置,具体如下:
- * 1. 蓝牙名称  BT_NAME/BLE_NAME
- * 2. 蓝牙发射功率  TxPowerLevel/PagePowerLevel
- * 3. 默认的频偏参数  BtTrim
- * 4. TWS主从之间音量控制同步标志  TwsVolSyncEnable
- *****************************************************************/
+#define BT_NAME						"BP15_BT"
+#define BLE_NAME					"BP15_BLE"
+
+/* Rf Tx Power Range
+{   level  dbm
+	[23] = 8,
+	[22] = 6,
+	[21] = 4,
+	[20] = 2,
+	[19] = 0,
+	[18] = -2,
+	[17] = -4,
+	[16] = -6,
+	[15] = -8,
+	[14] = -10,
+	[13] = -13,
+	[12] = -15,
+	[11] = -17,
+	[10] = -19,
+	[9]  = -21,
+	[8]  = -23,
+	[7]  = -25,
+	[6]  = -27,
+	[5]  = -29,
+	[4]  = -31,
+	[3]  = -33,
+	[2]  = -35,
+	[1]  = -37,
+	[0]  = -39,
+}
+*/
+//蓝牙正常工作时发射功率
+#define BT_TX_POWER_LEVEL			23//19 //Tony 20221109 for delay
+//蓝牙回连发射功率
+#define BT_PAGE_TX_POWER_LEVEL		16
+
+//bt 铃声设置
+//0 -> 不支持来电铃声
+//1 -> 来电报号和铃声
+//2 -> 使用手机铃声，若没有则播本地铃声
+//3 -> 强制使用本地铃声
+enum
+{
+	USE_NULL_RING = 0,
+	USE_NUMBER_REMIND_RING = 1,
+	USE_LOCAL_AND_PHONE_RING = 2,
+	USE_ONLY_LOCAL_RING = 3,
+};
+#define SYS_DEFAULT_RING_TYPE		USE_LOCAL_AND_PHONE_RING			//2 -> 使用手机铃声，若没有则播本地铃声
+
+//BT 后台设置
+//0 -> BT后台不能连接手机
+//1 -> BT后台可以连接手机
+//2 -> 无后台
+enum
+{
+	BT_BACKGROUND_FAST_POWER_ON_OFF = 0,
+	BT_BACKGROUND_POWER_ON = 1,
+	BT_BACKGROUND_DISABLE = 2,
+};
+#define SYS_BT_BACKGROUND_TYPE		BT_BACKGROUND_FAST_POWER_ON_OFF		//0 -> BT后台不能连接手机
+
+#define BT_SIMPLEPAIRING_FLAG		TRUE //0:use pin code; 1:simple pairing
+#define BT_PINCODE					"0000"
+
 #define BT_ADDR_SIZE				6
 #define BT_LSTO_DFT					8000    //连接超时时间 (换算公式: 8000*0.625=5s)
 #define BT_PAGE_TIMEOUT				8000	//page timeout(ms)  //8000*0.625=5s  

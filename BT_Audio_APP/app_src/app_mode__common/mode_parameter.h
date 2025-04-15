@@ -137,32 +137,16 @@ const DeviceEventMsgTable DeviceEventMsgTableArray[]=
 {MSG_DEVICE_SERVICE_BTHF_IN,        			~(BIT(ModeBtHfPlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),					        		ModeBtHfPlay},
 {MSG_DEVICE_SERVICE_BTHF_OUT,					BIT(ModeBtHfPlay),																			ENTERR_PREV_MODE},
 
-#ifndef TWS_SLAVE_MODE_SWITCH_EN
-{MSG_DEVICE_SERVICE_U_DISK_IN,					~(BIT(ModeBtHfPlay)|BIT(ModeUDiskAudioPlay)|BIT(ModeTwsSlavePlay)/*|BIT(ModeIdle)*/),			ModeUDiskAudioPlay},
-#else
-{MSG_DEVICE_SERVICE_U_DISK_IN,					~(BIT(ModeBtHfPlay)|BIT(ModeUDiskAudioPlay)|BIT(ModeIdle)),									ModeUDiskAudioPlay},
-#endif
+{MSG_DEVICE_SERVICE_U_DISK_IN,					~(BIT(ModeBtHfPlay)|BIT(ModeUDiskAudioPlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),			ModeUDiskAudioPlay},
 {MSG_DEVICE_SERVICE_U_DISK_OUT,					BIT(ModeUDiskAudioPlay),																	ENTERR_PREV_MODE},
 
-#ifndef TWS_SLAVE_MODE_SWITCH_EN
 {MSG_DEVICE_SERVICE_CARD_IN, 					~(BIT(ModeBtHfPlay)|BIT(ModeCardAudioPlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),			ModeCardAudioPlay},
-#else
-{MSG_DEVICE_SERVICE_CARD_IN, 					~(BIT(ModeBtHfPlay)|BIT(ModeCardAudioPlay)|BIT(ModeIdle)),									ModeCardAudioPlay},
-#endif
 {MSG_DEVICE_SERVICE_CARD_OUT, 					BIT(ModeCardAudioPlay),																		ENTERR_PREV_MODE},
 
-#ifndef TWS_SLAVE_MODE_SWITCH_EN
-{MSG_DEVICE_SERVICE_USB_DEVICE_IN,				~(BIT(ModeBtHfPlay)|BIT(ModeUsbDevicePlay)|BIT(ModeTwsSlavePlay)/*|BIT(ModeIdle)*/),			ModeUsbDevicePlay},
-#else
-{MSG_DEVICE_SERVICE_USB_DEVICE_IN,				~(BIT(ModeBtHfPlay)|BIT(ModeUsbDevicePlay)|BIT(ModeIdle)),									ModeUsbDevicePlay},
-#endif
+{MSG_DEVICE_SERVICE_USB_DEVICE_IN,				~(BIT(ModeBtHfPlay)|BIT(ModeUsbDevicePlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),			ModeUsbDevicePlay},
 {MSG_DEVICE_SERVICE_USB_DEVICE_OUT,				BIT(ModeUsbDevicePlay), 																	ENTERR_PREV_MODE},
 
-#ifndef TWS_SLAVE_MODE_SWITCH_EN
 {MSG_DEVICE_SERVICE_LINE_IN, 					~(BIT(ModeBtHfPlay)|BIT(ModeLineAudioPlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),			ModeLineAudioPlay},
-#else
-{MSG_DEVICE_SERVICE_LINE_IN, 					~(BIT(ModeBtHfPlay)|BIT(ModeLineAudioPlay)|BIT(ModeIdle)),									ModeLineAudioPlay},
-#endif
 {MSG_DEVICE_SERVICE_LINE_OUT, 					BIT(ModeLineAudioPlay),																		ENTERR_PREV_MODE},
 
 {MSG_DEVICE_SERVICE_TWS_SLAVE_CONNECTED, 		~(BIT(ModeBtHfPlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),									ModeTwsSlavePlay},
@@ -177,11 +161,7 @@ const DeviceEventMsgTable DeviceEventMsgTableArray[]=
 #endif
 
 #ifdef CFG_APP_HDMIIN_MODE_EN
-#ifndef TWS_SLAVE_MODE_SWITCH_EN
 {MSG_DEVICE_SERVICE_HDMI_IN, 					~(BIT(ModeBtHfPlay)|BIT(ModeHdmiAudioPlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),			ModeHdmiAudioPlay},
-#else
-{MSG_DEVICE_SERVICE_HDMI_IN, 					~(BIT(ModeBtHfPlay)|BIT(ModeHdmiAudioPlay)|BIT(ModeIdle)),									ModeHdmiAudioPlay},
-#endif
 {MSG_DEVICE_SERVICE_HDMI_OUT, 					BIT(ModeHdmiAudioPlay),																		ENTERR_PREV_MODE},
 #endif
 

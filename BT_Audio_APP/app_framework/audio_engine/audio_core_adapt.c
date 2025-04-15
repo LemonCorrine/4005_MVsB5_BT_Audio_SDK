@@ -1562,21 +1562,17 @@ void AudioCoreSourceGet(uint8_t Index)
 				else
 				#endif
 				{
-					AdjAdapter->TotalNum += ((uint64_t)AudioCore.SampleRate[AudioCore.AudioSource[Index].Net] * Source->DataLenFunc()) / SrcAdapter->SampleRate
-											+ MCUCircular_GetDataLen(&SrcAdapter->SrcBufHandler) / PcmDataLen
-											+ MCUCircular_GetDataLen(&AdjAdapter->SraBufHandler) / PcmDataLen;
+					AdjAdapter->TotalNum += (Source->DataLenFunc()
+										 	 + MCUCircular_GetDataLen(&SrcAdapter->SrcBufHandler) / PcmDataLen
+											 + MCUCircular_GetDataLen(&AdjAdapter->SraBufHandler) / PcmDataLen);
 					AdjAdapter->Count++;
-
 					if(AdjAdapter->Count >= ADJUST_PERIOD / SOURCEFRAME(Index))
 					{
-						uint32_t ValidDepth = ((uint64_t)AudioCore.SampleRate[AudioCore.AudioSource[Index].Net] * AdjAdapter->Depth) / SrcAdapter->SampleRate
-												+ SrcAdapter->SrcBufHandler.BufDepth / PcmDataLen
-												+ AdjAdapter->SraBufHandler.BufDepth / PcmDataLen
-												- SOURCEFRAME(Index)
-												- SRA_BLOCK;
+						uint32_t ValidDepth = AdjAdapter->Depth + (SrcAdapter->SrcBufHandler.BufDepth + AdjAdapter->SraBufHandler.BufDepth) / PcmDataLen;
 						AdjAdapter->AdjustVal = ADJLEVEL(AdjAdapter->TotalNum / AdjAdapter->Count,
 											(ValidDepth * AdjAdapter->LowLevelCent) / 100,
 											(ValidDepth * AdjAdapter->HighLevelCent) / 100);
+//						printf("\n %d %d val %d\n",ValidDepth,AdjAdapter->TotalNum / AdjAdapter->Count,AdjAdapter->AdjustVal);
 						AdjAdapter->TotalNum = 0;
 						AdjAdapter->Count = 0;
 					}
@@ -1678,24 +1674,19 @@ void AudioCoreSinkSet(uint8_t Index)
 		case SRC_SRA://数据存放于fifo
 		{
 			SRA_ADAPTER * AdjAdapter = (SRA_ADAPTER *)Sink->AdjAdapter;
-			MCUCircular_PutData(&SrcAdapter->SrcBufHandler, Sink->PcmOutBuf, SINKFRAME(Index) * PcmDataLen);
+			MCUCircular_PutData(&AdjAdapter->SraBufHandler, Sink->PcmOutBuf, SINKFRAME(Index) * PcmDataLen);
 			if(AdjAdapter->Enable)
 			{
-				AdjAdapter->TotalNum += ((uint64_t)AudioCore.SampleRate[AudioCore.AudioSink[Index].Net] * Sink->SpaceLenFunc()) / SrcAdapter->SampleRate
-										+ MCUCircular_GetSpaceLen(&SrcAdapter->SrcBufHandler) / PcmDataLen
-										+ MCUCircular_GetSpaceLen(&AdjAdapter->SraBufHandler) / PcmDataLen;
+				AdjAdapter->TotalNum += (Sink->SpaceLenFunc() + MCUCircular_GetSpaceLen(&AdjAdapter->SraBufHandler) / PcmDataLen
+															 + MCUCircular_GetSpaceLen(&SrcAdapter->SrcBufHandler) / PcmDataLen);
 				AdjAdapter->Count++;
 				if(AdjAdapter->Count >= ADJUST_PERIOD / SINKFRAME(Index))
 				{
-					uint32_t ValidDepth = ((uint64_t)AudioCore.SampleRate[AudioCore.AudioSink[Index].Net] * AdjAdapter->Depth) / SrcAdapter->SampleRate
-																+ SrcAdapter->SrcBufHandler.BufDepth / PcmDataLen
-																+ AdjAdapter->SraBufHandler.BufDepth / PcmDataLen
-																- SINKFRAME(Index)
-																- SRA_BLOCK;
-
+					uint32_t ValidDepth = AdjAdapter->Depth + (AdjAdapter->SraBufHandler.BufDepth + SrcAdapter->SrcBufHandler.BufDepth)/PcmDataLen;
 					AdjAdapter->AdjustVal = -ADJLEVEL(AdjAdapter->TotalNum / AdjAdapter->Count,
-										(ValidDepth * AdjAdapter->LowLevelCent) / 100,
-										(ValidDepth * AdjAdapter->HighLevelCent) / 100);
+													(ValidDepth * AdjAdapter->LowLevelCent) / 100,
+													(ValidDepth * AdjAdapter->HighLevelCent) / 100);
+//					printf("\n %d %d val %d\n",ValidDepth,AdjAdapter->TotalNum / AdjAdapter->Count,AdjAdapter->AdjustVal);
 					AdjAdapter->TotalNum = 0;
 					AdjAdapter->Count = 0;
 				}
@@ -1966,7 +1957,9 @@ bool AudioCoreSourceIsInit(uint8_t Index)
 
 bool AudioCoreSinkIsInit(uint8_t Index)
 {
-	if(Index < AUDIO_CORE_SINK_MAX_NUM && AudioCore.AudioSink[Index].PcmOutBuf)
+	if(Index < AUDIO_CORE_SINK_MAX_NUM &&
+	  (AudioCore.AudioSink[Index].AdaptBuf || //修改下判断条件，PcmOutBuf不在audiocore中申请，可以多次初始化
+	   AudioCore.AudioSink[Index].AdjAdapter))
 	{
 		return TRUE;
 	}

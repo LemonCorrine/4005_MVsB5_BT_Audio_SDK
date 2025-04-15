@@ -6,6 +6,7 @@
 #include "user_effect_parameter.h"
 #include "nn_denoise_api.h"
 #include "main_task.h"
+#include "bt_config.h"
 
 extern const ROBOEFFECT_EFFECT_PARA_TABLE bypass_node;
 extern const ROBOEFFECT_EFFECT_PARA_TABLE hfp_node;
@@ -21,10 +22,12 @@ static const ROBOEFFECT_EFFECT_PARA_TABLE *effect_para_table[] =
 #ifdef CFG_FUNC_MIC_KARAOKE_EN
 	&karaoke_node,
 #else
-	&hfp_node,
 	&mic_node,
 	&music_node,
 #endif
+#endif
+#if defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE)
+	&hfp_node,
 #endif
 	NULL,
 };
@@ -46,7 +49,6 @@ static const uint16_t roboeffectVolArr[CFG_PARA_MAX_VOLUME_NUM + 1] =
 };
 
 static ReverbMaxUnit ReverbMaxParam = {0 , 0 , 0 ,0};
-static roboeffect_effect_list_info local_effect_list;
 
 ROBOEFFECT_EFFECT_PARA_TABLE * GetCurEffectParaNode(void)
 {
@@ -82,11 +84,14 @@ void Roboeffect_GetAudioEffectMaxValue(void)
 		return;
 	ReverbUnit *Reverbparam;
 	EchoUnit *Echoparam;
+	ReverbPlateUnit *ReverbPlateparam;
 
 	Reverbparam = (ReverbUnit *)roboeffect_get_effect_parameter(AudioCore.Roboeffect.context_memory,
 										get_roboeffect_addr(REVERB), 0xff);
 	Echoparam = (EchoUnit *)roboeffect_get_effect_parameter(AudioCore.Roboeffect.context_memory,
 										get_roboeffect_addr(ECHO), 0xff);
+	ReverbPlateparam = (ReverbPlateUnit *)roboeffect_get_effect_parameter(AudioCore.Roboeffect.context_memory,
+										get_roboeffect_addr(REVERBPLATE), 0xff);
 
 	ReverbMaxParam.max_reverb_wet_scale  = Reverbparam->wet_scale;
 
@@ -95,6 +100,8 @@ void Roboeffect_GetAudioEffectMaxValue(void)
 	ReverbMaxParam.max_echo_delay        = Echoparam->delay;
 
 	ReverbMaxParam.max_echo_depth        = Echoparam->attenuation;
+
+	ReverbMaxParam.max_reverbplate_wetdrymix   = ReverbPlateparam->wetdrymix;
 }
 
 #if defined(CFG_FUNC_MIC_TREB_BASS_EN) || defined(CFG_FUNC_MUSIC_TREB_BASS_EN)
@@ -114,11 +121,11 @@ void Roboeffect_EQ_Ajust(ROBOEFFECT_EFFECT_TYPE type,uint8_t BassGain, uint8_t T
 
 	param = BassTrebGainTable[BassGain];
 	roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, node, 6, &param);
-	roboeffect_update_local_params(node, 6, &param, 3);
+	roboeffect_update_local_params(node, 6, &param, 2);
 
 	param = BassTrebGainTable[TrebGain];
 	roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, node, 11, &param);
-	roboeffect_update_local_params(node, 11, &param, 3);
+	roboeffect_update_local_params(node, 11, &param, 2);
 
 	gCtrlVars.AutoRefresh = node;//AudioCore.Roboeffect.effect_addr;
 }
@@ -140,9 +147,6 @@ void Roboeffect_ReverbStep_Ajust(uint8_t ReverbStep)
 	EchoUnit *Echoparam;
 	Reverbparam = (ReverbUnit *)roboeffect_get_effect_parameter(AudioCore.Roboeffect.context_memory, Reverbnode, 0xff);
 	Echoparam = (EchoUnit *)roboeffect_get_effect_parameter(AudioCore.Roboeffect.context_memory, Echonode, 0xff);
-
-	DBG("Before,Reverb wet_scale:%d roomsize_scale:%d \n", Reverbparam->wet_scale, Reverbparam->roomsize_scale);
-	DBG("Before,Echo delay:%d ,attenuation:%d\n", Echoparam->delay, Echoparam->attenuation);
 
 	step = ReverbMaxParam.max_echo_delay  / MAX_MIC_REVB_STEP;
 	if(ReverbStep >= (MAX_MIC_REVB_STEP-1))
@@ -185,17 +189,74 @@ void Roboeffect_ReverbStep_Ajust(uint8_t ReverbStep)
 	}
 
 	roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, Reverbnode, 1, &Reverbparam->wet_scale);
+	roboeffect_update_local_params(Reverbnode, 1, &Reverbparam->wet_scale, 2);
 	roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, Reverbnode, 3, &Reverbparam->roomsize_scale);
-//	roboeffect_enable_effect(AudioCore.Roboeffect.context_memory, Reverbnode, 1);
+	roboeffect_update_local_params(Reverbnode, 3, &Reverbparam->roomsize_scale, 2);
 
 	roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, Echonode, 1, &Echoparam->attenuation);
+	roboeffect_update_local_params(Echonode, 1, &Echoparam->attenuation, 2);
 	roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, Echonode, 2, &Echoparam->delay);
-//	roboeffect_enable_effect(AudioCore.Roboeffect.context_memory, Echonode, 1);
+	roboeffect_update_local_params(Echonode, 2, &Echoparam->delay, 2);
 
-	Reverbparam = (ReverbUnit *)roboeffect_get_effect_parameter(AudioCore.Roboeffect.context_memory, Reverbnode, 0xff);
+	gCtrlVars.AutoRefresh = 1;
+#endif
+}
+
+void Roboeffect_ReverbPlateStep_Ajust(uint8_t ReverbStep)
+{
+#ifdef CFG_FUNC_MIC_KARAOKE_EN
+	uint8_t ReverbPlatenode = get_roboeffect_addr(REVERBPLATE);
+	uint8_t Echonode = get_roboeffect_addr(ECHO);
+
+	if(AudioCore.Roboeffect.context_memory == NULL)
+		return;
+	if(ReverbPlatenode == 0 && Echonode == 0)
+		return;
+
+	uint16_t step;
+	ReverbPlateUnit *ReverbPlateparam;
+	EchoUnit *Echoparam;
+	ReverbPlateparam = (ReverbPlateUnit *)roboeffect_get_effect_parameter(AudioCore.Roboeffect.context_memory, ReverbPlatenode, 0xff);
 	Echoparam = (EchoUnit *)roboeffect_get_effect_parameter(AudioCore.Roboeffect.context_memory, Echonode, 0xff);
-	DBG("After,Reverb wet_scale:%d roomsize_scale:%d \n", Reverbparam->wet_scale, Reverbparam->roomsize_scale);
-	DBG("After,Echo delay:%d ,attenuation:%d\n", Echoparam->delay, Echoparam->attenuation);
+
+	step = ReverbMaxParam.max_echo_delay  / MAX_MIC_REVB_STEP;
+	if(ReverbStep >= (MAX_MIC_REVB_STEP-1))
+	{
+		Echoparam->delay = ReverbMaxParam.max_echo_delay ;
+	}
+	else
+	{
+		Echoparam->delay = ReverbStep * step;
+	}
+
+	step = ReverbMaxParam.max_echo_depth / MAX_MIC_REVB_STEP;
+	if(ReverbStep >= (MAX_MIC_REVB_STEP-1))
+	{
+		Echoparam->attenuation = ReverbMaxParam.max_echo_depth;
+	}
+	else
+	{
+		Echoparam->attenuation = ReverbStep * step;
+	}
+
+	step = ReverbMaxParam.max_reverbplate_wetdrymix / MAX_MIC_REVB_STEP;
+	if(ReverbStep >= (MAX_MIC_REVB_STEP-1))
+	{
+		ReverbPlateparam->wetdrymix = ReverbMaxParam.max_reverbplate_wetdrymix;
+	}
+	else
+	{
+		ReverbPlateparam->wetdrymix = ReverbStep * step;
+	}
+
+	roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, ReverbPlatenode, 6, &ReverbPlateparam->wetdrymix);
+	roboeffect_update_local_params(ReverbPlatenode, 6, &ReverbPlateparam->wetdrymix, 2);
+
+	roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, Echonode, 1, &Echoparam->attenuation);
+	roboeffect_update_local_params(Echonode, 1, &Echoparam->attenuation, 2);
+	roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, Echonode, 2, &Echoparam->delay);
+	roboeffect_update_local_params(Echonode, 2, &Echoparam->delay, 2);
+
 	gCtrlVars.AutoRefresh = 1;
 #endif
 }
@@ -229,7 +290,7 @@ void Roboeffect_GainControl_Set(uint8_t node, uint16_t gain)
 
 	int16_t param = gain;
 	roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, node, 1, &param);
-	roboeffect_update_local_params(node, 1, &param, 3);
+	roboeffect_update_local_params(node, 1, &param, 2);
 
 	gCtrlVars.AutoRefresh = node;
 }
@@ -244,7 +305,7 @@ void Roboeffect_GainMute_Set(uint8_t node, bool muteFlag)
 
 	int16_t param = muteFlag;
 	roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, node, 0, &param);
-	roboeffect_update_local_params(node, 0, &param, 3);
+	roboeffect_update_local_params(node, 0, &param, 2);
 
 //	gCtrlVars.AutoRefresh = node;
 }
@@ -292,12 +353,6 @@ void Roboeffect_SourceGain_Update(uint8_t Index)
 			Roboeffect_GainControl_Set(get_roboeffect_addr(APP_SOURCE_GAIN),
 					roboeffectVolArr[mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]]);
 			break;
-#ifdef CFG_RES_TWO_CHANNEL_I2S_EN
-		case I2S_CH2_SOURCE_NUM:
-			Roboeffect_GainControl_Set(effect_addr[AudioCore.Roboeffect.flow_chart_mode].I2S2_SOURCE_GAIN_ADDR,
-					roboeffectVolArr[mainAppCt.gSysVol.AudioSourceVol[I2S_CH2_SOURCE_NUM]]);
-			break;
-#endif
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 		case REMIND_SOURCE_NUM:
 			Roboeffect_GainControl_Set(get_roboeffect_addr(REMIND_SOURCE_GAIN),
@@ -316,6 +371,28 @@ void Roboeffect_SourceGain_Update(uint8_t Index)
 
 			break;
 #endif
+#ifdef CFG_FUNC_MIC_KARAOKE_EN
+#ifdef CFG_RES_AUDIO_I2S_MIX_IN_EN
+		case I2S_MIX_SOURCE_NUM:
+			Roboeffect_GainControl_Set(get_roboeffect_addr(I2S_MIX_SOURCE_GAIN),
+					roboeffectVolArr[mainAppCt.gSysVol.AudioSourceVol[I2S_MIX_SOURCE_NUM]]);
+			break;
+#endif
+#ifdef CFG_FUNC_USB_AUDIO_MIX_MODE
+			case USB_SOURCE_NUM:
+				Roboeffect_GainControl_Set(get_roboeffect_addr(USB_SOURCE_GAIN),
+					roboeffectVolArr[mainAppCt.gSysVol.AudioSourceVol[USB_SOURCE_NUM]]);
+				break;
+#endif
+#ifdef CFG_FUNC_LINEIN_MIX_MODE
+			case LINEIN_MIX_SOURCE_NUM:
+				Roboeffect_GainControl_Set(get_roboeffect_addr(LINEIN_MIX_SOURCE_GAIN),
+					roboeffectVolArr[mainAppCt.gSysVol.AudioSourceVol[LINEIN_MIX_SOURCE_NUM]]);
+				break;
+#endif
+#endif
+			default:
+				break;
 	}
 }
 
@@ -343,10 +420,10 @@ void Roboeffect_SinkGain_Update(uint8_t Index)
 					roboeffectVolArr[mainAppCt.gSysVol.AudioSinkVol[AUDIO_RECORDER_SINK_NUM]]);
 			break;
 #endif
-#ifdef CFG_RES_TWO_CHANNEL_I2S_EN
-		case I2S_CH2_SINK_NUM:
-			Roboeffect_GainControl_Set(effect_addr[AudioCore.Roboeffect.flow_chart_mode].I2S2_SINK_GAIN_ADDR,
-					roboeffectVolArr[mainAppCt.gSysVol.AudioSinkVol[I2S_CH2_SINK_NUM]]);
+#ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
+			case AUDIO_I2S_MIX_OUT_SINK_NUM:
+			Roboeffect_GainControl_Set(get_roboeffect_addr(I2S_MIX_SINK_GAIN),
+					roboeffectVolArr[mainAppCt.gSysVol.AudioSinkVol[AUDIO_I2S_MIX_OUT_SINK_NUM]]);
 			break;
 #endif
 #ifdef CFG_RES_AUDIO_I2SOUT_EN
@@ -358,48 +435,6 @@ void Roboeffect_SinkGain_Update(uint8_t Index)
 		default:
 			break;
 	}
-}
-
-void Roboeffect_SinkMute_Set(bool muteFlag)
-{
-	if(AudioCore.Roboeffect.context_memory == NULL)
-		return;
-
-	uint8_t i;
-	for(i = 0; i < AUDIO_CORE_SINK_MAX_NUM; i++)
-	{
-		switch(i)
-		{
-			case AUDIO_DAC0_SINK_NUM:
-				Roboeffect_GainMute_Set(get_roboeffect_addr(DAC0_SINK_GAIN), muteFlag);
-				break;
-#if	(defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE)) || defined(CFG_APP_USB_AUDIO_MODE_EN)
-			case AUDIO_APP_SINK_NUM:
-				Roboeffect_GainMute_Set(get_roboeffect_addr(APP_SINK_GAIN), muteFlag);
-				break;
-#endif
-
-#ifdef CFG_FUNC_RECORDER_EN
-			case AUDIO_RECORDER_SINK_NUM:
-				Roboeffect_GainMute_Set(get_roboeffect_addr(REC_SINK_GAIN), muteFlag);
-				break;
-#endif
-#ifdef CFG_RES_TWO_CHANNEL_I2S_EN
-			case I2S_CH2_SINK_NUM:
-				Roboeffect_GainMute_Set(effect_addr[AudioCore.Roboeffect.flow_chart_mode].I2S2_SINK_GAIN_ADDR, muteFlag);
-				break;
-#endif
-#ifdef CFG_RES_AUDIO_I2SOUT_EN
-			case AUDIO_STEREO_SINK_NUM:
-				Roboeffect_GainMute_Set(get_roboeffect_addr(STEREO_SINK_GAIN), muteFlag);
-				break;
-#endif
-			default:
-				break;
-		}
-	}
-
-	gCtrlVars.AutoRefresh = 1;
 }
 
 void roboeffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t *param_input, uint8_t param_len)
@@ -416,7 +451,7 @@ void roboeffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t *
 			params += (param_index * 2 + 3);
 //			DBG("before: 0x%x\n", *(uint16_t *)params);
 //			*(uint16_t *)params = *(uint16_t *)param_input;
-			memcpy((uint16_t *)params, (uint16_t *)param_input, param_len - 1);
+			memcpy((uint16_t *)params, (uint16_t *)param_input, param_len);
 //			DBG("addr:0x%x,index:%d,local:0x%x, len:%d\n", addr, param_index, *(uint16_t *)params, param_len);
 			break;
 		}
@@ -529,6 +564,10 @@ uint8_t AudioCoreSinkToRoboeffect(int8_t sink)
 		case AUDIO_I2S_MIX_OUT_SINK_NUM:
 			return param->roboeffect_sink.i2s_mix_sink;
 #endif
+#ifdef CFG_RES_AUDIO_SPDIFOUT_EN
+		case AUDIO_SPDIF_SINK_NUM:
+			return param->roboeffect_sink.spdif_sink;
+#endif
 		default:
 			// handle error
 			break;
@@ -540,12 +579,7 @@ uint16_t get_user_effect_parameters_len(uint8_t *user_effect_parameters)
 {
 	uint8_t b1 = user_effect_parameters[0];
 	uint8_t b2 = user_effect_parameters[1];
-    return (b2 << 8) | b1;
-}
-
-roboeffect_effect_list_info *get_local_effect_list_buf(void)
-{
-	return &local_effect_list;
+    return ((b2 << 8) | b1) + 2;
 }
 
 uint8_t get_roboeffect_addr(ROBOEFFECT_EFFECT_TYPE effect_name)
@@ -564,8 +598,14 @@ uint8_t get_roboeffect_addr(ROBOEFFECT_EFFECT_TYPE effect_name)
 		case REVERB:
 			addr = param->effect_addr.REVERB_ADDR;
 			break;
+		case REVERBPLATE:
+			addr = param->effect_addr.REVERBPLATE_ADDR;
+			break;
 		case ECHO:
 			addr = param->effect_addr.ECHO_ADDR;
+			break;
+		case VOCAL_CUT:
+			addr = param->effect_addr.VOCAL_CUT_ADDR;
 			break;
 		case SILENCE_DETECTOR:
 			addr = param->effect_addr.SILENCE_DETECTOR_ADDR;
@@ -607,4 +647,20 @@ uint8_t get_roboeffect_addr(ROBOEFFECT_EFFECT_TYPE effect_name)
 uint16_t get_roboeffectVolArr(uint8_t vol)
 {
 	return roboeffectVolArr[vol];
+}
+
+void AudioEffectParamSync(void)
+{
+#ifdef CFG_FUNC_MIC_TREB_BASS_EN
+	Roboeffect_EQ_Ajust(MIC_EQ, mainAppCt.MicBassStep, mainAppCt.MicTrebStep);
+#endif
+#ifdef CFG_FUNC_MUSIC_TREB_BASS_EN
+	Roboeffect_EQ_Ajust(MUSIC_EQ, mainAppCt.MusicBassStep, mainAppCt.MusicTrebStep);
+#endif
+#ifdef CFG_FUNC_MUSIC_EQ_MODE_EN
+	Roboeffect_EQMode_Set(mainAppCt.EqMode);
+#endif
+#ifdef CFG_FUNC_MIC_KARAOKE_EN
+	Roboeffect_ReverbStep_Ajust(mainAppCt.ReverbStep);
+#endif
 }

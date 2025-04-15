@@ -130,7 +130,10 @@ static void SysVarInit(void)
 #ifdef  VD51_REDMINE_13199
 	SetRgbLedMode(pBpSysInfo->rgb_mode);
 #endif
-	
+
+	mainAppCt.EffectMode = pBpSysInfo->EffectMode;
+	APP_DBG("EffectMode:%d,%d\n", mainAppCt.EffectMode, pBpSysInfo->EffectMode);
+
 	mainAppCt.MusicVolume = pBpSysInfo->MusicVolume;
 	if((mainAppCt.MusicVolume > CFG_PARA_MAX_VOLUME_NUM) || (mainAppCt.MusicVolume <= 0))
 	{

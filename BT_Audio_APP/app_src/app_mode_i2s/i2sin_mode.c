@@ -353,12 +353,7 @@ bool I2SInPlayDeinit(void)
 	
 	I2SInPlayResFree();
 	ModeCommonDeinit();//通路全部释放
-#ifdef CFG_RES_AUDIO_I2SOUT_EN
-	{
-		extern void AudioI2sOutParamsSet(void);
-		AudioI2sOutParamsSet();
-	}
-#endif
+
 	osPortFree(sI2SInPlayCt);
 	sI2SInPlayCt = NULL;
 
