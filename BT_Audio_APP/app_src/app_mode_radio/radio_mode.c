@@ -59,42 +59,32 @@
 
 typedef struct _RadioPlayContext
 {
-	uint8_t				runflag;
-	uint8_t				umuteflag;
-	TIMER				umuteTime;
-
-	TaskState			state;
-
 	uint32_t			*ADCFIFO;			//ADC的DMA循环fifo
-	AudioCoreContext 	*AudioCoreRadio;
-
-	//play
-	uint32_t 			SampleRate;
+	uint32_t			ADCFIFO_len;		//ADC的DMA循环fifo len
 
 }RadioPlayContext;
 
 
-/**根据appconfig缺省配置:DMA 8个通道配置**/
-/*1、cec需PERIPHERAL_ID_TIMER3*/
-/*2、SD卡录音需PERIPHERAL_ID_SDIO RX/TX*/
-/*3、在线串口调音需PERIPHERAL_ID_UART1 RX/TX,建议使用USB HID，节省DMA资源*/
-/*4、线路输入需PERIPHERAL_ID_AUDIO_ADC0_RX*/
-/*5、Mic开启需PERIPHERAL_ID_AUDIO_ADC1_RX，mode之间通道必须一致*/
-/*6、Dac0开启需PERIPHERAL_ID_AUDIO_DAC0_TX mode之间通道必须一致*/
-/*7、DacX需开启PERIPHERAL_ID_AUDIO_DAC1_TX mode之间通道必须一致*/
-/*注意DMA 8个通道配置冲突:*/
-/*a、UART在线调音和DAC-X有冲突,默认在线调音使用USB HID*/
+/**根据appconfig缺省配置:DMA 6个通道配置**/
 static uint8_t sDmaChannelMap[6] = {
-		PERIPHERAL_ID_SDIO_RX,
-		PERIPHERAL_ID_AUDIO_ADC0_RX,
-		PERIPHERAL_ID_AUDIO_ADC1_RX,
-		PERIPHERAL_ID_AUDIO_DAC0_TX,
-		255,
-	#ifdef CFG_RES_AUDIO_I2SOUT_EN
-		PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE,
-	#else
-		255
-	#endif
+	PERIPHERAL_ID_AUDIO_ADC0_RX,
+	PERIPHERAL_ID_AUDIO_ADC1_RX,
+	PERIPHERAL_ID_AUDIO_DAC0_TX,
+#ifdef CFG_RES_AUDIO_I2S_MIX_IN_EN
+	PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX_I2S_MODULE,
+#else
+	PERIPHERAL_ID_SDIO_RX,
+#endif
+#ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
+	PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX_I2S_MODULE,
+#else
+	255,
+#endif
+#ifdef CFG_RES_AUDIO_I2SOUT_EN
+	PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE,
+#else
+	255
+#endif
 };
 
 
@@ -435,21 +425,19 @@ bool RadioPlayResMalloc(uint16_t SampleLen)
 	}
 	memset(gRadioControl, 0, sizeof(RADIO_CONTROL));
 
-	//LineIn4  digital (DMA)
-	sRadioPlayCt->ADCFIFO = (uint32_t*)osPortMalloc(SampleLen * 2 * 2 * 2);
+	sRadioPlayCt->ADCFIFO_len = SampleLen * sizeof(PCM_DATA_TYPE) * 2 * 2;
+	sRadioPlayCt->ADCFIFO = (uint32_t*)osPortMalloc(sRadioPlayCt->ADCFIFO_len);
 	if(sRadioPlayCt->ADCFIFO == NULL)
 	{
 		return FALSE;
 	}
-	memset(sRadioPlayCt->ADCFIFO, 0, SampleLen * 2 * 2 * 2);
+	memset(sRadioPlayCt->ADCFIFO, 0, sRadioPlayCt->ADCFIFO_len);
 
 	return TRUE;
 }
 
 void RadioPlayResInit(void)
 {
-	sRadioPlayCt->AudioCoreRadio = (AudioCoreContext*)&AudioCore;
-
 	//Soure1.
 	AudioCoreIO	AudioIOSet;
 	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
@@ -457,56 +445,61 @@ void RadioPlayResInit(void)
 	AudioIOSet.Sync = TRUE;
 	AudioIOSet.Channels = 2;
 	AudioIOSet.Net = DefaultNet;
-#if (RADIO_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN3)
-	AudioIOSet.DataIOFunct = AudioADC1DataGet;
-	AudioIOSet.LenGetFunc = AudioADC1DataLenGet;
-#else
-	AudioIOSet.DataIOFunc = AudioADC0DataGet;
-	AudioIOSet.LenGetFunc = AudioADC0DataLenGet;
-#endif
+	AudioIOSet.DataIOFunc = AudioADC0_DataGet;
+	AudioIOSet.LenGetFunc = AudioADC0_DataLenGet;
+
 #ifdef	CFG_AUDIO_WIDTH_24BIT
-	AudioIOSet.IOBitWidth = 0;//0,16bit,1:24bit
-	AudioIOSet.IOBitWidthConvFlag = 1;//需要数据进行位宽扩展
+	AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
+	AudioIOSet.IOBitWidthConvFlag = 0;//需要数据进行位宽扩展
 #endif
 	if(!AudioCoreSourceInit(&AudioIOSet, RADIO_SOURCE_NUM))
 	{
 		DBG("Radioplay source error!\n");
 	}
 
-#if 0
-#ifdef CFG_FUNC_REMIND_SOUND_EN
-	//Core Soure2 Para
-
-	DecoderSourceNumSet(REMIND_SOURCE_NUM,DECODER_REMIND_CHANNEL);
-	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
-	AudioIOSet.Adapt = STD;
-	AudioIOSet.Sync = FALSE;
-	AudioIOSet.Channels = 1;
-	AudioIOSet.Net = DefaultNet;
-	AudioIOSet.DataIOFunct = RemindDecoderPcmDataGet;
-	AudioIOSet.LenGetFunc = ;//需要api
-
-	if(!AudioCoreSourceInit(&AudioIOSet, sMediaPlayCt->SourceNum))
-	{
-		DBG("Remind source error!\n");
-		return FALSE;
-	}
-#endif
-#endif
-
 #ifdef CFG_FUNC_AUDIO_EFFECT_EN
-	sRadioPlayCt->AudioCoreRadio->AudioEffectProcess = (AudioCoreProcessFunc)AudioMusicProcess;
+	AudioCoreProcessConfig((AudioCoreProcessFunc)AudioMusicProcess);
 #else
-	sRadioPlayCt->AudioCoreRadio->AudioEffectProcess = (AudioCoreProcessFunc)AudioBypassProcess;
+	AudioCoreProcessConfig(AudioCoreProcessFunc)AudioBypassProcess);
 #endif
 
 	//LineIn4  analog (ADC)
 	AudioAnaChannelSet(RADIO_INPUT_CHANNEL);
 
-#if (RADIO_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN3)
-	AudioADC_DigitalInit(ADC1_MODULE, sRadioPlayCt->SampleRate, (void*)sRadioPlayCt->ADCFIFO, AudioCoreFrameSizeGet(DefaultNet) * 2 * 2 *2);
+	AUDIO_BitWidth BitWidth = ADC_WIDTH_16BITS;
+
+#ifdef	CFG_AUDIO_WIDTH_24BIT
+	if(AudioCoreSourceBitWidthGet(RADIO_SOURCE_NUM) == PCM_DATA_24BIT_WIDTH)
+		BitWidth = ADC_WIDTH_24BITS;
+#endif
+
+	AudioADC_DigitalInit(ADC0_MODULE, CFG_PARA_SAMPLE_RATE,BitWidth, (void*)sRadioPlayCt->ADCFIFO, sRadioPlayCt->ADCFIFO_len);
+
+
+#if (RADIO_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN1)
+#ifdef CFG_ADCDAC_SEL_LOWPOWERMODE
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN1_LEFT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN1_RIGHT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
 #else
-	AudioADC_DigitalInit(ADC0_MODULE, sRadioPlayCt->SampleRate, (void*)sRadioPlayCt->ADCFIFO, AudioCoreFrameSizeGet(DefaultNet) * 2 * 2 *2);
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN1_LEFT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN1_RIGHT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
+#endif // CFG_ADCDAC_SEL_LOWPOWERMODE
+#endif
+#if (RADIO_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN2)
+	GPIO_PortBModeSet(GPIOB0,0);
+	GPIO_PortBModeSet(GPIOB1,0);
+	GPIO_RegBitsClear(GPIO_B_IE,GPIOB0);
+	GPIO_RegBitsClear(GPIO_B_OE,GPIOB0);
+	GPIO_RegBitsClear(GPIO_B_IE,GPIOB1);
+	GPIO_RegBitsClear(GPIO_B_OE,GPIOB1);
+
+#ifdef CFG_ADCDAC_SEL_LOWPOWERMODE
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN2_LEFT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN2_RIGHT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
+#else
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN2_LEFT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN2_RIGHT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
+#endif // CFG_ADCDAC_SEL_LOWPOWERMODE
 #endif
 }
 
@@ -525,7 +518,7 @@ bool RadioPlayInit(void)
 		APP_DBG("RadioPlayResMalloc Res Error!\n");
 		return FALSE;
 	}
-	sRadioPlayCt->SampleRate = CFG_PARA_SAMPLE_RATE;	
+
 	RadioPlayResInit();
 
 	AudioCodecGainUpdata();//update hardware config
@@ -570,7 +563,7 @@ bool RadioPlayInit(void)
 	APP_DBG("gRadioControl->Freq = %d \n",gRadioControl->Freq);
 
 #ifdef CFG_RADIO_CLK_M12
-	Clock_GPIOOutSel(GPIO_CLK_OUT_A29, HOSC_CLK_DIV);
+	Clock_GPIOOutSel(GPIO_CLK_OUT_A29, RC12M_CLK);
 #endif
 
 	if(RadioPowerOn())

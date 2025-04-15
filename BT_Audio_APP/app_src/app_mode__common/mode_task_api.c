@@ -205,10 +205,10 @@ void AudioI2sOutParamsSet(void)
 
 	i2s_set.TxLen = mainAppCt.I2SFIFO_LEN;
 
-	GPIO_PortAModeSet(1 << GET_I2S_GPIO_INDEX(I2S_MCLK_GPIO), GET_I2S_GPIO_MODE(I2S_MCLK_GPIO));//mclk
-	GPIO_PortAModeSet(1 << GET_I2S_GPIO_INDEX(I2S_LRCLK_GPIO),GET_I2S_GPIO_MODE(I2S_LRCLK_GPIO));//lrclk
-	GPIO_PortAModeSet(1 << GET_I2S_GPIO_INDEX(I2S_BCLK_GPIO), GET_I2S_GPIO_MODE(I2S_BCLK_GPIO));//bclk
-	GPIO_PortAModeSet(1 << GET_I2S_GPIO_INDEX(I2S_DOUT_GPIO), GET_I2S_GPIO_MODE(I2S_DOUT_GPIO));//do
+	GPIO_PortAModeSet(GET_I2S_GPIO_PORT(I2S_MCLK_GPIO), GET_I2S_GPIO_MODE(I2S_MCLK_GPIO));//mclk
+	GPIO_PortAModeSet(GET_I2S_GPIO_PORT(I2S_LRCLK_GPIO),GET_I2S_GPIO_MODE(I2S_LRCLK_GPIO));//lrclk
+	GPIO_PortAModeSet(GET_I2S_GPIO_PORT(I2S_BCLK_GPIO), GET_I2S_GPIO_MODE(I2S_BCLK_GPIO));//bclk
+	GPIO_PortAModeSet(GET_I2S_GPIO_PORT(I2S_DOUT_GPIO), GET_I2S_GPIO_MODE(I2S_DOUT_GPIO));//do
 
 	I2S_AlignModeSet(CFG_RES_I2S_MODULE, I2S_LOW_BITS_ACTIVE);
 	AudioI2S_Init(CFG_RES_I2S_MODULE, &i2s_set);//
@@ -410,22 +410,20 @@ bool ModeCommonInit(void)
 			return FALSE;
 		}
 
-		if((CFG_RES_I2S_MODE == I2S_MASTER_MODE) || !defined(CFG_FUNC_I2S_IN_SYNC_EN))
-		{// Master 或不开微调
+#if((CFG_RES_I2S_MODE == I2S_MASTER_MODE) || !defined(CFG_FUNC_I2S_IN_SYNC_EN))
+		// Master 或不开微调
 	#if CFG_PARA_I2S_SAMPLERATE == CFG_PARA_SAMPLE_RATE
 			AudioIOSet.Adapt = STD;//SRC_ONLY
 	#else
 			AudioIOSet.Adapt = SRC_ONLY;
 	#endif
-		}
-		else//slave
-		{
+#else//slave
 	#if CFG_PARA_I2S_SAMPLERATE == CFG_PARA_SAMPLE_RATE
 			AudioIOSet.Adapt = STD;//SRA_ONLY;//CLK_ADJUST_ONLY;
 	#else
 			AudioIOSet.Adapt = SRC_ONLY;//SRC_SRA;//SRC_ADJUST;
 	#endif
-		}
+#endif
 		AudioIOSet.Sync = TRUE;//I2S slave 时候如果master没有接，有可能会导致DAC也不出声音。
 		AudioIOSet.Channels = 2;
 		AudioIOSet.Net = DefaultNet;
@@ -490,7 +488,7 @@ bool ModeCommonInit(void)
 void ModeCommonDeinit(void)
 {
 	SoftFlagRegister(SoftFlagAudioCoreSourceIsDeInit);
-
+#ifdef CFG_RES_AUDIO_DAC0_EN
 //	AudioCoreSinkDisable(AUDIO_DAC0_SINK_NUM);
 	AudioDAC_Disable(DAC0);
 	DMA_InterruptFlagClear(PERIPHERAL_ID_AUDIO_DAC0_TX, DMA_DONE_INT);
@@ -504,7 +502,7 @@ void ModeCommonDeinit(void)
 		mainAppCt.DACFIFO = NULL;
 	}
 	AudioCoreSinkDeinit(AUDIO_DAC0_SINK_NUM);
-
+#endif
 #if CFG_RES_MIC_SELECT
 	AudioCoreSourceDisable(MIC_SOURCE_NUM);
 	vTaskDelay(5);
@@ -766,22 +764,20 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 			return FALSE;
 		}
 
-		if((CFG_RES_I2S_MODE == I2S_MASTER_MODE) || !defined(CFG_FUNC_I2S_IN_SYNC_EN))
-		{// Master 或不开微调
+#if((CFG_RES_I2S_MODE == I2S_MASTER_MODE) || !defined(CFG_FUNC_I2S_IN_SYNC_EN))
+		// Master 或不开微调
 	#if CFG_PARA_I2S_SAMPLERATE == CFG_BTHF_PARA_SAMPLE_RATE
 			AudioIOSet.Adapt = STD;//SRC_ONLY
 	#else
 			AudioIOSet.Adapt = SRC_ONLY;
 	#endif
-		}
-		else//slave
-		{
+#else//slave
 	#if CFG_PARA_I2S_SAMPLERATE == CFG_BTHF_PARA_SAMPLE_RATE
 			AudioIOSet.Adapt = SRA_ONLY;//CLK_ADJUST_ONLY;
 	#else
 			AudioIOSet.Adapt = SRC_SRA;//SRC_ADJUST;
 	#endif
-		}
+#endif
 		AudioIOSet.Sync = TRUE;//I2S slave 时候如果master没有接，有可能会导致DAC也不出声音。
 		AudioIOSet.Channels = 2;
 		AudioIOSet.Net = DefaultNet;
@@ -827,10 +823,10 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 
 
 
-void tws_device_open_isr(void)
-{
-
-}
+//void tws_device_open_isr(void)
+//{
+//
+//}
 //sel: 0 = init hw, 1 = effect, 2 = hw + effect
 void AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 {
@@ -1230,78 +1226,8 @@ void CommonMsgProccess(uint16_t Msg)
             MessageSend(GetSysModeMsgHandle(), &msgSend);
 			#endif
 			break;
-#ifdef CFG_FUNC_MIC_KARAOKE_EN
-		case MSG_KARAOKEMODE:
-			APP_DBG("MSG_EFFECTMODE\n");
-			if(mainAppCt.SysCurrentMode == ModeBtHfPlay)//蓝牙通话模式下，不支持音效模式切换
-			{
-				break;
-			}
-
-			if(IsAudioPlayerMute() == FALSE)
-			{
-				HardWareMuteOrUnMute();
-			}
-
-			if((mainAppCt.EffectMode >= EFFECT_MODE_WaWaYin)|| (mainAppCt.EffectMode < EFFECT_MODE_HunXiang))
-			{
-				mainAppCt.EffectMode = EFFECT_MODE_HunXiang;
-			}
-			else
-			{
-				mainAppCt.EffectMode++;
-			}
-			APP_DBG("EffectMode = %d\n", mainAppCt.EffectMode);
-
-			AudioEffectModeSel(mainAppCt.EffectMode, 2);//sel: 0=init hw, 1=effect, 2=hw + effect
-			Roboeffect_ReverbStep_Ajust(mainAppCt.ReverbStep);		//Switch effect mode also need to sync reverb step
-
-			if(IsAudioPlayerMute() == TRUE)
-			{
-				HardWareMuteOrUnMute();
-			}
-			gCtrlVars.AutoRefresh = 1;
-//			switch(mainAppCt.EffectMode)
-//			{
-//				case EFFECT_MODE_HunXiang:
-//					#ifdef CFG_FUNC_REMIND_SOUND_EN
-//					RemindSoundServiceItemRequest(SOUND_REMIND_LIUXINGH, REMIND_PRIO_NORMAL);
-//					#endif
-//					break;
-//				case EFFECT_MODE_DianYin:
-//					#ifdef CFG_FUNC_REMIND_SOUND_EN
-//					RemindSoundServiceItemRequest(SOUND_REMIND_DIANYIN, REMIND_PRIO_NORMAL);
-//					#endif
-//					break;
-//				case EFFECT_MODE_MoYin:
-//					#ifdef CFG_FUNC_REMIND_SOUND_EN
-//					RemindSoundServiceItemRequest(SOUND_REMIND_MOYIN, REMIND_PRIO_NORMAL);
-//					#endif
-//					break;
-//				case EFFECT_MODE_HanMai:
-//					#ifdef CFG_FUNC_REMIND_SOUND_EN
-//					RemindSoundServiceItemRequest(SOUND_REMIND_HANMAI, REMIND_PRIO_NORMAL);
-//					#endif
-//					break;
-//				case EFFECT_MODE_NanBianNv:
-//					#ifdef CFG_FUNC_REMIND_SOUND_EN
-//					RemindSoundServiceItemRequest(SOUND_REMIND_NVSHEN, REMIND_PRIO_NORMAL);
-//					#endif
-//					break;
-//				case EFFECT_MODE_NvBianNan:
-//					#ifdef CFG_FUNC_REMIND_SOUND_EN
-//					RemindSoundServiceItemRequest(SOUND_REMIND_NANSHEN, REMIND_PRIO_NORMAL);
-//					#endif
-//					break;
-//				case EFFECT_MODE_WaWaYin:
-//					#ifdef CFG_FUNC_REMIND_SOUND_EN
-//					RemindSoundServiceItemRequest(SOUND_REMIND_WAWAYIN, REMIND_PRIO_NORMAL);
-//					#endif
-//					break;
-//			}
-			break;
-#endif
 		case MSG_EFFECTMODE:
+#ifndef CFG_FUNC_EFFECT_BYPASS_EN
 			if(GetSystemMode() == ModeBtHfPlay)//蓝牙通话模式下，不支持音效模式切换
 			{
 				break;
@@ -1311,24 +1237,67 @@ void CommonMsgProccess(uint16_t Msg)
 			{
 				HardWareMuteOrUnMute();
 			}
-
+#ifdef CFG_FUNC_MIC_KARAOKE_EN
+			if((mainAppCt.EffectMode >= EFFECT_MODE_WaWaYin)|| (mainAppCt.EffectMode < EFFECT_MODE_HunXiang))
+			{
+				mainAppCt.EffectMode = EFFECT_MODE_HunXiang;
+			}
+#else
 			if((mainAppCt.EffectMode >= EFFECT_MODE_MUSIC) || (mainAppCt.EffectMode < EFFECT_MODE_MIC))
 			{
 				mainAppCt.EffectMode = EFFECT_MODE_MIC;
 			}
+#endif
 			else
 			{
 				mainAppCt.EffectMode++;
 			}
 			APP_DBG("EffectMode = %d\n", mainAppCt.EffectMode);
 
-			AudioEffectModeSel(mainAppCt.EffectMode, 2);//sel: 0=init hw, 1=effect, 2=hw + effect
+			ROBOEFFECT_EFFECT_PARA *mpara = get_user_effect_parameters(mainAppCt.EffectMode);
+
+			if (mpara->user_effect_list->frame_size == AudioCoreFrameSizeGet(DefaultNet))
+			{
+				AudioEffectModeSel(mainAppCt.EffectMode, 2);//sel: 0=init hw, 1=effect, 2=hw + effect
+			}
+			else
+			{
+				PauseAuidoCore();
+				ModeCommonDeinit();
+				if(!ModeCommonInit())
+				{
+					APP_DBG("MSG_EFFECTMODE ModeInit Error!!!\n");
+					break;
+				}
+				for(int8_t i = 0; i < AUDIO_CORE_SOURCE_MAX_NUM; i++)
+				{
+					if(AudioCoreSourceToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
+					{
+						AudioCore.AudioSource[i].PcmInBuf = roboeffect_get_source_buffer(
+										AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(i));
+					}
+				}
+				for(int8_t i = 0; i < AUDIO_CORE_SINK_MAX_NUM; i++)
+				{
+					if(AudioCoreSinkToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
+					{
+						AudioCore.AudioSink[i].PcmOutBuf = roboeffect_get_sink_buffer(
+										AudioCore.Roboeffect.context_memory, AudioCoreSinkToRoboeffect(i));
+					}
+				}
+				SoftFlagDeregister(SoftFlagAudioCoreSourceIsDeInit);
+				AudioCoreServiceResume();
+			}
+#ifdef CFG_FUNC_MIC_KARAOKE_EN
+			Roboeffect_ReverbStep_Ajust(mainAppCt.ReverbStep);		//Switch effect mode also need to sync reverb step
+#endif
 
 			if(IsAudioPlayerMute() == TRUE)
 			{
 				HardWareMuteOrUnMute();
 			}
 			gCtrlVars.AutoRefresh = 1;
+#endif
 #endif
 			break;
 		case MSG_EFFECTREINIT:
@@ -1338,6 +1307,7 @@ void CommonMsgProccess(uint16_t Msg)
 				HardWareMuteOrUnMute();
 			}
 			int8_t opera = AudioCore.Roboeffect.effect_enable ? 1 : -1;
+			uint8_t addr = AudioCore.Roboeffect.effect_addr;
 			ROBOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(mainAppCt.EffectMode);
 
 //			APP_DBG("Roboeffect FrameSize %d, %d\n", opera, roboeffect_get_suit_frame_size(
@@ -1368,7 +1338,8 @@ void CommonMsgProccess(uint16_t Msg)
 			{
 				HardWareMuteOrUnMute();
 			}
-			gCtrlVars.AutoRefresh = AudioCore.Roboeffect.effect_addr;
+            AudioCore.Roboeffect.reinit_done = 1;
+			gCtrlVars.AutoRefresh = addr;
 			break;
 		case MSG_REC_MUSIC:
 			SetRecMusic(0);

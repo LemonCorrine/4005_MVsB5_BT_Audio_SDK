@@ -54,5 +54,5 @@ const ROBOEFFECT_EFFECT_PARA_TABLE music_node =
 	},
 
 	//ROBOEFFECT effect ²ÎÊý
-	.roboeffect_para = &effect_para[0],
+	.roboeffect_para =(ROBOEFFECT_EFFECT_PARA *) &effect_para[0],
 };

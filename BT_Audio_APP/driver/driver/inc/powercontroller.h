@@ -138,6 +138,24 @@ typedef enum __PWR_LVD_Threshold_SEL
 
 } PWR_LVD_Threshold_SEL;
 
+typedef enum _PWR_LDO11_LVL_SEL
+{
+    PWD_LDO11_LVL_0V95 = 0,    // 0.95V
+    PWD_LDO11_LVL_1V0,     // 1.0V
+    PWD_LDO11_LVL_1V05,    // 1.05V
+    PWD_LDO11_LVL_1V10,    // 1.10V
+    PWD_LDO11_LVL_1V15,    // 1.15V
+    PWD_LDO11_LVL_MAX
+} PWR_LDO11_LVL_SEL;
+
+/**
+ * @brief  Config LDO11D voltage
+ * @param  uint8_t value: 0-0.95V 1-1.00V 2-1.05V 3-1.10V 4-1.15V
+ * @return void
+ * @note   none
+ */
+void Power_LDO11DConfig(PWR_LDO11_LVL_SEL level);
+
 /**
  * @brief  系统进入sleep模式
  * @param  无
@@ -258,14 +276,6 @@ uint8_t Power_WakeupEdgeGet(PWR_SYSWAKEUP_SOURCE_SEL SourSel);
 //  */
 // void Power_LDO12Config(uint32_t value);
 
-/**
- * @brief  配置LDO_33D电压需要调用此函数
- * @param  value:单位：mV；
- *               范围：2930mV~3350mV
- * @return 无
- * @note  芯片个体之间会有稍许差异和偏差，偏差范围在0mV~40mV之间；
- */
-void Power_LDO33DConfig(uint32_t value);
 
 /**
  * @brief  配置LDO_33A电压需要调用此函数
@@ -348,67 +358,33 @@ bool Power_HRCCtrlByHwDuringDeepSleep(bool IsOpen);
 void RF_PowerDown(void);
 
 /**
- * @brief  Wakeup restore power LDO11D config to default
- * @param  void
+ * @brief  config power LDO33D Power_LDO33DConfig
+ * @param  level:  0-3.0V  1-3.3v
  * @return void
  * @note   none
  */
-void Power_WakeupRestoreLDO11DConfig();
+void Power_LDO33DConfig(uint8_t level);
 
 /**
- * @brief  config power LDO11D in deepsleep mode
- * @param  trim_val:  detail see @SREG_PWR_TEST_LDO_VOLTAGE_CFG.LDO11D_TRIM_CFG
- * @return void
- * @note   none
- */
-void Power_DeepSleepLDO11DConfig(uint16_t trim_val);
-
-/**
- * @brief  Wakeup restore power LDO33D config to default
- * @param  void
- * @return void
- * @note   none
- */
-void Power_WakeupRestoreLDO33DConfig();
-
-/**
- * @brief  config power LDO33D in deepsleep mode
+ * @brief  config power LDO33D high current limit
  * @param  OCSel_val: Set high current limit for LDO33  0:68mA; 1:300mA; 2:350mA
- * @param  trim_val:  detail see @SREG_PWR_TEST_LDO_VOLTAGE_CFG.LDO11D_TRIM_CFG
- * @return void
  * @note   none
  */
-void Power_DeepSleepLDO33DConfig(uint8_t OCSel_val, uint16_t trim_val);
+void Power_LDO33DConfigHighCurrentLimit(uint8_t OCSel_val);
 
 /**
- * @brief  Wakeup restore power LDO16D config to default
- * @param  void
- * @return void
- * @note   none
- */
-void Power_WakeupRestoreLDO16DConfig();
-
-/**
- * @brief  config power LDO16D in deepsleep mode
+ * @brief  config power LDO16D high current limit
  * @param  OCSel_val: Set high current limit for LDO16  0:105mA; 1:208mA; 2:252mA
  * @note   none
  */
-void Power_DeepSleepLDO16DConfig(uint8_t OCSel_val);
+void Power_LDO16DConfigHighCurrentLimit(uint8_t OCSel_val);
 
 /**
- * @brief  Wakeup restore power LDO33A config to default
- * @param  void
- * @return void
- * @note   none
- */
-void Power_WakeupRestoreLDO33AConfig();
-
-/**
- * @brief  config power LDO33A in deepsleep mode
+ * @brief  config power LDO33A high current limit
  * @param  OCSel_val: Set high current limit for LDO33A  0:24mA; 1:104mA; 2:128mA
  * @note   none
  */
-void Power_DeepSleepLDO33AConfig(uint8_t OCSel_val);
+void Power_LDO33AConfigHighCurrentLimit(uint8_t OCSel_val);
 
 /*
  * ldo_switch_to_dcdc
@@ -416,11 +392,6 @@ void Power_DeepSleepLDO33AConfig(uint8_t OCSel_val);
  */
 void ldo_switch_to_dcdc(uint8_t trim_cfg);
 
-/*
- * dcdc_switch_to_ldo
- * ldo_value:  7: 1.69V; 6:1.75; 0:1.65; 1:1.60V ; default 0
- */
-void dcdc_switch_to_ldo(uint8_t ldo_value);
 
 // value: 7: 1.69V; 6:1.75; 0:1.65 1:1.60V default max power
 void Power_LDO16Config(uint8_t value);

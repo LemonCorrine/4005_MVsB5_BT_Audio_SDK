@@ -1,5 +1,7 @@
 #include "app_config.h"
 #include "pmu_powerkey.h"
+#include "timeout.h"
+#include "watchdog.h"
 
 void PMU_PowerKey8SResetSet(void)
 {
@@ -18,6 +20,7 @@ void PMU_PowerKey8SResetSet(void)
 	PMU_PowerKeyLongPressStateClear();
 }
 
+#ifdef CFG_IDLE_MODE_POWER_KEY
 void SystemPowerDown(void)
 {
 	switch(POWERKEY_MODE)
@@ -82,35 +85,36 @@ void SystemPowerKeyIdleModeInit(void)
 	uint32_t cnt = 2500;
 
 	switch(POWERKEY_MODE)
+	{
+	case POWERKEY_MODE_BYPASS:
+		break;
+	case POWERKEY_MODE_PUSH_BUTTON:
+		#ifndef POWERKEY_FIRST_ENTER_POWERDOWN
+		if(!PMU_PowerupEventGet())
+			break;
+		#endif
+		PMU_PowerupEventClr();
+
+		while(cnt--)
 		{
-		case POWERKEY_MODE_BYPASS:
-			break;
-		case POWERKEY_MODE_PUSH_BUTTON:
-			#ifndef POWERKEY_FIRST_ENTER_POWERDOWN
-			if(!PMU_PowerupEventGet())
-				break;
-			#endif
-			PMU_PowerupEventClr();
-
-			while(cnt--)
+			printf("%d",PMU_PowerKeyPinStateGet());
+			if(PMU_PowerKeyPinStateGet())
 			{
-				printf("%d",PMU_PowerKeyPinStateGet());
-				if(PMU_PowerKeyPinStateGet())
-				{
-					SystemPowerDown();
-				}
-				DelayMs(1);
-				WDG_Feed();
+				SystemPowerDown();
 			}
-			break;
-		case POWERKEY_MODE_SLIDE_SWITCH_LPD://硬开关高唤醒
-
-			break;
-		case POWERKEY_MODE_SLIDE_SWITCH_HPD://硬开关低唤醒
-
-			break;
-		default:
-			break;
+			DelayMs(1);
+			WDG_Feed();
 		}
+		break;
+	case POWERKEY_MODE_SLIDE_SWITCH_LPD://硬开关高唤醒
+
+		break;
+	case POWERKEY_MODE_SLIDE_SWITCH_HPD://硬开关低唤醒
+
+		break;
+	default:
+		break;
+	}
 }
+#endif
 

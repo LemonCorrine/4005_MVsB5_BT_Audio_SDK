@@ -52,8 +52,8 @@ extern "C" {
 
 typedef enum
 {
-	SPIM_PORT0_A5_A6_A7			= 0,
-	SPIM_PORT1_A20_A21_A22		= 1,
+	SPIM_PORT0_A5_A6_A7_A9			= 0,
+	SPIM_PORT1_A20_A21_A22_A28		= 1,
 }SPIM_PORT_MODE;
 
 
@@ -92,7 +92,7 @@ bool SPIM_Init(uint8_t Mode, uint8_t ClkDiv);
 /**
  * @brief
  *		选择SPIM模块功能引脚
- * @param	PortSel    SPIM_PORT0_A5_A6_A7   SPIM_PORT1_A20_A21_A22
+ * @param	PortSel    SPIM_PORT0_A5_A6_A7_A9   SPIM_PORT1_A20_A21_A22_A28
  * @return
  *		无
  * @note
@@ -185,13 +185,13 @@ void SPIM_SetDmaEn(bool EN);
 /**
  * @brief
  *		 specify spi transfer mode, default set standard mode
- * @param	 0: standard mode
- 	 	 	 1: quad mode
+ * @param	PortSel    	SPIM_PORT0_A5_A6_A7   SPIM_PORT1_A20_A21_A22
+ * 	 		mode		0: standard mode  1: quad mode
  * @return
  *		无
  * @note
  */
-void SPIM_SetMode(uint8_t mode);
+void SPIM_SetMode(uint8_t PortSel, uint8_t mode);
 
 void SPIM_ClrOverwr();
 //--------------------------------DMA STATUS-------------------------------------
@@ -243,6 +243,31 @@ bool SPIM_GetRxOverwr();
  *		返回 0：standard mode  1：quad mode
  */
 bool SPIM_GetMode();
+/**
+ * @brief
+ *		Init default CS pin
+ * @param	PortSel    SPIM_PORT0_A5_A6_A7_A9   SPIM_PORT1_A20_A21_A22_A28
+ * @return	none
+ *
+ */
+SPI_MASTER_ERR_CODE SPIM_CS_Init(uint8_t PortSel);
+/**
+ * @brief
+ *		Enable default CS pin
+ * @param	none
+ * @return	none
+ *
+ */
+void SPIM_CS_Enable();
+/**
+ * @brief
+ *		Disable default CS pin
+ * @param	none
+ * @return	none
+ *
+ */
+void SPIM_CS_Disable();
+
 #ifdef __cplusplus
 }
 #endif//__cplusplus

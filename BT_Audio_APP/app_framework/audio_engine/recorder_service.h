@@ -44,7 +44,7 @@ extern "C"{
 
 uint16_t RecFileIndex(char *string);
 void IntToStrMP3Name(char *string, uint16_t number);
-void RecServierMsg(uint16_t *msg);
+void RecServierMsg(uint32_t *msg);
 xTaskHandle GetMediaRecorderTaskHandle(void);
 bool MediaRecorderServiceDeinit(void);
 

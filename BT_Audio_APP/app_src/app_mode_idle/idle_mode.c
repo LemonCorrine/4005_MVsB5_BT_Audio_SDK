@@ -15,6 +15,7 @@
 #include "bt_stack_service.h"
 #include "audio_core_service.h"
 #include "pmu_powerkey.h"
+#include "watchdog.h"
 
 #define MAIN_APP_TASK_SLEEP_PRIO		6 //进入deepsleep 需要相对其他task最高优先级。
 
@@ -104,10 +105,10 @@ bool GetPowerRemindSoundPlayEnd(void)
 void IdleModeConfig(void)
 {
 	IdleMode.AutoPowerOnState	= NEED_POWER_ON;
-
+#ifdef CFG_IDLE_MODE_POWER_KEY
 //	PMU_PowerKey8SResetSet();
 	SystemPowerKeyIdleModeInit();
-
+#endif
 #ifdef  CFG_FUNC_REMIND_SOUND_EN
 	IdleMode.RemindSoundFlag 	= FALSE;
 	IdleMode.DeepSleepFlag = FALSE;

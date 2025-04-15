@@ -378,38 +378,40 @@ SD_CARD_ERR_CODE SDCard_Identify(void)
 	{
 		DBG("Csd error!\n");
 	}
+	//默认sdio模块时钟  sys_clk/(ClkDiv+1) = 120M/(2+1) = 40M
+	//clk = 40M /(2*(ClkDiv+1))
 	if((resp[11] & 0x07) == 1)	//base 1M
 	{
 		if(i == 0x0F)//8M
 		{
-			SDCard.MaxTransSpeed = 0x02;	//频率设为9MHz 36/4
+			SDCard.MaxTransSpeed = 0x02;	//频率设为6.67MHz = 40/(2*(2+1))
 		}
 		else if(i > 0x08)//4.0M,4.5M,5.0M,5.5M,6.0M,7.0M
 		{
-			SDCard.MaxTransSpeed = 0x03;	//频率设为4.5MHz 36/8
+			SDCard.MaxTransSpeed = 0x03;	//频率设为5MHz = 40/(2*(3+1))
 		}
 		else if(i > 0x04)//2.0M,2.5M,3.0M,3.5M
 		{
-			SDCard.MaxTransSpeed = 0x04;	//频率设为2.25MHz 36/16
+			SDCard.MaxTransSpeed = 0x07;	//频率设为2.5MHz = 40/(2*(7+1))
 		}
 		else //1.0M,1.2M,1.3M,1.5M
 		{
-			SDCard.MaxTransSpeed = 0x05;	//频率设为1.125MHz 36/32
+			SDCard.MaxTransSpeed = 16;	//频率设为1.18MHz = 40/(2*(16+1))
 		}
 	}
 	else if((resp[11] & 0x07) == 2)	//base 10M
 	{
 		if(i < 0x04)//10M, 12M, 13M
 		{
-			SDCard.MaxTransSpeed = 0x02;	//10M,频率设为9MHz  36/4
+			SDCard.MaxTransSpeed = 0x02;	//频率设为6.67MHz = 40/(2*(2+1))
 		}
 		else if(i < 0x07)//15M,20M,25M
 		{
-			SDCard.MaxTransSpeed = 0x01;	//频率设为18MHz  36/2
+			SDCard.MaxTransSpeed = 0x01;	//频率设为10MHz = 40/(2*(1+1))
 		}
 		else
 		{
-			SDCard.MaxTransSpeed = 0x00;	//频率设为36MHz
+			SDCard.MaxTransSpeed = 0x00;	//频率设为20MHz = 40/(2*(0+1))
 		}
 	}
 	else
@@ -471,7 +473,7 @@ SD_CARD_ERR_CODE SDCard_Init(void)
 			CARD_DBG("CardGetInfo OK\n");
 			break;
 		}
-		DBG("err = %d\n",err);
+		DBG("err = %d\n",(int)err);
 		if(!(--Retry))
 		{
 			DBG("retry 4 times was still failed\n");
@@ -481,7 +483,7 @@ SD_CARD_ERR_CODE SDCard_Init(void)
 			return GET_SD_CARD_INFO_ERR;
 		}
 	}
-	SDIO_SysToSdioDivSet(1);
+	SDIO_SysToSdioDivSet(2);
 	SDIO_ClkSet(SDCard.MaxTransSpeed);
 	SDIO_ClkEnable();
 #ifdef FUNC_OS_EN

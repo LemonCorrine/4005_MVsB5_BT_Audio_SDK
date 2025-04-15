@@ -65,6 +65,7 @@ typedef enum __CLOCK_MODULE1_SWITCH
 	BTDM_24M_CLK_EN = (1 << 29),		/**< module clk switch */
 	CAN_24M_CLK_EN = (1 << 30),			/**< module clk switch */
 	MDM_PLL_CLK_EN = (1 << 31),			/**< module clk switch */
+	DEFAULT_MODULE1_CLK_SWITCH = (0x10002080), /**< default module clk switch */
 	ALL_MODULE1_CLK_SWITCH = (0xFFFFFFFF),/**<all module clk SWITCH*/
 } CLOCK_MODULE1_SWITCH;
 
@@ -87,6 +88,7 @@ typedef enum __CLOCK_MODULE2_SWITCH
 	SPDIF_DPLL_CLK_EN = (1 << 14),  	/**<SPDIF DPLL module clk switch */
 	USB_DPLL_CLK_EN = (1 << 15),        /**<USB module DPLL clk switch */
 	MDM_DPLL_CLK_EN = (1 << 16),		/**< module clk switch */
+	DEFAULT_MODULE2_CLK_SWITCH = (0x1F1F7), /**< default module clk switch */
 	ALL_MODULE2_CLK_SWITCH = (0x1F1F7),	/**<all module clk SWITCH*/
 } CLOCK_MODULE2_SWITCH;
 
@@ -112,7 +114,8 @@ typedef enum __CLOCK_MODULE3_SWITCH
 	MDAC_REG_CLK_EN = (1 << 17),		/**< module clk switch */
 	TIMER7_CLK_EN = (1 << 18),          /**<TIMER7 module clk switch */
 	TIMER8_CLK_EN = (1 << 19),          /**<TIMER8 module clk switch */
-	ALL_MODULE3_CLK_SWITCH = (0x7FFFF),	/**<all module clk SWITCH*/
+	DEFAULT_MODULE3_CLK_SWITCH = (0x3E080), /**< default module clk switch */
+	ALL_MODULE3_CLK_SWITCH = (0xFFFFF),	/**<all module clk SWITCH*/
 } CLOCK_MODULE3_SWITCH;
 
 
@@ -703,6 +706,22 @@ void Clock_EnableRTCLOSC32K();
 void Clock_DisableRTCLOSC32K();
 
 /**
+ * @brief  Enable LOSC 32K clock
+ * @param  void
+ * @return void
+ * @note   none
+ */
+void Clock_EnableLOSC32K();
+
+/**
+ * @brief  Disable LOSC 32K clock
+ * @param  void
+ * @return void
+ * @note   none
+ */
+void Clock_DisableLOSC32K();
+
+/**
  * @brief  IR Clock select HRC32K in for deepsleep wakeup test
  * @param  void
  * @return void
@@ -717,6 +736,17 @@ void Clock_IRSelHRC32K();
  * @note   none
  */
 void Clock_IRRestoreDefaultClk();
+
+/**
+ * @brief  RTC_ANA_CTRL
+ * @param  RTC_MODE_SEL : 	1: differential Amplifier
+ * 							0: single-port  Amplifier
+ * @param  RTC_CS : #RTC Osc current control:
+ * 					##000~111:240nA+120nA*RTC_CS
+ * @return void
+ * @note   none
+ */
+void Clock_RTCLOSC32K_ANA_CTRL(uint8_t RTC_MODE_SEL,uint8_t RTC_CS);
 
 #ifdef  __cplusplus
 }

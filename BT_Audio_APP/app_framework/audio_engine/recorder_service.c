@@ -543,6 +543,15 @@ bool RecordDiskMount(void)
 				{
 					RecorderCt->DiskVolume = 0;
 					APP_DBG("SD mount 0:/--> ok\n");
+					if(GetSystemMode() == ModeBtAudioPlay || GetSystemMode() == ModeBtHfPlay)
+					{
+						SD_CARD *sd = SDCard_GetCardInfo();
+						osMutexLock(SDIOMutex);
+						SDIO_ClkDisable();
+						SDIO_ClkSet(sd->MaxTransSpeed + 1);//降低clk
+						osMutexUnlock(SDIOMutex);
+						APP_DBG("SDCard MaxTransSpeed: %d\n",sd->MaxTransSpeed + 1);
+					}
 				}
 				else
 				{
@@ -679,7 +688,8 @@ static bool MediaRecorderDataProcess(void)
 				MessageContext		msgSend;
 				msgSend.msgId		= MSG_MEDIA_RECORDER_ERROR;
 				MessageSend(RecorderCt->parentMsgHandle, &msgSend);
-				return FALSE;//写入错误，停止，应该加上磁盘信息。比如空间满。
+				break;
+				//return FALSE;//写入错误，停止，应该加上磁盘信息。比如空间满。
 			}
 			RecorderCt->FileWCircularBuf.R = (RecorderCt->FileWCircularBuf.R + Len) % RecorderCt->FileWCircularBuf.BufDepth;
 			RecorderCt->RecState = RecorderStateSaveFlie;
@@ -1080,7 +1090,7 @@ bool MediaRecorderServiceKill(void)
 bool MediaRecorderServiceDeinit(void)
 {
 	MediaRecorderServiceStopProcess();
-	MediaRecorderServiceKill();
+	//MediaRecorderServiceKill();
 	return TRUE;
 }
 
@@ -1219,7 +1229,7 @@ void RecServierToParent(uint16_t id)
 	MessageSend(GetMainMessageHandle(), &msgSend);
 }
 
-void RecServierMsg(uint16_t *msg)
+void RecServierMsg(uint32_t *msg)
 {
 	switch(*msg)
 	{

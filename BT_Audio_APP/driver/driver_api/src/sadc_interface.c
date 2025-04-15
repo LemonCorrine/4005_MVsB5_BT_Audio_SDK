@@ -46,7 +46,7 @@ int16_t SarADC_LDOINVolGet(void)
 	{
 		DC_Data1 += 30;//电压低于3.3V之后，采样计算值偏低
 	}
-	DBG("LDOIN ： %d\n", DC_Data1);
+	DBG("LDOIN ： %d\n", (int)DC_Data1);
 
 	return (int16_t)DC_Data1;
 }

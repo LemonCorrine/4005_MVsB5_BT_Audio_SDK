@@ -15,10 +15,10 @@
 #define BB_EM_MAP_ADDR				0x80000000
 
 #if( ( BLE_SUPPORT == ENABLE ) && ( BT_SUPPORT == ENABLE ))
-#define BB_EM_SIZE					(28*1024)
+#define BB_EM_SIZE					(20*1024)
 #define BB_EM_START_PARAMS			((CFG_CHIP_RAM_SIZE-BB_EM_SIZE)/1024)
 #elif( ( BLE_SUPPORT == DISABLE ) && ( BT_SUPPORT == ENABLE ))
-#define BB_EM_SIZE					(16*1024)
+#define BB_EM_SIZE					(20*1024)
 #define BB_EM_START_PARAMS			((CFG_CHIP_RAM_SIZE-BB_EM_SIZE)/1024)
 #else
 #define BB_EM_SIZE					0

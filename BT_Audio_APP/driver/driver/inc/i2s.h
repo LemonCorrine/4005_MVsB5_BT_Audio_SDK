@@ -346,6 +346,7 @@ I2S_ERROR_CODE I2S_FadeDisable(I2S_MODULE I2SModuleIndex);
 #define GET_I2S_I2S_PORT(val)												((val>>16)&0x01)
 #define GET_I2S_GPIO_MODE(val)												((val>>8)&0x0f)
 #define GET_I2S_GPIO_INDEX(val)												((val)&0x1f)
+#define GET_I2S_GPIO_PORT(val)												(1<<((val)&0x1f))
 //i2s_mode: I2S_MASTER_MODE I2S_SLAVE_MODE
 #define SET_I2S_GPIO_ALL_VAL(i2s_mode,i2s_port,gpio_mode,gpio_index)		((i2s_mode<<24)|(i2s_port<<16)|(gpio_mode<<8)|(gpio_index))
 #define GET_I2S_MODE(val)													((val>>24)&0x01)

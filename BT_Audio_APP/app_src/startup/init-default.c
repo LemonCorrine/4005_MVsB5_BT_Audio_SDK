@@ -14,24 +14,6 @@
 #define M(A) 	_M(A)
 
 static void Default_Handler();
-void LE_Default_Handler(void);
-void BT_Default_Handler(void);
-
-void LE_Default_Handler(void)
-{
-#if (BLE_SUPPORT == ENABLE)
-	extern void LE_Interrupt(void);
-	LE_Interrupt();
-#endif
-}
-
-extern void Bt_Interrupt(void);
-void BT_Default_Handler(void)
-{
-#if( BT_SUPPORT == ENABLE)
-    Bt_Interrupt();
-#endif
-}
 
 #pragma weak GpioInterrupt     = Default_Handler//0
 #pragma weak WakeupInterrupt   = Default_Handler//1

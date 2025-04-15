@@ -15,13 +15,17 @@ extern const ROBOEFFECT_EFFECT_PARA_TABLE music_node;
 
 static const ROBOEFFECT_EFFECT_PARA_TABLE *effect_para_table[] =
 {
+#ifdef CFG_FUNC_EFFECT_BYPASS_EN
 	&bypass_node,
-	&hfp_node,
+#else
 #ifdef CFG_FUNC_MIC_KARAOKE_EN
 	&karaoke_node,
-#endif
+#else
+	&hfp_node,
 	&mic_node,
 	&music_node,
+#endif
+#endif
 	NULL,
 };
 
@@ -52,11 +56,11 @@ ROBOEFFECT_EFFECT_PARA_TABLE * GetCurEffectParaNode(void)
 	{
 		if((mainAppCt.EffectMode >= effect_para_table[i]->effect_id ) &&
 		   (mainAppCt.EffectMode < (effect_para_table[i]->effect_id + effect_para_table[i]->effect_id_count)))
-			return effect_para_table[i];
+			return (ROBOEFFECT_EFFECT_PARA_TABLE *)effect_para_table[i];
 		else
 			i++;
 	}
-	return effect_para_table[0];
+	return (ROBOEFFECT_EFFECT_PARA_TABLE *)effect_para_table[0];
 }
 
 ROBOEFFECT_EFFECT_PARA * get_user_effect_parameters(uint8_t mode)
@@ -68,7 +72,7 @@ ROBOEFFECT_EFFECT_PARA * get_user_effect_parameters(uint8_t mode)
 	if(index > param->effect_id_count)
 		index = 0;
 
-	DBG("EFFECT_MODE: %d\n",param->effect_id + index);
+	DBG("EFFECT_MODE: %d\n",(int)param->effect_id + index);
 	return param->roboeffect_para + index;
 }
 

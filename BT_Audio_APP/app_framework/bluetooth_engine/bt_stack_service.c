@@ -63,8 +63,8 @@ extern AvrcpAdvMediaStatus sPlayStatus[BT_LINK_DEV_NUM];
 
 
 //BR/EDR STACK SERVICE
-#define BT_STACK_SERVICE_STACK_SIZE		640//768
-#define BT_STACK_SERVICE_PRIO			4
+#define BT_STACK_SERVICE_STACK_SIZE		1024//768
+#define BT_STACK_SERVICE_PRIO			5
 #define BT_STACK_NUM_MESSAGE_QUEUE		20
 
 typedef struct _BtStackServiceContext
@@ -845,7 +845,9 @@ static void BtStackServiceEntrance(void * param)
 	
 	//BB init
 	ConfigBtBbParams(&bbParams);
-	
+
+
+
 	Bluetooth_common_init(&bbParams);
 #if ( BT_SUPPORT == ENABLE )
 	Bt_init((void*)&bbParams);
@@ -853,7 +855,7 @@ static void BtStackServiceEntrance(void * param)
 #endif
 
 #if (BLE_SUPPORT == ENABLE)
-	Ble_init();
+	BleAppInit();
 #endif
 
 	//host memory init
@@ -891,21 +893,7 @@ static void BtStackServiceEntrance(void * param)
 #endif
 
 #if (BLE_SUPPORT == ENABLE) 
-	//BLE init
-	{
-		extern void BleAdvSet(void);
-		//extern void SetBleLog(uint8_t log);
-		//SetBleLog(0xff);
-		InitBlePlaycontrolProfile();
-		
-		if(!InitBleStack(&g_playcontrol_app_context, &g_playcontrol_profile))
-		{
-			APP_DBG("error ble stack init\n");
-		}
 
-		BleAdvSet(); 
-		APP_DBG("ble stack init success\n");
-	}
 #endif
 
 	SetBtStackState(BT_STACK_STATE_READY);

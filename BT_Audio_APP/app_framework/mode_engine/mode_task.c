@@ -377,11 +377,6 @@ static void SysModeGenerateByPlugEvent(uint16_t Msg)
 				else
 				{
 					sPlugOutMode |= BIT(mainAppCt.SysCurrentMode);
-					if(mainAppCt.SysPrevMode == ModeIdle)
-					{
-						osMutexUnlock(SysModeMutex);
-						IdleModeEnter();
-					}
 					SysModeEnter(mainAppCt.SysPrevMode);
 				}
 				osMutexUnlock(SysModeMutex);
@@ -434,6 +429,8 @@ void SysModeGenerate(uint16_t Msg)
 		if(count == SYS_MODE_MAX_NUMBER)
 		{
 			osMutexUnlock(SysModeMutex);
+			if(Msg == MSG_SOFT_MODE)
+				IdleModeEnter();
 			return;// not find mode,not action
 		}
 		SysModeEnter(SysMode[mode_search_count].ModeNumber);

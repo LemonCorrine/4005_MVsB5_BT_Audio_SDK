@@ -144,8 +144,10 @@ void HDMI_CEC_DDC_Init(void)
 	gCecInitDef->dma_tx_param.Dir  				=  DMA_CHANNEL_DIR_MEM2PERI;
 	gCecInitDef->dma_tx_param.Mode 				=  DMA_BLOCK_MODE;
 	gCecInitDef->dma_tx_param.ThresholdLen 		=  0;
-	gCecInitDef->dma_tx_param.SrcDataWidth 		=  DMA_SRC_DWIDTH_HALF_WORD;
-	gCecInitDef->dma_tx_param.DstDataWidth 		=  DMA_DST_DWIDTH_HALF_WORD;
+//	gCecInitDef->dma_tx_param.SrcDataWidth 		=  DMA_SRC_DWIDTH_HALF_WORD;
+//	gCecInitDef->dma_tx_param.DstDataWidth 		=  DMA_DST_DWIDTH_HALF_WORD;
+	gCecInitDef->dma_tx_param.DataWidth			=  DMA_DWIDTH_HALF_WORD;
+
 	gCecInitDef->dma_tx_param.SrcAddrIncremental=  DMA_SRC_AINCR_SRC_WIDTH;
 	gCecInitDef->dma_tx_param.DstAddrIncremental=  DMA_DST_AINCR_NO;
 	gCecInitDef->dma_tx_param.DstAddress        =  HDMI_CEC_SEND_DATA_ADDR;
@@ -160,7 +162,7 @@ void HDMI_CEC_DDC_Init(void)
 	}
 	else
 	{
-		gCecInitDef->pwm_param.FreqDiv 			= 14400;
+		gCecInitDef->pwm_param.FreqDiv 			= 12000;
 	}
 	gCecInitDef->pwm_param.Duty          		=  100;
 	gCecInitDef->pwm_param.DMAReqEnable			=  1;
@@ -172,8 +174,9 @@ void HDMI_CEC_DDC_Init(void)
 	gCecInitDef->dma_rx_param.Dir				=	DMA_CHANNEL_DIR_PERI2MEM;
 	gCecInitDef->dma_rx_param.Mode  			=   DMA_CIRCULAR_MODE;
 	gCecInitDef->dma_rx_param.ThresholdLen		=   2;//TaoWen; for rc clk
-	gCecInitDef->dma_rx_param.SrcDataWidth   	=   DMA_SRC_DWIDTH_HALF_WORD;
-	gCecInitDef->dma_rx_param.DstDataWidth   	=   DMA_SRC_DWIDTH_HALF_WORD;
+//	gCecInitDef->dma_rx_param.SrcDataWidth   	=   DMA_SRC_DWIDTH_HALF_WORD;
+//	gCecInitDef->dma_rx_param.DstDataWidth   	=   DMA_SRC_DWIDTH_HALF_WORD;
+	gCecInitDef->dma_rx_param.DataWidth			= 	DMA_DWIDTH_HALF_WORD;
 	gCecInitDef->dma_rx_param.SrcAddrIncremental=   DMA_SRC_AINCR_NO;
 	gCecInitDef->dma_rx_param.DstAddrIncremental=   DMA_DST_AINCR_DST_WIDTH;
 	gCecInitDef->dma_rx_param.SrcAddress		=	HDMI_CEC_RECV_DATA_ADDR;
@@ -191,7 +194,7 @@ void HDMI_CEC_DDC_Init(void)
 	}
 	else
 	{
-		gCecInitDef->pwc_param.TimeScale 		=  1440;//10us
+		gCecInitDef->pwc_param.TimeScale 		=  1200;//10us
 	}
 
 	gCecInitDef->pwc_param.FilterTime   		=   12;
@@ -543,28 +546,33 @@ void HDMI_CEC_Scan(uint8_t isWorkStatus)
 
 void HDMI_ARC_Init(uint16_t *DMAFifoAddr, uint32_t DMAFifoSize, MCU_CIRCULAR_CONTEXT *ct)
 {
-	SPDIF_ModuleDisable();
+	SPDIF_ModuleDisable(CFG_HDMI_SPDIF_NUM);
 
 	GPIO_RegOneBitClear(HDMI_ARC_RECV_IO_OE, HDMI_ARC_RECV_IO_PIN);
 	GPIO_RegOneBitClear(HDMI_ARC_RECV_IO_IE, HDMI_ARC_RECV_IO_PIN);
 	GPIO_RegOneBitSet(HDMI_ARC_RECV_IO_ANA,  HDMI_ARC_RECV_IO_PIN);
-	SPDIF_AnalogModuleEnable(HDMI_ARC_RECV_ANA_PIN, SPDIF_ANA_LEVEL_200mVpp);
 
-	SPDIF_RXInit(1, 0, 0);
+#if (CFG_HDMI_SPDIF_NUM == SPDIF0)
+	SPDIF0_AnalogModuleEnable(HDMI_ARC_RECV_ANA_PIN, SPDIF_ANA_LEVEL_200mVpp);
+#else
+	SPDIF1_AnalogModuleEnable(HDMI_ARC_RECV_ANA_PIN, SPDIF_ANA_LEVEL_200mVpp);
+#endif
 
-	DMA_ChannelDisable(PERIPHERAL_ID_SPDIF_RX);
+	SPDIF_RXInit(CFG_HDMI_SPDIF_NUM,1, 0, 0);
+
+	DMA_ChannelDisable(CFG_HDMI_DMA_CHANNEL);
 	//Reset_FunctionReset(DMAC_FUNC_SEPA);
-	DMA_CircularConfig(PERIPHERAL_ID_SPDIF_RX, DMAFifoSize/2, DMAFifoAddr, DMAFifoSize);
-	DMA_ChannelEnable(PERIPHERAL_ID_SPDIF_RX);
+	DMA_CircularConfig(CFG_HDMI_DMA_CHANNEL, DMAFifoSize/2, DMAFifoAddr, DMAFifoSize);
+	DMA_ChannelEnable(CFG_HDMI_DMA_CHANNEL);
 
-	SPDIF_ModuleEnable();
+	SPDIF_ModuleEnable(CFG_HDMI_SPDIF_NUM);
 
 	hdmiMCUCt = ct;
 }
 
 uint8_t HDMI_ARC_LockStatusGet(void)
 {
-	return SPDIF_FlagStatusGet(LOCK_FLAG_STATUS);
+	return SPDIF_FlagStatusGet(CFG_HDMI_SPDIF_NUM,LOCK_FLAG_STATUS);
 }
 
 //0: not ready, 1: ready
@@ -588,7 +596,7 @@ uint16_t HDMI_ARC_DataLenGet(void)
 
 	if(hdmiMCUCt != NULL)
 	{
-		return (MCUCircular_GetDataLen(hdmiMCUCt) / 4);
+		return (MCUCircular_GetDataLen(hdmiMCUCt) / (sizeof(PCM_DATA_TYPE) * 2));
 	}
 	else
 	{
@@ -602,8 +610,8 @@ uint16_t HDMI_ARC_DataGet(void *pcm_out, uint16_t MaxSize)
 
 	if(hdmiMCUCt != NULL)
 	{
-		len = MCUCircular_GetData(hdmiMCUCt, pcm_out, MaxSize * 4);
-		len = (len >> 2);
+		len = MCUCircular_GetData(hdmiMCUCt, pcm_out,MaxSize * (sizeof(PCM_DATA_TYPE) * 2));
+		len = (len / (sizeof(PCM_DATA_TYPE) * 2));
 		return len;
 	}
 	else
@@ -614,9 +622,13 @@ uint16_t HDMI_ARC_DataGet(void *pcm_out, uint16_t MaxSize)
 
 void HDMI_ARC_DeInit(void)
 {
-	SPDIF_ModuleDisable();
-	DMA_ChannelDisable(PERIPHERAL_ID_SPDIF_RX);
-	SPDIF_AnalogModuleDisable();
+	SPDIF_ModuleDisable(CFG_HDMI_SPDIF_NUM);
+	DMA_ChannelDisable(CFG_HDMI_DMA_CHANNEL);
+#if (CFG_HDMI_SPDIF_NUM == SPDIF0)
+	SPDIF0_AnalogModuleDisable();
+#else
+	SPDIF1_AnalogModuleDisable();
+#endif
 	GPIO_PortAModeSet(HDMI_ARC_RECV_IO_PIN, 0);
 }
 
@@ -885,6 +897,7 @@ void HDMI_CEC_Default_Scan(uint8_t isWorkStatus)
 
 		if(flag == 0)
 		{
+			//APP_DBG("gHdmiCt->hdmiReportStatus %x\n", gHdmiCt->hdmiReportStatus);
 			if(gHdmiCt->hdmiReportStatus == 1)//Á½´ÎallocateÂß¼­µØÖ·(1,2)
 			{
 				HDMI_CEC_AllocateLogicalAddress();

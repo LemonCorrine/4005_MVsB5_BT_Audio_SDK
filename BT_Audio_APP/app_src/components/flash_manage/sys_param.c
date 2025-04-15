@@ -138,7 +138,7 @@ void sys_parameter_init(void)
 }
 
 #ifdef CFG_FUNC_FLASH_PARAM_ONLINE_TUNING_EN
-
+#include "otg_device_hcd.h"
 //复用调音工具的发送buf
 extern uint8_t  hid_tx_buf[];
 static bool  	hid_tx_flag;

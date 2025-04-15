@@ -36,7 +36,7 @@ typedef struct _LineInPlayContext
 	//MessageHandle		msgHandle;
 
 	uint32_t			*ADCFIFO;			//ADC的DMA循环fifo
-	uint32_t			ADCFIFO_len;			//ADC的DMA循环fifo len
+	uint32_t			ADCFIFO_len;		//ADC的DMA循环fifo len
 //	AudioCoreContext 	*AudioCoreLineIn;
 
 	//play
@@ -326,8 +326,8 @@ bool LineInMixPlayInit(void)
 	AudioIOSet.Channels = 2;
 	AudioIOSet.Net = DefaultNet;
 
-	AudioIOSet.DataIOFunc = AudioADC0DataGet;
-	AudioIOSet.LenGetFunc = AudioADC0DataLenGet;
+	AudioIOSet.DataIOFunc = AudioADC0_DataGet;
+	AudioIOSet.LenGetFunc = AudioADC0_DataLenGet;
 
 #ifdef	CFG_AUDIO_WIDTH_24BIT
 	AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
@@ -359,11 +359,16 @@ bool LineInMixPlayInit(void)
 	AudioCoreSourceEnable(LINEIN_MIX_SOURCE_NUM);
 	AudioAnaChannelSet(LINEIN_INPUT_CHANNEL);
 
-	AudioADC_DigitalInit(ADC0_MODULE, CFG_PARA_SAMPLE_RATE, (void*)sLineInPlayCt->ADCFIFO, sLineInPlayCt->ADCFIFO_len,AudioIOSet.IOBitWidth);
+	AudioADC_DigitalInit(ADC0_MODULE, CFG_PARA_SAMPLE_RATE, AudioIOSet.IOBitWidth,(void*)sLineInPlayCt->ADCFIFO, sLineInPlayCt->ADCFIFO_len);
 
 #if (LINEIN_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN1)
-	AudioADC_AnaInit(ADC0_MODULE,LINEIN1_LEFT,Single,ADCCommonEnergy);
-	AudioADC_AnaInit(ADC0_MODULE,LINEIN1_RIGHT,Single,ADCCommonEnergy);
+#ifdef CFG_ADCDAC_SEL_LOWPOWERMODE
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN1_LEFT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN1_RIGHT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
+#else
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN1_LEFT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN1_RIGHT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
+#endif // CFG_ADCDAC_SEL_LOWPOWERMODE
 #endif
 #if (LINEIN_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN2)
 	GPIO_PortBModeSet(GPIOB0,0);
@@ -373,8 +378,13 @@ bool LineInMixPlayInit(void)
 	GPIO_RegBitsClear(GPIO_B_IE,GPIOB1);
 	GPIO_RegBitsClear(GPIO_B_OE,GPIOB1);
 
-	AudioADC_AnaInit(ADC0_MODULE,LINEIN2_LEFT,Single,ADCCommonEnergy);
-	AudioADC_AnaInit(ADC0_MODULE,LINEIN2_RIGHT,Single,ADCCommonEnergy);
+#ifdef CFG_ADCDAC_SEL_LOWPOWERMODE
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN2_LEFT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN2_RIGHT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
+#else
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN2_LEFT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN2_RIGHT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
+#endif // CFG_ADCDAC_SEL_LOWPOWERMODE
 #endif
 
 	AudioCodecGainUpdata();//update hardware config

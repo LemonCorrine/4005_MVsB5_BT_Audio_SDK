@@ -16,13 +16,14 @@
 #define CFG_CHIP_BP1564A1		10
 #define CFG_CHIP_BP1564A2		11
 #define CFG_CHIP_AP1524A1		12		//无蓝牙
+#define CFG_CHIP_AP1532B1		13		//无蓝牙
 
 //****************************************************************************************
 //       芯片型号选择配置
 // 不同的封装的电源配置/蓝牙模拟参数等可能会不一样
 // 请在这里选择相应的封装芯片进行开发
 //****************************************************************************************
-#define CFG_CHIP_SEL           	CFG_CHIP_BP1532B1
+#define CFG_CHIP_SEL           	CFG_CHIP_BP1564A2
 
 
 //****************************************************************************************
@@ -80,6 +81,11 @@
 #elif (CFG_CHIP_SEL == CFG_CHIP_AP1524A1)
     #define CHIP_FLASH_CAPACTITY			8
 	#define	CHIP_LINEIN_CHANNEL				ANA_INPUT_CH_LINEIN2
+	#define	CHIP_BT_DISABLE											//无蓝牙功能
+#elif (CFG_CHIP_SEL == CFG_CHIP_BP1532B1)
+    #define CHIP_FLASH_CAPACTITY			8
+	#define	CHIP_LINEIN_CHANNEL				ANA_INPUT_CH_LINEIN2
+	#define	CHIP_USE_DCDC
 	#define	CHIP_BT_DISABLE											//无蓝牙功能
 #else
     #define CHIP_FLASH_CAPACTITY			16

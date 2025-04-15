@@ -242,7 +242,7 @@ void bt_em_size_init(void)
 	uint32_t bt_em_mem;
 
 	bt_em_mem = bt_em_size();
-	APP_DBG("BB_EM_SIZE=%d,EM_BT_END=%d\n", BB_EM_SIZE, bt_em_mem);
+	APP_DBG("BB_EM_SIZE=%d,EM_BT_END=%d\n", (int)BB_EM_SIZE, (int)bt_em_mem);
 	if(bt_em_mem%4096)
 	{
 		bt_em_mem = ((bt_em_mem/4096)+1)*4096;
@@ -351,7 +351,7 @@ int main(void)
 
 	APP_DBG("\n");
 	APP_DBG("****************************************************************\n");
-	APP_DBG("|                    MVsB5_Audio_24BitV3_SDK                   |\n");
+	APP_DBG("|                    MVsB5_BT_Audio_SDK                        |\n");
 	APP_DBG("|            Mountain View Silicon Technology Co.,Ltd.         |\n");
 	APP_DBG("|            SDK Version: %d.%d.%d                                |\n", CFG_SDK_MAJOR_VERSION, CFG_SDK_MINOR_VERSION, CFG_SDK_PATCH_VERSION);
 	APP_DBG("****************************************************************\n");

@@ -44,7 +44,7 @@
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(0)
 #define  CFG_SDK_MINOR_VERSION		(2)
-#define  CFG_SDK_PATCH_VERSION	    (7)
+#define  CFG_SDK_PATCH_VERSION	    (8)
 
 
 //****************************************************************************************
@@ -60,6 +60,7 @@
 //#define CFG_APP_I2SIN_MODE_EN
 #define	CFG_APP_OPTICAL_MODE_EN	// SPDIF 光纤模式
 #define CFG_APP_COAXIAL_MODE_EN	// SPDIF 同轴模式
+//#define CFG_APP_HDMIIN_MODE_EN
 
 #ifdef CHIP_BT_DISABLE
 	#undef CFG_APP_BT_MODE_EN
@@ -225,6 +226,8 @@
 #define CFG_FUNC_AUDIO_EFFECT_EN //总音效使能开关
 #ifdef CFG_FUNC_AUDIO_EFFECT_EN
 
+//#define CFG_FUNC_EFFECT_BYPASS_EN		//开启后默认运行bypass音效框图，用于音频指标测试
+
     //#define CFG_FUNC_ECHO_DENOISE          //消除快速调节delay时的杂音，
  	//#define CFG_FUNC_MUSIC_EQ_MODE_EN     //Music EQ模式功能配置
 
@@ -283,14 +286,6 @@
 //****************************************************************************************
 #define	CFG_PARA_SAMPLE_RATE				(44100)
 #define CFG_BTHF_PARA_SAMPLE_RATE			(16000)//蓝牙HFP模式下统一采样率为16K
-
-#if (BT_AVRCP_VOLUME_SYNC == ENABLE) && defined(CFG_APP_BT_MODE_EN)
-#define CFG_PARA_MAX_VOLUME_NUM		        (16)	//SDK 16 级音量,针对iphone手机蓝牙音量同步功能定制，音量表16级能一一对应手机端音量级别
-#define CFG_PARA_SYS_VOLUME_DEFAULT			(12)	//SDK默认音量
-#else
-#define CFG_PARA_MAX_VOLUME_NUM		        (32)	//SDK 32 级音量
-#define CFG_PARA_SYS_VOLUME_DEFAULT			(25)	//SDK默认音量
-#endif
 
 //****************************************************************************************
 //     转采样功能选择
@@ -389,11 +384,12 @@
 //****************************************************************************************
 /**OS操作系统进入IDLE时经core进入休眠状态，以达到降低功耗目的**/
 /*注意，这是OS调度的IDLE，并非应用层APPMODE，应用层无需关心*/
+#ifndef CFG_FUNC_MIC_KARAOKE_EN //KARAOKE配置下，默认关闭
 #define CFG_FUNC_IDLE_TASK_LOW_POWER
 #ifdef	CFG_FUNC_IDLE_TASK_LOW_POWER
 	#define	CFG_GOTO_SLEEP_USE
 #endif
-
+#endif
 //************************************************************************************************************
 //* 低功耗优化,根据各个功能模块的优化,达到降低功耗的目的
 //* 注意: 各个模块的低功耗优化方式和模块性能有关系
@@ -419,7 +415,7 @@
 //#define CFG_FUNC_DEBUG_EN
 //#define CFG_FUNC_USBDEBUG_EN
 #ifdef CFG_FUNC_DEBUG_EN
-	#define CFG_UART_TX_PORT 				DEBUG_TX_A31
+	#define CFG_UART_TX_PORT 				DEBUG_TX_A10
 	#define CFG_UART_BANDRATE   			DEBUG_BAUDRATE_2000000//DEBUG_BAUDRATE_115200
 	#define CFG_FLASHBOOT_DEBUG_EN          ENABLE//ENABLE			
 #endif
@@ -457,10 +453,7 @@
 #define  CFG_FUNC_DBCLICK_MSG_EN
 
 /**ADC按键**/
-#define CFG_RES_ADC_KEY_SCAN				//在device service 中启用Key扫描ADCKEY
-#if defined(CFG_RES_ADC_KEY_SCAN) || defined(CFG_PARA_WAKEUP_SOURCE_ADCKEY)
-	#define CFG_RES_ADC_KEY_USE				//ADC按键功能 启用
-#endif
+#define CFG_RES_ADC_KEY_SCAN
 
 /**IR按键**/
 #define CFG_RES_IR_KEY_SCAN				//启用device service Key扫描IRKey
@@ -513,13 +506,6 @@
 #if defined(CFG_FUNC_SHELL_EN) && defined(CFG_USE_SW_UART)
 #error	Conflict: shell  X  SW UART No RX!
 #endif
-
-// 使能自动化测试
-//#define AUTO_TEST_ENABLE
-
-// 使能蓝牙OTA
-// OTA打开自动开启蓝牙SPP
-//#define  CFG_FUNC_BT_OTA_EN
 
 //redmine 任务13199 麦克风产品
 //基于标准SDK更新，暂时不做分支处理

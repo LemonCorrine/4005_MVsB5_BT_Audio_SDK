@@ -101,6 +101,7 @@ uint8_t BtLocalVolLevel2AbsVolme(uint8_t localValue)
 	return gBtAbsVolSetTable[localValue];
 }
 
+extern void Roboeffect_SinkMute_Set(bool muteFlag);
 void HardWareMuteOrUnMute(void)
 {
 	mainAppCt.gSysVol.MuteFlag = !mainAppCt.gSysVol.MuteFlag;

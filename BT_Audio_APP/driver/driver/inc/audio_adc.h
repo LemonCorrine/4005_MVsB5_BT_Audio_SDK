@@ -564,6 +564,8 @@ void AudioADC_LatchDelayIBiasSet(ADC_MODULE ADCModule,  uint8_t LeftIBSEL,  uint
 void AudioADC_PGAIBiasSet(ADC_MODULE ADCModule,  uint8_t LeftIBSEL,  uint8_t RightIBSEL);
 /*PGA MUTE信号*/
 void AudioADC_PGAMute(ADC_MODULE ADCModule, bool IsLeftEn, bool IsRightEn);
+//缓冲器电流控制
+void AudioADC_BufferIBiasSet(ADC_MODULE ADCModule,  uint8_t LeftBuf,  uint8_t RightBuf);
 
 #ifdef  __cplusplus
 }
