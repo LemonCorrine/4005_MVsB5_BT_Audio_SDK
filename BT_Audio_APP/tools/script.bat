@@ -1,3 +1,4 @@
+
 cd ..
 if exist mp2 (rd /s /q mp2)
 md mp2
@@ -14,7 +15,13 @@ tools\remind_script\MergeAudio2BinNew.exe -a 0x0 -i ..\..\mp2
 rd /s /q mp2
 fc tools\remind_script\sound_remind_item.h app_framework\audio_engine\remind_sound_item.h
 if %errorlevel%==1 (copy tools\remind_script\sound_remind_item.h app_framework\audio_engine\remind_sound_item.h)
+tools\roboeffect\roboeffect_config.exe
+grep '^#define CFG_AI_DENOISE_EN' app_src\system_config\app_config.h
+if %errorlevel%==0 (goto found) else (goto not_found)
+:found
 grep '^#define CFG_AI_DENOISE_EN' app_src\system_config\app_config.h | grep '//'
 if %errorlevel%==1 (nds_ldsag.exe -t tools\nds32_template.txt tools\BP15x_AI.sag -o BP15x.ld) else (nds_ldsag.exe -t tools\nds32_template.txt tools\BP15x.sag -o BP15x.ld)
-
-
+exit
+:not_found
+nds_ldsag.exe -t tools\nds32_template.txt tools\BP15x.sag -o BP15x.ld
+exit
