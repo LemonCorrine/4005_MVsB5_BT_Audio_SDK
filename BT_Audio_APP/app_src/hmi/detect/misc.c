@@ -19,6 +19,7 @@
 #include "audio_vol.h"
 #include "misc.h"
 #include "i2s.h"
+#include "user_effect_parameter.h"
 
 #define HW_DEVICE_NUMBER		3
 #define  HW_DECTED_DLY	 2
@@ -122,8 +123,7 @@ void ShunningModeProcess(void)
 	static uint16_t shnning_recover_dly = 0;
 	static uint16_t shnning_up_dly      = 0;
 	static uint16_t shnning_down_dly    = 0;
-	static uint16_t cnt = 0;
-	uint16_t music_pregain = Roboeffect_GainControl_Get(MUSIC_PREGAIN_ADDR);
+	uint16_t music_pregain = mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM];
 
 	if(mainAppCt.ShunningMode == 0)
 	{
@@ -133,102 +133,48 @@ void ShunningModeProcess(void)
 			return;
 		}
 		shnning_up_dly = SHNNIN_UP_DLY;
-	    if(mainAppCt.aux_out_dyn_gain != music_pregain)//////阀值
+		if(mainAppCt.aux_out_dyn_gain != music_pregain)//////阀值
 		{
 			if(mainAppCt.aux_out_dyn_gain < music_pregain)
 			{
 				mainAppCt.aux_out_dyn_gain += SHNNIN_STEP;
 			}
-			else if(mainAppCt.aux_out_dyn_gain > music_pregain)
-			{
-			    if(mainAppCt.aux_out_dyn_gain >= SHNNIN_STEP)
-		    	{
-			    	mainAppCt.aux_out_dyn_gain -= SHNNIN_STEP;
-		    	}
-			}
+
 			if(mainAppCt.aux_out_dyn_gain > music_pregain)
 			{
 				mainAppCt.aux_out_dyn_gain = music_pregain;
 			}
 		}
-//		#ifdef CFG_FUNC_REMIND_SOUND_EN
-//		if(mainAppCt.remind_out_dyn_gain !=  music_pregain)//////阀值
-//		{
-//			if(mainAppCt.remind_out_dyn_gain < music_pregain)
-//			{
-//				mainAppCt.remind_out_dyn_gain += SHNNIN_STEP;
-//			}
-//			else if(mainAppCt.remind_out_dyn_gain > music_pregain)
-//			{
-//			    if(mainAppCt.remind_out_dyn_gain >= SHNNIN_STEP)
-//		    	{
-//			    	mainAppCt.remind_out_dyn_gain -= SHNNIN_STEP;
-//		    	}
-//			}
-//			if(mainAppCt.remind_out_dyn_gain > music_pregain)
-//			{
-//				mainAppCt.remind_out_dyn_gain = music_pregain;
-//			}
-//		}
-//		#endif
+
+		Roboeffect_GainControl_Set(get_roboeffect_addr(APP_SOURCE_GAIN), get_roboeffectVolArr(mainAppCt.aux_out_dyn_gain));
 		return;
 	}
-    cnt++;
-	cnt &= 0x07;
-	//if(cnt==0) APP_DBG("Sdct level:%ld\n",gCtrlVars.AudioSdct_unit.level);
 
-	if(Roboeffect_SilenceDetector_Get(SILENCE_DETECTOR_ADDR) > SHNNIN_VALID_DATA)///vol----
+	if(Roboeffect_SilenceDetector_Get(get_roboeffect_addr(SILENCE_DETECTOR)) > SHNNIN_VALID_DATA)///vol----
 	{
 		shnning_recover_dly = SHNNIN_VOL_RECOVER_TIME;
-        if(shnning_down_dly)
+		if(shnning_down_dly)
 		{
 			shnning_down_dly--;
 			return;
 		}
-        shnning_down_dly = SHNNIN_DOWN_DLY;
+		shnning_down_dly = SHNNIN_DOWN_DLY;
 
-		if(music_pregain > SHNNIN_THRESHOLD)
+		if((music_pregain - mainAppCt.aux_out_dyn_gain) <= SHNNIN_THRESHOLD && (mainAppCt.aux_out_dyn_gain > 0))
 		{
-			if(mainAppCt.aux_out_dyn_gain > SHNNIN_THRESHOLD)//////阀值
-			{
-				if(mainAppCt.aux_out_dyn_gain >= SHNNIN_STEP)
-				{
-					mainAppCt.aux_out_dyn_gain -= SHNNIN_STEP;
-				}
-				APP_DBG("Aux Shunning start\n");
-			}
+			mainAppCt.aux_out_dyn_gain -= SHNNIN_STEP;
+			APP_DBG("Aux Shunning start\n");
 		}
-		else
-		{
-			mainAppCt.aux_out_dyn_gain = music_pregain;
-		}
-//		#ifdef CFG_FUNC_REMIND_SOUND_EN
-//		if(music_pregain > SHNNIN_THRESHOLD)
-//		{
-//			if(mainAppCt.remind_out_dyn_gain > SHNNIN_THRESHOLD)//////阀值
-//			{
-//				if(mainAppCt.remind_out_dyn_gain >= SHNNIN_STEP)
-//		    	{
-//					mainAppCt.remind_out_dyn_gain -= SHNNIN_STEP;
-//		    	}
-//
-//				APP_DBG("Remind Shunning start\n");
-//			}
-//		}
-//		else
-//		{
-//			mainAppCt.remind_out_dyn_gain = music_pregain;
-//		}
-//		#endif
+
+		Roboeffect_GainControl_Set(get_roboeffect_addr(APP_SOURCE_GAIN), get_roboeffectVolArr(mainAppCt.aux_out_dyn_gain));
 	}
-	else/////vol+++
+	else
 	{
 		if(shnning_up_dly)
 		{
 			shnning_up_dly--;
 			return;
 		}
-
 		if(shnning_recover_dly)
 		{
 			shnning_recover_dly--;
@@ -236,44 +182,20 @@ void ShunningModeProcess(void)
 		}
 		shnning_up_dly = SHNNIN_UP_DLY;
 
-		if(mainAppCt.aux_out_dyn_gain !=  music_pregain)//////阀值
+		if(mainAppCt.aux_out_dyn_gain != music_pregain)//////阀值
 		{
 			if(mainAppCt.aux_out_dyn_gain < music_pregain)
 			{
 				mainAppCt.aux_out_dyn_gain += SHNNIN_STEP;
 			}
-			else if(mainAppCt.aux_out_dyn_gain > music_pregain)
-			{
-				if(mainAppCt.aux_out_dyn_gain >= SHNNIN_STEP)
-				{
-					mainAppCt.aux_out_dyn_gain -= SHNNIN_STEP;
-				}
-			}
+
 			if(mainAppCt.aux_out_dyn_gain > music_pregain)
 			{
-				mainAppCt.aux_out_dyn_gain  = music_pregain;
+				mainAppCt.aux_out_dyn_gain = music_pregain;
 			}
 		}
-//		#ifdef CFG_FUNC_REMIND_SOUND_EN
-//		if(mainAppCt.remind_out_dyn_gain !=  music_pregain)//////阀值
-//		{
-//			if(mainAppCt.remind_out_dyn_gain < music_pregain)
-//			{
-//				mainAppCt.remind_out_dyn_gain += SHNNIN_STEP;
-//			}
-//			else if(mainAppCt.remind_out_dyn_gain > music_pregain)
-//			{
-//				if(mainAppCt.remind_out_dyn_gain >= SHNNIN_STEP)
-//		    	{
-//					mainAppCt.remind_out_dyn_gain -= SHNNIN_STEP;
-//		    	}
-//			}
-//			if(mainAppCt.remind_out_dyn_gain > music_pregain)
-//			{
-//				mainAppCt.remind_out_dyn_gain  = music_pregain;
-//			}
-//		}
-//		#endif
+
+		Roboeffect_GainControl_Set(get_roboeffect_addr(APP_SOURCE_GAIN), get_roboeffectVolArr(mainAppCt.aux_out_dyn_gain));
 	}
 #endif
 }

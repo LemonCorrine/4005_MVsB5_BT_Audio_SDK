@@ -12,8 +12,6 @@
 #include "app_config.h"
 
 /* "sys_param.h"蓝牙基础参数*/
-#define ENABLE						TRUE
-#define DISABLE						FALSE
 
 /*****************************************************************
  * 蓝牙功能开关

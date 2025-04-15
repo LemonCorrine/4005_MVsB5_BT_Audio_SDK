@@ -126,8 +126,8 @@ typedef struct _MainAppContext
 #endif
 #ifdef CFG_FUNC_SHUNNING_EN
 	uint8_t             ShunningMode;
-	uint16_t            aux_out_dyn_gain;
-	uint16_t            remind_out_dyn_gain;
+	uint32_t            aux_out_dyn_gain;
+	uint32_t            remind_out_dyn_gain;
 #endif
 	bool	    muteFlagPre;
 #ifdef CFG_FUNC_SILENCE_AUTO_POWER_OFF_EN

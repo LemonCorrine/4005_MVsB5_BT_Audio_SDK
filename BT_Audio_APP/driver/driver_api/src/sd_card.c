@@ -21,10 +21,9 @@
 #include "core_d1088.h"
 #include "gpio.h"
 #include "watchdog.h"
+#ifdef FUNC_OS_EN
 #include "mode_task.h"
 
-
-#ifdef FUNC_OS_EN
 #include "rtos_api.h" //add for mutex declare
 
 osMutexId SDIOMutex = NULL;
@@ -150,7 +149,9 @@ extern uint32_t gSysTick;
  */
 bool SDIO_CmdSend(uint8_t Cmd, uint32_t Param, uint16_t TimeOut)
 {
+#ifdef FUNC_OS_EN
 	osMutexLock(SDIOSendCommandMutex);
+#endif
 	{
 		TIMER timer;
 
@@ -169,7 +170,9 @@ bool SDIO_CmdSend(uint8_t Cmd, uint32_t Param, uint16_t TimeOut)
 			if(IsTimeOut(&timer))
 			{
 				SDIO_CmdStop();	
+#ifdef FUNC_OS_EN
 				osMutexUnlock(SDIOSendCommandMutex);
+#endif
 				return SEND_CMD_TIME_OUT_ERR;
 			}
 #ifdef FUNC_OS_EN
@@ -180,8 +183,9 @@ bool SDIO_CmdSend(uint8_t Cmd, uint32_t Param, uint16_t TimeOut)
 		}
 		SDIO_CmdStop();
 	}
-	
+#ifdef FUNC_OS_EN
 	osMutexUnlock(SDIOSendCommandMutex);
+#endif
 	return NO_ERR;
 }
 

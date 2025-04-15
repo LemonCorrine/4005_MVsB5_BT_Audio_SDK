@@ -736,6 +736,7 @@ const uint8_t InterFaceNum_Tab(HID)[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0x00};
 
 const uint8_t * const ConfigDescriptorTab[8] =
 {
+	ConfigDescriptor_Tab(HID),
 	ConfigDescriptor_Tab(AUDIO_ONLY),
 	ConfigDescriptor_Tab(MIC_ONLY),
 	ConfigDescriptor_Tab(AUDIO_MIC),
@@ -743,11 +744,11 @@ const uint8_t * const ConfigDescriptorTab[8] =
 //	ConfigDescriptor_Tab(AUDIO_READER),
 //	ConfigDescriptor_Tab(MIC_READER),
 //	ConfigDescriptor_Tab(AUDIO_MIC_READER),
-	ConfigDescriptor_Tab(HID)
 };
 
 const uint8_t * const InterFaceNumTab[8] =
 {
+	InterFaceNum_Tab(HID),
 	InterFaceNum_Tab(AUDIO_ONLY),
 	InterFaceNum_Tab(MIC_ONLY),
 	InterFaceNum_Tab(AUDIO_MIC),
@@ -755,6 +756,6 @@ const uint8_t * const InterFaceNumTab[8] =
 //	InterFaceNum_Tab(AUDIO_READER),
 //	InterFaceNum_Tab(MIC_READER),
 //	InterFaceNum_Tab(AUDIO_MIC_READER),
-	InterFaceNum_Tab(HID)
+
 };
 

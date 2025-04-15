@@ -199,9 +199,6 @@ void UsbDevicePlayResInit(void)
 //USB声卡模式参数配置，资源初始化
 bool UsbDevicePlayInit(void)
 {
-#ifdef USB_READER_EN
-	uint32_t mode = 0;
-#endif
 	APP_DBG("UsbDevice Play Init\n");
 
 	DMA_ChannelAllocTableSet((uint8_t *)DmaChannelMap);
@@ -238,26 +235,20 @@ bool UsbDevicePlayInit(void)
 	OTG_DeviceModeSel(CFG_PARA_USB_MODE, USB_VID, USBPID(CFG_PARA_USB_MODE));
 
 	AudioCodecGainUpdata();//update hardware config
-
 #ifdef USB_READER_EN
-	mode = CFG_PARA_USB_MODE;
-	if((mode == READER) || (mode == AUDIO_READER) || (mode == MIC_READER) || (mode == AUDIO_MIC_READER))
+#if( (CFG_PARA_USB_MODE >= READER))
+	if(GetSysModeState(ModeCardAudioPlay)!=ModeStateSusend)
 	{
-		if(GetSysModeState(ModeCardAudioPlay)!=ModeStateSusend)
+		CardPortInit(CFG_RES_CARD_GPIO);
+		if(SDCard_Init() == NONE_ERR)
 		{
-			CardPortInit(CFG_RES_CARD_GPIO);
-			if(SDCard_Init() == NONE_ERR)
-			{
-				APP_DBG("SD INIT OK\n");
-				//sd_link = 1;
-			}
+			APP_DBG("SD INIT OK\n");
+			//sd_link = 1;
 		}
 	}
-#if( (CFG_PARA_USB_MODE == READER) || (CFG_PARA_USB_MODE == AUDIO_READER) || (CFG_PARA_USB_MODE == MIC_READER) || (CFG_PARA_USB_MODE == AUDIO_MIC_READER) )
 	OTG_DeviceStorInit();
 #endif
 #endif
-
 	OTG_DeviceFifoInit();
 	OTG_DeviceInit();
 	NVIC_EnableIRQ(Usb_IRQn);
@@ -318,7 +309,7 @@ void UsbDevicePlayRun(uint16_t msgId)
 #endif
 	OTG_DeviceRequestProcess();
 #ifdef USB_READER_EN
-# if( (CFG_PARA_USB_MODE == READER) || (CFG_PARA_USB_MODE == AUDIO_READER) || (CFG_PARA_USB_MODE == MIC_READER) || (CFG_PARA_USB_MODE == AUDIO_MIC_READER) )
+#if( (CFG_PARA_USB_MODE >= READER))
 	OTG_DeviceStorProcess();
 #endif
 #endif

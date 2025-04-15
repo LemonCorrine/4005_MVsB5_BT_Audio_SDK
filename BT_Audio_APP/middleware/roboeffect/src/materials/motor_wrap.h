@@ -72,7 +72,7 @@ typedef struct _AdPcmFileHeader
 
 typedef struct _DecStackInfo
 {
-    uint8_t    *DataBase;
+    const uint8_t    *DataBase;
     uint32_t   Blocks;		    //current block number
     uint32_t   BlocksOffset;   //offset(samples) in current block
     uint32_t   TrailingOffset; //offset(samples) in trailing data
@@ -80,9 +80,9 @@ typedef struct _DecStackInfo
 
 typedef struct _table_motor
 {
-    uint8_t *ptr;
+    const uint8_t *ptr;
     int32_t len;
-    uint8_t *data;
+    const uint8_t *data;
 } table_motor;
 
 typedef struct _table_motor_dec

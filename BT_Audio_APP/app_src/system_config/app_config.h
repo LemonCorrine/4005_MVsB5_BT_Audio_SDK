@@ -44,7 +44,7 @@
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(0)
 #define  CFG_SDK_MINOR_VERSION		(2)
-#define  CFG_SDK_PATCH_VERSION	    (5)
+#define  CFG_SDK_PATCH_VERSION	    (6)
 
 
 //****************************************************************************************
@@ -203,9 +203,9 @@
 	//注:若需要完善移频开启后的啾啾干扰声问题，需要开启此功能(利用MIC信号检测接口处理)
 //	#define  CFG_FUNC_SHUNNING_EN
 		#define SHNNIN_VALID_DATA                          	 500  ////MIC音量阈值
-		#define SHNNIN_STEP                                  256  /////单次调节的步数
-		#define SHNNIN_THRESHOLD                             SHNNIN_STEP*2  ////threshold
-		#define SHNNIN_VOL_RECOVER_TIME                      50////伴奏音量恢复时长：100*20ms = 2s
+		#define SHNNIN_STEP                                  1  /////单次调节的步，对应VolArr中的一级
+		#define SHNNIN_THRESHOLD                             SHNNIN_STEP*10  ////threshold
+		#define SHNNIN_VOL_RECOVER_TIME                      50////伴奏音量恢复时长：50*20ms = 1s
 		#define SHNNIN_UP_DLY                                3/////音量上升时间
 		#define SHNNIN_DOWN_DLY                              1/////音量下降时间
 #endif

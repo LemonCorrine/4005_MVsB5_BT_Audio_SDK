@@ -23,8 +23,9 @@ extern "C" {
 
 #define	SD_BLOCK_SIZE					512 
 
-#define SDIO_A15_A16_A17	0
-#define SDIO_A20_A21_A22	1
+#define SDIO_NONE			0
+#define SDIO_A15_A16_A17	1
+#define SDIO_A20_A21_A22	2
 typedef enum _SDIO_INIT_STATE_
 {
 	SD_NOINIT,

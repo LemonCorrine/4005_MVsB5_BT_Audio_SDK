@@ -341,7 +341,11 @@ bool ModeCommonInit(void)
 			DBG("Dac init error");
 			return FALSE;
 		}
+#ifdef	CFG_AUDIO_WIDTH_24BIT
 		AudioDAC_Init(mainAppCt.SampleRate,24, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
+#else
+		AudioDAC_Init(mainAppCt.SampleRate,16, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
+#endif
 	}
 	else//sam add,20230221
 	{

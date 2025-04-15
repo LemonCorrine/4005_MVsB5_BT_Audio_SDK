@@ -42,6 +42,23 @@ typedef struct _ROBOEFFECT_EFFECT_ADDR
 	uint8_t REC_SINK_GAIN_ADDR;
 } ROBOEFFECT_EFFECT_ADDR;
 
+typedef enum _ROBOEFFECT_EFFECT_TYPE
+{
+	MUSIC_EQ = 0,
+	MIC_EQ,
+	REVERB,
+	ECHO,
+	SILENCE_DETECTOR,
+	APP_SOURCE_GAIN,
+	REMIND_SOURCE_GAIN,
+	MIC_SOURCE_GAIN,
+	REC_SOURCE_GAIN,
+	DAC0_SINK_GAIN,
+	APP_SINK_GAIN,
+	STEREO_SINK_GAIN,
+	REC_SINK_GAIN,
+} ROBOEFFECT_EFFECT_TYPE;
+
 typedef struct _ROBOEFFECT_SOURCE_NUM
 {
 	uint8_t mic_source;		//MIC_SOURCE_NUM	 //麦克风通路
@@ -156,15 +173,9 @@ typedef struct __ReverbMaxUnit
 	int16_t  		 max_reverb_roomsize;
 } ReverbMaxUnit;
 
-typedef enum _ROBOEFFECT_EQ_TYPE
-{
-	MUSIC_EQ = 0,
-	MIC_EQ
-}ROBOEFFECT_EQ_TYPE;
-
 void Roboeffect_GetAudioEffectMaxValue(void);
 
-void Roboeffect_EQ_Ajust(ROBOEFFECT_EQ_TYPE type,uint8_t BassGain, uint8_t TrebGain);
+void Roboeffect_EQ_Ajust(ROBOEFFECT_EFFECT_TYPE type,uint8_t BassGain, uint8_t TrebGain);
 
 void Roboeffect_ReverbStep_Ajust(uint8_t ReverbStep);
 
@@ -195,5 +206,9 @@ uint16_t get_user_effect_parameters_len(uint8_t *user_effect_parameters);
 ROBOEFFECT_EFFECT_PARA * get_user_effect_parameters(ROBOEFFECT_EFFECT_MODE mode);
 
 roboeffect_effect_list_info *get_local_effect_list_buf(void);
+
+uint8_t get_roboeffect_addr(ROBOEFFECT_EFFECT_TYPE effect_name);
+
+uint16_t get_roboeffectVolArr(uint8_t vol);
 
 #endif

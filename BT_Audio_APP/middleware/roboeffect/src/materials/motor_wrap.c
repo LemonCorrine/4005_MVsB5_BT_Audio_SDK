@@ -18,6 +18,7 @@
  *****************************************************************************/
 
 #include "stdio.h"
+#include <string.h>
 #include <nds32_intrinsic.h>
 #include "audio_effect_library.h"
 #include "motor_wrap.h"
