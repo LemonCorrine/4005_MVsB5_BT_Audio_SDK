@@ -22,6 +22,9 @@ extern "C"{
 bool LineInPlayInit(void);
 bool LineInPlayDeinit(void);
 void LineInPlayRun(uint16_t msgId);
+
+bool LineInMixPlayInit(void);
+bool LineInMixPlayDeinit(void);
 #ifdef __cplusplus
 }
 #endif // __cplusplus 

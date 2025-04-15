@@ -30,14 +30,23 @@
 
 //extern volatile uint32_t gDeviceUSBDeviceTimer;
 static const uint8_t DmaChannelMap[6] = {
-	PERIPHERAL_ID_SDIO_RX,
 	PERIPHERAL_ID_AUDIO_ADC0_RX,
 	PERIPHERAL_ID_AUDIO_ADC1_RX,
 	PERIPHERAL_ID_AUDIO_DAC0_TX,
-#ifdef CFG_DUMP_DEBUG_EN
-	CFG_DUMP_UART_TX_DMA_CHANNEL,
+//#ifdef CFG_DUMP_DEBUG_EN
+//	CFG_DUMP_UART_TX_DMA_CHANNEL,
+//#else
+//	PERIPHERAL_ID_SDIO_TX,
+//#endif
+#ifdef CFG_RES_AUDIO_I2S_MIX_IN_EN
+	PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX_I2S_MODULE,
 #else
-	PERIPHERAL_ID_SDIO_TX,
+	PERIPHERAL_ID_SDIO_RX,
+#endif
+#ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
+	PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX_I2S_MODULE,
+#else
+	255,
 #endif
 #ifdef CFG_RES_AUDIO_I2SOUT_EN
 	PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE,
@@ -186,32 +195,17 @@ void UsbDevicePlayResInit(void)
 		DBG("Usbout sink error!\n");
 	}
 #endif //CFG_RES_AUDIO_USB_OUT_EN
-
-	//Core Process
-#ifdef CFG_FUNC_AUDIO_EFFECT_EN
-	AudioCoreProcessConfig((AudioCoreProcessFunc)AudioMusicProcess);
-#else
-	AudioCoreProcessConfig((AudioCoreProcessFunc)AudioBypassProcess);
-#endif
 }
-
-
-//USB声卡模式参数配置，资源初始化
-bool UsbDevicePlayInit(void)
+//usb声卡模式硬件相关初始化
+void UsbDevicePlayHardwareInit(void)
 {
-	APP_DBG("UsbDevice Play Init\n");
-
-	DMA_ChannelAllocTableSet((uint8_t *)DmaChannelMap);
-
-	if(!ModeCommonInit())
-	{
-		return FALSE;
-	}
-
 	if(UsbAudioSpeaker.InitOk != 1)
 	{
-		memset(&UsbAudioSpeaker,0,sizeof(UsbAudioSpeaker));
-		memset(&UsbAudioMic,0,sizeof(UsbAudioMic));
+		//不清除FIFO,只清除usb声卡相关配置
+//		memset(&UsbAudioSpeaker,0,sizeof(UsbAudioSpeaker)-sizeof(MCU_CIRCULAR_CONTEXT)-sizeof(int16_t*));
+//		memset(&UsbAudioMic,0,sizeof(UsbAudioMic)-sizeof(MCU_CIRCULAR_CONTEXT)-sizeof(int16_t*));
+		memset(&UsbAudioSpeaker,0,24);
+		memset(&UsbAudioMic,0,24);
 
 		UsbAudioSpeaker.Channels    = PACKET_CHANNELS_NUM;
 		UsbAudioSpeaker.LeftVol    = AUDIO_MAX_VOLUME;
@@ -222,19 +216,7 @@ bool UsbDevicePlayInit(void)
 		UsbAudioMic.RightVol       = AUDIO_MAX_VOLUME;
 	}
 
-	if(!UsbDevicePlayResMalloc(AudioCoreFrameSizeGet(DefaultNet)))
-	{
-		APP_DBG("UsbDevicePlayResMalloc Res Error!\n");
-		return FALSE;
-	}
-	UsbDevicePlayResInit();
-
-#ifdef CFG_COMMUNICATION_BY_USB
-	SetUSBDeviceInitState(TRUE);
-#endif
 	OTG_DeviceModeSel(CFG_PARA_USB_MODE, USB_VID, USBPID(CFG_PARA_USB_MODE));
-
-	AudioCodecGainUpdata();//update hardware config
 #ifdef USB_READER_EN
 #if( (CFG_PARA_USB_MODE >= READER))
 	if(GetSysModeState(ModeCardAudioPlay)!=ModeStateSusend)
@@ -252,7 +234,40 @@ bool UsbDevicePlayInit(void)
 	OTG_DeviceFifoInit();
 	OTG_DeviceInit();
 	NVIC_EnableIRQ(Usb_IRQn);
-	
+}
+
+//USB声卡模式参数配置，资源初始化
+bool UsbDevicePlayInit(void)
+{
+	APP_DBG("UsbDevice Play Init\n");
+	//1st：DMA通道初始化
+	DMA_ChannelAllocTableSet((uint8_t *)DmaChannelMap);
+	//2st：配置系统标准通路
+	if(!ModeCommonInit())
+	{
+		return FALSE;
+	}
+	//3st：usb声卡通路资源申请及配置
+	if(!UsbDevicePlayResMalloc(AudioCoreFrameSizeGet(DefaultNet)))
+	{
+		APP_DBG("UsbDevicePlayResMalloc Res Error!\n");
+		return FALSE;
+	}
+	UsbDevicePlayResInit();
+	//Core Process
+#ifdef CFG_FUNC_AUDIO_EFFECT_EN
+	AudioCoreProcessConfig((AudioCoreProcessFunc)AudioMusicProcess);
+#else
+	AudioCoreProcessConfig((AudioCoreProcessFunc)AudioBypassProcess);
+#endif
+
+	//4st：usb声卡相关硬件配置
+	AudioCodecGainUpdata();//update hardware config
+	UsbDevicePlayHardwareInit();
+#ifdef CFG_COMMUNICATION_BY_USB
+	SetUSBDeviceInitState(TRUE);
+#endif
+
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 	if(RemindSoundServiceItemRequest(SOUND_REMIND_SHENGKAM, REMIND_PRIO_NORMAL) == FALSE)
 	{
@@ -262,6 +277,7 @@ bool UsbDevicePlayInit(void)
 		}
 	}
 #endif
+
 	AudioCoreSourceUnmute(USB_AUDIO_SOURCE_NUM,TRUE,TRUE);
 #ifndef CFG_FUNC_REMIND_SOUND_EN
 	if(IsAudioPlayerMute() == TRUE)
@@ -355,5 +371,35 @@ bool UsbDevicePlayDeinit(void)
 	return TRUE;
 }
 
+bool UsbDevicePlayMixInit(void)
+{
+	APP_DBG("UsbDevice Play Mix Init\n");
+
+	if(!UsbDevicePlayResMalloc(AudioCoreFrameSizeGet(DefaultNet)))
+	{
+		APP_DBG("UsbDevicePlayResMalloc Res Error!\n");
+		return FALSE;
+	}
+	UsbDevicePlayResInit();
+
+	AudioCoreSourceUnmute(USB_AUDIO_SOURCE_NUM,TRUE,TRUE);
+	return TRUE;
+}
+bool UsbDevicePlayMixDeinit(void)
+{
+	APP_DBG("UsbDevice Play Mix Deinit\n");
+	AudioCoreSourceMute(USB_AUDIO_SOURCE_NUM,TRUE,TRUE);
+	AudioCoreSourceDisable(USB_AUDIO_SOURCE_NUM);
+
+#ifdef CFG_RES_AUDIO_USB_OUT_EN
+	AudioCoreSinkDisable(USB_AUDIO_SINK_NUM);
+#endif
+	UsbDevicePlayResRelease();
+	AudioCoreSourceDeinit(USB_AUDIO_SOURCE_NUM);
+#ifdef CFG_RES_AUDIO_USB_OUT_EN
+	AudioCoreSinkDeinit(USB_AUDIO_SINK_NUM);
+#endif
+	return TRUE;
+}
 #endif //CFG_APP_USB_AUDIO_MODE_EN
 

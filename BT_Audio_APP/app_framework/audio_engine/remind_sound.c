@@ -391,7 +391,7 @@ void RemindMp2Decode(void)
 	}
 	if(RemindSoundCt.player_init == MP2_DECODE_FRAME)
 	{
-		if(Mp2Decode.dec_last_len < CFG_PARA_SAMPLES_PER_FRAME)
+		if(Mp2Decode.dec_last_len < AudioCoreFrameSizeGet(DefaultNet))
 		{
 #ifdef CFG_DBUS_ACCESS_REMIND_SOUND_DATA
 			memcpy(Mp2Decode.dec_buf,(void *)RemindSoundCt.ConstDataAddr+RemindSoundCt.ConstDataOffset, 4);
@@ -481,7 +481,7 @@ uint16_t RemindDataLenGet(void)
 		}
 	}
 
-	if(RemindSoundCt.player_init == MP2_DECODE_END && Mp2Decode.dec_last_len < CFG_PARA_SAMPLES_PER_FRAME)
+	if(RemindSoundCt.player_init == MP2_DECODE_END && Mp2Decode.dec_last_len < AudioCoreFrameSizeGet(DefaultNet))
 	{
 		++delay_cnt;
 		if(delay_cnt > 100) //—” ±Ω· ¯		
@@ -831,7 +831,7 @@ bool RemindSoundRun(SysModeState ModeState)
 			break;
 
 		case REMIND_ITEM_MUTE:
-			if(Mp2Decode.dec_last_len < CFG_PARA_SAMPLES_PER_FRAME)
+			if(Mp2Decode.dec_last_len < AudioCoreFrameSizeGet(DefaultNet))
 			{
 				RemindSoundCt.Request[0].Attr |= REMIND_ATTR_CLEAR;
 				RemindSoundCt.ItemState = REMIND_ITEM_IDLE;

@@ -153,7 +153,7 @@ static void AudioCoreServiceEntrance(void * param)
 			MediaRecorderEncode();
 #endif
 		}
-		
+
 #ifdef CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN//usb path
 		if((GetSystemMode() != ModeIdle)
 		&& (GetSystemMode() != ModeUsbDevicePlay)

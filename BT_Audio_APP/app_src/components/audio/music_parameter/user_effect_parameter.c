@@ -7,168 +7,22 @@
 #include "nn_denoise_api.h"
 #include "main_task.h"
 
-extern uint32_t get_user_effects_script_len_mic(void);
-extern uint32_t get_user_effects_script_len_music(void);
-extern uint32_t get_user_effects_script_len_hfp(void);
-extern uint32_t get_user_effects_script_len_Karaoke(void);
+extern const ROBOEFFECT_EFFECT_PARA_TABLE bypass_node;
+extern const ROBOEFFECT_EFFECT_PARA_TABLE hfp_node;
+extern const ROBOEFFECT_EFFECT_PARA_TABLE karaoke_node;
+extern const ROBOEFFECT_EFFECT_PARA_TABLE mic_node;
+extern const ROBOEFFECT_EFFECT_PARA_TABLE music_node;
 
-extern const unsigned char user_effect_parameters_hfp_hfp[];
-extern const unsigned char user_module_parameters_hfp_hfp[];
-extern const unsigned char user_effect_parameters_mic_mic[];
-extern const unsigned char user_module_parameters_mic_mic[];
-extern const unsigned char user_effect_parameters_music_music[];
-extern const unsigned char user_module_parameters_music_music[];
-extern const unsigned char user_effect_parameters_Karaoke_HunXiang[];
-extern const unsigned char user_module_parameters_Karaoke_HunXiang[];
-extern const unsigned char user_effect_parameters_Karaoke_DianYin[];
-extern const unsigned char user_module_parameters_Karaoke_DianYin[];
-extern const unsigned char user_effect_parameters_Karaoke_MoYin[];
-extern const unsigned char user_module_parameters_Karaoke_MoYin[];
-extern const unsigned char user_effect_parameters_Karaoke_HanMai[];
-extern const unsigned char user_module_parameters_Karaoke_HanMai[];
-extern const unsigned char user_effect_parameters_Karaoke_NanBianNv[];
-extern const unsigned char user_module_parameters_Karaoke_NanBianNv[];
-extern const unsigned char user_effect_parameters_Karaoke_NvBianNan[];
-extern const unsigned char user_module_parameters_Karaoke_NvBianNan[];
-extern const unsigned char user_effect_parameters_Karaoke_WaWaYin[];
-extern const unsigned char user_module_parameters_Karaoke_WaWaYin[];
-
-static const ROBOEFFECT_EFFECT_ADDR effect_addr[] = {
-	//mic
-	{
-		.APP_SOURCE_GAIN_ADDR = MIC_gain_control0_ADDR,
-		.MIC_SOURCE_GAIN_ADDR = MIC_mic_gain_ADDR,
-	},
-
-	//music
-	{
-		.APP_SOURCE_GAIN_ADDR = MUSIC_gain_control0_ADDR,
-		.MIC_SOURCE_GAIN_ADDR = MUSIC_mic_gain_ADDR,
-	},
-
-	//hfp
-	{
-		.APP_SOURCE_GAIN_ADDR = HFP_music_gain_ADDR,
-		.MIC_SOURCE_GAIN_ADDR = HFP_mic_gain_ADDR,
-	},
-
-	//HUNXIANG
-	{
-		.SILENCE_DETECTOR_ADDR = KARAOKE_silence_detector0_ADDR,
-		.APP_SOURCE_GAIN_ADDR = KARAOKE_gain_control0_ADDR,
-		.MIC_SOURCE_GAIN_ADDR = KARAOKE_gain_control1_ADDR,
-		.DAC0_SINK_GAIN_ADDR = KARAOKE_gain_control0_ADDR,	//框图里面没有，暂时复用app source
-		.APP_SINK_GAIN_ADDR = KARAOKE_gain_control10_ADDR,
-	},
-
-	//DIANYIN
-	{
-		.SILENCE_DETECTOR_ADDR = KARAOKE_silence_detector0_ADDR,
-		.APP_SOURCE_GAIN_ADDR = KARAOKE_gain_control0_ADDR,
-		.MIC_SOURCE_GAIN_ADDR = KARAOKE_gain_control1_ADDR,
-		.APP_SINK_GAIN_ADDR = KARAOKE_gain_control10_ADDR,
-	},
-
-	//MOYIN
-	{
-		.SILENCE_DETECTOR_ADDR = KARAOKE_silence_detector0_ADDR,
-		.APP_SOURCE_GAIN_ADDR = KARAOKE_gain_control0_ADDR,
-		.MIC_SOURCE_GAIN_ADDR = KARAOKE_gain_control1_ADDR,
-		.APP_SINK_GAIN_ADDR = KARAOKE_gain_control10_ADDR,
-	},
-
-	//HANMAI
-	{
-		.SILENCE_DETECTOR_ADDR = KARAOKE_silence_detector0_ADDR,
-		.APP_SOURCE_GAIN_ADDR = KARAOKE_gain_control0_ADDR,
-		.MIC_SOURCE_GAIN_ADDR = KARAOKE_gain_control1_ADDR,
-		.APP_SINK_GAIN_ADDR = KARAOKE_gain_control10_ADDR,
-	},
-
-	//NANBIANNV
-	{
-		.SILENCE_DETECTOR_ADDR = KARAOKE_silence_detector0_ADDR,
-		.APP_SOURCE_GAIN_ADDR = KARAOKE_gain_control0_ADDR,
-		.MIC_SOURCE_GAIN_ADDR = KARAOKE_gain_control1_ADDR,
-		.APP_SINK_GAIN_ADDR = KARAOKE_gain_control10_ADDR,
-	},
-
-	//NVBIANNAN
-	{
-		.SILENCE_DETECTOR_ADDR = KARAOKE_silence_detector0_ADDR,
-		.APP_SOURCE_GAIN_ADDR = KARAOKE_gain_control0_ADDR,
-		.MIC_SOURCE_GAIN_ADDR = KARAOKE_gain_control1_ADDR,
-		.APP_SINK_GAIN_ADDR = KARAOKE_gain_control10_ADDR,
-	},
-
-	//WAWAYIN
-	{
-		.SILENCE_DETECTOR_ADDR = KARAOKE_silence_detector0_ADDR,
-		.APP_SOURCE_GAIN_ADDR = KARAOKE_gain_control0_ADDR,
-		.MIC_SOURCE_GAIN_ADDR = KARAOKE_gain_control1_ADDR,
-		.APP_SINK_GAIN_ADDR = KARAOKE_gain_control10_ADDR,
-	},
-};
-
-static const ROBOEFFECT_SOURCE_NUM roboeffect_source[] = {
-  //{mic_source,			 	app_source,			 		remind_source},
-	{MIC_SOURCE_MIC_SOURCE, 	MIC_SOURCE_APP_SOURCE, 		MIC_SOURCE_REMIND_SOURCE,	MIC_SOURCE_REC_SOURCE},		//mic
-	{MUSIC_SOURCE_MIC_SOURCE,	MUSIC_SOURCE_APP_SOURCE, 	MUSIC_SOURCE_REMIND_SOURCE,	MUSIC_SOURCE_REC_SOURCE},	//music
-	{HFP_SOURCE_MIC_SOURCE,		HFP_SOURCE_APP_SOURCE, 		HFP_SOURCE_REMIND_SOURCE},		//HFP
-	{KARAOKE_SOURCE_MIC_SOURCE, KARAOKE_SOURCE_APP_SOURCE, 	KARAOKE_SOURCE_REMIND_SOURCE,	KARAOKE_SOURCE_REC_SOURCE},	//HUNXIANG
-	{KARAOKE_SOURCE_MIC_SOURCE, KARAOKE_SOURCE_APP_SOURCE, 	KARAOKE_SOURCE_REMIND_SOURCE,	KARAOKE_SOURCE_REC_SOURCE},	//DIANYIN
-	{KARAOKE_SOURCE_MIC_SOURCE, KARAOKE_SOURCE_APP_SOURCE, 	KARAOKE_SOURCE_REMIND_SOURCE,	KARAOKE_SOURCE_REC_SOURCE},	//MOYIN
-	{KARAOKE_SOURCE_MIC_SOURCE, KARAOKE_SOURCE_APP_SOURCE, 	KARAOKE_SOURCE_REMIND_SOURCE,	KARAOKE_SOURCE_REC_SOURCE},	//HANMAI
-	{KARAOKE_SOURCE_MIC_SOURCE, KARAOKE_SOURCE_APP_SOURCE, 	KARAOKE_SOURCE_REMIND_SOURCE,	KARAOKE_SOURCE_REC_SOURCE},	//NANBIANNV
-	{KARAOKE_SOURCE_MIC_SOURCE, KARAOKE_SOURCE_APP_SOURCE, 	KARAOKE_SOURCE_REMIND_SOURCE,	KARAOKE_SOURCE_REC_SOURCE},	//NVBIANNAN
-	{KARAOKE_SOURCE_MIC_SOURCE, KARAOKE_SOURCE_APP_SOURCE, 	KARAOKE_SOURCE_REMIND_SOURCE,	KARAOKE_SOURCE_REC_SOURCE},	//WAWAYIN
-};
-
-static const ROBOEFFECT_SINK_NUM roboeffect_sink[] = {
-  //{dac0_sink,			 	 app_sink,				stereo_sink},
-	{MIC_SINK_DAC0_SINK,	 MIC_SINK_APP_SINK,     MIC_SINK_STEREO_SINK,	MIC_SINK_REC_SINK},		//mic
-	{MUSIC_SINK_DAC0_SINK,	 MUSIC_SINK_APP_SINK,	MUSIC_SINK_STEREO_SINK,	MUSIC_SINK_REC_SINK},	//music
-	{HFP_SINK_DAC0_SINK,	 HFP_SINK_APP_SINK,		HFP_SINK_STEREO_SINK},		//HFP
-	{KARAOKE_SINK_DAC0_SINK, KARAOKE_SINK_APP_SINK,	KARAOKE_SINK_STEREO_SINK,	KARAOKE_SINK_REC_SINK},	//HUNXIANG
-	{KARAOKE_SINK_DAC0_SINK, KARAOKE_SINK_APP_SINK,	KARAOKE_SINK_STEREO_SINK,	KARAOKE_SINK_REC_SINK},	//DIANYIN
-	{KARAOKE_SINK_DAC0_SINK, KARAOKE_SINK_APP_SINK,	KARAOKE_SINK_STEREO_SINK,	KARAOKE_SINK_REC_SINK},	//MOYIN
-	{KARAOKE_SINK_DAC0_SINK, KARAOKE_SINK_APP_SINK,	KARAOKE_SINK_STEREO_SINK,	KARAOKE_SINK_REC_SINK},	//HANMAI
-	{KARAOKE_SINK_DAC0_SINK, KARAOKE_SINK_APP_SINK,	KARAOKE_SINK_STEREO_SINK,	KARAOKE_SINK_REC_SINK},	//NANBIANNV
-	{KARAOKE_SINK_DAC0_SINK, KARAOKE_SINK_APP_SINK,	KARAOKE_SINK_STEREO_SINK,	KARAOKE_SINK_REC_SINK},	//NVBIANNAN
-	{KARAOKE_SINK_DAC0_SINK, KARAOKE_SINK_APP_SINK,	KARAOKE_SINK_STEREO_SINK,	KARAOKE_SINK_REC_SINK},	//WAWAYIN
-};
-
-static const ROBOEFFECT_EFFECT_PARA roboeffect_para[] = {
-	//mic
-	{(roboeffect_effect_list_info *)&user_effect_list_mic,	(roboeffect_effect_steps_table *)&user_effect_steps_mic,		(uint8_t *)user_effects_script_mic,
-	 (uint8_t *)user_effect_parameters_mic_mic,				(uint8_t *)user_module_parameters_mic_mic,						get_user_effects_script_len_mic},
-	 //music
-	{(roboeffect_effect_list_info *)&user_effect_list_music,(roboeffect_effect_steps_table *)&user_effect_steps_music,		(uint8_t *)user_effects_script_music,
-	 (uint8_t *)user_effect_parameters_music_music,			(uint8_t *)user_module_parameters_music_music,					get_user_effects_script_len_music},
-	 //HFP
-	{(roboeffect_effect_list_info *)&user_effect_list_hfp,	(roboeffect_effect_steps_table *)&user_effect_steps_hfp,		(uint8_t *)user_effects_script_hfp,
-	 (uint8_t *)user_effect_parameters_hfp_hfp,				(uint8_t *)user_module_parameters_hfp_hfp,						get_user_effects_script_len_hfp},
-	 //HUNXIANG
-	{(roboeffect_effect_list_info *)&user_effect_list_Karaoke,(roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,	(uint8_t *)user_effects_script_Karaoke,
-	 (uint8_t *)user_effect_parameters_Karaoke_HunXiang,	(uint8_t *)user_module_parameters_Karaoke_HunXiang,				get_user_effects_script_len_Karaoke},
-	//DIANYIN
-	{(roboeffect_effect_list_info *)&user_effect_list_Karaoke,(roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,	(uint8_t *)user_effects_script_Karaoke,
-	 (uint8_t *)user_effect_parameters_Karaoke_DianYin,		(uint8_t *)user_module_parameters_Karaoke_DianYin,				get_user_effects_script_len_Karaoke},
-	//MOYIN
-	{(roboeffect_effect_list_info *)&user_effect_list_Karaoke,(roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,	(uint8_t *)user_effects_script_Karaoke,
-	 (uint8_t *)user_effect_parameters_Karaoke_MoYin,		(uint8_t *)user_module_parameters_Karaoke_MoYin,				get_user_effects_script_len_Karaoke},
-	//HANMAI
-	{(roboeffect_effect_list_info *)&user_effect_list_Karaoke,(roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,	(uint8_t *)user_effects_script_Karaoke,
-	 (uint8_t *)user_effect_parameters_Karaoke_HanMai,		(uint8_t *)user_module_parameters_Karaoke_HanMai,				get_user_effects_script_len_Karaoke},
-	//NANBIANNV
-	{(roboeffect_effect_list_info *)&user_effect_list_Karaoke,(roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,	(uint8_t *)user_effects_script_Karaoke,
-	 (uint8_t *)user_effect_parameters_Karaoke_NanBianNv,	(uint8_t *)user_module_parameters_Karaoke_NanBianNv,			get_user_effects_script_len_Karaoke},
-	//NVBIANNAN
-	{(roboeffect_effect_list_info *)&user_effect_list_Karaoke,(roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,	(uint8_t *)user_effects_script_Karaoke,
-	 (uint8_t *)user_effect_parameters_Karaoke_NvBianNan,	(uint8_t *)user_module_parameters_Karaoke_NvBianNan,			get_user_effects_script_len_Karaoke},
-	//WAWAYIN
-	{(roboeffect_effect_list_info *)&user_effect_list_Karaoke,(roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,	(uint8_t *)user_effects_script_Karaoke,
-	 (uint8_t *)user_effect_parameters_Karaoke_WaWaYin,	(uint8_t *)user_module_parameters_Karaoke_WaWaYin,			get_user_effects_script_len_Karaoke},
+static const ROBOEFFECT_EFFECT_PARA_TABLE *effect_para_table[] =
+{
+	&bypass_node,
+	&hfp_node,
+#ifdef CFG_FUNC_MIC_KARAOKE_EN
+	&karaoke_node,
+#endif
+	&mic_node,
+	&music_node,
+	NULL,
 };
 
 static const uint16_t roboeffectVolArr[CFG_PARA_MAX_VOLUME_NUM + 1] =
@@ -190,16 +44,45 @@ static const uint16_t roboeffectVolArr[CFG_PARA_MAX_VOLUME_NUM + 1] =
 static ReverbMaxUnit ReverbMaxParam = {0 , 0 , 0 ,0};
 static roboeffect_effect_list_info local_effect_list;
 
+ROBOEFFECT_EFFECT_PARA_TABLE * GetCurEffectParaNode(void)
+{
+	uint32_t i = 0;
+
+	while(effect_para_table[i] != NULL)
+	{
+		if((mainAppCt.EffectMode >= effect_para_table[i]->effect_id ) &&
+		   (mainAppCt.EffectMode < (effect_para_table[i]->effect_id + effect_para_table[i]->effect_id_count)))
+			return effect_para_table[i];
+		else
+			i++;
+	}
+	return effect_para_table[0];
+}
+
+ROBOEFFECT_EFFECT_PARA * get_user_effect_parameters(uint8_t mode)
+{
+	ROBOEFFECT_EFFECT_PARA_TABLE *param = GetCurEffectParaNode();
+
+	uint8_t index = mode - param->effect_id;
+
+	if(index > param->effect_id_count)
+		index = 0;
+
+	DBG("EFFECT_MODE: %d\n",param->effect_id + index);
+	return param->roboeffect_para + index;
+}
+
 void Roboeffect_GetAudioEffectMaxValue(void)
 {
 	if(AudioCore.Roboeffect.context_memory == NULL)
 		return;
 	ReverbUnit *Reverbparam;
 	EchoUnit *Echoparam;
+
 	Reverbparam = (ReverbUnit *)roboeffect_get_effect_parameter(AudioCore.Roboeffect.context_memory,
-										effect_addr[AudioCore.Roboeffect.flow_chart_mode].REVERB_ADDR, 0xff);
+										get_roboeffect_addr(REVERB), 0xff);
 	Echoparam = (EchoUnit *)roboeffect_get_effect_parameter(AudioCore.Roboeffect.context_memory,
-										effect_addr[AudioCore.Roboeffect.flow_chart_mode].ECHO_ADDR, 0xff);
+										get_roboeffect_addr(ECHO), 0xff);
 
 	ReverbMaxParam.max_reverb_wet_scale  = Reverbparam->wet_scale;
 
@@ -215,23 +98,15 @@ void Roboeffect_EQ_Ajust(ROBOEFFECT_EFFECT_TYPE type,uint8_t BassGain, uint8_t T
 {
 	uint8_t node;
 
-	if(type == MIC_EQ)
-		node = effect_addr[AudioCore.Roboeffect.flow_chart_mode].MIC_EQ_ADDR;
-	else if(type == MUSIC_EQ)
-		node = effect_addr[AudioCore.Roboeffect.flow_chart_mode].MUSIC_EQ_ADDR;
+	node = get_roboeffect_addr(type);
 
 	if(AudioCore.Roboeffect.context_memory == NULL)
 		return;
 	if(node == 0)
 		return;
 
-	printf("node: %02X\n", node);
+	DBG("node: %02X\n", node);
 	int16_t param = 0;
-
-//	EQUnit *EQparam;
-//	EQparam = (EQUnit *)roboeffect_get_effect_parameter(AudioCore.Roboeffect.context_memory, node, 0xff);
-//	printf("Before,EQ BassGain:%d ,TrebGain:%d\n", EQparam->eq_params[0].gain, EQparam->eq_params[1].gain);
-//	printf("Need,EQ BassGain:%d ,TrebGain:%d\n", BassTrebGainTable[BassGain], BassTrebGainTable[TrebGain]);
 
 	param = BassTrebGainTable[BassGain];
 	roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, node, 6, &param);
@@ -248,29 +123,22 @@ void Roboeffect_EQ_Ajust(ROBOEFFECT_EFFECT_TYPE type,uint8_t BassGain, uint8_t T
 void Roboeffect_ReverbStep_Ajust(uint8_t ReverbStep)
 {
 #ifdef CFG_FUNC_MIC_KARAOKE_EN
-	uint8_t Reverbnode = effect_addr[AudioCore.Roboeffect.flow_chart_mode].REVERB_ADDR;
-	uint8_t Echonode = effect_addr[AudioCore.Roboeffect.flow_chart_mode].ECHO_ADDR;
+	uint8_t Reverbnode = get_roboeffect_addr(REVERB);
+	uint8_t Echonode = get_roboeffect_addr(ECHO);
 
 	if(AudioCore.Roboeffect.context_memory == NULL)
 		return;
 	if(Reverbnode == 0 && Echonode == 0)
 		return;
 
-	printf("Reverbnode: %02X   Echonode:  %02X \n", Reverbnode, Echonode);
 	uint16_t step;
 	ReverbUnit *Reverbparam;
 	EchoUnit *Echoparam;
 	Reverbparam = (ReverbUnit *)roboeffect_get_effect_parameter(AudioCore.Roboeffect.context_memory, Reverbnode, 0xff);
 	Echoparam = (EchoUnit *)roboeffect_get_effect_parameter(AudioCore.Roboeffect.context_memory, Echonode, 0xff);
 
-	printf("Before,Reverb wet_scale:%d roomsize_scale:%d \n", Reverbparam->wet_scale, Reverbparam->roomsize_scale);
-	printf("Before,Echo delay:%d ,attenuation:%d\n", Echoparam->delay, Echoparam->attenuation);
-
-//	printf("Echo \nfc:0x%x \nattenuation:0x%x \ndelay:0x%x\n", Echoparam->fc, Echoparam->attenuation, Echoparam->delay);
-//	printf("max_delay:0x%x \nmode:0x%x \ndry:0x%x \nwet:0x%x\n\n\n", Echoparam->max_delay, Echoparam->quality_mode, Echoparam->dry, Echoparam->wet);
-//
-//	printf("Reverb \ndry:0x%x \nwet:0x%x \nwidth:0x%x\n", Reverbparam->dry_scale, Reverbparam->wet_scale, Reverbparam->width_scale);
-//	printf("roomsize:0x%x \ndamping:0x%x \nmono:0x%x\n", Reverbparam->roomsize_scale, Reverbparam->damping_scale, Reverbparam->mono);
+	DBG("Before,Reverb wet_scale:%d roomsize_scale:%d \n", Reverbparam->wet_scale, Reverbparam->roomsize_scale);
+	DBG("Before,Echo delay:%d ,attenuation:%d\n", Echoparam->delay, Echoparam->attenuation);
 
 	step = ReverbMaxParam.max_echo_delay  / MAX_MIC_REVB_STEP;
 	if(ReverbStep >= (MAX_MIC_REVB_STEP-1))
@@ -312,18 +180,18 @@ void Roboeffect_ReverbStep_Ajust(uint8_t ReverbStep)
 		Reverbparam->roomsize_scale = ReverbStep * step;
 	}
 
-//	roboeffect_enable_effect(AudioCore.Roboeffect.context_memory, Reverbnode, 0);
-	roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, Reverbnode, 0xff, (int16_t *)Reverbparam);
-	roboeffect_enable_effect(AudioCore.Roboeffect.context_memory, Reverbnode, 1);
+	roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, Reverbnode, 1, &Reverbparam->wet_scale);
+	roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, Reverbnode, 3, &Reverbparam->roomsize_scale);
+//	roboeffect_enable_effect(AudioCore.Roboeffect.context_memory, Reverbnode, 1);
 
-//	roboeffect_enable_effect(AudioCore.Roboeffect.context_memory, Echonode, 0);
-	roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, Echonode, 0xff, (int16_t *)Echoparam);
-	roboeffect_enable_effect(AudioCore.Roboeffect.context_memory, Echonode, 1);
+	roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, Echonode, 1, &Echoparam->attenuation);
+	roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, Echonode, 2, &Echoparam->delay);
+//	roboeffect_enable_effect(AudioCore.Roboeffect.context_memory, Echonode, 1);
 
 	Reverbparam = (ReverbUnit *)roboeffect_get_effect_parameter(AudioCore.Roboeffect.context_memory, Reverbnode, 0xff);
 	Echoparam = (EchoUnit *)roboeffect_get_effect_parameter(AudioCore.Roboeffect.context_memory, Echonode, 0xff);
-	printf("After,Reverb wet_scale:%d roomsize_scale:%d \n", Reverbparam->wet_scale, Reverbparam->roomsize_scale);
-	printf("After,Echo delay:%d ,attenuation:%d\n", Echoparam->delay, Echoparam->attenuation);
+	DBG("After,Reverb wet_scale:%d roomsize_scale:%d \n", Reverbparam->wet_scale, Reverbparam->roomsize_scale);
+	DBG("After,Echo delay:%d ,attenuation:%d\n", Echoparam->delay, Echoparam->attenuation);
 	gCtrlVars.AutoRefresh = 1;
 #endif
 }
@@ -350,7 +218,6 @@ void Roboeffect_GainControl_Set(uint8_t node, uint16_t gain)
 {
 	if(node < 0x81 || node > 0xfb)
 	{
-//		printf("Roboeffect_GainControl_Set node error:0x%x !!!\n", node);
 		return;
 	}
 	if(AudioCore.Roboeffect.context_memory == NULL)
@@ -387,26 +254,26 @@ void Roboeffect_EQMode_Set(uint8_t EQMode)
     switch(EQMode)
 	{
 		case EQ_MODE_FLAT:
-			roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, effect_addr[AudioCore.Roboeffect.flow_chart_mode].MUSIC_EQ_ADDR, 0xff, &Flat[0]);
+			roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, get_roboeffect_addr(MUSIC_EQ), 0xff, &Flat[0]);
 			break;
 		case EQ_MODE_CLASSIC:
-			roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, effect_addr[AudioCore.Roboeffect.flow_chart_mode].MUSIC_EQ_ADDR, 0xff, &Classical[0]);
+			roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, get_roboeffect_addr(MUSIC_EQ), 0xff, &Classical[0]);
 			break;
 		case EQ_MODE_POP:
-			roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, effect_addr[AudioCore.Roboeffect.flow_chart_mode].MUSIC_EQ_ADDR, 0xff, &Pop[0]);
+			roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, get_roboeffect_addr(MUSIC_EQ), 0xff, &Pop[0]);
 			break;
 		case EQ_MODE_ROCK:
-			roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, effect_addr[AudioCore.Roboeffect.flow_chart_mode].MUSIC_EQ_ADDR, 0xff, &Rock[0]);
+			roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, get_roboeffect_addr(MUSIC_EQ), 0xff, &Rock[0]);
 			break;
 		case EQ_MODE_JAZZ:
-			roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, effect_addr[AudioCore.Roboeffect.flow_chart_mode].MUSIC_EQ_ADDR, 0xff, &Jazz[0]);
+			roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, get_roboeffect_addr(MUSIC_EQ), 0xff, &Jazz[0]);
 			break;
 		case EQ_MODE_VOCAL_BOOST:
-			roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, effect_addr[AudioCore.Roboeffect.flow_chart_mode].MUSIC_EQ_ADDR, 0xff, &Vocal_Booster[0]);
+			roboeffect_set_effect_parameter(AudioCore.Roboeffect.context_memory, get_roboeffect_addr(MUSIC_EQ), 0xff, &Vocal_Booster[0]);
 			break;
 	}
-	printf("Roboeffect_EQMode_Set:%d\n", EQMode);
-	roboeffect_enable_effect(AudioCore.Roboeffect.context_memory, effect_addr[AudioCore.Roboeffect.flow_chart_mode].MUSIC_EQ_ADDR, 1);
+    DBG("Roboeffect_EQMode_Set:%d\n", EQMode);
+	roboeffect_enable_effect(AudioCore.Roboeffect.context_memory, get_roboeffect_addr(MUSIC_EQ), 1);
 #endif
 }
 
@@ -418,7 +285,7 @@ void Roboeffect_SourceGain_Update(uint8_t Index)
 	switch(Index)
 	{
 		case APP_SOURCE_NUM:
-			Roboeffect_GainControl_Set(effect_addr[AudioCore.Roboeffect.flow_chart_mode].APP_SOURCE_GAIN_ADDR,
+			Roboeffect_GainControl_Set(get_roboeffect_addr(APP_SOURCE_GAIN),
 					roboeffectVolArr[mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]]);
 			break;
 #ifdef CFG_RES_TWO_CHANNEL_I2S_EN
@@ -429,18 +296,18 @@ void Roboeffect_SourceGain_Update(uint8_t Index)
 #endif
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 		case REMIND_SOURCE_NUM:
-			Roboeffect_GainControl_Set(effect_addr[AudioCore.Roboeffect.flow_chart_mode].REMIND_SOURCE_GAIN_ADDR,
+			Roboeffect_GainControl_Set(get_roboeffect_addr(REMIND_SOURCE_GAIN),
 					roboeffectVolArr[mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]]);
 			break;
 #endif
 		case MIC_SOURCE_NUM:
-			Roboeffect_GainControl_Set(effect_addr[AudioCore.Roboeffect.flow_chart_mode].MIC_SOURCE_GAIN_ADDR,
+			Roboeffect_GainControl_Set(get_roboeffect_addr(MIC_SOURCE_GAIN),
 					roboeffectVolArr[mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]]);
 			break;
 
 #ifdef CFG_FUNC_RECORDER_EN
 		case PLAYBACK_SOURCE_NUM:
-			Roboeffect_GainControl_Set(effect_addr[AudioCore.Roboeffect.flow_chart_mode].REC_SOURCE_GAIN_ADDR,
+			Roboeffect_GainControl_Set(get_roboeffect_addr(REC_SOURCE_GAIN),
 					roboeffectVolArr[mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]]);
 
 			break;
@@ -456,19 +323,19 @@ void Roboeffect_SinkGain_Update(uint8_t Index)
 	switch(Index)
 	{
 		case AUDIO_DAC0_SINK_NUM:
-			Roboeffect_GainControl_Set(effect_addr[AudioCore.Roboeffect.flow_chart_mode].DAC0_SINK_GAIN_ADDR,
+			Roboeffect_GainControl_Set(get_roboeffect_addr(DAC0_SINK_GAIN),
 					roboeffectVolArr[mainAppCt.gSysVol.AudioSinkVol[AUDIO_DAC0_SINK_NUM]]);
 			break;
 #if	(defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE)) || defined(CFG_APP_USB_AUDIO_MODE_EN)
 		case AUDIO_APP_SINK_NUM:
-			Roboeffect_GainControl_Set(effect_addr[AudioCore.Roboeffect.flow_chart_mode].APP_SINK_GAIN_ADDR,
+			Roboeffect_GainControl_Set(get_roboeffect_addr(APP_SINK_GAIN),
 					roboeffectVolArr[mainAppCt.gSysVol.AudioSinkVol[AUDIO_APP_SINK_NUM]]);
 			break;
 #endif
 
 #ifdef CFG_FUNC_RECORDER_EN
 		case AUDIO_RECORDER_SINK_NUM:
-			Roboeffect_GainControl_Set(effect_addr[AudioCore.Roboeffect.flow_chart_mode].REC_SINK_GAIN_ADDR,
+			Roboeffect_GainControl_Set(get_roboeffect_addr(REC_SINK_GAIN),
 					roboeffectVolArr[mainAppCt.gSysVol.AudioSinkVol[AUDIO_RECORDER_SINK_NUM]]);
 			break;
 #endif
@@ -480,7 +347,7 @@ void Roboeffect_SinkGain_Update(uint8_t Index)
 #endif
 #ifdef CFG_RES_AUDIO_I2SOUT_EN
 		case AUDIO_STEREO_SINK_NUM:
-			Roboeffect_GainControl_Set(effect_addr[AudioCore.Roboeffect.flow_chart_mode].STEREO_SINK_GAIN_ADDR,
+			Roboeffect_GainControl_Set(get_roboeffect_addr(STEREO_SINK_GAIN),
 					roboeffectVolArr[mainAppCt.gSysVol.AudioSinkVol[AUDIO_STEREO_SINK_NUM]]);
 			break;
 #endif
@@ -500,17 +367,17 @@ void Roboeffect_SinkMute_Set(bool muteFlag)
 		switch(i)
 		{
 			case AUDIO_DAC0_SINK_NUM:
-				Roboeffect_GainMute_Set(effect_addr[AudioCore.Roboeffect.flow_chart_mode].DAC0_SINK_GAIN_ADDR, muteFlag);
+				Roboeffect_GainMute_Set(get_roboeffect_addr(DAC0_SINK_GAIN), muteFlag);
 				break;
 #if	(defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE)) || defined(CFG_APP_USB_AUDIO_MODE_EN)
 			case AUDIO_APP_SINK_NUM:
-				Roboeffect_GainMute_Set(effect_addr[AudioCore.Roboeffect.flow_chart_mode].APP_SINK_GAIN_ADDR, muteFlag);
+				Roboeffect_GainMute_Set(get_roboeffect_addr(APP_SINK_GAIN), muteFlag);
 				break;
 #endif
 
 #ifdef CFG_FUNC_RECORDER_EN
 			case AUDIO_RECORDER_SINK_NUM:
-				Roboeffect_GainMute_Set(effect_addr[AudioCore.Roboeffect.flow_chart_mode].REC_SINK_GAIN_ADDR, muteFlag);
+				Roboeffect_GainMute_Set(get_roboeffect_addr(REC_SINK_GAIN), muteFlag);
 				break;
 #endif
 #ifdef CFG_RES_TWO_CHANNEL_I2S_EN
@@ -520,7 +387,7 @@ void Roboeffect_SinkMute_Set(bool muteFlag)
 #endif
 #ifdef CFG_RES_AUDIO_I2SOUT_EN
 			case AUDIO_STEREO_SINK_NUM:
-				Roboeffect_GainMute_Set(effect_addr[AudioCore.Roboeffect.flow_chart_mode].STEREO_SINK_GAIN_ADDR, muteFlag);
+				Roboeffect_GainMute_Set(get_roboeffect_addr(STEREO_SINK_GAIN), muteFlag);
 				break;
 #endif
 			default:
@@ -537,16 +404,16 @@ void roboeffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t *
 	uint16_t data_len = *(uint16_t *)AudioCore.Roboeffect.user_effect_parameters - 5;
 	uint8_t len = 0;
 
-//	printf("input: 0x%x\n", *(uint16_t *)param_input);
+//	DBG("input: 0x%x\n", *(uint16_t *)param_input);
 	while(data_len)
 	{
 		if(*params == addr)
 		{
 			params += (param_index * 2 + 3);
-//			printf("before: 0x%x\n", *(uint16_t *)params);
+//			DBG("before: 0x%x\n", *(uint16_t *)params);
 //			*(uint16_t *)params = *(uint16_t *)param_input;
 			memcpy((uint16_t *)params, (uint16_t *)param_input, param_len - 1);
-//			printf("addr:0x%x,index:%d,local:0x%x, len:%d\n", addr, param_index, *(uint16_t *)params, param_len);
+//			DBG("addr:0x%x,index:%d,local:0x%x, len:%d\n", addr, param_index, *(uint16_t *)params, param_len);
 			break;
 		}
 		else
@@ -576,10 +443,10 @@ void roboeffect_update_local_block_params(uint8_t addr)
 			params+=2;
 //			for(; i < len; i ++)
 //			{
-//				printf("0x%x, 0x%x\n", *(params + i), *(p + i));
+//				DBG("0x%x, 0x%x\n", *(params + i), *(p + i));
 //			}
 			memcpy(params, p, len - 1);
-			printf("addr:0x%x,param:0x%x, len:0x%x\n", addr, *(uint16_t *)params, len);
+			DBG("addr:0x%x,param:0x%x, len:0x%x\n", addr, *(uint16_t *)params, len);
 			break;
 		}
 		else
@@ -592,49 +459,77 @@ void roboeffect_update_local_block_params(uint8_t addr)
 	}
 }
 
+uint8_t Roboeffect_effect_status_Get(ROBOEFFECT_EFFECT_TYPE type)
+{
+	return roboeffect_get_effect_status(AudioCore.Roboeffect.context_memory, get_roboeffect_addr(type));
+}
+
+void Roboeffect_effect_enable(ROBOEFFECT_EFFECT_TYPE type, uint8_t enable)
+{
+	AudioCore.Roboeffect.effect_addr = get_roboeffect_addr(type);
+	AudioCore.Roboeffect.effect_enable = enable;
+
+	MessageContext msgSend;
+	msgSend.msgId = MSG_EFFECTREINIT;
+	MessageSend(GetMainMessageHandle(), &msgSend);
+}
+
 uint8_t AudioCoreSourceToRoboeffect(int8_t source)
 {
+	ROBOEFFECT_EFFECT_PARA_TABLE *param = GetCurEffectParaNode();
 
-	switch (source) {
+	switch (source)
+	{
 		case MIC_SOURCE_NUM:
-			return roboeffect_source[AudioCore.Roboeffect.flow_chart_mode].mic_source;
+			return param->roboeffect_source.mic_source;
 		case APP_SOURCE_NUM:
-			return roboeffect_source[AudioCore.Roboeffect.flow_chart_mode].app_source;
+			return param->roboeffect_source.app_source;
 		case REMIND_SOURCE_NUM:
-			return roboeffect_source[AudioCore.Roboeffect.flow_chart_mode].remind_source;
+			return param->roboeffect_source.remind_source;
 		case PLAYBACK_SOURCE_NUM:
-			return roboeffect_source[AudioCore.Roboeffect.flow_chart_mode].rec_source;
-			break;
+			return param->roboeffect_source.rec_source;
+		case I2S_MIX_SOURCE_NUM:
+			return param->roboeffect_source.i2s_mix_source;
+		case USB_SOURCE_NUM:
+			return param->roboeffect_source.usb_source;
+		case LINEIN_MIX_SOURCE_NUM:
+			return param->roboeffect_source.linein_mix_source;
 		default:
-			// handle error
-			return roboeffect_source[AudioCore.Roboeffect.flow_chart_mode].app_source;
+			break;// handle error
 	}
-	return 0;
+	return AUDIOCORE_SOURCE_SINK_ERROR;
 }
 
 uint8_t AudioCoreSinkToRoboeffect(int8_t sink)
 {
-	switch (sink) {
+	ROBOEFFECT_EFFECT_PARA_TABLE *param = GetCurEffectParaNode();
+
+	switch (sink)
+	{
 		case AUDIO_DAC0_SINK_NUM:
-			return roboeffect_sink[AudioCore.Roboeffect.flow_chart_mode].dac0_sink;
+			return param->roboeffect_sink.dac0_sink;
 #if	(defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE)) || defined(CFG_APP_USB_AUDIO_MODE_EN)
 		case AUDIO_APP_SINK_NUM:
-			return roboeffect_sink[AudioCore.Roboeffect.flow_chart_mode].app_sink;
+			return param->roboeffect_sink.app_sink;
 #endif
 
 #ifdef CFG_FUNC_RECORDER_EN
 		case AUDIO_RECORDER_SINK_NUM:
-			return roboeffect_sink[AudioCore.Roboeffect.flow_chart_mode].rec_sink;
+			return param->roboeffect_sink.rec_sink;
 #endif
 #if defined(CFG_RES_AUDIO_I2SOUT_EN)
 		case AUDIO_STEREO_SINK_NUM:
-			return roboeffect_sink[AudioCore.Roboeffect.flow_chart_mode].stereo_sink;
+			return param->roboeffect_sink.stereo_sink;
+#endif
+#ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
+		case AUDIO_I2S_MIX_OUT_SINK_NUM:
+			return param->roboeffect_sink.i2s_mix_sink;
 #endif
 		default:
 			// handle error
-			return roboeffect_sink[AudioCore.Roboeffect.flow_chart_mode].app_sink;
+			break;
 	}
-	return 0;
+	return AUDIOCORE_SOURCE_SINK_ERROR;
 }
 
 uint16_t get_user_effect_parameters_len(uint8_t *user_effect_parameters)
@@ -644,11 +539,6 @@ uint16_t get_user_effect_parameters_len(uint8_t *user_effect_parameters)
     return (b2 << 8) | b1;
 }
 
-ROBOEFFECT_EFFECT_PARA * get_user_effect_parameters(ROBOEFFECT_EFFECT_MODE mode)
-{
-	return &roboeffect_para[mode];
-}
-
 roboeffect_effect_list_info *get_local_effect_list_buf(void)
 {
 	return &local_effect_list;
@@ -656,18 +546,58 @@ roboeffect_effect_list_info *get_local_effect_list_buf(void)
 
 uint8_t get_roboeffect_addr(ROBOEFFECT_EFFECT_TYPE effect_name)
 {
+	ROBOEFFECT_EFFECT_PARA_TABLE *param = GetCurEffectParaNode();
+	uint8_t addr = 0;
+
 	switch(effect_name)
 	{
-		case APP_SOURCE_GAIN:
-			return effect_addr[AudioCore.Roboeffect.flow_chart_mode].APP_SOURCE_GAIN_ADDR;
+		case MUSIC_EQ:
+			addr = param->effect_addr.MUSIC_EQ_ADDR;
+			break;
+		case MIC_EQ:
+			addr = param->effect_addr.MIC_EQ_ADDR;
+			break;
+		case REVERB:
+			addr = param->effect_addr.REVERB_ADDR;
+			break;
+		case ECHO:
+			addr = param->effect_addr.ECHO_ADDR;
 			break;
 		case SILENCE_DETECTOR:
-			return effect_addr[AudioCore.Roboeffect.flow_chart_mode].SILENCE_DETECTOR_ADDR;
+			addr = param->effect_addr.SILENCE_DETECTOR_ADDR;
+			break;
+		case VOICE_CHANGER:
+			addr = param->effect_addr.VOICE_CHANGER_ADDR;
+			break;
+		case APP_SOURCE_GAIN:
+			addr = param->effect_addr.APP_SOURCE_GAIN_ADDR;
+			break;
+		case REMIND_SOURCE_GAIN:
+			addr = param->effect_addr.REMIND_SOURCE_GAIN_ADDR;
+			break;
+		case MIC_SOURCE_GAIN:
+			addr = param->effect_addr.MIC_SOURCE_GAIN_ADDR;
+			break;
+		case REC_SOURCE_GAIN:
+			addr = param->effect_addr.REC_SOURCE_GAIN_ADDR;
+			break;
+		case DAC0_SINK_GAIN:
+			addr = param->effect_addr.DAC0_SINK_GAIN_ADDR;
+			break;
+		case APP_SINK_GAIN:
+			addr = param->effect_addr.APP_SINK_GAIN_ADDR;
+			break;
+		case STEREO_SINK_GAIN:
+			addr = param->effect_addr.STEREO_SINK_GAIN_ADDR;
+			break;
+		case REC_SINK_GAIN:
+			addr = param->effect_addr.REC_SINK_GAIN_ADDR;
 			break;
 		default:
+			addr = 0;
 			break;
 	}
-
+	return addr;
 }
 
 uint16_t get_roboeffectVolArr(uint8_t vol)

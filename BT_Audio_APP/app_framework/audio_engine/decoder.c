@@ -505,7 +505,16 @@ int32_t DecoderInit(void *io_handle, DecoderChannels DecoderChannel, int32_t ioT
 			if(DecoderChannel == DECODER_MODE_CHANNEL)
 			{
 				//ÐèÒªÏÈ²¥¿Õ
-				AudioCoreSourceChange(APP_SOURCE_NUM, gAudioDecoders[DecoderChannel]->song_info.num_channels, gAudioDecoders[DecoderChannel]->song_info.sampling_rate);
+#ifdef CFG_FUNC_RECORDER_EN
+				if(GetSystemMode() == ModeUDiskPlayBack || GetSystemMode() == ModeCardPlayBack)
+				{
+					AudioCoreSourceChange(PLAYBACK_SOURCE_NUM, gAudioDecoders[DecoderChannel]->song_info.num_channels, gAudioDecoders[DecoderChannel]->song_info.sampling_rate);
+				}
+				else
+#endif
+				{
+					AudioCoreSourceChange(APP_SOURCE_NUM, gAudioDecoders[DecoderChannel]->song_info.num_channels, gAudioDecoders[DecoderChannel]->song_info.sampling_rate);
+				}
 			}
 #ifdef CFG_REMIND_SOUND_DECODING_USE_LIBRARY
 			else if(DecoderChannel == DECODER_REMIND_CHANNEL)

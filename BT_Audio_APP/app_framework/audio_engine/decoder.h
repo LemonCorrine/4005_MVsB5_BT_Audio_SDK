@@ -52,6 +52,8 @@ typedef enum
 	DECODER_MAX_CHANNELS,
 }DecoderChannels;
 
+#define CFG_PARA_MAX_SAMPLES_PER_FRAME		(512)//(512)
+
 #define DECODER_BUF_SIZE   					(1024 * 28)	//解码器开销，Unit:  BYTE，需充分测试。
 #define DECODER_BUF_SIZE_MP3				(1024 * 19)
 #define DECODER_BUF_SIZE_SBC				(1024 * 7)

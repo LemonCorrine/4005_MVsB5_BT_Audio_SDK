@@ -38,9 +38,6 @@ extern "C" {
 #define	TRUE			(1)
 #endif
 
-#define ENABLE			TRUE
-#define DISABLE			FALSE
-
 typedef	void(*FPCALLBACK)(void);
 
 #ifndef bool

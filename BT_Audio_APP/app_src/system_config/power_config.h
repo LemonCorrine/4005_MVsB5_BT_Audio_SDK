@@ -1,0 +1,92 @@
+#ifndef _POWER_CONFIG_H__
+#define _POWER_CONFIG_H__
+
+#include "app_config.h"
+
+#define CORE_HIGH_MODE				0	//超频/高速模式，主频 功耗较高
+#define CORE_USB_CRYSTA_FREE_MODE	1	//免晶体模式，需要开启USB声卡功能并且声卡在线
+#define CORE_ONLY_APLL_MODE			2	//单APLL模式，关闭DPLL
+#define CORE_USER_MODE				3	//
+
+//配置系统模式
+#define SYS_CORE_SET_MODE			CORE_ONLY_APLL_MODE
+
+#define SYS_CRYSTAL_FREQ			24*1000*1000	//晶体频率 Hz
+
+#if (SYS_CORE_SET_MODE == CORE_HIGH_MODE)
+	#define	SYS_CORE_APLL_FREQ			240*1000		//kHZ
+	#define	SYS_CORE_DPLL_FREQ			264*1000		//kHZ
+//	#define	SYS_CORE_DPLL_FREQ			288*1000		//kHZ
+
+	#define SYS_CORE_CLK_SELECT			PLL_CLK_MODE
+	//Note: USB和UART时钟配置DPLL和APLL必须是同一个时钟,但是UART可以单独选择RC
+	#define SYS_UART_CLK_SELECT			APLL_CLK_MODE
+	#define SYS_USB_CLK_SELECT			APLL_CLK_MODE
+	#define SYS_SPDIF_CLK_SELECT		APLL_CLK_MODE
+
+	//flash 时钟配置，频率必须为APLL_FREQ/DPLL_FREQ整数分频（不大于96M）
+	#define SYS_FLASH_CLK_SELECT		FSHC_PLL_CLK_MODE
+	#define SYS_FLASH_FREQ_SELECT		((SYS_CORE_DPLL_FREQ/3)*1000) 	//Hz
+
+	//音频时钟
+	#define	SYS_AUDIO_CLK_SELECT		APLL_CLK_MODE
+#elif (SYS_CORE_SET_MODE == CORE_USB_CRYSTA_FREE_MODE)
+	#ifndef  CFG_APP_USB_AUDIO_MODE_EN
+		#error	USB_AUDIO_MODE is not turned on!!!
+	#else
+		//usb声卡免晶体模式/需要开启USB声卡功能并且声卡在线
+		#define USB_CRYSTA_FREE_EN
+
+		#define	SYS_CORE_DPLL_FREQ			240*1000		//kHZ
+
+		#define SYS_CORE_CLK_SELECT			PLL_CLK_MODE
+		//Note: USB和UART时钟配置DPLL和APLL必须是同一个时钟,但是UART可以单独选择RC
+		#define SYS_UART_CLK_SELECT			PLL_CLK_MODE
+		#define SYS_USB_CLK_SELECT			PLL_CLK_MODE
+		#define SYS_SPDIF_CLK_SELECT		PLL_CLK_MODE
+
+		//flash 时钟配置，频率必须为APLL_FREQ/DPLL_FREQ整数分频（不大于96M）
+		#define SYS_FLASH_CLK_SELECT		FSHC_PLL_CLK_MODE
+		#define SYS_FLASH_FREQ_SELECT		((SYS_CORE_DPLL_FREQ/3)*1000) 	//Hz
+
+		//音频时钟
+		#define	SYS_AUDIO_CLK_SELECT		PLL_CLK_MODE
+	#endif
+#elif (SYS_CORE_SET_MODE == CORE_ONLY_APLL_MODE)
+	#define	SYS_CORE_APLL_FREQ			240*1000		//kHZ
+	#define	SYS_CORE_DPLL_FREQ			240*1000		//kHZ
+
+	#define SYS_CORE_CLK_SELECT			APLL_CLK_MODE
+	//Note: USB和UART时钟配置DPLL和APLL必须是同一个时钟,但是UART可以单独选择RC
+	#define SYS_UART_CLK_SELECT			APLL_CLK_MODE
+	#define SYS_USB_CLK_SELECT			APLL_CLK_MODE
+	#define SYS_SPDIF_CLK_SELECT		APLL_CLK_MODE
+
+	//flash 时钟配置，频率必须为APLL_FREQ/DPLL_FREQ整数分频（不大于96M）
+	#define SYS_FLASH_CLK_SELECT		FSHC_APLL_CLK_MODE
+	#define SYS_FLASH_FREQ_SELECT		((SYS_CORE_APLL_FREQ/3)*1000) 	//Hz
+
+	//音频时钟
+	#define	SYS_AUDIO_CLK_SELECT		APLL_CLK_MODE
+#else
+	#define	SYS_CORE_APLL_FREQ			240*1000		//kHZ
+	#define	SYS_CORE_DPLL_FREQ			240*1000		//kHZ
+
+	#define SYS_CORE_CLK_SELECT			APLL_CLK_MODE
+	//Note: USB和UART时钟配置DPLL和APLL必须是同一个时钟,但是UART可以单独选择RC
+	#define SYS_UART_CLK_SELECT			APLL_CLK_MODE
+	#define SYS_USB_CLK_SELECT			APLL_CLK_MODE
+	#define SYS_SPDIF_CLK_SELECT		APLL_CLK_MODE
+
+	//flash 时钟配置，频率必须为APLL_FREQ/DPLL_FREQ整数分频（不大于96M）
+	#define SYS_FLASH_CLK_SELECT		FSHC_APLL_CLK_MODE
+	#define SYS_FLASH_FREQ_SELECT		((SYS_CORE_APLL_FREQ/3)*1000) 	//Hz
+
+	//音频时钟
+	#define	SYS_AUDIO_CLK_SELECT		APLL_CLK_MODE
+#endif
+
+#endif
+
+
+

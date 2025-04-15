@@ -6,6 +6,7 @@
 #include "flash_param.h"
 #include "rtos_api.h"
 #include "debug.h"
+#include "app_config.h"
 
 SYS_PARAMETER sys_parameter;
 
@@ -135,4 +136,266 @@ void sys_parameter_init(void)
 	if(buf)
 		osPortFree(buf);
 }
+
+#ifdef CFG_FUNC_FLASH_PARAM_ONLINE_TUNING_EN
+
+//复用调音工具的发送buf
+extern uint8_t  hid_tx_buf[];
+static bool  	hid_tx_flag;
+void Union_Effect_Send(uint8_t *buf, uint32_t len)
+{
+	if(len > 256)
+		len = 256;
+	memcpy(hid_tx_buf, buf, len);
+	hid_tx_flag = TRUE;
+}
+
+typedef struct
+{
+	uint8_t	flash_param_buf[4*1024];	//4K 参数buf
+	uint8_t	hid_tx[256];				//hid 发送buf
+	uint8_t write_flag;
+}FLASH_PARAMETER_TUNING_CTRL;
+
+static FLASH_PARAMETER_TUNING_CTRL *FlashParam = NULL;
+
+#define SET_HID_SEND_CMD(tx_buf,cmd)	tx_buf[0] = 0xA5,\
+										tx_buf[1] = 0x5A,\
+										tx_buf[2] = 0x30,\
+										tx_buf[3] = cmd
+
+enum
+{
+	FLASH_PARAMETER_TUNING_HANDSHAKE 		= 0x10,
+	FLASH_PARAMETER_TUNING_HANDSHAKE_ACK 	= 0x11,
+
+	FLASH_PARAMETER_TUNING_READ 			= 0x20,
+	FLASH_PARAMETER_TUNING_READ_DATA 		= 0x21,
+	FLASH_PARAMETER_TUNING_WRITE 			= 0x30,
+	FLASH_PARAMETER_TUNING_WRITE_ACK 		= 0x31,
+
+	FLASH_PARAMETER_TUNING_END 				= 0x40,
+};
+
+void FlashParamUsb_HandshakeACK(bool ack)
+{
+	if(!ack)
+	{
+		uint8_t buf[8];
+		SET_HID_SEND_CMD(buf,FLASH_PARAMETER_TUNING_HANDSHAKE_ACK);
+		buf[4] = 'N';
+		buf[5] = 'G';
+		buf[6] = 0;
+		Union_Effect_Send(buf,8);
+	}
+	else
+	{
+		SET_HID_SEND_CMD(FlashParam->hid_tx,FLASH_PARAMETER_TUNING_HANDSHAKE_ACK);
+		FlashParam->hid_tx[4] = 'O';
+		FlashParam->hid_tx[5] = 'K';
+		FlashParam->hid_tx[6] = 0;
+	}
+	hid_tx_flag = TRUE;
+}
+
+bool  FlashParamUsb_Tx(void)
+{
+	if(hid_tx_flag)
+	{
+		if(!FlashParam)
+			OTG_DeviceControlSend(hid_tx_buf,256,6);
+		else
+			OTG_DeviceControlSend(FlashParam->hid_tx,256,6);
+		hid_tx_flag = FALSE;
+		return TRUE;
+	}
+	return FALSE;
+}
+
+void FlashParamUsb_Rx(uint8_t *buf,uint16_t buf_len)
+{
+	switch(buf[0])
+	{
+	case FLASH_PARAMETER_TUNING_READ:
+		if(FlashParam)
+		{
+			uint32_t offset;
+			uint16_t len;
+			uint8_t  check,i;
+
+			offset = buf[1];
+			offset <<= 8;
+			offset |= buf[2];
+			offset <<= 8;
+			offset |= buf[3];
+			offset <<= 8;
+			offset |= buf[4];
+
+			len = buf[5];
+			len <<= 8;
+			len |= buf[6];
+
+			if(offset >= sizeof(FlashParam->flash_param_buf)) //判断offset超过边界
+				len = 0;
+			else if((offset+len) >= sizeof(FlashParam->flash_param_buf)) //判断offset+len超过边界，修改len的长度
+				len = sizeof(FlashParam->flash_param_buf) - offset;
+
+			if(len > (sizeof(FlashParam->hid_tx) - (2+1+1+4+2+1))) //判断len超过发送buf长度
+				len = sizeof(FlashParam->hid_tx) - (2+1+1+4+2+1);  //2B 帧头  + 1B 控制字  + 1B 命令 + 4B offset + 2B len + 1B checksum
+
+			SET_HID_SEND_CMD(FlashParam->hid_tx,FLASH_PARAMETER_TUNING_READ_DATA);
+			FlashParam->hid_tx[4] = buf[1];//原封不动 返回offset
+			FlashParam->hid_tx[5] = buf[2];
+			FlashParam->hid_tx[6] = buf[3];
+			FlashParam->hid_tx[7] = buf[4];
+
+			FlashParam->hid_tx[8] = len >> 8;
+			FlashParam->hid_tx[9] = len;
+
+			memset(&FlashParam->hid_tx[10],0,sizeof(FlashParam->hid_tx) - (2+1+1+4+2+1));
+			if(len > 0)
+				memcpy(&FlashParam->hid_tx[10],&FlashParam->flash_param_buf[offset],len);
+
+			check = FlashParam->hid_tx[3]; //不算帧头+控制字
+			for(i=4;i<sizeof(FlashParam->hid_tx)-1;i++)
+				check += FlashParam->hid_tx[i];
+
+			FlashParam->hid_tx[sizeof(FlashParam->hid_tx)-1] = check;
+			hid_tx_flag = TRUE;
+		}
+		break;
+	case FLASH_PARAMETER_TUNING_WRITE:
+		if(FlashParam)
+		{
+			uint32_t offset;
+			uint16_t len;
+			uint8_t  check,i;
+
+			check = buf[0];
+			for(i=1;i<buf_len-1;i++)
+				check += buf[i];
+
+			if(buf[buf_len-1] == check)
+			{
+
+			}
+
+			offset = buf[1];
+			offset <<= 8;
+			offset |= buf[2];
+			offset <<= 8;
+			offset |= buf[3];
+			offset <<= 8;
+			offset |= buf[4];
+
+			len = buf[5];
+			len <<= 8;
+			len |= buf[6];
+
+			if(offset >= sizeof(FlashParam->flash_param_buf)) //判断offset超过边界
+				len = 0;
+			else if((offset+len) >= sizeof(FlashParam->flash_param_buf)) //判断offset+len超过边界，修改len的长度
+				len = sizeof(FlashParam->flash_param_buf) - offset;
+
+			if(len > (buf_len - (1+4+2+1))) //判断len超过接收buf_len长度
+				len = buf_len - (1+4+2+1);	//1B 命令 + 4B offset + 2B len + 1B checksum
+
+			memcpy(&FlashParam->flash_param_buf[offset],buf+7,len);
+
+			SET_HID_SEND_CMD(FlashParam->hid_tx,FLASH_PARAMETER_TUNING_WRITE_ACK);
+			FlashParam->hid_tx[4] = buf[1]; //原封不动 返回offset
+			FlashParam->hid_tx[5] = buf[2];
+			FlashParam->hid_tx[6] = buf[3];
+			FlashParam->hid_tx[7] = buf[4];
+
+			FlashParam->hid_tx[8] = len >> 8;
+			FlashParam->hid_tx[9] = len;
+
+			memset(&FlashParam->hid_tx[10],0,sizeof(FlashParam->hid_tx) - (2+1+1+4+2+1));
+
+			check = FlashParam->hid_tx[3]; //不算帧头+控制字
+			for(i=4;i<sizeof(FlashParam->hid_tx)-1;i++)
+				check += FlashParam->hid_tx[i];
+
+			FlashParam->hid_tx[sizeof(FlashParam->hid_tx)-1] = check;
+			hid_tx_flag = TRUE;
+
+			FlashParam->write_flag = 1;
+		}
+		break;
+	case FLASH_PARAMETER_TUNING_HANDSHAKE:
+		if(memcmp(buf+1,"OK?",3) != 0)
+			break;
+		if(!FlashParam)
+		{
+			FlashParam = osPortMalloc(sizeof(FLASH_PARAMETER_TUNING_CTRL));
+			if(FlashParam)
+			{
+				uint32_t addr = get_sys_parameter_addr();
+				memset(FlashParam,0,sizeof(FLASH_PARAMETER_TUNING_CTRL));
+				if(addr && flash_table_is_valid())
+				{
+					SpiFlashRead(addr, FlashParam->flash_param_buf,sizeof(FlashParam->flash_param_buf), 10);
+				}
+				else
+				{
+					//没有找到flash参数，释放内存然后给上位机返回NG
+					if(FlashParam)
+					{
+						osPortFree(FlashParam);
+						FlashParam = NULL;
+					}
+					FlashParamUsb_HandshakeACK(0);
+					break;
+				}
+			}
+			else
+			{
+				//内存申请失败然后给上位机返回NG
+				FlashParamUsb_HandshakeACK(0);
+				break;
+			}
+		}
+		FlashParamUsb_HandshakeACK(1);
+		break;
+	case FLASH_PARAMETER_TUNING_END:
+		{
+			uint8_t buf[8];
+
+			SET_HID_SEND_CMD(buf,FLASH_PARAMETER_TUNING_END);
+			buf[4] = 'N';
+			buf[5] = 'G';
+			buf[6] = 0;
+			if(FlashParam)
+			{
+				if(FlashParam->write_flag)	//写参数 结束
+				{
+					uint32_t addr = get_sys_parameter_addr();
+					if(addr && flash_table_is_valid())
+					{
+						SpiFlashErase(SECTOR_ERASE, addr /4096 , 1);
+
+						SpiFlashWrite(addr, FlashParam->flash_param_buf,sizeof(FlashParam->flash_param_buf), 1);
+
+						buf[4] = 'O';
+						buf[5] = 'K';
+					}
+				}
+				else  //读参数 结束
+				{
+					buf[4] = 'O';
+					buf[5] = 'K';
+				}
+				osPortFree(FlashParam);
+				FlashParam = NULL;
+			}
+			Union_Effect_Send(buf,8);
+		}
+		break;
+	}
+}
+
+
+#endif
+
 

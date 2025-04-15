@@ -42,6 +42,7 @@ const struct
 } AdcChannelScanMap[] =
 {
   {ADC_CHANNEL_AD0_A3A4A5A6A7A9A10A15A16A17A20A21A22, GPIO_A_ANA_EN, GPIOA15, MSG_ADC_LEVEL_CH1},
+  {ADC_CHANNEL_AD0_A3A4A5A6A7A9A10A15A16A17A20A21A22, GPIO_A_ANA_EN, GPIOA17, MSG_ADC_LEVEL_CH2},
 };
 
 #define ADC_CHANNEL_TOTAL	(sizeof(AdcChannelScanMap)/sizeof(AdcChannelScanMap[0]))
@@ -65,10 +66,11 @@ void ADCLevelsKeyInit(void)
     ADCLevelsScanCount = 0;
 	for(k = 0; k < ADC_CHANNEL_TOTAL; k++)
 	{
-		GPIO_RegOneBitSet(AdcChannelScanMap[k].reg_ana_en, AdcChannelScanMap[k].gpio);
 		ADCLevels[k].STEP_Store = 0xff;
 		ADCLevels[k].repeat_count = 0;
 	}
+
+    GPIO_RegOneBitSet(AdcChannelScanMap[ADCLevelsScanCount].reg_ana_en, AdcChannelScanMap[ADCLevelsScanCount].gpio);
 }
 /*
 ****************************************************************
@@ -82,8 +84,6 @@ KeyScanMsg  AdcLevelKeyProcess(void)
 	uint16_t     Val;
 	uint8_t      i_count;
 	KeyScanMsg	 Msg =  {KEY_MSG_INDEX_EMPTY, KEY_UNKOWN_TYPE,ADC_LEVEL_KEY_SOURCE};
-
-	ADCLevelsScanCount = (ADCLevelsScanCount + 1) % ADC_CHANNEL_TOTAL;
 
     Val = ADC_SingleModeDataGet(AdcChannelScanMap[ADCLevelsScanCount].channel);
 
@@ -126,6 +126,11 @@ KeyScanMsg  AdcLevelKeyProcess(void)
 			ADCLevels[ADCLevelsScanCount].repeat_count = 0;
 		}
 	}
+
+    GPIO_RegOneBitClear(AdcChannelScanMap[ADCLevelsScanCount].reg_ana_en, AdcChannelScanMap[ADCLevelsScanCount].gpio);
+	ADCLevelsScanCount = (ADCLevelsScanCount + 1) % ADC_CHANNEL_TOTAL;
+    GPIO_RegOneBitSet(AdcChannelScanMap[ADCLevelsScanCount].reg_ana_en, AdcChannelScanMap[ADCLevelsScanCount].gpio);
+
 	return Msg;
 }
 #endif

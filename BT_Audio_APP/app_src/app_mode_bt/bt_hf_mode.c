@@ -453,8 +453,6 @@ static void BtHfModeRunningConfig(void)
 	AudioCoreSourceAdjust(APP_SOURCE_NUM, TRUE); //通路不是能 微调不工作
 #endif
 	
-	gBtHfCt->callingState = BT_HF_CALLING_ACTIVE;
-	
 	BtAppiFunc_SaveScoData(BtHf_SaveScoData);
 //	BtAppiFunc_BtScoSendProcess(BtHf_SendData);//unused
 	AudioCoreSourceEnable(MIC_SOURCE_NUM);
@@ -517,9 +515,9 @@ bool BtHfInit(void)
 		return FALSE;
 	}
 	memset(gBtHfCt, 0, sizeof(BtHfContext));
-		
-	/* Create media audio services */
-	gBtHfCt->SampleRate = CFG_BTHF_PARA_SAMPLE_RATE;//蓝牙模式下采样率为16K
+
+	gBtHfCt->SystemEffectMode = mainAppCt.EffectMode;	//保存EffectMode，退出HFP模式以后需要恢复
+	mainAppCt.EffectMode = EFFECT_MODE_HFP_AEC;
 
 	if(!AudioIoCommonForHfp(CFG_BTHF_PARA_SAMPLE_RATE, BT_HFP_MIC_PGA_GAIN))
 	{
@@ -626,8 +624,6 @@ bool BtHfInit(void)
 #endif
 		
 	APP_DBG("BT HF Run\n");
-
-	gBtHfCt->SystemEffectMode = mainAppCt.EffectMode;
 
 	AudioCodecGainUpdata();//update hardware config
 
@@ -867,8 +863,6 @@ bool BtHfDeinit(void)
 	//注销 通话过程中监控手机通话状态流程
 	BtHfpRunloopDeregister();
 	
-	mainAppCt.EffectMode = gBtHfCt->SystemEffectMode;
-	
 	if(IsAudioPlayerMute() == FALSE)
 	{
 		HardWareMuteOrUnMute();
@@ -906,6 +900,8 @@ bool BtHfDeinit(void)
 	BtHf_MsbcEncoderDeinit();
 
 	ModeCommonDeinit();//mic dac 清理 等待下一个模式重配
+	mainAppCt.EffectMode = gBtHfCt->SystemEffectMode;	//恢复EffectMode
+
 	AudioCoreMixSampleRateSet(DefaultNet, CFG_PARA_SAMPLE_RATE);
 
 #ifdef CFG_FUNC_REMIND_SOUND_EN

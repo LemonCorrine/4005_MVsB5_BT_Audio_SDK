@@ -1,9 +1,9 @@
 /***************************************************
  * @file     hfp.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.5.4                 
+ * @author  ACPWorkbench: 3.6.11
  * @version V1.1.0                                  
- * @Created 2023-09-12T17:03:56                                      
+ * @Created 2023-10-30T09:48:16
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,17 +16,19 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define HFP_ROBOEFFECT_LIB_VER "2.7.4"
+#define HFP_ROBOEFFECT_LIB_VER "2.7.11"
 
 typedef enum _HFP_roboeffect_io_enum
 {
     HFP_SOURCE_MIC_SOURCE,
     HFP_SOURCE_APP_SOURCE,
     HFP_SOURCE_REMIND_SOURCE,
+    HFP_SOURCE_REC_SOURCE,
 
     HFP_SINK_DAC0_SINK,
     HFP_SINK_APP_SINK,
     HFP_SINK_STEREO_SINK,
+    HFP_SINK_REC_SINK,
 } HFP_roboeffect_io_enum;
 
 

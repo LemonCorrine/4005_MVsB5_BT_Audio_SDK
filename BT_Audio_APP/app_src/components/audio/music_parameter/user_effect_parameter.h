@@ -6,24 +6,8 @@
 #include "reverb.h"
 #include "reverb_plate.h"
 #include "reverb_pro.h"
-#include "hfp\user_effect_flow_hfp.h"
-#include "music\user_effect_flow_music.h"
-#include "mic\user_effect_flow_mic.h"
-#include "karaoke\user_effect_flow_karaoke.h"
 
-typedef enum _ROBOEFFECT_EFFECT_MODE
-{
-    ROBOEFFECT_EFFECT_MODE_MIC = 0,
-	ROBOEFFECT_EFFECT_MODE_MUSIC,
-	ROBOEFFECT_EFFECT_MODE_HFP,
-	ROBOEFFECT_EFFECT_MODE_HUNXIANG,
-	ROBOEFFECT_EFFECT_MODE_DIANYIN,
-	ROBOEFFECT_EFFECT_MODE_MOYIN,
-	ROBOEFFECT_EFFECT_MODE_HANMAI,
-	ROBOEFFECT_EFFECT_MODE_NANBIANNV,
-	ROBOEFFECT_EFFECT_MODE_NVBIANNAN,
-	ROBOEFFECT_EFFECT_MODE_WAWAYIN,
-} ROBOEFFECT_EFFECT_MODE;
+#define AUDIOCORE_SOURCE_SINK_ERROR 0xFF
 
 typedef struct _ROBOEFFECT_EFFECT_ADDR
 {
@@ -32,6 +16,7 @@ typedef struct _ROBOEFFECT_EFFECT_ADDR
 	uint8_t REVERB_ADDR;
 	uint8_t ECHO_ADDR;
 	uint8_t SILENCE_DETECTOR_ADDR;
+	uint8_t VOICE_CHANGER_ADDR;
 	uint8_t APP_SOURCE_GAIN_ADDR;
 	uint8_t REMIND_SOURCE_GAIN_ADDR;
 	uint8_t MIC_SOURCE_GAIN_ADDR;
@@ -49,6 +34,7 @@ typedef enum _ROBOEFFECT_EFFECT_TYPE
 	REVERB,
 	ECHO,
 	SILENCE_DETECTOR,
+	VOICE_CHANGER,
 	APP_SOURCE_GAIN,
 	REMIND_SOURCE_GAIN,
 	MIC_SOURCE_GAIN,
@@ -64,7 +50,10 @@ typedef struct _ROBOEFFECT_SOURCE_NUM
 	uint8_t mic_source;		//MIC_SOURCE_NUM	 //麦克风通路
 	uint8_t app_source;		//APP_SOURCE_NUM 	//app主要音源通道
 	uint8_t remind_source;	//PLAYBACK_SOURCE_NUM	//提示音使用固定混音通道
-	uint8_t rec_source;	//REMIND_SOURCE_NUM	//录音回放通道
+	uint8_t rec_source;		//REMIND_SOURCE_NUM	//录音回放通道
+	uint8_t usb_source;     //USB_SOURCE        //USB MIX通道
+	uint8_t i2s_mix_source; //I2S_MIX_SOURCE     //I2S MIX通道
+	uint8_t linein_mix_source; //LINEIN_MIX_SOURCE_NUM     //LINE IN MIX通道
 } ROBOEFFECT_SOURCE_NUM;
 
 typedef struct _ROBOEFFECT_SINK_NUM
@@ -73,6 +62,7 @@ typedef struct _ROBOEFFECT_SINK_NUM
 	uint8_t app_sink;		//AUDIO_APP_SINK_NUM
 	uint8_t stereo_sink;	//AUDIO_STEREO_SINK_NUM     //模式无关Dac0之外的 立体声输出
 	uint8_t rec_sink;	//AUDIO_RECORDER_SINK_NUM		//录音通道
+	uint8_t i2s_mix_sink;  //AUDIO_I2S_MIX_OUT_SINK_NUM //I2S MIX OUT通道
 } ROBOEFFECT_SINK_NUM;
 
 typedef struct _ROBOEFFECT_EFFECT_PARA
@@ -85,6 +75,16 @@ typedef struct _ROBOEFFECT_EFFECT_PARA
 	uint8_t *user_module_parameters;
 	uint32_t (*get_user_effects_script_len)(void);
 }ROBOEFFECT_EFFECT_PARA;
+
+typedef struct _ROBOEFFECT_EFFECT_PARA_TABLE
+{
+	uint32_t		effect_id;
+	uint32_t		effect_id_count;
+	ROBOEFFECT_EFFECT_ADDR effect_addr;
+	ROBOEFFECT_SOURCE_NUM roboeffect_source;
+	ROBOEFFECT_SINK_NUM roboeffect_sink;
+	ROBOEFFECT_EFFECT_PARA *roboeffect_para;
+}ROBOEFFECT_EFFECT_PARA_TABLE;
 
 typedef struct __FilterParams
 {
@@ -197,13 +197,17 @@ void roboeffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t *
 
 void roboeffect_update_local_block_params(uint8_t addr);
 
+uint8_t Roboeffect_effect_status_Get(ROBOEFFECT_EFFECT_TYPE type);
+
+void Roboeffect_effect_enable(ROBOEFFECT_EFFECT_TYPE type, uint8_t enable);
+
 uint8_t AudioCoreSourceToRoboeffect(int8_t source);
 
 uint8_t AudioCoreSinkToRoboeffect(int8_t sink);
 
 uint16_t get_user_effect_parameters_len(uint8_t *user_effect_parameters);
 
-ROBOEFFECT_EFFECT_PARA * get_user_effect_parameters(ROBOEFFECT_EFFECT_MODE mode);
+ROBOEFFECT_EFFECT_PARA * get_user_effect_parameters(uint8_t mode);
 
 roboeffect_effect_list_info *get_local_effect_list_buf(void);
 

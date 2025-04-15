@@ -144,6 +144,23 @@ extern FUNC_BT_AVRCP_CON_PROCESS BtAvrcpConProcess;
 void BtStack_BtAvrcpConRegister(uint8_t index);
 
 /********************************************************************
+ * @brief	BtAppiFunc_BtAvrcpDisconProcess: 蓝牙AVRCP断开连接函数接口
+ * @param	CallbackFunc
+ * @return
+ * @Note
+ *******************************************************************/
+typedef void (*FUNC_BT_AVRCP_DISCON_PROCESS)(void);
+void BtAppiFunc_BtAvrcpDisconProcess(FUNC_BT_AVRCP_DISCON_PROCESS CallbackFunc);
+extern FUNC_BT_AVRCP_DISCON_PROCESS BtAvrcpDisconProcess;
+/********************************************************************
+ * @brief	BtStack_BtAvrcpDisconRegister: 蓝牙AVRCP断开连接函数注册
+ * @param	index: 0 or 1
+ * @return
+ * @Note
+ *******************************************************************/
+void BtStack_BtAvrcpDisconRegister(uint8_t index);
+
+/********************************************************************
  * @brief	BtAppiFunc_BtScoSendProcess: 蓝牙通话数据发送函数接口
  * @param	CallbackFunc
  * @return

@@ -5,22 +5,19 @@
 #include "clk.h"
 #ifdef CFG_APP_CONFIG
 #include "app_config.h"
+#else
+#define	SYS_AUDIO_CLK_SELECT		APLL_CLK_MODE
 #endif
 #include "adc_interface.h"
 
 static AUDIO_BitWidth ADC0_BitWidth = ADC_WIDTH_24BITS;
 static AUDIO_BitWidth ADC1_BitWidth = ADC_WIDTH_24BITS;
 
-void AudioADC_DigitalInit(ADC_MODULE Module, uint32_t SampleRate, void* Buf, uint16_t Len,AUDIO_BitWidth BitWidth)
+void AudioADC_DigitalInit(ADC_MODULE Module, uint32_t SampleRate, AUDIO_BitWidth BitWidth, void* Buf, uint16_t Len)
 {
 	//音频时钟使能，其他模块可能也会开启
-#ifdef USB_CRYSTA_FREE_EN
-	Clock_AudioPllClockSet(PLL_CLK_MODE, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
-	Clock_AudioPllClockSet(PLL_CLK_MODE, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ);
-#else
-	Clock_AudioPllClockSet(APLL_CLK_MODE, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
-	Clock_AudioPllClockSet(APLL_CLK_MODE, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ);
-#endif
+	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
+	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ);
 
 
 	if(Module == ADC0_MODULE)
@@ -102,11 +99,11 @@ void AudioADC_DigitalInit(ADC_MODULE Module, uint32_t SampleRate, void* Buf, uin
     }
 }
 
-void AudioADC_AnaInit(ADC_MODULE ADCMODULE, AUDIO_ADC_INPUT InputSel, AUDIO_Mode AUDIOMode, ADC_EnergyModel ADCEnergyModel)
+void AudioADC_AnaInit(ADC_MODULE ADCMODULE, ADC_CHANNEL ChannelSel, AUDIO_ADC_INPUT InputSel, AUDIO_Mode AUDIOMode, ADC_EnergyModel ADCEnergyModel, uint16_t Gain)
 {
-    if(ADC0_MODULE ==ADCMODULE)
+    if(ADCMODULE == ADC0_MODULE)
     {
-    	AudioADC_BIASPowerOn();
+        AudioADC_BIASPowerOn();
         if(ADCEnergyModel == ADCCommonEnergy)
         {
             AudioADC_ComparatorIBiasSet(ADC0_MODULE, 4, 4);
@@ -125,74 +122,93 @@ void AudioADC_AnaInit(ADC_MODULE ADCMODULE, AUDIO_ADC_INPUT InputSel, AUDIO_Mode
         }
 
         // 选择linein1通路
-        if(LINEIN1_LEFT == InputSel)
+        if(ChannelSel == CHANNEL_LEFT)
         {
-            AudioADC_PGASel(ADC0_MODULE, CHANNEL_LEFT, LINEIN1_LEFT);
+            if(InputSel == LINEIN1_LEFT)
+            {
+                AudioADC_PGASel(ADC0_MODULE, CHANNEL_LEFT, LINEIN1_LEFT);
+                AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_LEFT, LINEIN1_LEFT, Gain);
+            }
+            else if(InputSel == LINEIN2_LEFT)
+            {
+                AudioADC_PGASel(ADC0_MODULE, CHANNEL_LEFT, LINEIN2_LEFT);
+                AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_LEFT, LINEIN2_LEFT, Gain);
+            }
+            else
+            {
+                AudioADC_PGASel(ADC0_MODULE, CHANNEL_LEFT, LINEIN_NONE);
+            }
         }
-        if(LINEIN1_RIGHT == InputSel)
+        else if(ChannelSel == CHANNEL_RIGHT)
         {
-            AudioADC_PGASel(ADC0_MODULE, CHANNEL_RIGHT, LINEIN1_RIGHT);
-        }
-
-        if(LINEIN2_LEFT == InputSel)
-        {
-            AudioADC_PGASel(ADC0_MODULE, CHANNEL_LEFT, LINEIN2_LEFT);
-        }
-
-        if(LINEIN2_RIGHT == InputSel)
-        {
-            AudioADC_PGASel(ADC0_MODULE, CHANNEL_RIGHT, LINEIN2_RIGHT);
+            if(InputSel == LINEIN1_RIGHT)
+            {
+                AudioADC_PGASel(ADC0_MODULE, CHANNEL_RIGHT, LINEIN1_RIGHT);
+                AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_RIGHT, LINEIN1_RIGHT, Gain);
+            }
+            else if(InputSel == LINEIN2_RIGHT)
+            {
+                AudioADC_PGASel(ADC0_MODULE, CHANNEL_RIGHT, LINEIN2_RIGHT);
+                AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_RIGHT, LINEIN2_RIGHT, Gain);
+            }
+            else
+            {
+                AudioADC_PGASel(ADC0_MODULE, CHANNEL_RIGHT, LINEIN_NONE);
+            }
         }
 
         AudioADC_PGAMute(ADC0_MODULE, 0, 0);
         AudioADC_LREnable(ADC0_MODULE, 1, 1);
-
-        // 0db校准
-        AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_LEFT, LINEIN1_LEFT, 17);
-        AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_RIGHT, LINEIN1_RIGHT, 17);
-
-        AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_LEFT, LINEIN2_LEFT, 17);
-        AudioADC_PGAGainSet(ADC0_MODULE, CHANNEL_RIGHT, LINEIN2_RIGHT, 17);
     }
-    else
+    else if(ADCMODULE == ADC1_MODULE)
     {
-        if(MIC_LEFT == InputSel)
+        if(ChannelSel == CHANNEL_LEFT)
         {
-			AudioADC_BIASPowerOn();
-        	if(ADCEnergyModel == ADCCommonEnergy)
-        	{
-        		AudioADC_ComparatorIBiasSet(ADC1_MODULE, 4, 4);
-        		AudioADC_OTA1IBiasSet(ADC1_MODULE, 4, 4);
-        		AudioADC_OTA2IBiasSet(ADC1_MODULE, 4, 4);
-        		AudioADC_LatchDelayIBiasSet(ADC1_MODULE, 4, 4);
-        		AudioADC_PGAIBiasSet(ADC1_MODULE, 4, 4);
-        	}
-        	else
-        	{
-        	     AudioADC_BufferIBiasSet(ADC1_MODULE, 1, 1);
-        	     AudioADC_ComparatorIBiasSet(ADC1_MODULE, 1, 1);
-        	     AudioADC_OTA1IBiasSet(ADC1_MODULE, 0, 0);
-        	     AudioADC_OTA2IBiasSet(ADC1_MODULE, 2, 2);
-        	     AudioADC_PGAIBiasSet(ADC1_MODULE, 2, 2);
-        	}
-
-            AudioADC_PGAPowerUp(ADC1_MODULE, 1, 1);
-            AudioADC_PGAAbsMute(ADC1_MODULE, 0, 0);
-            AudioADC_PGAMute(ADC1_MODULE, 0, 0);
-            AudioADC_PowerUp(ADC1_MODULE, 1, 1);
-
-            AudioADC_PGAGainSet(ADC1_MODULE, CHANNEL_LEFT, MIC_LEFT, 23); // PGA校准 0db
-            //AudioADC_PGAGainSet(ADC1_MODULE, CHANNEL_LEFT, MIC_LEFT, 8);  //+20db 增益
-
-            AudioADC_PGAZeroCrossEnable(ADC1_MODULE, 1, 1);
-            if(Diff == AUDIOMode) // 差分模式
+            if(InputSel == MIC_LEFT)
             {
-                AudioADC_PGAMode(ADC1_MODULE, Diff);
+                AudioADC_BIASPowerOn();
+                if(ADCEnergyModel == ADCCommonEnergy)
+                {
+                    AudioADC_ComparatorIBiasSet(ADC1_MODULE, 4, 4);
+                    AudioADC_OTA1IBiasSet(ADC1_MODULE, 4, 4);
+                    AudioADC_OTA2IBiasSet(ADC1_MODULE, 4, 4);
+                    AudioADC_LatchDelayIBiasSet(ADC1_MODULE, 4, 4);
+                    AudioADC_PGAIBiasSet(ADC1_MODULE, 4, 4);
+                }
+                else
+                {
+                    AudioADC_BufferIBiasSet(ADC1_MODULE, 1, 1);
+                    AudioADC_ComparatorIBiasSet(ADC1_MODULE, 1, 1);
+                    AudioADC_OTA1IBiasSet(ADC1_MODULE, 0, 0);
+                    AudioADC_OTA2IBiasSet(ADC1_MODULE, 2, 2);
+                    AudioADC_PGAIBiasSet(ADC1_MODULE, 2, 2);
+                }
+
+                AudioADC_PGAPowerUp(ADC1_MODULE, 1, 1);
+                AudioADC_PGAAbsMute(ADC1_MODULE, 0, 0);
+                AudioADC_PGAMute(ADC1_MODULE, 0, 0);
+                AudioADC_PowerUp(ADC1_MODULE, 1, 1);
+
+                AudioADC_PGAGainSet(ADC1_MODULE, CHANNEL_LEFT, MIC_LEFT, Gain); // PGA校准 0db
+
+                AudioADC_PGAZeroCrossEnable(ADC1_MODULE, 1, 1);
+                if(Diff == AUDIOMode) // 差分模式
+                {
+                    AudioADC_PGAMode(ADC1_MODULE, Diff);
+                }
+                else if(Single == AUDIOMode)
+                {
+                    AudioADC_PGAMode(ADC1_MODULE, Single);
+                }
             }
-            else if(Single == AUDIOMode)
+            else
             {
-                AudioADC_PGAMode(ADC1_MODULE, Single);
+                AudioADC_PGAPowerUp(ADC1_MODULE, 0, 0);
             }
+        }
+        else
+        {
+            AudioADC_PGAPowerUp(ADC1_MODULE, 0, 0);
         }
     }
 }
@@ -215,7 +231,8 @@ void AudioADC_DeInit(ADC_MODULE Module)
     }
 }
 
-uint16_t AudioADC0DataLenGet(void)
+//返回 uint：sample
+uint16_t AudioADC0_DataLenGet(void)
 {
 	uint16_t NumSamples = 0;
 
@@ -227,7 +244,7 @@ uint16_t AudioADC0DataLenGet(void)
 }
 
 //ADC1 单声道
-uint16_t AudioADC1DataLenGet(void)
+uint16_t AudioADC1_DataLenGet(void)
 {
 	uint16_t NumSamples = 0;
 
@@ -237,7 +254,7 @@ uint16_t AudioADC1DataLenGet(void)
 }
 
 //返回Length uint：sample
-uint16_t AudioADC0DataGet(void* Buf, uint16_t Len)
+uint16_t AudioADC0_DataGet(void* Buf, uint16_t Len)
 {
 	uint16_t Length = 0;//Samples
 
@@ -268,6 +285,7 @@ uint16_t AudioADC0DataGet(void* Buf, uint16_t Len)
 			pcm[i]<<=8;
 			pcm[i]>>=8;
 		}
+
 		return Length / 8;
     }
 }
@@ -275,7 +293,7 @@ uint16_t AudioADC0DataGet(void* Buf, uint16_t Len)
 //此处后续可能要做处理，区分单声道和立体声,数据格式转换在外边处理
 //和DMA的配置也会有关系
 //返回Length uint：sample
-uint16_t AudioADC1DataGet(void* Buf, uint16_t Len)
+uint16_t AudioADC1_DataGet(void* Buf, uint16_t Len)
 {
 	uint16_t Length = 0;//Samples
 
@@ -308,6 +326,6 @@ uint16_t AudioADC1DataGet(void* Buf, uint16_t Len)
 			pcm[i]>>=8;
 		}
     }
+
     return Length / 4;
 }
-

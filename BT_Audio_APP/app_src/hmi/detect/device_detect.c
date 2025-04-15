@@ -33,6 +33,7 @@
 #endif
 #include "ctrlvars.h"
 #include "hdmi_in_api.h"
+#include "usb_audio_mode.h"
 //static bool IsBackUpFlag = FALSE;
 static bool MipsLog = TRUE;
 //#ifdef CFG_FUNC_BREAKPOINT_EN
@@ -407,7 +408,18 @@ DetectCardExit:
 		if(USB_Device_State != NewUDeviceState)
 		{
 			USB_Device_State = NewUDeviceState;
-			APP_DBG("UDevice State = %d\n",USB_Device_State) ;
+			APP_DBG("UDevice State = %d\n",USB_Device_State);
+#ifdef CFG_FUNC_USB_AUDIO_MIX_MODE
+			if(USB_Device_State == DETECT_STATE_OUT)
+			{
+				SetUSBDeviceInitState(FALSE);
+			}
+			else
+			{
+				UsbDevicePlayHardwareInit();
+				SetUSBDeviceInitState(TRUE);
+			}
+#else
 			if(USB_Device_State == DETECT_STATE_OUT)
 			{
 				Ret |= USB_DEVICE_OUT_EVENT_BIT;
@@ -431,6 +443,7 @@ DetectCardExit:
 				}
 #endif
 			}
+#endif
 		}
 	}		
 #endif

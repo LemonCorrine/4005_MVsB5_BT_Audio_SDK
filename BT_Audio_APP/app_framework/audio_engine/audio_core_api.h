@@ -18,7 +18,7 @@
 #include "audio_core_adapt.h"
 #include "roboeffect_api.h"
 #include "resampler.h"
-
+#include "bt_config.h"
 enum
 {
 	MIC_SOURCE_NUM,			//麦克风通路
@@ -28,11 +28,17 @@ enum
 	TWS_SOURCE_NUM,
 #endif
 	PLAYBACK_SOURCE_NUM,	//flashfs 录音回放通道		无音效
+	I2S_MIX_SOURCE_NUM,         //I2S MIX通道
+	USB_SOURCE_NUM,             //USB MIX通道
+	LINEIN_MIX_SOURCE_NUM,      //Line in MIX通道
 	AUDIO_CORE_SOURCE_MAX_NUM,
 };
 //不会并存的通路可以合并，特别是sink通路
+#ifdef CFG_FUNC_MIC_KARAOKE_EN
+#define USB_AUDIO_SOURCE_NUM	USB_SOURCE_NUM
+#else
 #define USB_AUDIO_SOURCE_NUM	APP_SOURCE_NUM
-
+#endif
 enum
 {
 	AUDIO_DAC0_SINK_NUM,		//主音频输出在audiocore Sink中的通道，必须配置，audiocore借用此通道buf处理数据	
@@ -45,6 +51,9 @@ enum
 #if defined(CFG_RES_AUDIO_I2SOUT_EN)
 	AUDIO_STEREO_SINK_NUM,      //模式无关Dac0之外的 立体声输出
 #endif
+#ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
+	AUDIO_I2S_MIX_OUT_SINK_NUM, //I2S MIX OUT通道
+#endif
 #ifdef BT_TWS_SUPPORT
 	TWS_SINK_NUM,				//缓冲
 #endif
@@ -53,6 +62,7 @@ enum
 //随模式调用的共用sink
 #define AUDIO_HF_SCO_SINK_NUM 	AUDIO_APP_SINK_NUM
 #define USB_AUDIO_SINK_NUM		AUDIO_APP_SINK_NUM
+#define USB_SINK_NUM			AUDIO_APP_SINK_NUM
 
 #if defined(CFG_RES_AUDIO_I2SOUT_EN)
 #define AUDIO_I2SOUT_SINK_NUM	AUDIO_STEREO_SINK_NUM//i2s_out通道 常驻
@@ -147,7 +157,6 @@ typedef struct _RoboeffectContext
 	uint8_t *user_module_parameters;
 	int32_t roboeffect_size;
 	int32_t roboeffect_size_max;
-	uint8_t flow_chart_mode;
 	uint8_t effect_count;
 	uint8_t effect_addr;
 	uint8_t effect_enable;

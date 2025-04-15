@@ -193,13 +193,15 @@ void BtA2dpDisconnectedDev(BT_A2DP_CALLBACK_PARAMS * param)
 	}
 	
 
-	//A2DP断开后，开启检测AVRCP断开机制(5S超时)
+	//A2DP断开后，开启检测AVRCP断开机制(3S超时)
 	/*if(IsAvrcpConnected())
 	{
 		btEventListB0Count = btEventListCount;
 		btEventListB0Count += 5000;//延时5s
 		btCheckEventList |= BT_EVENT_AVRCP_DISCONNECT;
 	}*/
+	BtStack_BtAvrcpDisconRegister(param->index);
+	
 	SetA2dpState(param->index,BT_A2DP_STATE_NONE);
 }
 

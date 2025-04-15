@@ -77,6 +77,19 @@ typedef enum __UART_BAUDRATE
 #define UP_PORT				(CHN_MASK_USBCDC + CHN_MASK_UDISK + SD_PORT)//根据应用情况决定打开那些升级接口
 #endif
 
+/*  BOOT_SYSTEM_CONFIGURATIOM说明
+	bit[1:0]:系统时钟配置
+		2’b00: HSE OSC 24M
+		2’b01: RC_32K
+	bit[7:3]:保留
+ */
+
+#ifdef USB_CRYSTA_FREE_EN
+#define BOOT_SYSTEM_CONFIGURATIOM		0x01
+#else
+#define BOOT_SYSTEM_CONFIGURATIOM		0x00
+#endif
+
 #if FLASH_BOOT_EN
 extern const unsigned char flash_data[];
 #endif

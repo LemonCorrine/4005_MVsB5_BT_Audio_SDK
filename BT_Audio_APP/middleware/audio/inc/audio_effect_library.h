@@ -60,6 +60,7 @@
 #include "stereo_widener.h"
 #include "three_d.h"
 #include "three_d_plus.h"
+#include "tremolo.h"
 #include "virtual_bass.h"
 #include "virtual_bass_td.h"
 #include "virtual_bass_classic.h"
@@ -77,7 +78,7 @@
 #include "motor_wrap.h"
 
 // audio effect library version
-#define AUDIO_EFFECT_LIBRARY_VERSION "2.33.0"
+#define AUDIO_EFFECT_LIBRARY_VERSION "2.34.1"
 
 // audio effect versions (Info below is for convenience only. In case of any contradiction, the version info in the respective file header shall prevail.)
 #define EFFECT_VERSION_ADPCM_CODEC                  "2.0.1"
@@ -98,7 +99,7 @@
 #define EFFECT_VERSION_ENGINE_SOUND                 "1.1.0"
 #define EFFECT_VERSION_EQ                           "8.3.1"
 #define EFFECT_VERSION_EQ_DRC                       "1.1.0"
-#define EFFECT_VERSION_EXCITER				        "1.3.0"
+#define EFFECT_VERSION_EXCITER                      "1.3.0"
 #define EFFECT_VERSION_EXPANDER                     "1.2.2"
 #define EFFECT_VERSION_FADER                        "1.0.1"
 #define EFFECT_VERSION_FLANGER                      "1.1.0"
@@ -113,7 +114,7 @@
 #define EFFECT_VERSION_OVERDRIVE                    "1.0.0"
 #define EFFECT_VERSION_OVERDRIVE_POLY               "2.1.0"
 #define EFFECT_VERSION_PCM_DELAY                    "2.2.0"
-#define EFFECT_VERSION_PHASE_SHIFTER				"1.1.0"
+#define EFFECT_VERSION_PHASE_SHIFTER                "1.1.0"
 #define EFFECT_VERSION_PINGPONG                     "1.5.0"
 #define EFFECT_VERSION_PITCH_DETECTOR               "2.1.1"
 #define EFFECT_VERSION_PITCH_SHIFTER                "1.7.7"
@@ -125,6 +126,7 @@
 #define EFFECT_VERSION_STEREO_WIDENER               "1.3.1"
 #define EFFECT_VERSION_3D                           "3.4.0"
 #define EFFECT_VERSION_3D_PLUS                      "1.0.2"
+#define EFFECT_VERSION_TREMOLO                      "1.0.1"
 #define EFFECT_VERSION_VIRTUAL_BASS                 "4.4.2"
 #define EFFECT_VERSION_VIRTUAL_BASS_TD              "4.1.6"
 #define EFFECT_VERSION_VIRTUAL_BASS_CLASSIC         "3.17.0"

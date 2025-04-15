@@ -154,10 +154,7 @@ void OnDeviceAudioRcvIsoPacket(void)
 	uint32_t channel = UsbAudioSpeaker.Channels;
 	OTG_DeviceISOReceive(DEVICE_ISO_OUT_EP, (uint8_t*)iso_buf, OUT_PCM_LEN, &Len);
 	uint32_t sample = Len/3;
-#ifdef CFG_APP_USB_AUDIO_MODE_EN
-	if(GetSystemMode() != ModeUsbDevicePlay)return;
-	if(GetSysModeState(ModeUsbDevicePlay) != ModeStateRunning)return;
-#endif	
+
 	UsbAudioSpeaker.FramCount++;
 
 	for(s = sample-1; s >= 0; s--)
@@ -208,11 +205,6 @@ void OnDeviceAudioSendIsoPacket(void)
 	uint32_t channel = UsbAudioMic.Channels;
 	uint32_t RealLen = 0;
 
-#ifdef CFG_APP_USB_AUDIO_MODE_EN
-	if(GetSystemMode() != ModeUsbDevicePlay)return;
-	if(GetSysModeState(ModeUsbDevicePlay) != ModeStateRunning)return;
-#endif
-	
 	UsbAudioMic.FramCount++;
 	RealLen = 44;
 	if(UsbAudioMic.AudioSampleRate == 44100)
@@ -319,8 +311,6 @@ void OTG_DeviceAudioRequest(void)
 	//AUDIO类请求处理
 	if(AudioCmd == SET_CUR_EP)
 	{
-		if(GetSysModeState(ModeUsbDevicePlay) != ModeStateRunning)
-			return;
 		if(Setup[4] == DEVICE_ISO_IN_EP)
 		{
 			if(UsbAudioMic.AudioSampleRate != SWAP_BUF_TO_U32(Request))
@@ -768,10 +758,17 @@ void OTG_DeviceAudioRequest(void)
 static uint32_t FramCount = 0;
 void UsbAudioTimer1msProcess(void)
 {
+#ifndef CFG_FUNC_USB_AUDIO_MIX_MODE
 	if(GetSystemMode() != ModeUsbDevicePlay)
 	{
 		return;
 	}
+#else
+	if(!GetUSBDeviceInitState())
+	{
+		return;
+	}
+#endif
 	FramCount++;
 	if(FramCount % 2)//2ms
 	{

@@ -46,7 +46,7 @@ extern "C"{
  * 				如UART_IOCTL_TXINT_SET等设置控制位，即返回0，操作成功
  * 			   返回EINVAL（22）即非法操作，请检查Cmd与Arg参数是否正确
  */
-#define UARTS_IOCTL(UartNum,cmd,Arg)  UART_IOCTL(UartNum,cmd,Arg)
+#define UARTS_IOCTL(UartNum,cmd,Arg)  UART_IOCtl(UartNum,cmd,Arg)
 
 /**
  * @brief      串口多字节接收函数

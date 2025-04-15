@@ -33,6 +33,7 @@
 
 #define BT_HF_SOURCE_NUM			APP_SOURCE_NUM
 
+#define	CFG_BTHF_PARA_SAMPLES_PER_FRAME     (256)			//蓝牙通话模式下帧数大小
 
 #define BTHF_CVSD_SAMPLE_RATE		8000
 #define BTHF_MSBC_SAMPLE_RATE		16000
@@ -68,31 +69,13 @@
 //PITCH SHIFTER
 #define MAX_PITCH_SHIFTER_STEP		25
 
-typedef enum 
-{
-	BT_HF_CALLING_NONE = 0,
-	BT_HF_CALLING_ACTIVE,
-	BT_HF_CALLING_SUSPEND,
-} BT_HFP_CALLING_STATE;
-
 typedef struct _btHfContext
 {
 	//bt hf mode params
 	uint8_t					codecType;
 
-	BT_HFP_CALLING_STATE	callingState;
-
-	uint8_t 				DecoderSourceNum;
-	
-	uint32_t 				SampleRate;
-	uint8_t					BtSyncVolume;
-
 	uint8_t					btHfScoSendStart;//正式处理需要发送的数据
 	uint8_t					btHfScoSendReady;//可以开始发送数据了,初始化发送的相关参数
-	
-
-	//adc fifo
-	//uint32_t				*ADCFIFO;	//adc input fifo (stereo) //
 
 	//sco Fifo
 	MCU_CIRCULAR_CONTEXT	ScoInPcmFIFOCircular;
@@ -137,8 +120,6 @@ typedef struct _btHfContext
 
 	//encoder context
 	SBCEncoderContext		sbc_encode_ct;
-
-	uint32_t				BtHfModeRestart;
 	
 	MCU_CIRCULAR_CONTEXT	ScoOutPcmFIFOCircular;
 	osMutexId				ScoOutPcmFifoMutex;
@@ -170,7 +151,7 @@ typedef struct _btHfContext
 	uint32_t				scoSpecificIndex;
 	uint32_t				scoSpecificCount;
 	
-	uint32_t 				SystemEffectMode;//用于标记system当前的音效模式，HFP音效单独
+	uint8_t 				SystemEffectMode;//用于标记system当前的音效模式，HFP音效单独
 
 	uint8_t 				hfpSendDataCnt;//蓝牙sco发送计数器
 }BtHfContext;

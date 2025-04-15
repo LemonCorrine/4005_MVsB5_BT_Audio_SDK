@@ -60,6 +60,7 @@ typedef enum _EFFECT_MODE
 //	EFFECT_MODE_FLASH_NORMAL9,
     EFFECT_MODE_NORMAL=10,//固化到代码中的第一个音效
 	EFFECT_MODE_MIC,
+	EFFECT_MODE_BYPASS,
 	EFFECT_MODE_MUSIC,
 	EFFECT_MODE_HFP_AEC,
     EFFECT_MODE_HunXiang,
@@ -290,7 +291,6 @@ typedef struct _ControlVariablesContext
 
     //for system define
 
-	uint16_t            SamplesPerFrame;
 	uint16_t            sample_rate_index;
 	uint32_t            sample_rate;
 

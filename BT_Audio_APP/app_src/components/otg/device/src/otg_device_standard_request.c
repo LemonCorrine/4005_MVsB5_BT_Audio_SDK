@@ -255,11 +255,6 @@ void OTG_DeviceStandardRequest()
 			break;
 
 		case USB_REQ_SET_CONFIGURATION:
-#ifdef CFG_COMMUNICATION_BY_USB
-#ifndef CFG_BT_KARAOKE_APP
-			if(GetSystemMode() == ModeUsbDevicePlay)
-#endif
-#endif
 			{
 				//	DBG("Audio_ISO sam test\n");
 #if(CFG_PARA_USB_MODE == READER)
@@ -288,8 +283,6 @@ void OTG_DeviceStandardRequest()
 
 		case USB_REQ_SET_INTERFACE:
 		#ifdef CFG_APP_USB_AUDIO_MODE_EN
-			if(GetSysModeState(ModeUsbDevicePlay) != ModeStateRunning)
-				break;
 			if(Setup[4] == InterfaceNum[AUDIO_SRM_IN_INTERFACE_NUM])
 			{
 				DBG("mic %d",Setup[2]);
@@ -342,7 +335,7 @@ void OTG_DeviceClassRequest()
 	//	OTG_DBG("MSC_INTERFACE_NUM\n");
 		OTG_DeviceSendResp(0x0000, 1);
 	}
-	
+
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
 	else if(Setup[4] ==  InterfaceNum[AUDIO_ATL_INTERFACE_NUM])
 	{
@@ -399,18 +392,30 @@ void OTG_DeviceClassRequest()
 #if FLASH_BOOT_EN
 		else if((Setup[3] == 0x03)&&(Setup[0] == 0xA1))//GetReport (Feature Report)
 		{
-			DBG("pc_upgrade start 1\n");
-			if(pc_upgrade)
+#ifdef CFG_FUNC_FLASH_PARAM_ONLINE_TUNING_EN
+			if(Request[3] == 0x01 &&  Request[0] == 0xA1)
 			{
-				DBG("pc_upgrade start 2\n");
-				Setup[0] = 0x55;
-				OTG_DeviceControlSend(Setup,Setup[7]*256+Setup[6],1);
-				start_up_grate(SysResourceUsbDevice);
+				extern bool FlashParamUsb_Tx(void);
+
+				if(!FlashParamUsb_Tx())
+					hid_send_data();  //无数据发送，发送随机数据
 			}
 			else
+#endif
 			{
-				Setup[0] = 0;
-				OTG_DeviceControlSend(Setup,Setup[7]*256+Setup[6],1);
+				DBG("pc_upgrade start 1\n");
+				if(pc_upgrade)
+				{
+					DBG("pc_upgrade start 2\n");
+					Setup[0] = 0x55;
+					OTG_DeviceControlSend(Setup,Setup[7]*256+Setup[6],1);
+					start_up_grate(SysResourceUsbDevice);
+				}
+				else
+				{
+					Setup[0] = 0;
+					OTG_DeviceControlSend(Setup,Setup[7]*256+Setup[6],1);
+				}
 			}
 		}
 		else if((Setup[3] == 0x03)&&(Setup[0] == 0x21))//SetReport (Feature Report)
@@ -556,6 +561,16 @@ void hid_recive_data(void)
 {
 #ifdef CFG_COMMUNICATION_BY_USB
 	HIDUsb_Rx(Request,256);
+#endif
+
+#ifdef CFG_FUNC_FLASH_PARAM_ONLINE_TUNING_EN
+	if(Request[2] == 0x30 && 	//控制字0x30
+	   Request[0] == 0xA5 && Request[1] == 0x5A) //帧头
+	{
+		extern void FlashParamUsb_Rx(uint8_t *buf,uint16_t buf_len);
+
+		FlashParamUsb_Rx(Request+3,256-3);
+	}
 #endif
 }
 
