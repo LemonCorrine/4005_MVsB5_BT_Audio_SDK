@@ -28,7 +28,7 @@
 # *.html
 # *.gatt
 # *.hhh
-
+Examples/examples/Demo_Decoder/Debug/
 Examples/examples/Example_Clk/Debug/
 Examples/examples/AudioAlgLib/Debug/
 Examples/examples/Component_Algorithm/Debug/
