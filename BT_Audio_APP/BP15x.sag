@@ -12,12 +12,12 @@ EILM 0x00000 0x00900000
 		LOADADDR NEXT __sdk_code_start
 		* KEEP(.vector LMA_FORCE_ALIGN)	
 		* KEEP(.stub_section LMA_FORCE_ALIGN)
+		* KEEP(.tcm_section LMA_FORCE_ALIGN)
 		*tws_time_sync.o KEEP(+RO LMA_FORCE_ALIGN)
 		*reg_access.o KEEP(+RO LMA_FORCE_ALIGN)
 		*co_utils.o KEEP(+RO LMA_FORCE_ALIGN)
 		* KEEP(.deepsleep_section LMA_FORCE_ALIGN)
 		* KEEP(.startup_section LMA_FORCE_ALIGN)
-		* KEEP(.tcm_section LMA_FORCE_ALIGN)
 		* KEEP(.driver.isr LMA_FORCE_ALIGN)
 		* (+ISR LMA_FORCE_ALIGN,+RO LMA_FORCE_ALIGN)
 	}
