@@ -26,6 +26,14 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 --------------------------------------------------------------------------------------
 版本历史：（采用倒序排列，最新版置顶）
 
+2024-3-12【0.1.21  build @ Mar 12 2024 11:13:42】
+size:365,180 bytes
+更新内容：
+	1、更新BT32k频率获取逻辑
+	2、屏蔽GPIOA11/A12/13/14的mode配置
+	3、修复Clock_BTDMClkSelect API
+
+------------------------------
 2024-2-29【0.1.20  build @ Feb 29 2024 10:44:13】
 size:366,008 bytes
 更新内容：
