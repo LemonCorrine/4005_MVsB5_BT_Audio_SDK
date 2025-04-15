@@ -12,7 +12,7 @@
 *.h
 *.a
 *.exe
-*.mp3
+# *.mp3
 # *.txt
 # *.ld
 # *.sag
