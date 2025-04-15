@@ -142,6 +142,8 @@ typedef enum __SPDIF_MODULE
 
 } SPDIF_MODULE;
 
+
+
 typedef struct __SPDIF_TYPE_STR
 {
     uint8_t              audio_type;
@@ -151,6 +153,15 @@ typedef struct __SPDIF_TYPE_STR
     int32_t             output_length;
 
 } SPDIF_TYPE_STR;
+
+/**
+ * @brief 20bit和24bit时，数据存放格式
+ */
+typedef enum _SPDIF_20BIT_24BIT_ALIGN_MODE
+{
+	SPDIF_HIGH_BITS_ACTIVE = 0,
+	SPDIF_LOW_BITS_ACTIVE,
+} SPDIF_20BIT_24BIT_ALIGN_MODE;
 
 /**
  * @brief  对SPDIFx进行功能复位
@@ -293,6 +304,25 @@ uint32_t SPDIF_PCMDataToSPDIFData(SPDIF_MODULE spdif_index, int32_t *PcmBuf, uin
  * @return >0: PCM数据长度，单位：Byte;
  */
 int32_t SPDIF_SPDIFDataToPCMData(SPDIF_MODULE spdif_index, int32_t *SpdifBuf, uint32_t Length, int32_t *PcmBuf, SPDIF_DATA_WORDLTH Wordlth);
+
+/**
+ * @brief  在20bit和24bit时，数据格式选择
+ * @param  AlignMode I2S_20BIT_24BIT_ALIGN_MODE
+ *
+ * @return NONE
+ */
+void SPDIF_AlignModeSet(SPDIF_20BIT_24BIT_ALIGN_MODE AlignMode);
+
+/**
+ * @brief  SPDIF格式数据转Audio格式数据,包括线性和非线性。
+ * @param  SpdifBuf：存放SPDIF数据的首地址
+ * @param  Length: SPDIF数据的长度，单位为：Byte
+ * @param  AudioBuf: 存放AudioBuf数据的首地址
+ * @param  Wordlth: 数据宽度，详见#SPDIF_DATA_WORDLTH
+ * @param  p: 存放当前输出帧的大小（Byte），通道号，类型等相关信息
+ * @return 无;
+ */
+void SPDIF_SPDIFDatatoAudioData(int32_t *SpdifBuf, int32_t InLength, int32_t *AudioBuf, SPDIF_DATA_WORDLTH Wordlth, SPDIF_TYPE_STR *p);
 
 
 

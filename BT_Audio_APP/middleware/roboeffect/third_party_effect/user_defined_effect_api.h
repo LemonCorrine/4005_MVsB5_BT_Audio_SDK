@@ -16,9 +16,11 @@
 #include "roboeffect_config.h"
 
 
+
 #include "simple_gain.h" 
 
 
+#define SIMPLE_GAIN_ENABLE                 (1)
 
 
 //Add SIMPLE_GAIN_INFO_DATA to USER_DEFINED_LIBS_DATA
@@ -54,6 +56,7 @@
 0x00, \
 0x00, 
 
+
 //simple_gain interface
 bool roboeffect_simple_gain_init_if(void *node);
 bool roboeffect_simple_gain_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
@@ -62,10 +65,17 @@ int32_t roboeffect_simple_gain_memory_size_if(roboeffect_memory_size_query *quer
 
 
 //Add SIMPLE_GAIN_INTERFACE to USER_DEFINED_INTERFACE
+#if SIMPLE_GAIN_ENABLE
 #define SIMPLE_GAIN_INTERFACE \
 	{ROBOEFFECT_SIMPLE_GAIN, ROBOEFFECT_CH_MONO_STEREO, FZ_ANY, 2, 4,\
 	roboeffect_simple_gain_init_if, roboeffect_simple_gain_config_if, roboeffect_simple_gain_apply_if, roboeffect_simple_gain_memory_size_if,\
 	},
+#else
+#define SIMPLE_GAIN_INTERFACE \
+	{ROBOEFFECT_SIMPLE_GAIN, ROBOEFFECT_CH_MONO_STEREO, FZ_ANY, 2, 4,\
+	roboeffect_null_init_if, roboeffect_null_config_if, roboeffect_null_apply_if, roboeffect_null_memory_size_if,\
+	},
+#endif
 
 
 #define USER_DEFINED_INTERFACE \

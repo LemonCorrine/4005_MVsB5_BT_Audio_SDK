@@ -121,26 +121,26 @@ void AudioEffect_GetAudioEffectMaxValue(void)
 }
 
 #if defined(CFG_FUNC_MIC_TREB_BASS_EN) || defined(CFG_FUNC_MUSIC_TREB_BASS_EN)
-void AudioEffect_EQ_Ajust(AUDIOEFFECT_EFFECT_TYPE type,uint8_t BassGain, uint8_t TrebGain)
+void AudioEffect_EQ_Ajust(AUDIOEFFECT_EFFECT_NUM effect,uint8_t BassGain, uint8_t TrebGain)
 {
 
 	if(AudioCore.Audioeffect.context_memory == NULL)
 		return;
-	if(!AudioEffect_effectAddr_check(get_audioeffect_addr(type)))
+	if(!AudioEffect_effectAddr_check(get_audioeffect_addr(effect)))
 		return;
 
 	int16_t param = 0;
-	uint8_t node = get_audioeffect_addr(type);
+	uint8_t addr = get_audioeffect_addr(effect);
 
 	param = BassTrebGainTable[BassGain];
-	roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, node, 6, &param);
-	AudioEffect_update_local_params(node, 6, &param, 2);
+	roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, addr, 6, &param);
+	AudioEffect_update_local_params(addr, 6, &param, 2);
 
 	param = BassTrebGainTable[TrebGain];
-	roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, node, 11, &param);
-	AudioEffect_update_local_params(node, 11, &param, 2);
+	roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, addr, 11, &param);
+	AudioEffect_update_local_params(addr, 11, &param, 2);
 
-	gCtrlVars.AutoRefresh = node;//AudioCore.Audioeffect.effect_addr;
+	gCtrlVars.AutoRefresh = addr;//AudioCore.Audioeffect.effect_addr;
 }
 #endif
 
@@ -153,12 +153,12 @@ void AudioEffect_ReverbStep_Ajust(uint8_t ReverbStep)
 	uint16_t step;
 	ReverbUnit *Reverbparam;
 	EchoUnit *Echoparam;
-	uint8_t Reverbnode = get_audioeffect_addr(REVERB);
-	uint8_t Echonode = get_audioeffect_addr(ECHO);
+	uint8_t Reverbaddr = get_audioeffect_addr(REVERB);
+	uint8_t Echoaddr = get_audioeffect_addr(ECHO);
 
-	if(AudioEffect_effectAddr_check(Echonode))
+	if(AudioEffect_effectAddr_check(Echoaddr))
 	{
-		Echoparam = (EchoUnit *)roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, Echonode, 0xff);
+		Echoparam = (EchoUnit *)roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, Echoaddr, 0xff);
 		step = ReverbMaxParam.max_echo_delay  / MAX_MIC_REVB_STEP;
 		if(ReverbStep >= (MAX_MIC_REVB_STEP-1))
 		{
@@ -179,14 +179,14 @@ void AudioEffect_ReverbStep_Ajust(uint8_t ReverbStep)
 			Echoparam->attenuation = ReverbStep * step;
 		}
 
-		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Echonode, 1, &Echoparam->attenuation);
-		AudioEffect_update_local_params(Echonode, 1, &Echoparam->attenuation, 2);
-		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Echonode, 2, &Echoparam->delay);
-		AudioEffect_update_local_params(Echonode, 2, &Echoparam->delay, 2);
+		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Echoaddr, 1, &Echoparam->attenuation);
+		AudioEffect_update_local_params(Echoaddr, 1, &Echoparam->attenuation, 2);
+		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Echoaddr, 2, &Echoparam->delay);
+		AudioEffect_update_local_params(Echoaddr, 2, &Echoparam->delay, 2);
 	}
-	if(AudioEffect_effectAddr_check(Reverbnode))
+	if(AudioEffect_effectAddr_check(Reverbaddr))
 	{
-		Reverbparam = (ReverbUnit *)roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, Reverbnode, 0xff);
+		Reverbparam = (ReverbUnit *)roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, Reverbaddr, 0xff);
 		step = ReverbMaxParam.max_reverb_wet_scale / MAX_MIC_REVB_STEP;
 		if(ReverbStep >= (MAX_MIC_REVB_STEP-1))
 		{
@@ -207,10 +207,10 @@ void AudioEffect_ReverbStep_Ajust(uint8_t ReverbStep)
 			Reverbparam->roomsize_scale = ReverbStep * step;
 		}
 
-		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Reverbnode, 1, &Reverbparam->wet_scale);
-		AudioEffect_update_local_params(Reverbnode, 1, &Reverbparam->wet_scale, 2);
-		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Reverbnode, 3, &Reverbparam->roomsize_scale);
-		AudioEffect_update_local_params(Reverbnode, 3, &Reverbparam->roomsize_scale, 2);
+		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Reverbaddr, 1, &Reverbparam->wet_scale);
+		AudioEffect_update_local_params(Reverbaddr, 1, &Reverbparam->wet_scale, 2);
+		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Reverbaddr, 3, &Reverbparam->roomsize_scale);
+		AudioEffect_update_local_params(Reverbaddr, 3, &Reverbparam->roomsize_scale, 2);
 	}
 	gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
 #endif
@@ -225,12 +225,12 @@ void AudioEffect_ReverbPlateStep_Ajust(uint8_t ReverbStep)
 	uint16_t step;
 	ReverbPlateUnit *ReverbPlateparam;
 	EchoUnit *Echoparam;
-	uint8_t ReverbPlatenode = get_audioeffect_addr(REVERBPLATE);
-	uint8_t Echonode = get_audioeffect_addr(ECHO);
+	uint8_t ReverbPlateaddr = get_audioeffect_addr(REVERBPLATE);
+	uint8_t Echoaddr = get_audioeffect_addr(ECHO);
 
-	if(AudioEffect_effectAddr_check(Echonode))
+	if(AudioEffect_effectAddr_check(Echoaddr))
 	{
-		Echoparam = (EchoUnit *)roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, Echonode, 0xff);
+		Echoparam = (EchoUnit *)roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, Echoaddr, 0xff);
 		step = ReverbMaxParam.max_echo_delay  / MAX_MIC_REVB_STEP;
 		if(ReverbStep >= (MAX_MIC_REVB_STEP-1))
 		{
@@ -250,14 +250,14 @@ void AudioEffect_ReverbPlateStep_Ajust(uint8_t ReverbStep)
 		{
 			Echoparam->attenuation = ReverbStep * step;
 		}
-		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Echonode, 1, &Echoparam->attenuation);
-		AudioEffect_update_local_params(Echonode, 1, &Echoparam->attenuation, 2);
-		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Echonode, 2, &Echoparam->delay);
-		AudioEffect_update_local_params(Echonode, 2, &Echoparam->delay, 2);
+		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Echoaddr, 1, &Echoparam->attenuation);
+		AudioEffect_update_local_params(Echoaddr, 1, &Echoparam->attenuation, 2);
+		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Echoaddr, 2, &Echoparam->delay);
+		AudioEffect_update_local_params(Echoaddr, 2, &Echoparam->delay, 2);
 	}
-	if(AudioEffect_effectAddr_check(ReverbPlatenode))
+	if(AudioEffect_effectAddr_check(ReverbPlateaddr))
 	{
-		ReverbPlateparam = (ReverbPlateUnit *)roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, ReverbPlatenode, 0xff);
+		ReverbPlateparam = (ReverbPlateUnit *)roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, ReverbPlateaddr, 0xff);
 		step = ReverbMaxParam.max_reverbplate_wetdrymix / MAX_MIC_REVB_STEP;
 		if(ReverbStep >= (MAX_MIC_REVB_STEP-1))
 		{
@@ -268,62 +268,62 @@ void AudioEffect_ReverbPlateStep_Ajust(uint8_t ReverbStep)
 			ReverbPlateparam->wetdrymix = ReverbStep * step;
 		}
 
-		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, ReverbPlatenode, 6, &ReverbPlateparam->wetdrymix);
-		AudioEffect_update_local_params(ReverbPlatenode, 6, &ReverbPlateparam->wetdrymix, 2);
+		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, ReverbPlateaddr, 6, &ReverbPlateparam->wetdrymix);
+		AudioEffect_update_local_params(ReverbPlateaddr, 6, &ReverbPlateparam->wetdrymix, 2);
 	}
 	gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
 #endif
 }
 
-uint16_t AudioEffect_SilenceDetector_Get(AUDIOEFFECT_EFFECT_TYPE type)
+uint16_t AudioEffect_SilenceDetector_Get(AUDIOEFFECT_EFFECT_NUM effect)
 {
 	if(AudioCore.Audioeffect.context_memory == NULL)
 		return 0;
-	if(!AudioEffect_effectAddr_check(get_audioeffect_addr(type)))
+	if(!AudioEffect_effectAddr_check(get_audioeffect_addr(effect)))
 		return 0;
 
 	SilenceDetectorUnit *SDParam;
-	SDParam = (SilenceDetectorUnit *)roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, get_audioeffect_addr(type), 0xff);
+	SDParam = (SilenceDetectorUnit *)roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, get_audioeffect_addr(effect), 0xff);
 	return SDParam->level;
 }
 
-uint16_t AudioEffect_GainControl_Get(AUDIOEFFECT_EFFECT_TYPE type)
+uint16_t AudioEffect_GainControl_Get(AUDIOEFFECT_EFFECT_NUM effect)
 {
 	if(AudioCore.Audioeffect.context_memory == NULL)
 		return 0;
-	if(!AudioEffect_effectAddr_check(get_audioeffect_addr(type)))
+	if(!AudioEffect_effectAddr_check(get_audioeffect_addr(effect)))
 		return 0;
 
 	GainControlUnit *GainParam;
-	GainParam = (GainControlUnit *)roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, get_audioeffect_addr(type), 0xff);
+	GainParam = (GainControlUnit *)roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, get_audioeffect_addr(effect), 0xff);
 	return GainParam->gain;
 }
 
-void AudioEffect_GainControl_Set(AUDIOEFFECT_EFFECT_TYPE type, uint16_t gain)
+void AudioEffect_GainControl_Set(AUDIOEFFECT_EFFECT_NUM effect, uint16_t gain)
 {
 	if(AudioCore.Audioeffect.context_memory == NULL)
 		return;
-	if(!AudioEffect_effectAddr_check(get_audioeffect_addr(type)))
+	if(!AudioEffect_effectAddr_check(get_audioeffect_addr(effect)))
 		return;
 
 	int16_t param = gain;
-	roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, get_audioeffect_addr(type), 1, &param);
-	AudioEffect_update_local_params(get_audioeffect_addr(type), 1, &param, 2);
+	roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, get_audioeffect_addr(effect), 1, &param);
+	AudioEffect_update_local_params(get_audioeffect_addr(effect), 1, &param, 2);
 
-	gCtrlVars.AutoRefresh = get_audioeffect_addr(type);
+	gCtrlVars.AutoRefresh = get_audioeffect_addr(effect);
 }
-void AudioEffect_GainMute_Set(AUDIOEFFECT_EFFECT_TYPE type, bool muteFlag)
+void AudioEffect_GainMute_Set(AUDIOEFFECT_EFFECT_NUM effect, bool muteFlag)
 {
 	if(AudioCore.Audioeffect.context_memory == NULL)
 		return;
-	if(!AudioEffect_effectAddr_check(get_audioeffect_addr(type)))
+	if(!AudioEffect_effectAddr_check(get_audioeffect_addr(effect)))
 		return;
 
 	int16_t param = muteFlag;
-	roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, get_audioeffect_addr(type), 0, &param);
-	AudioEffect_update_local_params(get_audioeffect_addr(type), 0, &param, 2);
+	roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, get_audioeffect_addr(effect), 0, &param);
+	AudioEffect_update_local_params(get_audioeffect_addr(effect), 0, &param, 2);
 
-//	gCtrlVars.AutoRefresh = node;
+//	gCtrlVars.AutoRefresh = addr;
 }
 
 void AudioEffect_EQMode_Set(uint8_t EQMode)
@@ -360,12 +360,12 @@ void AudioEffect_EQMode_Set(uint8_t EQMode)
 #endif
 }
 
-void AudioEffect_SourceGain_Update(uint8_t Index)
+void AudioEffect_SourceGain_Update(uint8_t source)
 {
 	if(AudioCore.Audioeffect.context_memory == NULL)
 		return;
 
-	switch(Index)
+	switch(source)
 	{
 		case APP_SOURCE_NUM:
 			AudioEffect_GainControl_Set(APP_SOURCE_GAIN, audioeffectVolArr[mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]]);
@@ -407,12 +407,12 @@ void AudioEffect_SourceGain_Update(uint8_t Index)
 	}
 }
 
-void AudioEffect_SinkGain_Update(uint8_t Index)
+void AudioEffect_SinkGain_Update(uint8_t sink)
 {
 	if(AudioCore.Audioeffect.context_memory == NULL)
 		return;
 
-	switch(Index)
+	switch(sink)
 	{
 		case AUDIO_DAC0_SINK_NUM:
 			AudioEffect_GainControl_Set(DAC0_SINK_GAIN,	audioeffectVolArr[mainAppCt.gSysVol.AudioSinkVol[AUDIO_DAC0_SINK_NUM]]);
@@ -527,19 +527,19 @@ void AudioEffect_update_local_block_params(uint8_t addr)
 	}
 }
 
-uint8_t AudioEffect_effect_status_Get(AUDIOEFFECT_EFFECT_TYPE type)
+uint8_t AudioEffect_effect_status_Get(AUDIOEFFECT_EFFECT_NUM effect)
 {
 	if(AudioCore.Audioeffect.context_memory == NULL)
 		return 0;
-	if(!AudioEffect_effectAddr_check(get_audioeffect_addr(type)))
+	if(!AudioEffect_effectAddr_check(get_audioeffect_addr(effect)))
 		return 0;
 
-	return roboeffect_get_effect_status(AudioCore.Audioeffect.context_memory, get_audioeffect_addr(type));
+	return roboeffect_get_effect_status(AudioCore.Audioeffect.context_memory, get_audioeffect_addr(effect));
 }
 
-void AudioEffect_effect_enable(AUDIOEFFECT_EFFECT_TYPE type, uint8_t enable)
+void AudioEffect_effect_enable(AUDIOEFFECT_EFFECT_NUM effect, uint8_t enable)
 {
-	AudioCore.Audioeffect.effect_addr = get_audioeffect_addr(type);
+	AudioCore.Audioeffect.effect_addr = get_audioeffect_addr(effect);
 	AudioCore.Audioeffect.effect_enable = enable;
 
 	MessageContext msgSend;
@@ -616,7 +616,7 @@ uint16_t get_user_effect_parameters_len(uint8_t *user_effect_parameters)
     return ((b2 << 8) | b1) + 2;
 }
 
-uint8_t get_audioeffect_addr(AUDIOEFFECT_EFFECT_TYPE effect_name)
+uint8_t get_audioeffect_addr(AUDIOEFFECT_EFFECT_NUM effect_name)
 {
 	AUDIOEFFECT_EFFECT_PARA_TABLE *param = GetCurEffectParaNode();
 	uint8_t addr = 0;
@@ -699,11 +699,11 @@ void AudioEffectParamSync(void)
 #endif
 }
 
-bool AudioEffect_effectAddr_check(uint8_t node)
+bool AudioEffect_effectAddr_check(uint8_t addr)
 {
-	if(node < 0x81 || node > (AudioCore.Audioeffect.user_effect_list->count + 0x80))
+	if(addr < 0x81 || addr > (AudioCore.Audioeffect.user_effect_list->count + 0x80))
 		return FALSE;
-//	if(!roboeffect_get_effect_status(AudioCore.Audioeffect.context_memory, node))
+//	if(!roboeffect_get_effect_status(AudioCore.Audioeffect.context_memory, addr))
 //			return FALSE;
 	return TRUE;
 }

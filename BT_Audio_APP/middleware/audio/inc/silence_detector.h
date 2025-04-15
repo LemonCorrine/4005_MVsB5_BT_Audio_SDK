@@ -4,7 +4,7 @@
  * @brief	Silence detector.
  *
  * @author	ZHAO Ying (Alfred)
- * @version	v1.2.0
+ * @version	v1.2.1
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************

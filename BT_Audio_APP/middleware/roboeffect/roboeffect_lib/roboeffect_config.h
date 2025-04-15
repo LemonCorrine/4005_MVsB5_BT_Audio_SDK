@@ -14,63 +14,59 @@ extern "C" {
 #include "audio_effect_library.h"
 
 
+#define AEC_ENABLE                         (1)
 #define AUTO_TUNE_ENABLE                   (1)
-#define DC_BLOCKER_ENABLE                  (0)
+#define AUTO_WAH_ENABLE                    (1)
+#define BEAMFORMING_ENABLE                 (1)
+#define BEAT_TRACKER_ENABLE                (1)
+#define BIQUAD_ENABLE                      (1)
+#define CHORUS_ENABLE                      (1)
+#define CHORUS2_ENABLE                     (1)
+#define COMPANDER_ENABLE                   (1)
+#define DC_BLOCKER_ENABLE                  (1)
+#define DISTORTION_DS1_ENABLE              (1)
 #define DRC_ENABLE                         (1)
 #define ECHO_ENABLE                        (1)
-#define EQ_ENABLE                          (1)
-#define NOISE_SUPPRESSOR_EXPANDER_ENABLE   (1)
-#define FREQ_SHIFTER_ENABLE                (1)
-#define HOWLING_SUPPRESSOR_ENABLE          (1)
-#define NOISE_GATE_ENABLE                  (0)
-#define PITCH_SHIFTER_ENABLE               (1)
-#define REVERB_ENABLE                      (1)
-#define SILENCE_DETECTOR_ENABLE            (1)
-#define THREE_D_ENABLE                     (1)
-#define VIRTUAL_BASS_ENABLE                (1)
-#define VOICE_CHANGER_ENABLE               (1)
-#define GAIN_CONTROL_ENABLE                (1)
-#define VOCAL_CUT_ENABLE                   (0)//(1)
-#define REVERB_PRO_ENABLE                  (0)
-#define VOICE_CHANGER_PRO_ENABLE           (1)
-#define PHASE_CONTROL_ENABLE               (0)//(1)
-#define VOCAL_REMOVER_ENABLE               (0)
-#define PITCH_SHIFTER_PRO_ENABLE           (1)
-#define VIRTUAL_BASS_CLASSIC_ENABLE        (0)
-#define PCM_DELAY_ENABLE                   (1)
-#define HARMONIC_EXCITER_ENABLE            (1)
-#define CHORUS_ENABLE                      (0)
-#define AUTO_WAH_ENABLE                    (0)
-#define STEREO_WIDENER_ENABLE              (1)
-#define PINGPONG_ENABLE                    (0)
-#define THREE_D_PLUS_ENABLE                (0)
-#define SINE_GENERATOR_ENABLE              (0)
-#define NOISE_SUPPRESSOR_BLUE_ENABLE       (0)
-#define FLANGER_ENABLE                     (0)
-#define FREQ_SHIFTER_FINE_ENABLE           (0)
-#define OVER_DRIVE_ENABLE                  (0)
-#define DISTORTION_DS1_ENABLE              (0)
-#define EQ_DRC_ENABLE                      (1)
-#define AEC_ENABLE                         (1)
-#define COMPANDER_ENABLE                   (1)
-#define LOW_LEVEL_COMPRESSOR_ENABLE        (1)
-#define BEAT_TRACKER_ENABLE                (1)
 #define ENGINE_SOUND_ENABLE                (0)
-#define BIQUAD_ENABLE                      (1)
-#define CHORUS2_ENABLE                     (0)
-#define REVERB_PLATE_ENABLE                (1)
+#define EQ_ENABLE                          (1)
+#define EQ_DRC_ENABLE                      (1)
+#define FLANGER_ENABLE                     (1)
+#define FREQ_SHIFTER_ENABLE                (1)
+#define FREQ_SHIFTER_FINE_ENABLE           (1)
+#define GAIN_CONTROL_ENABLE                (1)
+#define HARMONIC_EXCITER_ENABLE            (1)
+#define HOWLING_GUARD_ENABLE               (1)
+#define HOWLING_SUPPRESSOR_ENABLE          (1)
 #define HOWLING_SUPPRESSOR_FINE_ENABLE     (1)
-#define HOWLING_GUARD_ENABLE               (0)
-#define VIRTUAL_BASS_TD_ENABLE             (0)
-#define OVER_DRIVE_PLOY_ENABLE             (0)
-#define TREMOLO_ENABLE                     (0)
-#define BEAMFORMING_ENABLE                 (0)
-#define FADER_ENABLE                       (1)//do not close as it is a node effect
-#define DOWNMIX_2TO1_ENABLE                (1)//do not close as it is a node effect
-#define UPMIX_1TO2_ENABLE                  (1)//do not close as it is a node effect
-#define CHANNEL_COMBINER_ENABLE            (1)//do not close as it is a node effect
-#define CHANNEL_SELECTOR_ENABLE            (1)//do not close as it is a node effect
-#define ROUTE_SELECTOR_ENABLE              (1)//do not close as it is a node effect
+#define LOW_LEVEL_COMPRESSOR_ENABLE        (1)
+#define NOISE_GATE_ENABLE                  (1)
+#define NOISE_SUPPRESSOR_BLUE_ENABLE       (1)
+#define NOISE_SUPPRESSOR_EXPANDER_ENABLE   (1)
+#define OVER_DRIVE_ENABLE                  (1)
+#define OVER_DRIVE_PLOY_ENABLE             (1)
+#define PCM_DELAY_ENABLE                   (1)
+#define PHASE_CONTROL_ENABLE               (1)
+#define PINGPONG_ENABLE                    (1)
+#define PITCH_SHIFTER_ENABLE               (1)
+#define PITCH_SHIFTER_PRO_ENABLE           (1)
+#define REVERB_ENABLE                      (1)
+#define REVERB_PLATE_ENABLE                (1)
+#define REVERB_PRO_ENABLE                  (1)
+#define ROBOT_TONE_ENABLE                  (1)
+#define SILENCE_DETECTOR_ENABLE            (1)
+#define SINE_GENERATOR_ENABLE              (1)
+#define STEREO_WIDENER_ENABLE              (1)
+#define THREE_D_ENABLE                     (1)
+#define THREE_D_PLUS_ENABLE                (1)
+#define TREMOLO_ENABLE                     (1)
+#define VIRTUAL_BASS_ENABLE                (1)
+#define VIRTUAL_BASS_CLASSIC_ENABLE        (1)
+#define VIRTUAL_BASS_TD_ENABLE             (1)
+#define VIRTUAL_SURROUND_2CH_ENABLE        (1)
+#define VOCAL_CUT_ENABLE                   (1)
+#define VOCAL_REMOVER_ENABLE               (1)
+#define VOICE_CHANGER_ENABLE               (1)
+#define VOICE_CHANGER_PRO_ENABLE           (1)
 
 //effects parameters length
 #define ROBOEFFECT_AUTO_TUNE_PARAM_LEN                3
@@ -124,6 +120,8 @@ extern "C" {
 #define ROBOEFFECT_OVER_DRIVE_PLOY_PARAM_LEN          2
 #define ROBOEFFECT_TREMOLO_PARAM_LEN                  3
 #define ROBOEFFECT_BEAMFORMING_PARAM_LEN              10
+#define ROBOEFFECT_VIRTUAL_SURROUND_2CH_PARAM_LEN     0
+#define ROBOEFFECT_ROBOT_TONE_PARAM_LEN               1
 #define ROBOEFFECT_FADER_PARAM_LEN                    3
 #define ROBOEFFECT_DOWNMIX_2TO1_PARAM_LEN             0
 #define ROBOEFFECT_UPMIX_1TO2_PARAM_LEN               0
@@ -443,6 +441,18 @@ bool roboeffect_beamforming_init_if(void *node);
 bool roboeffect_beamforming_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
 bool roboeffect_beamforming_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
 int32_t roboeffect_beamforming_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
+
+//virtual_surround_2ch interface
+bool roboeffect_virtual_surround_2ch_init_if(void *node);
+bool roboeffect_virtual_surround_2ch_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
+bool roboeffect_virtual_surround_2ch_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
+int32_t roboeffect_virtual_surround_2ch_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
+
+//robot_tone interface
+bool roboeffect_robot_tone_init_if(void *node);
+bool roboeffect_robot_tone_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
+bool roboeffect_robot_tone_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
+int32_t roboeffect_robot_tone_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
 
 //fader interface
 bool roboeffect_fader_init_if(void *node);

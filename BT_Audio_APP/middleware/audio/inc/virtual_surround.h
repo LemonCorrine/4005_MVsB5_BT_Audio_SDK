@@ -4,7 +4,7 @@
  * @brief	Virtual surround effect for stereo headphones.
  *
  * @author	ZHAO Ying (Alfred)
- * @version	v1.1.1
+ * @version	v1.2.0
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************
@@ -35,7 +35,7 @@ typedef struct _VirtualSurroundContext
 	int32_t a;
 	int32_t d[2][8][34+1];
 	int16_t dp[2][8];
-	int16_t fdb[2][8];
+	int32_t fdb[2][8];
 	int32_t fda[2][8];
 } VirtualSurroundContext;
 
@@ -63,7 +63,7 @@ int32_t virtual_surround_init(VirtualSurroundContext *ct, int32_t num_channels, 
 
 
 /**
- * @brief Apply virtual surround audio effect to a frame of PCM data.
+ * @brief Apply virtual surround audio effect to a frame of PCM data (16-bit).
  * @param ct Pointer to a VirtualSurroundContext object.
  * @param pcm_in Address of the PCM input. The PCM layout must be interleaved according to the channel layout as described in virtual_surround_init().
  * @param pcm_out Address of the PCM output. The data layout is always stereo: L0,R0,L1,R1,L2,R2,...
@@ -71,8 +71,19 @@ int32_t virtual_surround_init(VirtualSurroundContext *ct, int32_t num_channels, 
  * @param n Number of PCM samples to process.
  * @return error code. VIRTUAL_SURROUND_ERROR_OK means successful, other codes indicate error.
  */
-int32_t virtual_surround_apply(VirtualSurroundContext *ct, int16_t *pcm_in, int16_t *pcm_out, int32_t n);
+int32_t virtual_surround_apply16(VirtualSurroundContext *ct, int16_t *pcm_in, int16_t *pcm_out, int32_t n);
 
+
+/**
+ * @brief Apply virtual surround audio effect to a frame of PCM data (24-bit).
+ * @param ct Pointer to a VirtualSurroundContext object.
+ * @param pcm_in Address of the PCM input. The PCM layout must be interleaved according to the channel layout as described in virtual_surround_init().
+ * @param pcm_out Address of the PCM output. The data layout is always stereo: L0,R0,L1,R1,L2,R2,...
+          pcm_out CANNOT be the same as pcm_in!
+ * @param n Number of PCM samples to process.
+ * @return error code. VIRTUAL_SURROUND_ERROR_OK means successful, other codes indicate error.
+ */
+int32_t virtual_surround_apply24(VirtualSurroundContext *ct, int32_t *pcm_in, int32_t *pcm_out, int32_t n);
 
 #ifdef __cplusplus
 }

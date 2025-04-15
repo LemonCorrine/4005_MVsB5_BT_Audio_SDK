@@ -4,7 +4,7 @@
  * @brief	Pitch Shifter Pro
  *
  * @author	ZHAO Ying (Alfred)
- * @version	v2.2.0
+ * @version	v2.2.1
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************
