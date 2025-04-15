@@ -18,6 +18,7 @@
 #include "otg_detect.h"
 #include "device_detect.h"
 #include "misc.h"
+#include "otg_host_standard_enum.h"
 #include "otg_device_standard_request.h"
 #include "otg_device_hcd.h"
 #include "otg_host_hcd.h"
@@ -42,10 +43,11 @@
 volatile DETECT_STATE CardState = DETECT_STATE_IDLE;
 #endif
 #ifdef CFG_FUNC_UDISK_DETECT
-volatile DETECT_STATE UDiskState = DETECT_STATE_IDLE;
+volatile DETECT_STATE UsbHostState = DETECT_STATE_IDLE;
+uint8_t UsbHostPortFlag = 0;
 #endif
 #ifdef CFG_FUNC_USB_DEVICE_DETECT
-static DETECT_STATE USB_Device_State = DETECT_STATE_IDLE;
+static DETECT_STATE UsbDeviceState = DETECT_STATE_IDLE;
 #endif
 #ifdef CFG_LINEIN_DET_EN
 static DETECT_STATE LineInState = DETECT_STATE_IDLE;
@@ -361,11 +363,11 @@ uint32_t DeviceDetect(void)
 DetectCardExit:
 #ifdef CFG_FUNC_UDISK_DETECT
 #ifdef CFG_FUNC_USB_DEVICE_DETECT
-	if(USB_Device_State != DETECT_STATE_IN)
+	if(UsbDeviceState != DETECT_STATE_IN)
 #endif
 	{
 		DETECT_STATE NewUDiskState = DETECT_STATE_NONE;
-		if(IsUDiskLink())
+		if(OTG_PortHostIsLink())
 		{
 			NewUDiskState = DETECT_STATE_IN;
 		}
@@ -374,17 +376,35 @@ DetectCardExit:
 			NewUDiskState = DETECT_STATE_OUT;
 		}
 		
-		if(UDiskState != NewUDiskState)
+		if(UsbHostState != NewUDiskState)
 		{
-			UDiskState = NewUDiskState;			
-			APP_DBG("UDisk State = %d\n",UDiskState) ;
-			if(UDiskState == DETECT_STATE_OUT)
+			UsbHostState = NewUDiskState;
+			APP_DBG("UsbHostState = %d\n",UsbHostState) ;
+			if(UsbHostState == DETECT_STATE_OUT)
 			{
-				Ret |= UDISK_OUT_EVENT_BIT;
+				switch(UsbHostPortFlag)
+				{
+					case 1:	//u≈Ã
+						Ret |= UDISK_OUT_EVENT_BIT;
+						break;
+					default :
+						break;
+				}
+				UsbHostPortFlag = 0;
 			}
 			else
 			{
-				Ret |= UDISK_IN_EVENT_BIT;
+				APP_DBG("OTG Host Init\n");
+				OTG_HostFifoInit();
+				UsbHostPortFlag = OTG_HostInit();
+				switch(UsbHostPortFlag)
+				{
+					case 1: //u≈Ã
+						Ret |= UDISK_IN_EVENT_BIT;
+						break;
+					default :
+						break;
+				}
 			}
 		}
 	}
@@ -392,7 +412,7 @@ DetectCardExit:
 
 #ifdef CFG_FUNC_USB_DEVICE_DETECT
 #ifdef CFG_FUNC_UDISK_DETECT
-	if(UDiskState != DETECT_STATE_IN)
+	if(UsbHostState != DETECT_STATE_IN)
 #endif
 	{		
 		DETECT_STATE NewUDeviceState = DETECT_STATE_NONE;
@@ -404,12 +424,12 @@ DetectCardExit:
 		{
 			NewUDeviceState = DETECT_STATE_OUT;
 		}
-		if(USB_Device_State != NewUDeviceState)
+		if(UsbDeviceState != NewUDeviceState)
 		{
-			USB_Device_State = NewUDeviceState;
-			APP_DBG("UDevice State = %d\n",USB_Device_State);
+			UsbDeviceState = NewUDeviceState;
+			APP_DBG("UDevice State = %d\n",UsbDeviceState);
 #ifdef CFG_FUNC_USB_AUDIO_MIX_MODE
-			if(USB_Device_State == DETECT_STATE_OUT)
+			if(UsbDeviceState == DETECT_STATE_OUT)
 			{
 				SetUSBDeviceInitState(FALSE);
 			}
@@ -419,7 +439,7 @@ DetectCardExit:
 				SetUSBDeviceInitState(TRUE);
 			}
 #else
-			if(USB_Device_State == DETECT_STATE_OUT)
+			if(UsbDeviceState == DETECT_STATE_OUT)
 			{
 				Ret |= USB_DEVICE_OUT_EVENT_BIT;
 #if defined(CFG_FUNC_AUDIO_EFFECT_EN)&&defined(CFG_COMMUNICATION_BY_USB)
@@ -431,7 +451,7 @@ DetectCardExit:
 			{
 				Ret |= USB_DEVICE_IN_EVENT_BIT;
 #if defined(CFG_FUNC_AUDIO_EFFECT_EN)&&defined(CFG_COMMUNICATION_BY_USB)
-				if(((GetModeDefineState(ModeUsbDevicePlay)&&(GetSystemMode() == ModeTwsSlavePlay)) ||(!GetModeDefineState(ModeUsbDevicePlay)))
+				if(((GetModeDefineState(ModeUsbDevicePlay)) ||(!GetModeDefineState(ModeUsbDevicePlay)))
 					&& (GetUSBDeviceInitState() == FALSE))
 				{
 					OTG_DeviceModeSel(HID, USB_VID, USBPID(HID));
@@ -554,7 +574,6 @@ static void DevicePlugEventCheck(void)
 			SetSysModeState(ModeUDiskAudioPlay,ModeStateSusend);
 		}
 		msgSend.msgId	= MSG_DEVICE_SERVICE_U_DISK_OUT;
-		SoftFlagDeregister(SoftFlagUDiskEnum);
 		MessageSend(GetMainMessageHandle(), &msgSend);
 	}
 #endif
@@ -687,6 +706,7 @@ void BreakPointSave(uint16_t device_msgId)
 			pBpSysInfo->EqMode		 = mainAppCt.EqMode;
 #endif	
 			pBpSysInfo->MicEffectDelayStep   = mainAppCt.MicEffectDelayStep;
+			pBpSysInfo->ReverbStep   = mainAppCt.ReverbStep;
 #ifdef CFG_FUNC_MIC_TREB_BASS_EN
 			pBpSysInfo->MicBassStep     = mainAppCt.MicBassStep;
 			pBpSysInfo->MicTrebStep     = mainAppCt.MicTrebStep;
@@ -849,7 +869,14 @@ DETECT_STATE GetCardState(void)
 #ifdef CFG_FUNC_UDISK_DETECT
 DETECT_STATE GetUdiscState(void)
 {
-	return UDiskState;
+	if(UsbHostPortFlag & 0x01)	//U≈Ã
+	{
+		return DETECT_STATE_IN;
+	}
+	else
+	{
+		return DETECT_STATE_OUT;
+	}
 }
 #endif
 
@@ -863,7 +890,7 @@ bool IsMediaPlugOut(void)
 		while(detect_time_timer)
 		{
 			osTaskDelay(1);
-			if(UDiskState == DETECT_STATE_OUT)
+			if(GetUdiscState() == DETECT_STATE_OUT)
 			{
 				if(plug_out_count < 0)
 				{

@@ -88,7 +88,11 @@
 	#define SYS_FLASH_FREQ_SELECT		((SYS_CORE_APLL_FREQ/3)*1000) 	//Hz
 
 	//“Ù∆µ ±÷”
+#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
 	#define	SYS_AUDIO_CLK_SELECT		PLL_CLK_MODE
+#else
+	#define	SYS_AUDIO_CLK_SELECT		APLL_CLK_MODE
+#endif
 
 #else
 	#define	SYS_CORE_APLL_FREQ			240*1000		//kHZ

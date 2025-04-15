@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define BYPASS_ROBOEFFECT_LIB_VER "2.17.2"
+#define BYPASS_ROBOEFFECT_LIB_VER "2.17.7"
 
 typedef enum _BYPASS_roboeffect_io_enum
 {
@@ -46,6 +46,8 @@ extern const unsigned char user_effects_script_bypass[];
 extern roboeffect_effect_list_info user_effect_list_bypass;
 
 extern const roboeffect_effect_steps_table user_effect_steps_bypass;
+
+extern uint32_t get_user_effects_script_len_bypass(void);
 
 extern char *parameter_group_name_bypass[1];
 extern const unsigned char user_effect_parameters_bypass_Bypass[];

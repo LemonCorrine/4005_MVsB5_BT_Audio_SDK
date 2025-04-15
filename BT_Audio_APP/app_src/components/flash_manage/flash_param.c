@@ -30,7 +30,9 @@ const FLASH_PARAMETER SysDefaultParm =
 			BT_PINCODE},// Pin code设置
 
 	.bt_Reconnection =  {BT_PARA_ReconnectionEnable_ID,sizeof(SysDefaultParm.bt_Reconnection.para),
-			{1,5,3,1,90,5}},//参数1 BT自动重连(开机或者切换模式)  --- 1 开启
+			{BT_RECONNECTION_SUPPORT,BT_POR_TRY_COUNTS,BT_POR_INTERNAL_TIME,
+			 BT_BLR_RECONNECTION_SUPPORT,BT_BLR_TRY_COUNTS,BT_BLR_INTERNAL_TIME}},
+							//参数1 BT自动重连(开机或者切换模式)  --- 1 开启
 							//参数2  自动重连尝试次数  --- 5次
 							//参数3  自动重连每两次间隔时间(in seconds) --- 间隔3S
 							//参数4 BB Lost之后自动重连 1-> 打开/0->关闭  --- 1 打开

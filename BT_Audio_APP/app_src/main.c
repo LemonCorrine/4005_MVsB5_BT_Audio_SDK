@@ -26,7 +26,7 @@
 #endif
 
 #ifdef CFG_APP_BT_MODE_EN
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 #include "bt_hf_mode.h"
 #endif
 #endif
@@ -43,7 +43,7 @@
 #include "bt_em_config.h"
 
 //-----------------globle timer----------------------//
-volatile uint32_t gInsertEventDelayActTimer = 1000; // ms
+volatile uint32_t gInsertEventDelayActTimer = 2000; // ms
 volatile uint32_t gChangeModeTimeOutTimer = CHANGE_MODE_TIMEOUT_COUNT;
 volatile uint32_t gDeviceCheckTimer = DEVICE_DETECT_TIMER; //ms
 //volatile uint32_t gDeviceUSBDeviceTimer = DEVICE_USB_DEVICE_DETECT_TIMER ;//ms
@@ -69,8 +69,6 @@ extern void DBUS_Access_Area_Init(uint32_t start_addr);
 extern const unsigned char *GetLibVersionFatfsACC(void);
 extern void UsbAudioTimer1msProcess(void);
 extern char *effect_lib_version_return(void);
-extern void Power_LDO16Config(uint8_t value);
-extern void ldo_switch_to_dcdc(uint8_t trim_cfg);
 
 void _printf_float()
 {
@@ -115,7 +113,7 @@ void Timer2Interrupt(void)
 #endif
 
 #ifdef CFG_APP_BT_MODE_EN
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 	BtHf_Timer1msProcess();
 #endif
 #endif
@@ -144,7 +142,7 @@ void SystemClockInit(bool FristPoweron)
 {
 #ifndef USB_CRYSTA_FREE_EN
 	if(FristPoweron)
-		Clock_HOSCCurrentSet(31);//initial set 31, after clock start set to 9
+		Clock_HOSCCurrentSet(15);
 #endif
 
 #ifdef USB_CRYSTA_FREE_EN
@@ -169,7 +167,7 @@ void SystemClockInit(bool FristPoweron)
 
 #ifndef USB_CRYSTA_FREE_EN
 	if(FristPoweron)
-		Clock_HOSCCurrentSet(15);
+		Clock_HOSCCurrentSet(5);
 #endif
 
 	SpiFlashInit(SYS_FLASH_FREQ_SELECT, MODE_4BIT, 0, SYS_FLASH_CLK_SELECT);
@@ -179,8 +177,7 @@ void SystemClockInit(bool FristPoweron)
 #endif
 
 #ifdef CHIP_USE_DCDC
-//	ldo_switch_to_dcdc(7);  //3-1.9V;7-1.8;12-1.7V;18-1.6V;27-1.5V;39-1.4V;57-1.3V 18:Default:1.6V //max power
-	ldo_switch_to_dcdc(27); // 3-1.9V;7-1.8;12-1.7V;18-1.6V;27-1.5V;39-1.4V;57-1.3V 18:Default:1.6V //max power
+	ldo_switch_to_dcdc(3); // 3-1.6V Default:1.6V
 #else
 	Power_LDO16Config(1);
 #endif
@@ -189,6 +186,7 @@ void SystemClockInit(bool FristPoweron)
 void LogUartConfig(bool InitBandRate)
 {
 #ifdef CFG_FUNC_DEBUG_EN
+
 	if(GET_DEBUG_GPIO_PORT(CFG_UART_TX_PORT) == DEBUG_GPIO_PORT_A)
 		GPIO_PortAModeSet(GET_DEBUG_GPIO_PIN(CFG_UART_TX_PORT), GET_DEBUG_GPIO_MODE(CFG_UART_TX_PORT));
 	else
@@ -213,7 +211,7 @@ void SleepMain(void)
 	WDG_Feed();
 
 #ifdef CHIP_USE_DCDC
-	ldo_switch_to_dcdc(18); // 3-1.9V;7-1.8;12-1.7V;18-1.6V;27-1.5V;39-1.4V;57-1.3V 18:Default:1.6V //max power
+	ldo_switch_to_dcdc(3); // 3-1.6V Default:1.6V
 #else
 	Power_LDO16Config(0);
 #endif
@@ -282,6 +280,7 @@ int main(void)
 //	extern char __sdk_code_start;
 
 	Chip_Init(1);
+	Chip_MemInit();
 	WDG_Enable(WDG_STEP_4S);
 //	WDG_Disable();
 
@@ -340,6 +339,13 @@ int main(void)
 	APP_DBG("****************************************************************\n");
 	APP_DBG("sys clk =%ld\n",Clock_SysClockFreqGet());
 
+#if defined(CFG_DOUBLE_KEY_EN) && !defined(CFG_AI_DENOISE_EN)
+	{
+		extern void AlgUserDemo(void);
+		AlgUserDemo();
+	}
+#endif
+
 #ifdef CFG_APP_IDLE_MODE_EN
  	IdleModeConfig();
 #endif
@@ -369,6 +375,13 @@ int main(void)
 #endif
 	APP_DBG("ECO Flag: %x\n",Read_ChipECO_Version());
 	APP_DBG("\n");
+
+#ifdef USE_EXTERN_FLASH_SPACE
+	SPIM_Init(0, 0);
+	SPI_Flash_Init();
+	APP_DBG("SPI_Flash_ReadMID=%x\n",SPI_Flash_ReadMID());
+#endif
+
 #ifdef LED_IO_TOGGLE
 	LedPortInit();  //在此之后可以使用LedOn LedOff 观测 调试时序 特别是逻分
 #endif

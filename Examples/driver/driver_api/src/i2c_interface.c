@@ -18,7 +18,7 @@
 #include "gpio.h"
 #include "timeout.h"
 #include "i2c_interface.h"
-
+#include "delay.h"
 
 /**
  * @brief     I2C主模式下发送数据
@@ -188,6 +188,7 @@ I2C_ErrorState I2C_MasterReceiveBuffer(uint8_t SlaveAddr, void* RecvBuf, uint32_
 	while(!I2C_GetIntFlag());
 	I2C_IntClr();
 	I2C_SendStop();
+	DelayUs(2);
 	((uint8_t *)RecvBuf)[i] = I2C_ReceiveByte();
 	return ERROR_OK;
 }
@@ -268,6 +269,7 @@ I2C_ErrorState I2C_MasterReceiveData(uint8_t SlaveAddr, uint8_t RegAddr, void* R
 	while(!I2C_GetIntFlag());
 	I2C_IntClr();
 	I2C_SendStop();
+	DelayUs(2);
 	((uint8_t *)RecvBuf)[i] = I2C_ReceiveByte();
 	return ERROR_OK;
 }

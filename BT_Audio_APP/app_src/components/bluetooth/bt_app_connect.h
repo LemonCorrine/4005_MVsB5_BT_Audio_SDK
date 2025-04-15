@@ -35,10 +35,4 @@ void BtScanPageStateCheck(void);
 void BtReconnectDevCreate(uint8_t *addr, uint8_t tryCount, uint8_t interval, uint32_t delayMs, uint32_t profile);
 void BtReconnectDevice(void);
 
-void BtReconnectTwsStop(void);
-void BtReconnectTws_Slave(void);
-void BtReconnectTwsCreate(uint8_t *addr, uint8_t tryCount, uint8_t interval, uint32_t delayMs, uint32_t profile);
-void BtReconnectTws(void);
-void BtStartReconnectTws(uint8_t tryCount, uint8_t interval);
-
 #endif

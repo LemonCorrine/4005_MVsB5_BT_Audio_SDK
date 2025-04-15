@@ -14,7 +14,7 @@
 
 #ifndef __BLUETOOTH_DDB_INFO_H__
 #define __BLUETOOTH_DDB_INFO_H__
-#include "app_config.h"
+
 #include "bt_manager.h"
 
 #define DDB_NOT_FOUND  0xffff
@@ -41,8 +41,9 @@
 #define MVBT_DB_FLAG_SIZE					4
 
 //保存的连接过的设备信息
-#define MAX_BT_DEVICE_NUM					9 //(tws1+device8)
+#define MAX_BT_DEVICE_NUM					9 //(Source1+device8)
 #define BT_REC_INFO_LEN						25//(6+16+1+1+1) = (addr+linkkey+flag+role+profile)
+#define BT_DEVICE_LIST_START				1//
 
 /*extern uint8_t KeyEnc;*/
 //#define PRINT_RECORD_INFOR

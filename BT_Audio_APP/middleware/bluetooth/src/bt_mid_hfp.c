@@ -29,7 +29,7 @@
 #include "bt_app_hfp_deal.h"
 #include "audio_vol.h"
 
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 #define BT_MANAGER_HFP_ERROR_NONE					0
 #define BT_MANAGER_ERROR_PARAMETER_INVAILD			-1
 #define BT_MANAGER_ERROR_NOT_INITIALIZED			-2

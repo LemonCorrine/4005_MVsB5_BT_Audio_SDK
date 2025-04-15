@@ -14,28 +14,14 @@
 
 //有关蓝牙A2DP播放的相关处理函数放置此文件
 
-#include "string.h"
+//#include "string.h"
 #include "type.h"
-#include "app_config.h"
-#include "app_message.h"
-#include "irqn.h"
-#include "clk.h"
-#include "dac.h"
 #include "rtos_api.h"
-#include "debug.h"
+#include "app_config.h"
 #include "bt_play_api.h"
-#include "bt_play_mode.h"
 #include "audio_core_api.h"
-#include "decoder.h"
-#include "device_detect.h"
-#include "typedefine.h"
-#include "audio_decoder_api.h"
-#include "main_task.h"
-#include "bt_interface.h"
-#include "bt_avrcp_api.h"
-#include "bt_manager.h"
-#include "bt_stack_service.h"
 #include "audio_vol.h"
+#include "main_task.h"
 
 #ifdef CFG_APP_BT_MODE_EN
 
@@ -51,6 +37,11 @@ osMutexId SbcDecoderMutex = NULL;
 
 
 #ifdef BT_AUDIO_AAC_ENABLE
+#include "app_message.h"
+#include "bt_interface.h"
+#include "bt_manager.h"
+#include "audio_decoder_api.h"
+
 extern void BtDecoderDeinit(void);
 extern int32_t BtDecoderInit(void *io_handle,int32_t decoder_type);
 extern uint16_t BtDecodedPcmDataGet(void * pcmData, uint16_t sampleLen);
@@ -72,7 +63,6 @@ void set_a2dp_stream_suspend(void)
 
 void a2dp_stream_suspend_play_end(void)
 {
-#include "bt_manager.h"
 	if(!a2dp_supend_flag)
 		return;
 
@@ -166,14 +156,14 @@ void a2dp_sbc_save(uint8_t *p,uint32_t len)
 	if(( (GetBtManager()->a2dpStreamType[index] == BT_A2DP_STREAM_TYPE_SBC)&& (GetValidSbcDataSize() >= SBC_FIFO_LEVEL_HIGH) )
 		|| ( (GetBtManager()->a2dpStreamType[index] == BT_A2DP_STREAM_TYPE_AAC)&& (btManager.aacFrameNumber >= BT_AAC_START_FRAME) ))
 	{
-		if(AudioCore.AudioSource[1].Enable == FALSE)
+		if(!AudioCoreSourceIsEnable(APP_SOURCE_NUM))
 		{
 			uint8_t index = btManager.btLinked_env[btManager.cur_index].a2dp_index;
 			if(index < BT_LINK_DEV_NUM && btManager.a2dpStreamType[index] == BT_A2DP_STREAM_TYPE_AAC)
 				BtDecoderInit(&a2dp_player->MemHandle,AAC_DECODER);
 			else
 				BtDecoderInit(&a2dp_player->MemHandle,SBC_DECODER);
-			AudioCoreSourceEnable(1);
+			AudioCoreSourceEnable(APP_SOURCE_NUM);
 #ifdef CFG_PARA_BT_SYNC
 			AudioCoreSourceAdjust(APP_SOURCE_NUM, TRUE);
 #endif
@@ -232,7 +222,7 @@ uint16_t A2DPDataGet(void* Buf, uint16_t Samples)
 	if(a2dp_player->sbc_init_flag == 0)
 		return 0;
 
-	if(AudioCore.AudioSource[1].Enable == FALSE)
+	if(!AudioCoreSourceIsEnable(APP_SOURCE_NUM))
 	{
 		memset(Buf,0,Samples*4);
 		return 0;
@@ -317,7 +307,7 @@ void a2dp_sbc_save(uint8_t *p,uint32_t len)
 		{
 			//printf("sbc start decoder\n");
 			gBtPlaySbcDecoderInitFlag = 1;
-			if(AudioCore.AudioSource[1].Enable == FALSE)
+			if(!AudioCoreSourceIsEnable(APP_SOURCE_NUM))
 			{
 				AudioCoreSourceEnable(APP_SOURCE_NUM);
 			}
@@ -326,6 +316,11 @@ void a2dp_sbc_save(uint8_t *p,uint32_t len)
 #endif
 		}
 	}
+	
+#ifdef CFG_DUMP_DEBUG_EN
+	dumpUartSend(p, len);
+#endif
+
 	int gie_ret = GIE_STATE_GET();
 	GIE_DISABLE();
 	if(MCUCircular_GetSpaceLen(&a2dp_player->sbc_fifo_cnt) > len)
@@ -359,7 +354,7 @@ void a2dp_sbc_save(uint8_t *p,uint32_t len)
 		}
 		if(MCUCircular_GetDataLen(&a2dp_player->sbc_fifo_cnt) >= SBC_FIFO_LEVEL_HIGH)
 		{
-			if(AudioCore.AudioSource[1].Enable == FALSE)
+			if(!AudioCoreSourceIsEnable(APP_SOURCE_NUM))
 			{
 				/*if(SoftFlagGet(SoftFlagDecoderRemind))
 				{
@@ -502,7 +497,7 @@ uint16_t A2DPDataGet(void* Buf, uint16_t Samples)
 	}
 	if(gBtPlaySbcDecoderInitFlag == 0)
 		return 0;
-	if(AudioCore.AudioSource[1].Enable == FALSE)
+	if(!AudioCoreSourceIsEnable(APP_SOURCE_NUM))
 	{
 		memset(Buf,0,Samples*4);
 		return 0;
@@ -610,7 +605,7 @@ uint16_t A2DPDataGet(void* Buf, uint16_t Samples)
 			}
 		}
 		OS_SBC_UNLOCK;
-		if(AudioCore.AudioSource[1].Enable == FALSE)
+		if(!AudioCoreSourceIsEnable(APP_SOURCE_NUM))
 		{
 			memset(Buf,0,Samples*4);
 		}

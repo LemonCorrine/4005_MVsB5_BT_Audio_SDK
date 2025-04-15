@@ -22,7 +22,7 @@ typedef unsigned char (*BBSniffNotifyCallback)(void);
 typedef struct _BtBbParams
 {
 	uint8_t		*localDevName;
-	uint8_t		localDevAddr[BT_ADDR_SIZE];
+	uint8_t		localDevAddr[6];	//bt address length = 6
 	uint8_t		freqTrim;
 	uint32_t	em_start_addr;
 

@@ -1,10 +1,6 @@
 #include "user_effect_flow_bypass.h"
 #include "user_effect_parameter.h"
 
-extern uint32_t get_user_effects_script_len_bypass(void);
-extern const unsigned char user_effect_parameters_bypass_bypass[];
-extern const unsigned char user_module_parameters_bypass_bypass[];
-
 static const AUDIOEFFECT_EFFECT_PARA effect_para[] =
 {
 	{

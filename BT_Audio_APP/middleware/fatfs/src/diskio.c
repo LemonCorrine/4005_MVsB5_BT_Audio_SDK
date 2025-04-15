@@ -15,6 +15,13 @@
 
 #include "otg_host_udisk.h"//需添加宏开关
 
+#ifdef CFG_APP_CONFIG
+	#include "sys_gpio.h"
+#else
+	#define CFG_RES_CARD_USE
+	#define CFG_RES_UDISK_USE
+#endif
+
 /* Definitions of physical drive number for each drive */
 #define DEV_RAM		2	/* Example: Map Ramdisk to physical drive 0 */
 #define DEV_MMC		0	/* Example: Map MMC/SD card to physical drive 1 */
@@ -106,7 +113,7 @@ DRESULT disk_read (
 		// translate the result code here
 
 		return res;
-
+#ifdef CFG_RES_CARD_USE
 	case DEV_MMC :
 		if(!SDCard_ReadBlock(sector, buff, count))
 		{
@@ -114,12 +121,14 @@ DRESULT disk_read (
 		}
 
 		return res;
-
+#endif
+#ifdef CFG_RES_UDISK_USE
 	case DEV_USB :
 		if(UDiskReadBlock(sector, buff, count))
 			res = RES_OK;
  		return res;
 		// translate the result code here
+#endif
 	}
 
 	return RES_PARERR;
@@ -149,18 +158,20 @@ DRESULT disk_write (
 		// translate the result code here
 
 		return res;
-
+#ifdef CFG_RES_CARD_USE
 	case DEV_MMC :
 		if(!SDCard_WriteBlock(sector, (uint8_t *)buff, count))
 		{
 			res = RES_OK;
 		}
 		return res;
-
+#endif
+#ifdef CFG_RES_UDISK_USE
 	case DEV_USB :
 		res = UDiskWriteBlock(sector, (void*)buff, count) ? RES_OK : RES_ERROR;
 		// translate the result code here
 		return res;
+#endif
 	}
 
 	return RES_PARERR;

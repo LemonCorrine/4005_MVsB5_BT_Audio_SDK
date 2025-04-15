@@ -152,7 +152,7 @@ int main(void)
     WDG_Disable();
 
     Clock_Config(1, 24000000);
-    Clock_HOSCCurrentSet(31);  // 加大了晶体的偏置电流
+    Clock_HOSCCurrentSet(15);  // 加大了晶体的偏置电流
     Clock_PllLock(240 * 1000); // 240M频率
     Clock_APllLock(240 * 1000);
     Clock_Module1Enable(ALL_MODULE1_CLK_SWITCH);
@@ -160,7 +160,7 @@ int main(void)
     Clock_Module3Enable(ALL_MODULE3_CLK_SWITCH);
     Clock_SysClkSelect(PLL_CLK_MODE);
     Clock_UARTClkSelect(PLL_CLK_MODE);
-    Clock_HOSCCurrentSet(15);
+    Clock_HOSCCurrentSet(5);
 
     SpiFlashInit(80000000, MODE_4BIT, 0, 1);
 

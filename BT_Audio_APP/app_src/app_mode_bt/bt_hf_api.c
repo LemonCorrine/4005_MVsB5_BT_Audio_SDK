@@ -11,46 +11,22 @@
  * @Copyright (C) 2016, Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  **************************************************************************************
  */
-#include <string.h>
-#include "type.h"
 #include "app_config.h"
+#include "bt_config.h"
 #include "app_message.h"
-#include "mvintrinsics.h"
 //driver
-#include "chip_info.h"
-#include "dac.h"
-#include "gpio.h"
-#include "dma.h"
-#include "dac.h"
-#include "audio_adc.h"
-#include "debug.h"
 //middleware
 #include "main_task.h"
-#include "audio_vol.h"
-#include "rtos_api.h"
-#include "adc_interface.h"
-#include "dac_interface.h"
 #include "bt_manager.h"
-#include "resampler.h"
-#include "mcu_circular_buf.h"
-#include "audio_core_api.h"
-#include "audio_decoder_api.h"
-#include "sbcenc_api.h"
-#include "bt_config.h"
-#include "cvsd_plc.h"
-#include "ctrlvars.h"
 //application
 #include "bt_hf_mode.h"
 #include "decoder.h"
-#include "audio_core_service.h"
 #include "audio_core_api.h"
 #include "bt_hf_api.h"
-#include "blue_aec.h"
 //framework
 #include "bt_stack_service.h"
-#include "powercontroller.h"
 
-#if (defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE))
+#if (defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT))
 //msbc encoder
 #define MSBC_CHANNE_MODE	1 		// mono
 #define MSBC_SAMPLE_REATE	16000	// 16kHz
@@ -505,7 +481,16 @@ int16_t BtHf_SaveScoData(uint8_t* data, uint16_t len)
 			{
 				memset(gBtHfCt->scoSendBuf,0,BT_CVSD_PACKET_LEN);
 				MCUCircular_GetData(&gBtHfCt->ScoOutPcmFIFOCircular, gBtHfCt->scoSendBuf, BT_CVSD_PACKET_LEN);
-				HfpSendScoData(BtCurIndex_Get(),gBtHfCt->scoSendBuf, BT_CVSD_PACKET_LEN);
+#if BT_HFG_SUPPORT
+				if(gSwitchSourceAndSink == A2DP_SET_SOURCE)//source HFG
+				{
+					HfgSendScoData(gBtHfCt->scoSendBuf, BT_CVSD_PACKET_LEN);
+				}
+				else
+#endif
+				{
+					HfpSendScoData(BtCurIndex_Get(),gBtHfCt->scoSendBuf, BT_CVSD_PACKET_LEN);
+				}
 			}
 		}
 		else if(len == 60)
@@ -516,7 +501,16 @@ int16_t BtHf_SaveScoData(uint8_t* data, uint16_t len)
 			{
 				memset(gBtHfCt->scoSendBuf,0,BT_CVSD_SAMPLE_SIZE);
 				MCUCircular_GetData(&gBtHfCt->ScoOutPcmFIFOCircular, gBtHfCt->scoSendBuf, BT_CVSD_SAMPLE_SIZE);
-				HfpSendScoData(BtCurIndex_Get(),gBtHfCt->scoSendBuf, BT_CVSD_SAMPLE_SIZE);
+#if BT_HFG_SUPPORT
+				if(gSwitchSourceAndSink == A2DP_SET_SOURCE)//source HFG
+				{
+					HfgSendScoData(gBtHfCt->scoSendBuf, BT_CVSD_SAMPLE_SIZE);
+				}
+				else
+#endif
+				{
+					HfpSendScoData(BtCurIndex_Get(),gBtHfCt->scoSendBuf, BT_CVSD_SAMPLE_SIZE);
+				}
 			}
 
 			gBtHfCt->scoSpecificIndex++;
@@ -567,8 +561,16 @@ int16_t BtHf_SaveScoData(uint8_t* data, uint16_t len)
 			{
 				memset(gBtHfCt->scoSendBuf,0,BT_MSBC_PACKET_LEN);
 				BtHf_SendScoBufGet(gBtHfCt->scoSendBuf,BT_MSBC_PACKET_LEN);
-				HfpSendScoData(BtCurIndex_Get(),gBtHfCt->scoSendBuf, BT_MSBC_PACKET_LEN);
-
+#if BT_HFG_SUPPORT
+				if(gSwitchSourceAndSink == A2DP_SET_SOURCE)//source HFG
+				{
+					HfgSendScoData(gBtHfCt->scoSendBuf, BT_MSBC_PACKET_LEN);
+				}
+				else
+#endif
+				{
+					HfpSendScoData(BtCurIndex_Get(),gBtHfCt->scoSendBuf, BT_MSBC_PACKET_LEN);
+				}
 				//gBtHfCt->hfpSendDataCnt++;
 			}
 		}
@@ -713,51 +715,54 @@ void BtHf_EncodeProcess(void)
 		HfpChangeDelayCount--;
 		return;
 	}
-	
-	if(gSpecificDevice)
+#if BT_HFG_SUPPORT
+	if(gSwitchSourceAndSink == A2DP_SET_SINK)
+#endif
 	{
-		if((!gBtHfCt->CvsdInitFlag) && (!gBtHfCt->MsbcInitFlag))
+		if(gSpecificDevice)
 		{
-			return_flag = 1;
+			if((!gBtHfCt->CvsdInitFlag) && (!gBtHfCt->MsbcInitFlag))
+			{
+				return_flag = 1;
+
+			}
+			if(GetHfpState(BtCurIndex_Get()) < BT_HFP_STATE_INCOMING)
+			{
+				return_flag = 1;
+			}
+		}
+		else
+		{
+			if(GetHfpState(BtCurIndex_Get()) < BT_HFP_STATE_ACTIVE)
+			{
+				return_flag = 1;
+			}
+		}
 		
+		if(return_flag)
+		{
+			AudioCoreSinkDisable(AUDIO_HF_SCO_SINK_NUM);
+			return;
 		}
-		if(GetHfpState(BtCurIndex_Get()) < BT_HFP_STATE_INCOMING)
+
+		if(gBtHfCt->btHfScoSendReady)
+		{
+			gBtHfCt->btHfScoSendReady = 0;
+			gBtHfCt->btHfScoSendStart = 1;
+			return_flag = 1;
+		}
+
+		if(!gBtHfCt->btHfScoSendStart)
 		{
 			return_flag = 1;
 		}
-	}
-	else
-	{
-		if(GetHfpState(BtCurIndex_Get()) < BT_HFP_STATE_ACTIVE)
+	
+		if(return_flag)
 		{
-			return_flag = 1;
+			AudioCoreSinkDisable(AUDIO_HF_SCO_SINK_NUM);
+			return;
 		}
 	}
-	
-	if(return_flag)
-	{
-		AudioCoreSinkDisable(AUDIO_HF_SCO_SINK_NUM);
-		return;
-	}
-	
-	if(gBtHfCt->btHfScoSendReady)
-	{
-		gBtHfCt->btHfScoSendReady = 0;
-		gBtHfCt->btHfScoSendStart = 1;
-		return_flag = 1;
-	}
-
-	if(!gBtHfCt->btHfScoSendStart)
-	{
-		return_flag = 1;
-	}
-
-	if(return_flag)
-	{
-		AudioCoreSinkDisable(AUDIO_HF_SCO_SINK_NUM);
-		return;
-	}
-	
 	//sink2 channel
 	if(!AudioCoreSinkIsEnable(AUDIO_HF_SCO_SINK_NUM))
 	{

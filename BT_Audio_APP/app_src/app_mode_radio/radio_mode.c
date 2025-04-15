@@ -515,6 +515,7 @@ bool RadioPlayInit(void)
 
 	if(!ModeCommonInit())
 	{
+		ModeCommonDeinit();
 		return FALSE;
 	}
 	if(!RadioPlayResMalloc(AudioCoreFrameSizeGet(DefaultNet)))

@@ -409,7 +409,7 @@ void BatteryScan(void)
 
 		//上传电池电量到手机端
 #ifdef CFG_APP_BT_MODE_EN
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 		SetBtHfpBatteryLevel(PowerLevelGet(), 0);
 #endif
 #endif		

@@ -56,6 +56,7 @@ typedef enum _DMIX_MODE
 	DMIXMODE3 = 3,//direct path data sel asdm data
 }DMIX_MODE;
 
+//B5 dac The L/R channel definition and schematic are inverted, so it is recommended to use MODE1 by default
 typedef enum _EXT_MODE
 {
     EXTMODE0 = 0,//tx_dat mix direct path data
@@ -298,37 +299,37 @@ void AudioDAC_FadeEnable(DAC_MODULE DACModule);
 void AudioDAC_FadeDisable(DAC_MODULE DACModule);
 
 /**
- * @brief Audio DAC Digital mute,DAC0 has left channel and right channel,DAC1 has just one channel we use LeftMuteEn to control
+ * @brief Audio DAC Digital mute,DAC0 has left channel and right channel
  * @param DACModule which AudioDAC you will use
- * @param LeftMuteEn left channel for DAC0,it is valid for DAC1
- * @param RightMuteEn right channel for DAC0,it is invalid for DAC1
+ * @param LeftMuteEn left channel for DAC0
+ * @param RightMuteEn right channel for DAC0
  * @return NONE
  */
-void AudioDAC_DigitalMute(DAC_MODULE DACModule,bool LeftMuteEn, bool RightMuteEn);
+void AudioDAC_DigitalMute(DAC_MODULE DACModule, bool LeftMuteEn, bool RightMuteEn);
 
 /**
- * @brief Audio DAC soft mute,DAC0 has left channel and right channel,DAC1 has just one channel we use LeftMuteEn to control
+ * @brief Audio DAC soft mute,DAC0 has left channel and right channel
  * @param DACModule which AudioDAC you will use
- * @param LeftMuteEn left channel for DAC0,it is valid for DAC1
- * @param RightMuteEn right channel for DAC0,it is invalid for DAC1
+ * @param LeftMuteEn left channel for DAC0
+ * @param RightMuteEn right channel for DAC0
  * @return NONE
  */
 void AudioDAC_SoftMute(DAC_MODULE DACModule, bool LeftMuteEn, bool RightMuteEn);
 
 /**
- * @brief Audio DAC volume set,DAC0 has left channel and right channel,DAC1 has just one channel we use LeftVol to control
+ * @brief Audio DAC volume set,DAC0 has left channel and right channel
  * @param DACModule which AudioDAC you will use
- * @param LeftVol left channel for DAC0,it is valid for DAC1,its scope is form 0 to 0x3fff
- * @param RightVol right channel for DAC0,it is invalid for DAC1,its scope is form 0 to 0x3fff
+ * @param LeftVol left channel for DAC0,its scope is form 0 to 0x3fff
+ * @param RightVol right channel for DAC0,its scope is form 0 to 0x3fff
  * @return NONE
  */
-void AudioDAC_VolSet(DAC_MODULE DACModule,uint16_t LeftVol, uint16_t RightVol);
+void AudioDAC_VolSet(DAC_MODULE DACModule, uint16_t LeftVol, uint16_t RightVol);
 
 /**
- * @brief Audio DAC volume Get,DAC0 has left channel and right channel,DAC1 has just one channel we use LeftVol to control
+ * @brief Audio DAC volume Get,DAC0 has left channel and right channel
  * @param DACModule which AudioDAC you will use
- * @param *LeftVol left channel for DAC0,it is valid for DAC1,its scope is form 0 to 0x3fff
- * @param *RightVol right channel for DAC0,it is invalid for DAC1,its scope is form 0 to 0x3fff
+ * @param *LeftVol left channel for DAC0,its scope is form 0 to 0x3fff
+ * @param *RightVol right channel for DAC0,its scope is form 0 to 0x3fff
  * @return NONE
  */
 void AudioDAC_VolGet(DAC_MODULE DACModule,uint16_t* LeftVol, uint16_t* RightVol);
@@ -349,7 +350,7 @@ void AudioDAC_ClkEnable(DAC_MODULE DACModule, bool Enable);
 void AudioDAC_FuncReset(DAC_MODULE DACModule);
 
 /**
- * @brief register reset for DAC, this will reset ALL REGISTER including DAC0 and DAC1
+ * @brief register reset for DAC, this will reset ALL REGISTER including DAC0
  * @param NONE
  * @return NONE
  */
@@ -381,7 +382,7 @@ void AudioDAC_IBSelect(DAC_MODULE DACModule, uint8_t VrefpL, uint8_t VrefpR);
 /**
  * @brief All Analog power on DAC
  * @param DACModel: DAC_Single 单端，DAC_Diff 差分
- * @param DAC_LoadStatus: DAC_NOLoad 不带负载，DAC_Load 带负载
+ * @param DAC_LoadStatus: DAC_NOLoad 不带负载，DAC_Load 带负载；DAC单端时该参数无效，DAC差分时且一般驱动差分耳机建议配置带负载模式
  * @param PVDDModel：PVDD16 使用1.6V电源 ; PVDD33 使用3.3V电源
  * @param DACEnergyModel：LowEnergy 低功耗模式; CommonEnergy 普通功耗模式
  * @param DACVcomModel：Direct Vcom直驱耳机模式; Disable：不使用Vcom
@@ -391,10 +392,28 @@ void AudioDAC_IBSelect(DAC_MODULE DACModule, uint8_t VrefpL, uint8_t VrefpR);
 bool AudioDAC_AllPowerOn(DAC_Model DACModel, DAC_LoadStatus DACLoadStatus, PVDD_Model PVDDModel, DAC_EnergyModel DACEnergyModel, DAC_VcomModel DACVcomModel);
 
 /**
+ * @brief All Analog power on DAC in Fast mode
+ * @param DACModel: DAC_Single 单端，DAC_Diff 差分
+ * @param DAC_LoadStatus: DAC_NOLoad 不带负载，DAC_Load 带负载
+ * @param PVDDModel：PVDD16 使用1.6V电源 ; PVDD33 使用3.3V电源
+ * @param DACEnergyModel：LowEnergy 低功耗模式; CommonEnergy 普通功耗模式
+ * @param DACVcomModel：Direct Vcom直驱耳机模式; Disable：不使用Vcom
+ * @note  使用PVDD16时不要使用单端模式
+ * @return TRUE:sucess,FALSE:failure
+ */
+bool AudioDAC_AllPowerOn_Fast(DAC_Model DACModel, DAC_LoadStatus DACLoadStatus, PVDD_Model PVDDModel, DAC_EnergyModel DACEnergyModel, DAC_VcomModel DACVcomModel);
+
+/**
  * @brief All Analog power Down DAC
  * @return TRUE:sucess,FALSE:failure
  */
 bool AudioDAC_AllPowerDown(void);
+
+/**
+ * @brief All Analog power Down DAC in Fast mode
+ * @return TRUE:sucess,FALSE:failure
+ */
+bool AudioDAC_AllPowerDown_Fast(void);
 
 /**
  * @brief Mute or Unmute SCF
@@ -418,7 +437,7 @@ void AudioDAC_SCFMute(DAC_MODULE DACModule, bool MuteL, bool MuteR);
  *  					EXTMODE3 = 3,//L=L_int+L_ext,R=R_int+0
  * @return NONE
  */
-void AudioDAC_ExternalEnable(DMIX_MODE DMIXMODE,EXT_MODE EXTMODE);
+void AudioDAC_ExternalEnable(DMIX_MODE DMIXMODE, EXT_MODE EXTMODE);
 
 /**
  * @brief  Audio DAC mdac EXT path disable

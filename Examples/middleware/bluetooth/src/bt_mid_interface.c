@@ -94,6 +94,11 @@ bool OpenBtRecord(const uint8_t * localBdAddr)
 	* Get the last BtAddr and ready to connect
 	*/
 	BtDdb_GetLastBtAddr(btManager.btDdbLastAddr, &btManager.btDdbLastProfile);
+#if	BT_SOURCE_SUPPORT
+	memcpy(btManager.remoteAddr, btManager.btDdbLastAddr, 6);
+	memcpy(btManager.conRemoteAddr, btManager.btDdbLastAddr, 6);
+#endif
+
 	if(((btManager.btDdbLastAddr[0]==0)
 		&&(btManager.btDdbLastAddr[1]==0)
 		&&(btManager.btDdbLastAddr[2]==0)
@@ -108,15 +113,11 @@ bool OpenBtRecord(const uint8_t * localBdAddr)
 		&&(btManager.btDdbLastAddr[4]==0xff)
 		&&(btManager.btDdbLastAddr[5]==0xff)))
 	{
-#ifdef BT_REAL_STATE
 		SetBtUserState(BT_USER_STATE_PREPAIR);
-#endif
 	}
 	else
 	{
-#ifdef BT_REAL_STATE
 		SetBtUserState(BT_USER_STATE_NONE);
-#endif
 		APP_DBG("last device addr %x:%x:%x:%x:%x:%x, profile:0x%02x\n", btManager.btDdbLastAddr[0],btManager.btDdbLastAddr[1],btManager.btDdbLastAddr[2],
 			btManager.btDdbLastAddr[3],btManager.btDdbLastAddr[4],btManager.btDdbLastAddr[5], btManager.btDdbLastProfile);
 	}

@@ -454,16 +454,6 @@ void DispResume(void)
 				DispIcon(ICON_DP_FM_MHZ, LIGHT_OFF);
 				DispIcon(ICON_COLON, LIGHT_OFF);
 				break;
-				
-#ifdef BT_TWS_SUPPORT				
-			case ModeTwsSlavePlay:
-				DispString(" Bt ");
-				DispIcon(ICON_USB, LIGHT_OFF);
-				DispIcon(ICON_SD, LIGHT_OFF);
-				DispIcon(ICON_DP_FM_MHZ, LIGHT_OFF);
-				DispIcon(ICON_COLON, LIGHT_OFF);
-				break;
-#endif
 #endif
 
 #if 0//def CFG_FUNC_ALARM_EN

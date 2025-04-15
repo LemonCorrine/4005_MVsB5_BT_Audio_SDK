@@ -16,20 +16,12 @@
 #define __BT_HF_MODE_H__
 
 #include "type.h"
+#include "typedefine.h"
 #include "rtos_api.h"
-
-#include "audio_vol.h"
-#include "rtos_api.h"
-#include "resampler_polyphase.h"
 #include "mcu_circular_buf.h"
-#include "audio_core_api.h"
-#include "audio_decoder_api.h"
 #include "sbcenc_api.h"
-#include "bt_config.h"
 #include "cvsd_plc.h"
-#include "ctrlvars.h"
-#include "blue_ns.h"
-#if (BT_HFP_SUPPORT == ENABLE)
+#include "audio_core_api.h"
 
 #define BT_HF_SOURCE_NUM			APP_SOURCE_NUM
 
@@ -173,7 +165,6 @@ void DelayExitBtHfMode(void);
  void BtHfRun(uint16_t msgId);
  
  bool BtHfDeinit(void);
-#endif /*BT_HFP_SUPPORT == ENABLE*/
 
 #endif /*__BT_HF_MODE_H__*/
 

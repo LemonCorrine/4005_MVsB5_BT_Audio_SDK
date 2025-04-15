@@ -47,372 +47,16 @@ extern BT_CONFIGURATION_PARAMS		*btStackConfigParams;
 
 //extern api function
 extern void Set_rwip_sleep_enable(bool flag);
-extern bool is_tws_device(uint8_t *remote_addr);
 
 /*****************************************************************************************
  * 连接条件判断
- * 场景1：双手机+TWS
+ * 场景1：双手机
  ****************************************************************************************/ 
-#if ((BT_DEVICE_NUMBER == 2)&&(BT_TWS_LINK_NUM == 1))
-static uint32_t BtRemoteDeviceConnecting_DualPhoneAndTws(uint8_t *addr)
-{
-	if(btManager.btLastAddrUpgradeIgnored 
-#if (BT_HFP_SUPPORT == ENABLE)
-		|| (GetHfpState(BtCurIndex_Get()) > BT_HFP_STATE_CONNECTED)
-#endif
-		)
-	{
-		APP_DBG("****** mv test box is connected ***\n");
-		return BT_CON_REJECT; //1. 测试盒连接上设备后,不允许其他设备再次连接进行测试 2. 主机在进行来电响铃或通话，拒绝其他设备连接
-	}
-
-//对箱主/角色随机
-#if ((TWS_PAIRING_MODE == CFG_TWS_ROLE_RANDOM)||(TWS_PAIRING_MODE == CFG_TWS_PEER_MASTER))
-	if(is_tws_device(addr))
-	{
-		if(btManager.twsState == BT_TWS_STATE_CONNECTED)
-		{
-			APP_DBG("tws state is connected, reject the new tws device\n");
-			return BT_CON_REJECT;
-		}
-
-		if((btManager.btLinkState == 1)
-			&&(btManager.linkedNumber >= 2))
-		{
-			APP_DBG("2phones are connected, reject the new tws device\n");
-			return BT_CON_REJECT;
-		}
-			
-		if((btManager.btLinkState == 1)
-			||(GetA2dpState(BtCurIndex_Get()) >= BT_A2DP_STATE_CONNECTED)
-			||(GetAvrcpState(BtCurIndex_Get()) >= BT_AVRCP_STATE_CONNECTED)
-#if (BT_HFP_SUPPORT == ENABLE)
-			|| (GetHfpState(BtCurIndex_Get()) >= BT_HFP_STATE_CONNECTED)
-#endif
-			)
-		{
-			if((memcmp(addr, btManager.btTwsDeviceAddr, 6) == 0)&&(btManager.twsFlag))
-			{
-				if(btManager.twsRole == BT_TWS_MASTER)
-				{
-					BT_DBG("phone connected, tws Role:Master\n");
-					return BT_CON_MASTER;
-				}
-				else
-				{
-					BT_DBG("role not match, reject\n");
-					return BT_CON_REJECT;
-				}
-			}
-			else
-			{
-				BT_DBG("phone connected, reject\n");
-				return BT_CON_REJECT;
-			}
-		}
-
-		if((btManager.twsFlag)&&(btManager.twsRole == BT_TWS_MASTER))
-		{
-			if(memcmp(addr, btManager.btTwsDeviceAddr, 6) == 0)
-			{
-				APP_DBG("BT_TWS_MASTER: tws device connecting, Cur_Role:Master\n");
-				return BT_CON_MASTER;
-			}
-			else
-			{
-				APP_DBG("BT_TWS_MASTER: tws device connecting, Cur_Role:Slave\n");
-				return BT_CON_SLAVE;
-			}
-		}
-		else if((btManager.twsFlag)&&(btManager.twsRole == BT_TWS_SLAVE))
-		{
-			APP_DBG("BT_TWS_SLAVE: tws device connecting, Cur_Role:Slave\n");
-			BtReconnectTwsStop();
-			return BT_CON_SLAVE;
-		}
-		else
-		{
-			APP_DBG("BT_TWS_SLAVE: tws device connecting, Cur_Role:unknow\n");
-			return BT_CON_UNKNOW;
-		}
-	}
-	else
-	{
-		if(!IsBtAudioMode() && sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF)
-		{
-			return BT_CON_REJECT;
-		}
-		else
-		if((btManager.twsState == BT_TWS_STATE_CONNECTED))
-		{
-			if(btManager.twsRole == BT_TWS_SLAVE)
-			{
-				return BT_CON_REJECT;
-			}
-
-			if(btManager.btLinkState == 1)
-			{
-				return BT_CON_REJECT;
-			}
-
-			return BT_CON_MASTER;
-		}
-		else
-		{
-			if((btManager.btLinkState == 1)
-				&&(btManager.linkedNumber >= 2)
-				)
-			{
-				//双手机已连上,拒绝新手机连接
-				return BT_CON_REJECT;
-			}
-			else
-			{
-				return BT_CON_MASTER;
-			}
-		}
-	}
-
-#elif(TWS_PAIRING_MODE == CFG_TWS_PEER_SLAVE)
-	if(is_tws_device(addr))
-	{
-		if(btManager.twsState == BT_TWS_STATE_CONNECTED)
-		{
-			APP_DBG("tws state is connected, reject the new tws device\n");
-			return BT_CON_REJECT;
-		}
-		else if(btManager.btLinkState == 1)
-		{
-			APP_DBG("phone connected, reject tws connect\n");
-			return BT_CON_REJECT;
-		}
-		else
-		{
-			APP_DBG("tws device connecting\n");
-			return BT_CON_SLAVE;
-		}
-	}
-	else
-	{
-		if(!IsBtAudioMode() && sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF)
-		{
-			return BT_CON_REJECT;
-		}
-		else 
-			if(btManager.twsState == BT_TWS_STATE_CONNECTED)
-		{
-			APP_DBG("tws state is connected, reject the new tws device\n");
-			return BT_CON_REJECT;
-		}
-		else
-		{
-			if((btManager.btLinkState == 1)
-				&&(btManager.linkedNumber >= 2)
-				)
-			{
-				return BT_CON_REJECT;
-			}
-			else 
-			{
-				return BT_CON_MASTER;
-			}
-		}
-	}
-
-#else //(TWS_PAIRING_MODE == CFG_TWS_ROLE_MASTER)||(TWS_PAIRING_MODE == CFG_TWS_ROLE_SLAVE)
-	//暂时不支持soundbar的主从组网方式
-	return BT_CON_REJECT;
-#endif
-}
-#endif
-
-/*****************************************************************************************
- * 连接条件判断
- * 场景2：单手机+TWS
- ****************************************************************************************/ 
-#if ((BT_DEVICE_NUMBER == 1)&&(BT_TWS_LINK_NUM == 1))
-static uint32_t BtRemoteDeviceConnecting_SinglePhoneAndTws(uint8_t *addr)
-{
-	if(btManager.btLastAddrUpgradeIgnored 
-#if (BT_HFP_SUPPORT == ENABLE)
-		|| (GetHfpState(BtCurIndex_Get()) > BT_HFP_STATE_CONNECTED)
-#endif
-		)
-	{
-		APP_DBG("****** mv test box is connected ***\n");
-		return BT_CON_REJECT; //1. 测试盒连接上设备后,不允许其他设备再次连接进行测试 2. 主机在进行来电响铃或通话，拒绝其他设备连接
-	}
-
-//对箱主/角色随机
-#if ((TWS_PAIRING_MODE == CFG_TWS_ROLE_RANDOM)||(TWS_PAIRING_MODE == CFG_TWS_PEER_MASTER))
-	if(is_tws_device(addr))
-	{
-		if(btManager.twsState == BT_TWS_STATE_CONNECTED)
-		{
-			APP_DBG("tws state is connected, reject the new tws device\n");
-			return BT_CON_REJECT;
-		}
-
-		if((btManager.btLinkState == 1)
-			||(GetA2dpState(BtCurIndex_Get()) >= BT_A2DP_STATE_CONNECTED)
-			||(GetAvrcpState(BtCurIndex_Get()) >= BT_AVRCP_STATE_CONNECTED)
-#if (BT_HFP_SUPPORT == ENABLE)
-			|| (GetHfpState(BtCurIndex_Get()) >= BT_HFP_STATE_CONNECTED)
-#endif
-			)
-		{
-			if((memcmp(addr, btManager.btTwsDeviceAddr, 6) == 0)&&(btManager.twsFlag))
-			{
-				if(btManager.twsRole == BT_TWS_MASTER)
-				{
-					BT_DBG("phone connected, tws Role:Master\n");
-					return BT_CON_MASTER;
-				}
-				else
-				{
-					BT_DBG("role not match, reject\n");
-					return BT_CON_REJECT;
-				}
-			}
-			else
-			{
-				BT_DBG("phone connected, reject\n");
-				return BT_CON_REJECT;
-			}
-		}
-
-		if((btManager.twsFlag)&&(btManager.twsRole == BT_TWS_MASTER))
-		{
-			if(memcmp(addr, btManager.btTwsDeviceAddr, 6) == 0)
-			{
-				APP_DBG("BT_TWS_MASTER: tws device connecting, Cur_Role:Master\n");
-				return BT_CON_MASTER;
-			}
-			else
-			{
-				APP_DBG("BT_TWS_MASTER: tws device connecting, Cur_Role:Slave\n");
-				return BT_CON_SLAVE;
-			}
-		}
-		else if((btManager.twsFlag)&&(btManager.twsRole == BT_TWS_SLAVE))
-		{
-			APP_DBG("BT_TWS_SLAVE: tws device connecting, Cur_Role:Slave\n");
-			BtReconnectTwsStop();
-			return BT_CON_SLAVE;
-		}
-		else
-		{
-			APP_DBG("BT_TWS_SLAVE: tws device connecting, Cur_Role:unknow\n");
-			return BT_CON_UNKNOW;
-		}
-	}
-	else
-	{
-		if(!IsBtAudioMode() && sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF)
-		{
-			return BT_CON_REJECT;
-		}
-		else
-		{
-			extern unsigned char get_tws_device_number(void);
-			extern uint8_t lc_link_number(void);
-
-			if((lc_link_number()>=2) && (get_tws_device_number()==0))
-			{
-				printf("2 phone connected, disconnect current link req. \n");
-				return BT_CON_REJECT;
-			}
-		}
-
-		if((btManager.twsState == BT_TWS_STATE_CONNECTED))
-		{
-			if(btManager.twsRole == BT_TWS_SLAVE)
-			{
-				return BT_CON_REJECT;
-			}
-
-			if(btManager.btLinkState == 1)
-			{
-				return BT_CON_REJECT;
-			}
-
-			return BT_CON_MASTER;
-		}
-		else
-		{
-			if(btManager.btLinkState == 1)
-			{
-				//手机已连上,拒绝新手机连接
-				return BT_CON_REJECT;
-			}
-			else
-			{
-				return BT_CON_MASTER;
-			}
-		}
-	}
-
-#elif(TWS_PAIRING_MODE == CFG_TWS_PEER_SLAVE)
-	if(is_tws_device(addr))
-	{
-		if(btManager.twsState == BT_TWS_STATE_CONNECTED)
-		{
-			APP_DBG("tws state is connected, reject the new tws device\n");
-			return BT_CON_REJECT;
-		}
-		else if(btManager.btLinkState == 1)
-		{
-			APP_DBG("phone connected, reject tws connect\n");
-			return BT_CON_REJECT;
-		}
-		else
-		{
-			APP_DBG("tws device connecting\n");
-			return BT_CON_SLAVE;
-		}
-	}
-	else
-	{
-		if(!IsBtAudioMode() && sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF)
-		{
-			return BT_CON_REJECT;
-		}
-		else 
-			if(btManager.twsState == BT_TWS_STATE_CONNECTED)
-		{
-			APP_DBG("tws state is connected, reject the new tws device\n");
-			return BT_CON_REJECT;
-		}
-		else
-		{
-			if(btManager.btLinkState == 1)
-			{
-				return BT_CON_REJECT;
-			}
-			else 
-			{
-				return BT_CON_MASTER;
-			}
-		}
-	}
-
-#else //(TWS_PAIRING_MODE == CFG_TWS_ROLE_MASTER)||(TWS_PAIRING_MODE == CFG_TWS_ROLE_SLAVE)
-	//暂时不支持soundbar的主从组网方式
-	return BT_CON_REJECT;
-#endif
-}
-
-#endif
-
-/*****************************************************************************************
- * 连接条件判断
- * 场景3：双手机
- ****************************************************************************************/ 
-#if ((BT_DEVICE_NUMBER == 2)&&(BT_TWS_LINK_NUM == 0))
+#if (BT_DEVICE_NUMBER == 2)
 static uint32_t BtRemoteDeviceConnecting_DualPhone(uint8_t *addr)
 {
 	if(btManager.btLastAddrUpgradeIgnored 
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 		|| (GetHfpState(BtCurIndex_Get()) > BT_HFP_STATE_CONNECTED)
 #endif
 		)
@@ -443,13 +87,13 @@ static uint32_t BtRemoteDeviceConnecting_DualPhone(uint8_t *addr)
 
 /*****************************************************************************************
  * 连接条件判断
- * 场景4：单手机
+ * 场景2：单手机
  ****************************************************************************************/ 
-#if ((BT_DEVICE_NUMBER == 1)&&(BT_TWS_LINK_NUM == 0))
+#if (BT_DEVICE_NUMBER == 1)
 static uint32_t BtRemoteDeviceConnecting_SinglePhone(uint8_t *addr)
 {
 	if(btManager.btLastAddrUpgradeIgnored 
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 		|| (GetHfpState(BtCurIndex_Get()) > BT_HFP_STATE_CONNECTED)
 #endif
 		)
@@ -467,7 +111,7 @@ static uint32_t BtRemoteDeviceConnecting_SinglePhone(uint8_t *addr)
 		if((btManager.btLinkState == 1)
 			||(GetA2dpState(BtCurIndex_Get()) > BT_A2DP_STATE_NONE)
 			||(GetAvrcpState(BtCurIndex_Get()) > BT_AVRCP_STATE_NONE)
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 			||(GetHfpState(BtCurIndex_Get()) > BT_HFP_STATE_NONE)
 #endif
 			)
@@ -491,13 +135,9 @@ static uint32_t BtRemoteDeviceConnecting_SinglePhone(uint8_t *addr)
  **********************************************************************************/
 uint32_t BtRemoteLinkConReq(uint8_t *addr)
 {
-#if ((BT_DEVICE_NUMBER == 2)&&(BT_TWS_LINK_NUM == 1))
-	return BtRemoteDeviceConnecting_DualPhoneAndTws(addr);
-#elif ((BT_DEVICE_NUMBER == 1)&&(BT_TWS_LINK_NUM == 1))
-	return BtRemoteDeviceConnecting_SinglePhoneAndTws(addr);
-#elif ((BT_DEVICE_NUMBER == 2)&&(BT_TWS_LINK_NUM == 0))
+#if (BT_DEVICE_NUMBER == 2)
 	return BtRemoteDeviceConnecting_DualPhone(addr);
-#else //((BT_DEVICE_NUMBER == 1)&&(BT_TWS_LINK_NUM == 0))
+#else //(BT_DEVICE_NUMBER == 1)
 	return BtRemoteDeviceConnecting_SinglePhone(addr);
 #endif
 }
@@ -516,171 +156,9 @@ void BtAccessModeUpdate(BtAccessMode accessMode)
 
 /*****************************************************************************************
  * 根据实际的应用条件，重新配置蓝牙可见性
- * 场景1：双手机+TWS
+ * 场景1：双手机
  ****************************************************************************************/ 
-#if ((BT_DEVICE_NUMBER == 2)&&(BT_TWS_LINK_NUM == 1))
-static void BtAccessMode_DualPhoneAndTws(void)
-{
-	printf("BtAccessModeSetting, DualPhoneAndTws \n");
-	if(btManager.twsState == BT_TWS_STATE_CONNECTED)
-	{
-		if(btManager.btLinkState)
-		{
-			BtSetAccessModeApi(BtAccessModeNotAccessible);
-		}
-		else
-		{
-			if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF)
-			{
-				if(IsBtAudioMode())
-				{
-					BtSetAccessMode_select();
-				}
-				else
-				{
-					BtSetAccessModeApi(BtAccessModeNotAccessible);
-				}
-			}
-			else
-				BtSetAccessMode_select();
-		}
-	}
-	else
-	{
-		if(btManager.btLinkState)
-		{
-			if(IsIdleModeReady())
-			{
-				BtSetAccessModeApi(BtAccessModeNotAccessible);
-			}
-			else if(btManager.linkedNumber >= 2)
-			{
-				BtSetAccessModeApi(BtAccessModeNotAccessible);
-			}
-			else
-			{
-			#ifdef BT_LINK_2DEV_ACCESS_DIS_CON
-				BtSetAccessMode_select();
-			#else
-				BtSetAccessModeApi(BtAccessModeConnectableOnly);
-			#endif
-			}
-		}
-		else
-		{
-			if(IsIdleModeReady())
-			{
-				BtSetAccessModeApi(BtAccessModeNotAccessible);
-			}
-			else if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF)
-			{
-				if(IsBtAudioMode())
-				{
-					BtSetAccessMode_select();
-				}
-				else if(IsBtTwsSlaveMode())
-				{
-					BtSetAccessModeApi(BtAccessModeNotAccessible);
-				}
-				else
-				{
-					#if (CFG_TWS_ONLY_IN_BT_MODE == ENABLE)
-					BtSetAccessModeApi(BtAccessModeNotAccessible);
-					#else
-					BtSetAccessModeApi(BtAccessModeConnectableOnly);
-					#endif
-				}
-			}
-			else
-			{
-				BtSetAccessMode_select();
-			}
-		}
-	}
-}
-#endif
-/*****************************************************************************************
- * 根据实际的应用条件，重新配置蓝牙可见性
- * 场景2：单手机+TWS
- ****************************************************************************************/ 
-#if ((BT_DEVICE_NUMBER == 1)&&(BT_TWS_LINK_NUM == 1))
-static void BtAccessMode_SinglePhoneAndTws(void)
-{
-	printf("BtAccessModeSetting, SinglePhoneAndTws \n");
-	if(btManager.twsState == BT_TWS_STATE_CONNECTED)
-	{
-		if(btManager.btLinkState)
-		{
-			BtSetAccessModeApi(BtAccessModeNotAccessible);
-		}
-		else
-		{
-			if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF)
-			{
-				if(IsBtAudioMode())
-				{
-					BtSetAccessMode_select();
-				}
-				else
-				{
-					BtSetAccessModeApi(BtAccessModeNotAccessible);
-				}
-			}
-			else
-				BtSetAccessMode_select();
-		}
-	}
-	else
-	{
-		if(btManager.btLinkState)
-		{
-			if(IsIdleModeReady())
-			{
-				BtSetAccessModeApi(BtAccessModeNotAccessible);
-			}
-			else
-			{
-				BtSetAccessModeApi(BtAccessModeConnectableOnly);
-			}
-		}
-		else
-		{
-			if(IsIdleModeReady())
-			{
-				BtSetAccessModeApi(BtAccessModeNotAccessible);
-			}
-			if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF)
-			{
-				if(IsBtAudioMode())
-				{
-					BtSetAccessMode_select();
-				}
-				else if(IsBtTwsSlaveMode())
-				{
-					BtSetAccessModeApi(BtAccessModeNotAccessible);
-				}
-				else
-				{
-				#if (CFG_TWS_ONLY_IN_BT_MODE == ENABLE)
-					BtSetAccessModeApi(BtAccessModeNotAccessible);
-				#else
-					BtSetAccessModeApi(BtAccessModeConnectableOnly);
-				#endif
-				}
-			}
-			else
-			{
-				BtSetAccessMode_select();
-			}
-		}
-	}
-}
-#endif
-/*****************************************************************************************
- * 根据实际的应用条件，重新配置蓝牙可见性
- * 场景3：双手机
- ****************************************************************************************/ 
-#if ((BT_DEVICE_NUMBER == 2)&&(BT_TWS_LINK_NUM == 0))
+#if (BT_DEVICE_NUMBER == 2)
 static void BtAccessMode_DualPhone(void)
 {
 	printf("BtAccessModeSetting, DualPhone \n");
@@ -730,9 +208,9 @@ static void BtAccessMode_DualPhone(void)
 #endif
 /*****************************************************************************************
  * 根据实际的应用条件，重新配置蓝牙可见性
- * 场景4：单手机
+ * 场景2：单手机
  ****************************************************************************************/ 
-#if ((BT_DEVICE_NUMBER == 1)&&(BT_TWS_LINK_NUM == 0))
+#if (BT_DEVICE_NUMBER == 1)
 static void BtAccessMode_SinglePhone(void)
 {
 	printf("BtAccessModeSetting, SinglePhone \n");
@@ -770,13 +248,9 @@ static void BtAccessMode_SinglePhone(void)
  ****************************************************************************************/ 
 void BtAccessModeSetting(void)
 {
-#if ((BT_DEVICE_NUMBER == 2)&&(BT_TWS_LINK_NUM == 1))
-	BtAccessMode_DualPhoneAndTws();
-#elif ((BT_DEVICE_NUMBER == 1)&&(BT_TWS_LINK_NUM == 1))
-	BtAccessMode_SinglePhoneAndTws();
-#elif ((BT_DEVICE_NUMBER == 2)&&(BT_TWS_LINK_NUM == 0))
+#if (BT_DEVICE_NUMBER == 2)
 	BtAccessMode_DualPhone();
-#else //((BT_DEVICE_NUMBER == 1)&&(BT_TWS_LINK_NUM == 0))
+#else //(BT_DEVICE_NUMBER == 1)
 	BtAccessMode_SinglePhone();
 #endif
 }
@@ -821,8 +295,11 @@ void BtGetRemoteName(BT_STACK_CALLBACK_PARAMS * param)
 		memcpy(btManager.remoteName, param->params.remDevName.name, btManager.remoteNameLen);
 	}
 	APP_DBG("\t nameLen = %d , name = %s \n",btManager.remoteNameLen, btManager.remoteName);
-	
-	
+
+#if BT_SOURCE_SUPPORT
+	BtSourceGetRemoteName(param);
+#endif
+
 	if((param->params.remDevName.name[0] == 'M')
 		&& (param->params.remDevName.name[1] == 'V')
 		&& (param->params.remDevName.name[2] == '_')
@@ -843,6 +320,7 @@ void BtGetRemoteName(BT_STACK_CALLBACK_PARAMS * param)
         {
     		printf("connect btbox\n");
     		btManager.btLastAddrUpgradeIgnored = 1;
+			memset(btManager.btDdbLastAddr, 0, 6);
         }
 	}
 
@@ -854,7 +332,6 @@ void BtGetRemoteName(BT_STACK_CALLBACK_PARAMS * param)
 void BtLinkPageTimeout(BT_STACK_CALLBACK_PARAMS * param)
 {
 	BtStackServiceMsgSend(MSG_BTSTACK_RECONNECT_REMOTE_PAGE_TIMEOUT);
-	BtStackServiceMsgSend(MSG_BTSTACK_RECONNECT_TWS_PAGE_TIMEOUT);
 }
 
 /*****************************************************************************************
@@ -918,32 +395,32 @@ uint32_t GetSupportProfiles(void)
 {
 	uint32_t		profiles = 0;
 	
-#if BT_HFP_SUPPORT == ENABLE
+#if BT_HFP_SUPPORT
 	profiles |= BT_PROFILE_SUPPORTED_HFP;
 #endif
 
-#if BT_A2DP_SUPPORT == ENABLE
+#if BT_A2DP_SUPPORT
 	profiles |= BT_PROFILE_SUPPORTED_A2DP;
 	profiles |= BT_PROFILE_SUPPORTED_AVRCP;
 #endif
 
-#if (BT_SPP_SUPPORT == ENABLE ||(defined(CFG_FUNC_BT_OTA_EN)))
+#if (BT_SPP_SUPPORT ||(defined(CFG_FUNC_BT_OTA_EN)))
 	profiles |= BT_PROFILE_SUPPORTED_SPP;
 #endif
 	
-#if BT_HID_SUPPORT == ENABLE
+#if BT_HID_SUPPORT
 	profiles |= BT_PROFILE_SUPPORTED_HID;
 #endif
 	
-#if BT_MFI_SUPPORT == ENABLE
+#if BT_MFI_SUPPORT
 	profiles |= BT_PROFILE_SUPPORTED_MFI;
 #endif
 	
-#if BT_OBEX_SUPPORT == ENABLE
+#if BT_OBEX_SUPPORT
 	profiles |= BT_PROFILE_SUPPORTED_OBEX;
 #endif
 
-#if BT_PBAP_SUPPORT == ENABLE
+#if BT_PBAP_SUPPORT
 	profiles |= BT_PROFILE_SUPPORTED_PBAP;
 #endif
 

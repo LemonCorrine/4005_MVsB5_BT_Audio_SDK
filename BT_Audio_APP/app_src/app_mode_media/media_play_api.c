@@ -78,7 +78,12 @@ extern ff_dir_win gBrowserDirWin[GUI_ROW_CNT_MAX];
 
 bool FolderExclude_callback(FILINFO *finfo)
 {
-
+#ifdef MEDIAPLAYER_SUPPORT_REC_FILE
+	if(!strcmp(finfo->fname, CFG_PARA_RECORDS_FOLDER))
+	{
+		return TRUE;
+	}
+#endif
 #ifdef SYS_FOLDER_NAME
 	if(!strcmp(finfo->fname, SYS_FOLDER_NAME))
 	{
@@ -149,43 +154,13 @@ static bool HardwareInit(DEV_ID DevId)
 #ifdef CFG_FUNC_UDISK_DETECT
 		case DEV_ID_USB:
 			strcpy(current_vol, MEDIA_VOLUME_STR_U);
-			do
-			{
-				if(GetUdiscState() == DETECT_STATE_IN)
-				{
-					APP_DBG("OTG Host Init again 0\n");
-					OTG_HostFifoInit();//zsq
-					if(!OTG_HostInit())
-					{
-						vTaskDelay(220);
-						if(GetUdiscState() == DETECT_STATE_IN)
-						{
-							APP_DBG("OTG Host Init again 1\n");
-							if(!OTG_HostInit())
-							{
-								APP_DBG("Host Init Disk Error\n");
-								return FALSE;
-							}
-						}
-						else
-						{
-							APP_DBG("Disk plug out and return\n");
-							return FALSE;
-						}
-					}
-				}
-				else
-				{
-					APP_DBG("Disk plug out return and return\n");
-					return FALSE;
-				}
-			}while(f_mount(&gMediaPlayer->gFatfs_u, current_vol, 1) != FR_OK && Retry--);
+
+			while(f_mount(&gMediaPlayer->gFatfs_u, current_vol, 1) != FR_OK && Retry--);
 			if(!Retry )
 			{
 				APP_DBG("USBπ“‘ÿ   ß∞‹\n");
 				return FALSE;
 			}
-			SoftFlagRegister(SoftFlagUDiskEnum);
 			APP_DBG("USBπ“‘ÿ  ≥…π¶\n");
 			return TRUE;
 #endif

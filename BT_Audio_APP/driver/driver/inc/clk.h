@@ -362,7 +362,7 @@ bool Clock_APllLock(uint32_t PllFreq);
 bool Clock_APllLock_Pro(uint32_t ApllLockFreq,uint8_t DIVMODE,uint8_t VCO_ISEL,uint8_t CP_ISEL);
 
 /**
- * @brief	获取rc频率
+ * @brief	获取RC12M频率
  * @param	IsReCount 是否再次获取硬件计数器值。TRUE：再次启动硬件计数器。FALSE：获取上次记录值。
  * @return  rc频率，单位Hz
  */	

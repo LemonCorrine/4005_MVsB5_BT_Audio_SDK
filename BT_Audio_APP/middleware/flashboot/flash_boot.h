@@ -1,15 +1,17 @@
 #ifndef __FLASH_BOOT_H__
 #define __FLASH_BOOT_H__
-
-#include "app_config.h"
-#include "flash_table.h"
-#include "nvm.h"
-
-#ifdef CFG_AI_DENOISE_EN
-	#define FLASH_BOOT_EN      				0//1
-#else
-	#define FLASH_BOOT_EN      				1//1
+/*
+版本说明：当前为V5.1.0版本
+日期：2024年5月11日
+*/
+#ifdef CFG_APP_CONFIG
+	#include "upgrade.h"
+	#include "app_config.h"
+	#include "flash_table.h"
 #endif
+
+#define FLASH_BOOT_EN      				1
+
 //需要和debug.h中定义的GPIO一一对应
 typedef enum __UART_TX
 {
@@ -68,7 +70,7 @@ typedef enum __UART_BAUDRATE
  *     为5时则标识升级code前全部擦除芯片数据，即擦除“全片”（即除开flash的0地址开始flashboot占用空间不擦除以及最后8K不擦除）
  * 例如：0x5F 则为比较CODE CRC判断是否需要升级；升级时仅部分擦除，不进行全擦除
  */
-#define JUDGEMENT_STANDARD		0x55
+#define JUDGEMENT_STANDARD		0x5F
 
 #if CFG_RES_CARD_GPIO == SDIO_A15_A16_A17
 #define SD_PORT				CHN_MASK_SDCARD
@@ -76,28 +78,76 @@ typedef enum __UART_BAUDRATE
 #define SD_PORT				CHN_MASK_SDCARD1
 #endif
 
-#ifdef CFG_FUNC_BT_OTA_EN
-#define UP_PORT				(CHN_MASK_USBCDC + CHN_MASK_UDISK + SD_PORT + CHN_MASK_BLE)
-#else
-#define UP_PORT				(CHN_MASK_USBCDC + CHN_MASK_UDISK + SD_PORT)//根据应用情况决定打开那些升级接口
-#endif
+#define UP_PORT				(CHN_MASK_USBCDC + CHN_MASK_UDISK + SD_PORT) //根据应用情况决定打开那些升级接口
 
-/*  BOOT_SYSTEM_CONFIGURATIOM说明
+typedef enum __UART_UP
+{
+	UART0_UP_TXRX_A0A1 = 0,
+	UART0_UP_TXRX_A1A0,
+	UART0_UP_TXRX_A6A5,
+	UART1_UP_TXRX_A10A9,
+	UART1_UP_TXRX_A18A19,
+	UART1_UP_TXRX_A19A18,
+}UART_UP_PORT;
+typedef enum __UART_UP_BAUDRATE
+{
+	UART_UP_BAUDRATE_115200 = 0,
+	UART_UP_BAUDRATE_256000,
+	UART_UP_BAUDRATE_1000000,
+	UART_UP_BAUDRATE_2000000,
+}UART_UP_BAUDRATE;
+//打印串口和升级串口不能使用同一组。
+/* UART_UP_CONFIG 说明
+	bit[3:0]:端口配置
+		参考 UART_UP_PORT 枚举参数
+	bit[7:4]: 波特率配置
+		参考 UART_BAUDRATE 枚举参数
+*/
+#define CFG_UART_UP_PORT		UART0_UP_TXRX_A6A5
+#define CFG_UART_UP_BAUD_RATE	UART_UP_BAUDRATE_115200
+#define UART_UP_CONFIG			((CFG_UART_UP_BAUD_RATE<<4)+CFG_UART_UP_PORT)
+
+/* SPIMFLASH_UP_CONFIG 说明
+	bit[0]: 端口配置
+		2’b00:SPIM_PORT0_A5_A6_A7
+		2’b01:SPIM_PORT1_A20_A21_A22
+	bit[1]: 保留
+	bit[2]: CS片选IO组配置
+		2’b00:GPIO_A_START
+		2’b01:GPIO_B_START
+	bit[7:3]: CS片选IO索引 GPIO_INDEX
+		0~31: GPIO_INDEX0~GPIO_INDEX31
+*/
+#define SPIMFLASH_UP_SPIM_PORT	0	//SPIM_PORT0_A5_A6_A7
+#define SPIMFLASH_UP_CS_PORT	0	//GPIO_A_START
+#define SPIMFLASH_UP_CS_PIN		9	//GPIO_INDEX9
+#define SPIMFLASH_UP_CONFIG ((SPIMFLASH_UP_CS_PIN<<3) + (SPIMFLASH_UP_CS_PORT<<2) + SPIMFLASH_UP_SPIM_PORT)
+
+/*  BOOT_SYSTEM_CONFIGURATIOM 说明
 	bit[1:0]:系统时钟配置
 		2’b00: HSE OSC 24M
 		2’b01: RC_32K
-	bit[7:3]:保留
+	bit[3:2]:代码校验模式配置
+		2’b00: SYMBOL_CHECK,			//中断向量表+特征校验
+		2’b01: CRC_PART_CODE_CHECK,		//CRC部分  user code 校验
+		2’b10: CRC_ALL_CODE_CHECK,		//CRC全部  user code 校验
+	bit[7:4]:保留
  */
+typedef enum {
+	HSE_OSC_24M,						//外部24m晶体
+	RC_32K,								//内部RC32K
+}BOOT_CLK_MODE;
+
 
 #ifdef USB_CRYSTA_FREE_EN
-#define BOOT_SYSTEM_CONFIGURATIOM		0x01
+#define BOOT_CLK 	RC_32K
 #else
-#define BOOT_SYSTEM_CONFIGURATIOM		0x00
+#define BOOT_CLK 	HSE_OSC_24M			//外部24m晶体
 #endif
 
-#if FLASH_BOOT_EN
-extern const unsigned char flash_data[];
-#endif
+#define BOOT_SYSTEM_CONFIGURATIOM		(BOOT_CLK)
+
+#define  CFG_SDK_MAGIC_NUMBER                (0xB0BEBDC9)
 
 #endif
 

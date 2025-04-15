@@ -15,9 +15,7 @@
 
 #include "type.h"
 #include "chip_config.h"
-
-#define ENABLE			TRUE
-#define DISABLE			FALSE
+#include "spi_flash.h"
 
 //************************************************************************************************************
 //    本系统默认开启2个系统全局宏，在IDE工程配置(Build Settings-Compiler-Symbols)，此处用于提醒
@@ -43,8 +41,8 @@
  * 前者是burner烧录时版本，后者是mva版本需关注*/
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(0)
-#define  CFG_SDK_MINOR_VERSION		(4)
-#define  CFG_SDK_PATCH_VERSION	    (1)
+#define  CFG_SDK_MINOR_VERSION		(5)
+#define  CFG_SDK_PATCH_VERSION	    (0)
 
 
 //****************************************************************************************
@@ -136,9 +134,10 @@
 #ifdef CFG_RES_AUDIO_SPDIFOUT_EN
 	#define SPDIF_OUT_NUM			SPDIF1
 	#define SPDIF_OUT_DMA_ID		PERIPHERAL_ID_SPDIF1_TX
-	#define CFG_I2S_SLAVE_TO_SPDIFOUT_EN	//Just support I2S1 and AUDIO_CLK must select DPLL
+//	#define CFG_I2S_SLAVE_TO_SPDIFOUT_EN	//Just support I2S1 and AUDIO_CLK must select DPLL
 	#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
 		#define CFG_FUNC_EFFECT_BYPASS_EN
+		#undef 	CFG_RES_AUDIO_DAC0_EN
 		#undef 	CFG_RES_MIC_SELECT
 		#define CFG_RES_MIC_SELECT      (0)
 	#endif
@@ -190,6 +189,10 @@
 //说明:
 //    如下解码器类型选择会影响code size;
 //****************************************************************************************
+//打开后支持高采样率解码，资源消耗较大请自行评估（仅支持ape/flac/wav）
+//建议同步开启CFG_AUDIO_OUT_AUTO_SAMPLE_RATE_44100_48000 ，减少转采样带来的消耗
+//#define LOSSLESS_DECODER_HIGH_RESOLUTION
+
 #define USE_MP3_DECODER
 #define USE_WMA_DECODER
 #define USE_SBC_DECODER
@@ -287,7 +290,7 @@
 
 	//使用flash存好的调音参数
 	//音效参数存储于flash固定区域中
-	//#define CFG_EFFECT_PARAM_IN_FLASH_EN
+//	#define CFG_EFFECT_PARAM_IN_FLASH_EN
 	#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
 		#define CFG_EFFECT_PARAM_IN_FLASH_SIZE			(16)//KB，分配给音效参数在线下载的flash空间
 		#ifdef CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN
@@ -326,11 +329,16 @@
 #endif
 //****************************************************************************************
 //                 录音功能配置
+//说明:CFG_FUNC_RECORD_EXTERN_FLASH_EN	//录制多段提示音到外置flash/内部flash  用于特效音录制和播放
 //****************************************************************************************
 //#define CFG_FUNC_RECORDER_EN
 #ifdef CFG_FUNC_RECORDER_EN
 	#define CFG_FUNC_RECORD_SD_UDISK	//录音到SD卡或者U盘
 	//#define CFG_FUNC_RECORD_FLASHFS 	//不可同时开启 CFG_FUNC_RECORD_SD_UDISK
+	//下面宏定义采用脚本控制，必须单独一行，不要在该行后面添加注释
+#ifndef CFG_FUNC_RECORD_SD_UDISK
+	//#define	 CFG_FUNC_RECORD_EXTERN_FLASH_EN
+#endif
 //暂不支持flash
 //#ifdef CFG_APP_FLASH_FATFS_PLAY_MODE_EN
 //	//#define CFG_FUNC_RECORD_FLASHFATFS	//rec to extern fatfs
@@ -346,9 +354,27 @@
         //#define AUTO_DEL_REC_FILE_FUNCTION            //录音文件达到最大数后，自动删除全部录音文件的功能选项
 	#endif
 
-	#define CFG_PARA_REC_GAIN		        (8191)	    //输入录音增益   8191:+6db;7284:+5db;6492:+4db;5786:+3db;5157:+2db;4596:+1db;4095:0db;
-
 	#define DEL_REC_FILE_EN
+
+	#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+		//#define USE_EXTERN_FLASH_SPACE		//使用外置flash空间(屏蔽这行使用芯片内置flash)
+		#define CFG_PARA_RECORDS_MAX_SIZE			(0x10000*3) 	// 定义为一个录音文件的大小192K
+		#define CFG_PARA_RECORDS_INFO_SIZE			256				// 定义256BYTE空间，用来放置一些想保存的录音信息，例如录音时长、录音大小等等等
+		#define	EXTERN_FLASH_RECORDER_FILE_SECOND	30				//单个文件录音时间
+		#ifdef USE_EXTERN_FLASH_SPACE
+			#define CFG_PARA_RECORDS_INDEX				4			// 定义最大的允许录音数量
+			#define	CFG_PARA_RECORDS_FLASH_BEGIN_ADDR	0			// 录音文件的起始地址
+			#define	SpiWrite(a,b,c)						SPI_Flash_Write(a,b,c)
+			#define	SpiRead(a,b,c)						SPI_Flash_Read(a,b,c)
+			#define SpiErase(a)							SPI_Flash_Erase_4K(a)
+		#else
+			#define CFG_PARA_RECORDS_INDEX				2			// 定义最大的允许录音数量
+			//#define	CFG_PARA_RECORDS_FLASH_BEGIN_ADDR	0x130000	// 录音文件的起始地址
+			#define	SpiWrite(a,b,c)						SpiFlashWrite(a,b,c,1)
+			#define	SpiRead(a,b,c)						SpiFlashRead(a,b,c,1)
+			#define SpiErase(a)							SpiFlashErase(SECTOR_ERASE, a, 1)
+		#endif
+	#endif
 
 
 	/*注意flash空间，避免冲突   middleware/flashfs/file.h FLASH_BASE*/
@@ -360,8 +386,14 @@
 	#define MEDIA_RECORDER_FIFO_N				6
 	#define MEDIA_RECORDER_FIFO_LEN				(CFG_PARA_MAX_SAMPLES_PER_FRAME * MEDIA_RECORDER_CHANNEL * MEDIA_RECORDER_FIFO_N)
 	//调整下列参数后，录音介质可能需要重做兼容性测试 适配FILE_WRITE_FIFO_LEN。
+	#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+		#define MEDIA_RECORDER_CHANNEL				1
+		#define MEDIA_RECORDER_BITRATE				48 //Kbps
+		#define MEDIA_RECORDER_ENC_FORMAT_MP2		//录音为mp2格式
+	#else
 	#define MEDIA_RECORDER_CHANNEL				2
 	#define MEDIA_RECORDER_BITRATE				96 //Kbps
+	#endif
 	#define MEDIA_RECODER_IO_BLOCK_TIME			1000//ms
 	//FIFO_Len=(码率(96) / 8 * 缓冲时间ms(1000) （码率单位Kbps,等效毫秒）
 	//根据SDIO协议，写卡阻塞存在250*2ms阻塞 可能，实测部分U盘存在785ms周期性写入阻塞，要求编码数据fifo空间 确保超过这个长度的两倍(含同步)。
@@ -437,12 +469,12 @@
 //		SHELL功能需要开启 UART DEBUG功能
 //****************************************************************************************
 #include "debug.h"
-//#define CFG_FUNC_DEBUG_EN
+#define CFG_FUNC_DEBUG_EN
 //#define CFG_FUNC_USBDEBUG_EN
 #ifdef CFG_FUNC_DEBUG_EN
 	#define CFG_UART_TX_PORT 				DEBUG_TX_A10
 	#define CFG_UART_BANDRATE   			DEBUG_BAUDRATE_2000000//DEBUG_BAUDRATE_115200
-	#define CFG_FLASHBOOT_DEBUG_EN          ENABLE//ENABLE
+	#define CFG_FLASHBOOT_DEBUG_EN          (1)
 
 //	#define CFG_FUNC_SHELL_EN				//SHELL功能配置
 	#ifdef	CFG_FUNC_SHELL_EN
@@ -551,15 +583,28 @@
 //#define CFG_FUNC_CAN_DEMO_EN
 
 //AI_DENOISE demo,IDE需要使用V323或者以后的版本,需要专用芯片
-//开启AI_DENOISE，资源有限建议关掉BT模式，提示音等功能
+//开启AI_DENOISE，资源有限建议关掉BT模式，提示音等功能，需要同时开启CFG_DOUBLE_KEY_EN宏
 //下面宏定义采用脚本控制，必须单独一行，不要在该行后面添加注释
 //#define CFG_AI_DENOISE_EN
+
+//双key方案 demo，可以单独开启。
+//需要注意：双key方案 工具链需要配套 MVAssistant_V3.3.0版本或者以后版本
+//开启CFG_AI_DENOISE_EN，需要同时开启 CFG_DOUBLE_KEY_EN
+//下面宏定义采用脚本控制，必须单独一行，不要在该行后面添加注释
+//#define CFG_DOUBLE_KEY_EN
+
+#if defined(CFG_AI_DENOISE_EN) &&(!defined(CFG_DOUBLE_KEY_EN))
+	#error 开启CFG_AI_DENOISE_EN 需要同时开启 CFG_DOUBLE_KEY_EN //开启CFG_AI_DENOISE_EN，需要同时开启 CFG_DOUBLE_KEY_EN
+#endif
 
 #include "sys_gpio.h"
 #include "power_config.h"
 
 //************************************************************************************************************
 //dump工具,可以将数据发送到dump工具,用于分析
+//注意1:每个模式下DmaChannelMap的配置,需要占用一路DMA配置用于定义CFG_DUMP_UART_TX_DMA_CHANNEL; 
+//      参考main_task.c的DmaChannelMap
+//注意2:默认DUMP_UART是A31-UART1,需要和DEBUG_UART进行区分
 //************************************************************************************************************
 //#define CFG_DUMP_DEBUG_EN
 #ifdef CFG_DUMP_DEBUG_EN

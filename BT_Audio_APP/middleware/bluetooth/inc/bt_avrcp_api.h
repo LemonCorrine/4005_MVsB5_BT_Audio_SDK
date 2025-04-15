@@ -25,10 +25,10 @@
 * @{
 */
 
-#include "type.h"
-
 #ifndef __BT_AVRCP_API_H__
 #define __BT_AVRCP_API_H__
+
+#include "type.h"
 
 
 typedef enum{
@@ -451,6 +451,10 @@ typedef struct _AvrcpAppFeatures
 	bool		supportSongTrackInfo;
 	bool		supportPlayStatusInfo;
 	BTAvrcpCallbackFunc		avrcpAppCallback;
+	
+	#if BT_SOURCE_SUPPORT
+	uint8_t		source_or_sink;// 1:sink 2:source
+	#endif
 }AvrcpAppFeatures;
 
 

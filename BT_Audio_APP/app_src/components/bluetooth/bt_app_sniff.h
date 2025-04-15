@@ -15,8 +15,6 @@
 #ifndef __BLUETOOTH_SNIFF_H__
 #define __BLUETOOTH_SNIFF_H__
 
-#include "bt_config.h"
-
 #endif /*__BLUETOOTH_SNIFF_H__*/
 
 

@@ -529,7 +529,7 @@ char *effect_lib_version_return(void)
 __attribute__((section(".robo_property")))
 const uint8_t effect_property_for_display[] = {
 0x00, 0x02, 0x00, //protocol@0.2.0
-0x02, 0x11, 0x02, //roboeffect_library@2.17.2
+0x02, 0x11, 0x0A, //roboeffect_library@2.17.10
 0x02, 0x26, 0x00, //audio_effect_library@2.38.0
 ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN, //number of total inner effects
 (ROBOEFFECT_TOTAL_MAX-ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN), //number of total 3rd party effects
@@ -6516,7 +6516,7 @@ ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN, //number of total inner effects
 0x00, //params_number is 0
 /*****upmix_1to2 end*****/
 /*****channel_combiner*****/
-0x1D, 0x00, //item len=29
+0x1F, 0x00, //item len=31
 0x01, 0x00, 0x00, //channel_combiner@1.0.0
 0x10, //effect name length
 0x63, 0x68, 0x61, 0x6E, 0x6E, 0x65, 0x6C, 0x5F, 0x63, 0x6F, 0x6D, 0x62, 0x69, 0x6E, 0x65, 0x72, 
@@ -6524,10 +6524,12 @@ ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN, //number of total inner effects
 0x02, //bits width is 16/24
 0x02, //input counter
 
-0x00, //input1 description
+0x01, //input1 description
+0x41, 
 0x01, //input1 channel is mono
 
-0x00, //input2 description
+0x01, //input2 description
+0x42, 
 0x01, //input2 channel is mono
 0x02, //output channel is stereo
 0x00, //params_number is 0
@@ -6560,7 +6562,7 @@ ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN, //number of total inner effects
 0x00, //ui_layout is auto
 /*****channel_selector end*****/
 /*****route_selector*****/
-0x4F, 0x00, //item len=79
+0x51, 0x00, //item len=81
 0x01, 0x00, 0x00, //route_selector@1.0.0
 0x0E, //effect name length
 0x72, 0x6F, 0x75, 0x74, 0x65, 0x5F, 0x73, 0x65, 0x6C, 0x65, 0x63, 0x74, 0x6F, 0x72, 
@@ -6568,10 +6570,12 @@ ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN, //number of total inner effects
 0x02, //bits width is 16/24
 0x02, //input counter
 
-0x00, //input1 description
+0x01, //input1 description
+0x41, 
 0x03, //input1 channel is mono/stereo
 
-0x00, //input2 description
+0x01, //input2 description
+0x42, 
 0x03, //input2 channel is mono/stereo
 0x03, //output channel is mono/stereo
 0x01, //params_number is 1
@@ -6595,7 +6599,7 @@ USER_DEFINED_LIBS_DATA
 
 uint16_t sizeof_effect_property_for_display(void)
 {
-	return sizeof(effect_property_for_display);// 12261 bytes
+	return sizeof(effect_property_for_display);// 12265 bytes
 }
 
 int16_t *roboeffect_get_param_by_raw_data(uint8_t addr, uint8_t *enable, uint8_t *len, const uint8_t *parameters)

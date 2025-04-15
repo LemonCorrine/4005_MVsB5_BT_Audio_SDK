@@ -16,7 +16,6 @@
 #define __BT_PLAY_MODE_H__
 
 #include "type.h"
-#include "rtos_api.h"
 
 typedef enum _BT_PLAYER_STATE
 {

@@ -30,7 +30,7 @@ extern "C"{
 #define REMAP_DBG(format, ...)		//DBG(format, ##__VA_ARGS__)
 
 #define FLASH_ADDR 			0x0
-#define TCM_SIZE   			8//4
+#define TCM_SIZE   			12//8//4
 #define SRAM_END_ADDR		0x2003C000
 #define TCM_SRAM_START_ADDR	0x20002000
 
@@ -76,7 +76,7 @@ void Remap_AddrRemapDisable(ADDR_REMAP_ID num);
  * @return	None
  * @note
  */
-#define Remap_InitTcm(StartAddr, TCMStartAddr, size) 	do{ memcpy(TCMStartAddr, StartAddr, size*1024);\
+#define Remap_InitTcm(StartAddr, TCMStartAddr, size) 	do{ memcpy((void*)TCMStartAddr, (void*)StartAddr, size*1024);\
 															Remap_AddrRemapSet(ADDR_REMAP0, StartAddr, TCMStartAddr, size);\
 														}while(0)
 

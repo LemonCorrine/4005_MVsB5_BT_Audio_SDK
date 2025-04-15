@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define MICUSBAI_ROBOEFFECT_LIB_VER "2.17.2.bin"
+#define MICUSBAI_ROBOEFFECT_LIB_VER "2.17.7"
 
 typedef enum _MICUSBAI_roboeffect_io_enum
 {

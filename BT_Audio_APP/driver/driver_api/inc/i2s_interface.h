@@ -71,6 +71,54 @@ uint16_t AudioI2S1_TX_DataLenGet(void);
 
 void AudioI2S_SampleRateChange(I2S_MODULE Module,uint32_t SampleRate);
 
+//0:master mode ;1:slave mode 外设未接不要配slave
+#define	I2S_MASTER_MODE			0
+#define	I2S_SLAVE_MODE			1
+//i2s_port: 0 ---> i2s0  1 ---> i2s1
+//gpio_mode: GPIO复用功能配置
+//gpio_index：GPIO引脚号
+#define SET_I2S_GPIO_VAL(i2s_port,gpio_mode,gpio_index)						((i2s_port<<16)|(gpio_mode<<8)|(gpio_index))
+#define GET_I2S_I2S_PORT(val)												((val>>16)&0x01)
+#define GET_I2S_GPIO_MODE(val)												((val>>8)&0x0f)
+#define GET_I2S_GPIO_INDEX(val)												((val)&0x1f)
+#define GET_I2S_GPIO_PORT(val)												(1<<((val)&0x1f))
+//i2s_mode: I2S_MASTER_MODE I2S_SLAVE_MODE
+#define SET_I2S_GPIO_ALL_VAL(i2s_mode,i2s_port,gpio_mode,gpio_index)		((i2s_mode<<24)|(i2s_port<<16)|(gpio_mode<<8)|(gpio_index))
+#define GET_I2S_MODE(val)													((val>>24)&0x01)
+
+//mclk out gpio I2S_MASTER_MODE
+#define I2S0_MCLK_OUT_A24									SET_I2S_GPIO_ALL_VAL(I2S_MASTER_MODE,0,0x08,24)
+#define I2S1_MCLK_OUT_A0									SET_I2S_GPIO_ALL_VAL(I2S_MASTER_MODE,1,0x06,0)
+#define I2S1_MCLK_OUT_A6									SET_I2S_GPIO_ALL_VAL(I2S_MASTER_MODE,1,0x08,6)
+#define I2S1_MCLK_OUT_A7									SET_I2S_GPIO_ALL_VAL(I2S_MASTER_MODE,1,0x08,7)
+//mclk in gpio  I2S_SLAVE_MODE
+#define I2S0_MCLK_IN_A24									SET_I2S_GPIO_ALL_VAL(I2S_SLAVE_MODE,0,0x02,24)
+#define I2S1_MCLK_IN_A0										SET_I2S_GPIO_ALL_VAL(I2S_SLAVE_MODE,1,0x02,0)
+#define I2S1_MCLK_IN_A6										SET_I2S_GPIO_ALL_VAL(I2S_SLAVE_MODE,1,0x02,6)
+#define I2S1_MCLK_IN_A7										SET_I2S_GPIO_ALL_VAL(I2S_SLAVE_MODE,1,0x04,7)
+//lrclk gpio
+#define I2S0_LRCLK_A20										SET_I2S_GPIO_VAL(0,0x07,20)
+#define I2S1_LRCLK_A7										SET_I2S_GPIO_VAL(1,0x03,7)
+#define I2S1_LRCLK_A20										SET_I2S_GPIO_VAL(1,0x08,20)
+#define I2S1_LRCLK_A28										SET_I2S_GPIO_VAL(1,0x02,28)
+//bclk gpio
+#define I2S0_BCLK_A21										SET_I2S_GPIO_VAL(0,0x05,21)
+#define I2S1_BCLK_A9										SET_I2S_GPIO_VAL(1,0x02,9)
+#define I2S1_BCLK_A21										SET_I2S_GPIO_VAL(1,0x06,21)
+#define I2S1_BCLK_A29										SET_I2S_GPIO_VAL(1,0x02,29)
+//dout gpio
+#define I2S0_DOUT_A22										SET_I2S_GPIO_VAL(0,0x09,22)
+#define I2S0_DOUT_A23										SET_I2S_GPIO_VAL(0,0x08,23)
+#define I2S1_DOUT_A10										SET_I2S_GPIO_VAL(1,0x06,10)
+#define I2S1_DOUT_A30										SET_I2S_GPIO_VAL(1,0x09,30)
+#define I2S1_DOUT_A31										SET_I2S_GPIO_VAL(1,0x09,31)
+//din gpio
+#define I2S0_DIN_A22										SET_I2S_GPIO_VAL(0,0x03,22)
+#define I2S0_DIN_A23										SET_I2S_GPIO_VAL(0,0x03,23)
+#define I2S1_DIN_A10										SET_I2S_GPIO_VAL(1,0x02,10)
+#define I2S1_DIN_A30										SET_I2S_GPIO_VAL(1,0x02,30)
+#define I2S1_DIN_A31										SET_I2S_GPIO_VAL(1,0x02,31)
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus 

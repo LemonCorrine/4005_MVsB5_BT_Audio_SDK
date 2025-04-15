@@ -24,7 +24,7 @@
 #include "mode_task.h"
 #include "main_task.h"
 
-#if (BT_AVRCP_SONG_TRACK_INFOR == ENABLE)
+#if (BT_AVRCP_SONG_TRACK_INFOR)
 #define StringMaxLen 60
 #include "string_convert.h"
 #endif
@@ -53,6 +53,45 @@ void BtAvrcpConnectedDev(BT_AVRCP_CALLBACK_PARAMS * param)
 			(param->params.bd_addr)[5]);
 	
 #if (BT_LINK_DEV_NUM == 2)
+#if 1
+	if(param->index >= BT_LINK_DEV_NUM)
+	{
+		APP_DBG("avrcp link full\n");
+		BTHciDisconnectCmd(param->params.bd_addr);//连接出现异常直接断开蓝牙
+		if(btManager.btLinked_env[0].btLinkState)
+		{
+			btManager.btLinked_env[1].avrcpState = BT_AVRCP_STATE_NONE;
+			btManager.btLinked_env[1].a2dpState = BT_A2DP_STATE_NONE;
+			btManager.btLinked_env[1].hfpState = BT_HFP_STATE_NONE;
+			btManager.btLinked_env[1].btLinkState = 0;
+			APP_DBG("BtLink[1] DisConnect\n");
+		}
+		else
+		{
+			btManager.btLinked_env[0].avrcpState = BT_AVRCP_STATE_NONE;
+			btManager.btLinked_env[0].a2dpState = BT_A2DP_STATE_NONE;
+			btManager.btLinked_env[0].hfpState = BT_HFP_STATE_NONE;
+			btManager.btLinked_env[0].btLinkState = 0;
+			APP_DBG("BtLink[0] DisConnect\n");
+		}
+		return;
+	}
+	else
+	{
+		if((btManager.btLinked_env[param->index].btLinkedProfile & BT_CONNECTED_A2DP_FLAG)
+				&& (btManager.btLinked_env[param->index].btLinkedProfile & BT_CONNECTED_AVRCP_FLAG)
+		#if(BT_HFP_SUPPORT)
+				&& (btManager.btLinked_env[param->index].btLinkedProfile & BT_CONNECTED_HFP_FLAG)
+		#endif
+			)
+		{
+			APP_DBG("avrcp link error \n");
+			return;
+		}
+
+		ConnectIndex = param->index;
+	}
+#else
 	for(ConnectIndex = 0; ConnectIndex < BT_LINK_DEV_NUM; ConnectIndex++)
 	{
 		if(memcmp(param->params.bd_addr,btManager.btLinked_env[ConnectIndex].remoteAddr,BT_ADDR_SIZE) == 0)
@@ -66,7 +105,7 @@ void BtAvrcpConnectedDev(BT_AVRCP_CALLBACK_PARAMS * param)
 		{
 			if(!(btManager.btLinked_env[ConnectIndex].btLinkedProfile & BT_CONNECTED_A2DP_FLAG)
 					&& !(btManager.btLinked_env[ConnectIndex].btLinkedProfile & BT_CONNECTED_AVRCP_FLAG)
-			#if(BT_HFP_SUPPORT == ENABLE)
+			#if(BT_HFP_SUPPORT)
 					&& !(btManager.btLinked_env[ConnectIndex].btLinkedProfile & BT_CONNECTED_HFP_FLAG)
 			#endif
 				)
@@ -99,6 +138,7 @@ void BtAvrcpConnectedDev(BT_AVRCP_CALLBACK_PARAMS * param)
 		return;
 	}
 #endif
+#endif
 
 	btManager.btLinked_env[ConnectIndex].avrcp_index = param->index;
 	SetAvrcpState(ConnectIndex, BT_AVRCP_STATE_CONNECTED);
@@ -115,11 +155,11 @@ void BtAvrcpConnectedDev(BT_AVRCP_CALLBACK_PARAMS * param)
 	SetBtConnectedProfile(ConnectIndex, BT_CONNECTED_AVRCP_FLAG);
 	BtLinkStateConnect(0, ConnectIndex);
 
-#if (BT_AUTO_PLAY_MUSIC == ENABLE)
+#if (BT_AUTO_PLAY_MUSIC)
 	BtAutoPlayMusic();
 #endif
 
-#if (BT_AVRCP_VOLUME_SYNC == ENABLE)
+#if (BT_AVRCP_VOLUME_SYNC)
 	btManager.avrcpSyncEnable = 0;
 	btManager.avrcpSyncVol = 0xff; //初始值
 	AvrcpAdvTargetSyncVolumeConfig(ConnectIndex,BtLocalVolLevel2AbsVolme(AudioMusicVolGet()));//蓝牙AVRCP连接成功后，将当前的音量值同步到AVRCP adv.volume默认值
@@ -129,11 +169,11 @@ void BtAvrcpConnectedDev(BT_AVRCP_CALLBACK_PARAMS * param)
 	
 	BtEventFlagDeregister(BT_EVENT_FLAG_AVRCP_CONNECT);
 
-	if(btManager.linkedNumber == 0)
-	{
-		//btManager.cur_index = param->index;
-		BtCurIndex_Set(ConnectIndex);
-	}
+//	if(btManager.linkedNumber == 0)
+//	{
+//		//btManager.cur_index = param->index;
+//		BtCurIndex_Set(ConnectIndex);
+//	}
 }
 
 /*****************************************************************************************
@@ -176,7 +216,7 @@ void BtAvrcpPlayStatusChanged(BT_AVRCP_CALLBACK_PARAMS * param)
 	if(index >= BT_LINK_DEV_NUM)
 		return;
 
-#if 0//(BT_HFP_SUPPORT == ENABLE)
+#if 0//(BT_HFP_SUPPORT)
 	if((param->params.avrcpAdv.avrcpAdvMediaStatus == 1)&&(gSpecificDevice))
 	{
 		extern void SpecialDeviceFunc(uint8_t index);
@@ -215,13 +255,13 @@ void BtAvrcpPlayStatusChanged(BT_AVRCP_CALLBACK_PARAMS * param)
 	sPlayStatusBk[index] = sPlayStatus[index];
 
 
-#if (BT_AUTO_PLAY_MUSIC == ENABLE)
+#if (BT_AUTO_PLAY_MUSIC)
 	void BtAutoPlaySetAvrcpPlayStatus(uint8_t play_state);
 	BtAutoPlaySetAvrcpPlayStatus(param->params.avrcpAdv.avrcpAdvMediaStatus);
 #endif
 
 	
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 	if((param->params.avrcpAdv.avrcpAdvMediaStatus == 1)&&(gSpecificDevice))
 	{
 		extern void SpecialDeviceFunc(void);
@@ -260,7 +300,6 @@ void BtAvrcpPlayStatus(BT_AVRCP_CALLBACK_PARAMS * param)
 	{
 		case AVRCP_ADV_MEDIA_STOPPED:
 			APP_DBG("Stopped \n");
-			btManager.avrcpMediaIntervalCnt = 0;
 			break;
 			
 		case AVRCP_ADV_MEDIA_PLAYING:
@@ -269,10 +308,6 @@ void BtAvrcpPlayStatus(BT_AVRCP_CALLBACK_PARAMS * param)
 					((int)curPlayTimes/1000)%60,
 					((int)tatolPlayTimes/1000)/60,
 					((int)tatolPlayTimes/1000)%60);
-
-			//if((curPlayTimes/1000%5) == 1)
-			//	BTCtrlGetMediaInfor(param->index);
-			
 			break;
 
 		case AVRCP_ADV_MEDIA_PAUSED:
@@ -323,7 +358,7 @@ uint8_t CheckTimerStart_BtPlayStatus(void)
 	return btManager.avrcpPlayStatusTimer.timerFlag;
 }
 
-#if (BT_AVRCP_VOLUME_SYNC == ENABLE)
+#if (BT_AVRCP_VOLUME_SYNC)
 /*****************************************************************************************
 * AVRCP 同步音量改变
 ****************************************************************************************/
@@ -354,7 +389,7 @@ uint8_t GetBtSyncVolume(void)
 /***********************************************************************************
  * 获取歌曲信息函数
  **********************************************************************************/
-#if (BT_AVRCP_SONG_TRACK_INFOR == ENABLE)
+#if (BT_AVRCP_SONG_TRACK_INFOR)
 void GetBtMediaInfo(void *params)
 {
 	AvrcpAdvMediaInfo	*CurMediaInfo;
@@ -401,33 +436,33 @@ void GetBtMediaInfo(void *params)
 								break;
 			
 							case 2:
-								APP_DBG("Name of the artist\n");
+								//APP_DBG("Name of the artist\n");
 								break;
 			
 							case 3:
-								APP_DBG("Name of the Album\n");
+								//APP_DBG("Name of the Album\n");
 								break;
 			
 							//当前曲目数:只有在自带播放器才能获取到
 							case 4:
-								APP_DBG("Number of the media\n");
+								//APP_DBG("Number of the media\n");
 								break;
 			
 							//总共曲目数:只有在自带播放器才能获取到
 							case 5:
-								APP_DBG("Totle number of the media\n");
+								//APP_DBG("Totle number of the media\n");
 								break;
 			
 							case 6:
-								APP_DBG("Genre\n");
+								//APP_DBG("Genre\n");
 								break;
 			
 							case 7:
-								APP_DBG("Playing time in millisecond\n");
+								//APP_DBG("Playing time in millisecond\n");
 								break;
 							
 							case 8:
-								APP_DBG("Default cover art\n");
+								//APP_DBG("Default cover art\n");
 								break;
 			
 							default:
@@ -436,7 +471,8 @@ void GetBtMediaInfo(void *params)
 					}
 
 					#ifdef CFG_FUNC_STRING_CONVERT_EN
-					APP_DBG("%s\n", ConvertStringData);
+					if(CurMediaInfo->property[i].attrId == 1)
+						APP_DBG("%s\n", ConvertStringData);
 					#endif
 					
 					}

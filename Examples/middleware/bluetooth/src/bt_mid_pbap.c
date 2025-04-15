@@ -6,7 +6,7 @@
 #include "bt_pbap_api.h"
 #include "bt_manager.h"
 
-#if (BT_PBAP_SUPPORT == ENABLE)
+#if (BT_PBAP_SUPPORT)
 
 //显示PBAP接收的数据
 //#define PBAP_INFO_DEBUG

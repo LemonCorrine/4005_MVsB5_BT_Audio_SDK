@@ -21,6 +21,7 @@
 #include "timeout.h"
 #include "beep.h"
 #include "mode_task.h"
+#include "bt_config.h"
 #ifdef CFG_RES_ADC_KEY_SCAN
 #include "adc_key.h"
 #endif
@@ -72,10 +73,23 @@ static const uint16_t ADKEY_TAB[][5] =
 	{MSG_NONE,						MSG_EQ,	        				MSG_3D,        				MSG_NONE,                   MSG_NONE},
 	{MSG_NONE,						MSG_MUTE,         				MSG_VB,        				MSG_NONE,                   MSG_NONE},
 	{MSG_NONE,						MSG_EFFECTMODE,   				MSG_VOCAL_CUT, 				MSG_NONE,                   MSG_NONE},
+#if (BT_SOURCE_SUPPORT )
+	{MSG_NONE,						MSG_BT_SOURCE_DISCONNECT,/*MSG_REPEAT,*/  					MSG_REPEAT_AB,              MSG_NONE,                   MSG_NONE},
+	{MSG_NONE,						MSG_BT_SOURCE_INQUIRY,/*MSG_REC,*/     					MSG_REC_PLAYBACK,           MSG_NONE,                   MSG_NONE},
+#else	
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+	{MSG_NONE,						MSG_REC1,  						MSG_REC1_PLAYBACK,			MSG_NONE,                   MSG_NONE},
+	{MSG_NONE,						MSG_REC2,     					MSG_REC2_PLAYBACK,			MSG_NONE,                   MSG_NONE},
+#else
 	{MSG_NONE,						MSG_REPEAT,  					MSG_REPEAT_AB,              MSG_NONE,                   MSG_NONE},
 	{MSG_NONE,						MSG_REC,     					MSG_REC_PLAYBACK,           MSG_NONE,                   MSG_NONE},
-	{MSG_NONE,						MSG_MODE,  						MSG_BT_TWS_PAIRING, 		MSG_NONE,                   MSG_NONE},
-
+#endif
+#endif
+#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
+	{MSG_NONE,						MSG_MODE,  						MSG_DEL_ALL_REC, 			MSG_NONE,                   MSG_NONE},
+#else
+	{MSG_NONE,						MSG_MODE,  						MSG_NONE, 					MSG_NONE,                   MSG_NONE},
+#endif
 	//adc2 key
 	{MSG_NONE,						MSG_BT_HF_VOICE_RECOGNITION,  	MSG_BT_HF_CALL_REJECT,     	MSG_NONE,                   MSG_NONE},
 	{MSG_NONE,						MSG_FOLDER_PRE,    				MSG_BROWSE,      			MSG_NONE,                   MSG_NONE},

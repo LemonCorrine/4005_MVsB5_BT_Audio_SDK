@@ -11,49 +11,35 @@
  * @Copyright (C) 2016, Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  **************************************************************************************
  */
-//#include "soft_watch_dog.h"
-#include <string.h>
 #include "type.h"
 #include "app_config.h"
-#include "gpio.h" //for BOARD
-#include "debug.h"
-#include "rtos_api.h"
-#include "app_message.h"
-#include "uarts.h"
-#include "uarts_interface.h"
-#include "dma.h"
-#include "timeout.h"
-#include "irqn.h"
-//#include "ble_api.h"
 #include "bt_config.h"
+#include "app_message.h"
+#include "irqn.h"
+#include "watchdog.h"
+#include "clk.h"
+#include "remind_sound.h"
+
+#include "bb_api.h"
+#include "bt_em_config.h"
 #include "bt_app_init.h"
 #include "bt_stack_service.h"
 #include "bt_stack_memory.h"
 
-#include "bt_play_mode.h"
-#include "bt_play_api.h"
-#include "bt_hf_mode.h"
 #include "bt_common_api.h"
-#include "bt_avrcp_api.h"
 #include "bt_manager.h"
 #include "main_task.h"
 #include "bt_interface.h"
 #include "audio_core_service.h"
-#include "bb_api.h"
 
-#include "clk.h"
-#include "reset.h"
-
-#include "remind_sound.h"
 #include "bt_app_ddb_info.h"
 #include "bt_app_connect.h"
 #include "bt_app_common.h"
-#include "bt_app_avrcp_deal.h"
+#include "bt_play_mode.h"
 
-#include "ble_app_func.h"
-#include "bt_em_config.h"
-
-#include "bt_avrcp_api.h"
+#if (BT_HFP_SUPPORT)
+#include "bt_hf_mode.h"
+#endif
 
 #ifdef CFG_APP_BT_MODE_EN
 
@@ -66,6 +52,12 @@ extern AvrcpAdvMediaStatus sPlayStatus[BT_LINK_DEV_NUM];
 #define BT_STACK_SERVICE_STACK_SIZE		768
 #define BT_STACK_SERVICE_PRIO			4
 #define BT_STACK_NUM_MESSAGE_QUEUE		20
+
+#ifdef MVA_BT_OBEX_UPDATE_FUNC_SUPPORT
+#define BT_OBEX_SERVICE_STACK_SIZE		512
+#define BT_OBEX_SERVICE_PRIO			4
+xTaskHandle			bt_obex_taskHandle;
+#endif
 
 typedef struct _BtStackServiceContext
 {
@@ -111,17 +103,6 @@ void DebugDisplayTaskInf(void)
 }
 
 /***********************************************************************************
- *
- **********************************************************************************/
-void BtTwsPowerDownProcess(void)
-{
-	MessageContext		msgSend;
-
-	msgSend.msgId = MSG_DEEPSLEEP;
-	MessageSend(GetMainMessageHandle(), &msgSend);
-}
-
-/***********************************************************************************
  * 蓝牙断开连接流程
  **********************************************************************************/
 extern FUNC_BT_DISCONNECT_PROCESS BtDisconnectProcess;
@@ -135,10 +116,7 @@ void BtStack_BtDisconnectProcess(void)
 		btDisconnectCnt=0;
 		if(btManager.linkedNumber)
 		{
-			BT_DBG("LINK[0] Discon\n");
-			BTDisconnect(0);
-			BT_DBG("LINK[1] Discon\n");
-			BTDisconnect(1);
+			BtDisconnectCtrl(TRUE);
 			return;
 		}
 		else
@@ -289,7 +267,12 @@ void BtMidMessageManage(BtMidMessageId messageId, uint8_t Param)
 				//1 -> 可见不可连接
 				//2 -> 不可见可连接
 				//3 -> 可见可连接
-				GetBtManager()->btAccessModeEnable = POWER_ON_BT_ACCESS_MODE_SET;
+#if	BT_SOURCE_SUPPORT// source
+				if(!SetBtSourceDefaultAccessMode())
+#endif
+				{
+					GetBtManager()->btAccessModeEnable = POWER_ON_BT_ACCESS_MODE_SET;
+				}
 			}
 			break;
 
@@ -348,7 +331,7 @@ void BtMidMessageManage(BtMidMessageId messageId, uint8_t Param)
 			break;
 
 		case MSG_BT_MID_VOLUME_CHANGE:		
-#if (BT_AVRCP_VOLUME_SYNC == ENABLE)
+#if (BT_AVRCP_VOLUME_SYNC)
 			SetBtSyncVolume(Param);
 			// Send message to bt play mode
 			msgSend.msgId		= MSG_BT_PLAY_SYNC_VOLUME_CHANGED;
@@ -358,7 +341,7 @@ void BtMidMessageManage(BtMidMessageId messageId, uint8_t Param)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //HFP
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 		case MSG_BT_MID_HFP_TASK_RESUME:
 			BtHfModeRunningResume();
 			break;
@@ -400,18 +383,30 @@ void BtMidMessageManage(BtMidMessageId messageId, uint8_t Param)
  **********************************************************************************/
 static void CheckBtEventTimer(void)
 {
-#if (BT_AVRCP_SONG_TRACK_INFOR == ENABLE)
-	//在播放状态下,间隔获取ID3信息,间隔时间可能会有所误差
-	if(sPlayStatus[BtCurIndex_Get()] == AVRCP_ADV_MEDIA_PLAYING)
+#if (BT_AVRCP_SONG_TRACK_INFOR)
+	//获取蓝牙歌曲和歌词3信息
+	//if(sPlayStatus[BtCurIndex_Get()] == AVRCP_ADV_MEDIA_PLAYING)
 	{
-		if(++btManager.avrcpMediaIntervalCnt > BT_MEDIA_ID3_INTERVAL)
+		if(btManager.avrcpMediaInforFlag)
 		{
-			btManager.avrcpMediaIntervalCnt = 0;
+			btManager.avrcpMediaInforFlag = 0;
 			BTCtrlGetMediaInfor(BtCurIndex_Get());
 		}
 	}
 #endif
-
+#ifdef BT_ACCESS_MODE_SET_BY_POWER_ON_TIMEOUT
+	if(btManager.btvisibilityDelayOn)
+	{
+		btManager.btvisibilityDelayCount++;
+		if(btManager.btvisibilityDelayCount >= BT_VISIBILITY_DELAY_TIME)
+		{
+			BtSetAccessModeApi(BtAccessModeNotAccessible);
+			btManager.btvisibilityDelayCount = 0;
+			btManager.btvisibilityDelayOn = FALSE;
+			GetBtManager()->btAccessModeEnable = BT_ACCESSBLE_NONE;
+		}
+	}
+#endif
 	//获取蓝牙播放状态
 	if(btManager.avrcpPlayStatusTimer.timerFlag)
 	{
@@ -452,6 +447,10 @@ static void CheckBtEventTimer(void)
 	BtScanPageStateCheck();
 
 	BtRstStateCheck();
+
+#if	BT_SOURCE_SUPPORT
+	BtSourceNameGetChack();
+#endif
 
 }
 
@@ -605,12 +604,6 @@ static void BtStackMsgProcess(uint16_t msgId)
 
 		case MSG_BTSTACK_RECONNECT_REMOTE_SUCCESS:
 			APP_DBG("[BT_STACK_MSG]:MSG_BTSTACK_RECONNECT_REMOTE_SUCCESS\n");
-
-			if(btManager.btTwsPairingStartDelayCnt)
-			{
-				btManager.btTwsPairingStartDelayCnt = 0;
-				BtStackServiceMsgSend(MSG_BT_STACK_TWS_PAIRING_START_RESUME);
-			}
 			break;
 
 		case MSG_BTSTACK_RECONNECT_REMOTE_PROFILE:
@@ -636,12 +629,6 @@ static void BtStackMsgProcess(uint16_t msgId)
 			if(btManager.btReconExcuteSt == (&btManager.btReconPhoneSt))
 			{
 				btManager.btReconExcuteSt->ConnectionTimer.timerFlag = TIMER_UNUSED;
-			}
-
-			if(btManager.btTwsPairingStartDelayCnt)
-			{
-				btManager.btTwsPairingStartDelayCnt = 0;
-				BtStackServiceMsgSend(MSG_BT_STACK_TWS_PAIRING_START_RESUME);
 			}
 			break;
 
@@ -679,7 +666,7 @@ static void BtStackMsgProcess(uint16_t msgId)
 			BT_DBG("bt msg: disconnect dev\n");
 			
 			//BTHciDisconnectCmd(btManager.btDdbLastAddr);
-			BtDisconnectCtrl();
+			BtDisconnectCtrl(FALSE);
 			break;
 
 		//AVRCP CMD
@@ -723,7 +710,7 @@ static void BtStackMsgProcess(uint16_t msgId)
 			BTCtrlEndFB(cur_index);
 			break;
 
-#if (BT_AVRCP_VOLUME_SYNC == ENABLE)
+#if (BT_AVRCP_VOLUME_SYNC)
 		case MSG_BTSTACK_MSG_BT_VOLUME_SET:
 			{
 				uint8_t VolumePercent = BtLocalVolLevel2AbsVolme(GetBtSyncVolume());
@@ -733,7 +720,7 @@ static void BtStackMsgProcess(uint16_t msgId)
 			break;
 #endif
 
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 		//HFP CMD
 		case MSG_BTSTACK_MSG_BT_REDIAL:
 			BT_DBG("bt msg: hf redial\n");
@@ -831,25 +818,18 @@ static void BtStackServiceEntrance(void * param)
 	ConfigBtBbParams(&bbParams);
 
 	Bluetooth_common_init(&bbParams);
-#if ( BT_SUPPORT == ENABLE )
+#if ( BT_SUPPORT )
 	Bt_init((void*)&bbParams);
 //	tws_slave_cap = bbParams.freqTrim;
 #endif
 
-#if (BLE_SUPPORT == ENABLE)
+#if (BLE_SUPPORT)
 	BleAppInit();
 #endif
 
 	//host memory init
 	SetBtPlatformInterface(&pfiOS, NULL/*&pfiBtDdb*/);
 
-#if (CFG_TWS_ONLY_IN_BT_MODE == ENABLE)
-#if (TWS_PAIRING_MODE == CFG_TWS_PEER_SLAVE)
-	Other_confirm_Callback_Set(NULL);
-#else
-	Other_confirm_Callback_Set(BtConnectConfirm);
-#endif
-#endif
 	Name_confirm_Callback_Set(BtConnectDecide);
 
 	//在蓝牙开启后台运行时,host的内存采用数组,避免存在申请/释放带来碎片化的风险
@@ -857,7 +837,7 @@ static void BtStackServiceEntrance(void * param)
 
 	APP_DBG("BtStackServiceEntrance.\n");
 	
-#if ( BT_SUPPORT == ENABLE )
+#if (BT_SUPPORT)
 	//BR/EDR init
 	if(!BtStackInit())
 	{
@@ -874,11 +854,11 @@ static void BtStackServiceEntrance(void * param)
 	}
 #endif
 
-#if (BLE_SUPPORT == ENABLE) 
-
-#endif
-
 	SetBtStackState(BT_STACK_STATE_READY);
+#ifdef BT_ACCESS_MODE_SET_BY_POWER_ON_TIMEOUT
+	btManager.btvisibilityDelayOn = TRUE;
+	btManager.btvisibilityDelayCount = 0;
+#endif
 	//BtMidMessageSend(MSG_BT_MID_STATE_FAST_ENABLE, 0);
 	if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_DISABLE)
 		BtStackServiceMsgSend(MSG_BTSTACK_RUN_START);
@@ -1040,6 +1020,22 @@ bool BtStackServiceStart(void)
 		{
 			ret = FALSE;
 		}
+		
+#ifdef MVA_BT_OBEX_UPDATE_FUNC_SUPPORT
+		void bt_obex_upgrate(void);
+		xTaskCreate(bt_obex_upgrate,
+							"bt_obex_upgrate",
+							BT_OBEX_SERVICE_STACK_SIZE,
+							NULL,
+							BT_OBEX_SERVICE_PRIO,
+							&bt_obex_taskHandle);
+		if(bt_obex_taskHandle == NULL)
+		{
+			ret = FALSE;
+		}
+#endif
+
+		
 #ifdef SOFT_WACTH_DOG_ENABLE
 		little_dog_adopt(DOG_INDEX3_BtStackTask);
 #endif
@@ -1056,7 +1052,7 @@ bool BtStackServiceStart(void)
  ***********************************************************************************/
 bool BtStackServiceKill(void)
 {
-#if ( BT_SUPPORT == ENABLE )
+#if (BT_SUPPORT)
 	int32_t ret = 0;
 	if(btStackServiceCt == NULL)
 	{
@@ -1203,10 +1199,7 @@ static void BtRstStateCheck(void)
 			// If there is a bt link, disconnect it
 			if(GetBtCurConnectFlag())
 			{
-
-				BTDisconnect(0);
-				BTDisconnect(1);
-
+				BtDisconnectCtrl(TRUE);
 			}
 
 			btManager.btRstState = BT_RST_STATE_WAITING;
@@ -1219,10 +1212,7 @@ static void BtRstStateCheck(void)
 				btManager.btRstWaitingCount = 2000;
 				if(GetBtManager()->btConnectedProfile)
 				{
-
-					BTDisconnect(0);
-					BTDisconnect(1);
-
+					BtDisconnectCtrl(TRUE);
 				}
 				else if(GetBtDeviceConnState() == BT_DEVICE_CONNECTION_MODE_ALL)
 				{
@@ -1297,10 +1287,7 @@ void BtPowerOff(void)
 	
 	if(GetBtDeviceConnState() == BT_DEVICE_CONNECTION_MODE_NONE)
 	{
-
-		BTDisconnect(0);
-		BTDisconnect(1);
-
+		BtDisconnectCtrl(TRUE);
 	}
 
 	//在蓝牙回连时,需要先取消蓝牙回连行为
@@ -1350,10 +1337,7 @@ void BtEnterDutModeFunc(void)
 		
 		if(GetBtDeviceConnState() == BT_DEVICE_CONNECTION_MODE_NONE)
 		{
-
-			BTDisconnect(0);
-			BTDisconnect(1);
-
+			BtDisconnectCtrl(TRUE);
 		}
 		if(sys_parameter.bt_ReconnectionEnable)
 			BtReconnectDevStop();
@@ -1390,7 +1374,6 @@ void BtFastPowerOn(void)
 {
 	if(btStackServiceCt->serviceWaitResume)
 	{
-		//从机从tws slave模式退出,无连接手机,则开启可被搜索可被连接
 		if(!btManager.btLinkState)
 		{
 			BtSetAccessMode_select();
@@ -1429,7 +1412,6 @@ void BtLocalDeviceNameUpdate(char *deviceName)
 
 	MessageSend(msgHandle, &msgSend);
 }
-
 
 #else
 

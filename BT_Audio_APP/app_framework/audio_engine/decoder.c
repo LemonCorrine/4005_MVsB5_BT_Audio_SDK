@@ -52,7 +52,7 @@ typedef struct _DecoderServiceContext
 	/* for decoded out fifo */
 	MCU_CIRCULAR_CONTEXT DecoderCircularBuf;
 	int16_t				*DecoderFifo;
-	uint16_t			DecoderFifoSize; //
+	uint32_t			DecoderFifoSize; //
 	osMutexId			DecoderPcmFifoMutex;
 	int8_t				*decoder_buf;
 	uint8_t				Channel;//Decoderfifo内数据声道参数
@@ -79,6 +79,9 @@ typedef struct _DecoderServiceContext
 	int32_t				StreamEmptyErr;		//解码类型对应的可持续型Empty消息值
 	uint16_t			StreamEmptyCnt;  	//解码出错计数器；
 //	uint16_t			ErrCntForMsg;		//停止解码前的计数值设定 //当前使用统一静态值。
+#ifdef LOSSLESS_DECODER_HIGH_RESOLUTION
+	uint16_t			pcm_bit_width;
+#endif
 }DecoderServiceContext;
 
 static 	DecoderServiceContext 		DecoderServiceCt[DECODER_MAX_CHANNELS];
@@ -94,7 +97,7 @@ static 	DecoderServiceContext 		DecoderServiceCt[DECODER_MAX_CHANNELS];
  * @Others      解码输出流buf，开启锁机制。
  * Record
  */
- bool DecoderServiceInit(MessageHandle ParentMsgHandle, DecoderChannels DecoderChannel,uint32_t BufSize, uint16_t FifoSize)
+ bool DecoderServiceInit(MessageHandle ParentMsgHandle, DecoderChannels DecoderChannel,uint32_t BufSize, uint32_t FifoSize)
 {
 	//DecoderServiceCt = (DecoderServiceContext)osPortMalloc(sizeof(DecoderServiceContext));
 //	memset(&DecoderServiceCt[DecoderChannel], 0, sizeof(DecoderServiceContext));
@@ -124,12 +127,18 @@ static 	DecoderServiceContext 		DecoderServiceCt[DECODER_MAX_CHANNELS];
 	
 	if((DecoderServiceCt[DecoderChannel].DecoderPcmFifoMutex = xSemaphoreCreateMutex()) == NULL)
 	{
+		osPortFree(DecoderServiceCt[DecoderChannel].decoder_buf);
+		DecoderServiceCt[DecoderChannel].decoder_buf = NULL;
 		return FALSE;
 	}
 
 	DecoderServiceCt[DecoderChannel].DecoderFifo = (int16_t*)osPortMalloc(DecoderServiceCt[DecoderChannel].DecoderFifoSize);
 	if(DecoderServiceCt[DecoderChannel].DecoderFifo == NULL)
 	{
+		osPortFree(DecoderServiceCt[DecoderChannel].decoder_buf);
+		DecoderServiceCt[DecoderChannel].decoder_buf = NULL;
+		vSemaphoreDelete(DecoderServiceCt[DecoderChannel].DecoderPcmFifoMutex);
+		DecoderServiceCt[DecoderChannel].DecoderPcmFifoMutex = NULL;
 		return FALSE;
 	}
 
@@ -169,6 +178,7 @@ void RemindDecodeProcess(void)
 	decode_mutex = 0;
 }
 #endif
+
 static void DecoderProcess(DecoderChannels DecoderChannel)
 {
 	int32_t DecoderErrCode;
@@ -212,7 +222,6 @@ static void DecoderProcess(DecoderChannels DecoderChannel)
 				{
 					return;
 				}
-
 				if(audio_decoder_decode(gAudioDecoders[DecoderChannel]) != RT_SUCCESS)
 				{
 					if(RT_SUCCESS != audio_decoder_can_continue(gAudioDecoders[DecoderChannel]))
@@ -284,22 +293,75 @@ static void DecoderProcess(DecoderChannels DecoderChannel)
 					DecoderServiceCt[DecoderChannel].pcmDataSize	= gAudioDecoders[DecoderChannel]->song_info.pcm_data_length * DecoderServiceCt[DecoderChannel].Channel;
 					DecoderServiceCt[DecoderChannel].savedSize		= 0;
 					DecoderServiceCt[DecoderChannel].toSavePos		= (int16_t *)gAudioDecoders[DecoderChannel]->song_info.pcm_addr;
+#ifdef LOSSLESS_DECODER_HIGH_RESOLUTION
+#ifndef CFG_AUDIO_WIDTH_24BIT
+					//系统不是24bit数据，统一转换成16bit数据
+					if(gAudioDecoders[DecoderChannel]->song_info.pcm_bit_width == 24 || gAudioDecoders[DecoderChannel]->song_info.pcm_bit_width == 32)
+					{
+						int16_t  i;
+						int32_t * Pcm32Data = (int32_t *)DecoderServiceCt[DecoderChannel].toSavePos;
+						int16_t * Pcm16Data = DecoderServiceCt[DecoderChannel].toSavePos;
+						if(gAudioDecoders[DecoderChannel]->song_info.pcm_bit_width == 24)
+						{
+							for(i=0;i<gAudioDecoders[DecoderChannel]->song_info.pcm_data_length; i++)
+							{
+								Pcm16Data[i] = Pcm32Data[i] >>= 8;
+							}
+						}
+						if(gAudioDecoders[DecoderChannel]->song_info.pcm_bit_width == 32)
+						{
+							for(i=0;i<gAudioDecoders[DecoderChannel]->song_info.pcm_data_length; i++)
+							{
+								Pcm16Data[i] = Pcm32Data[i] >>= 16;
+							}
+						}
+						DecoderServiceCt[DecoderChannel].pcm_bit_width = 16;	//修改宽度为16bit
+					}
+#endif
+#endif
 					if(DecoderServiceCt[DecoderChannel].Channel != gAudioDecoders[DecoderChannel]->song_info.num_channels)//针对特殊歌曲，声道数可变
 					{
 						int16_t  i;
 						if(gAudioDecoders[DecoderChannel]->song_info.num_channels == 2)//DecoderServiceCt[DecoderChannel].Channel == 1 双合并为单
 						{
-							for(i = 0; i < gAudioDecoders[DecoderChannel]->song_info.pcm_data_length; i++)
+						#ifdef LOSSLESS_DECODER_HIGH_RESOLUTION
+							if(DecoderServiceCt[DecoderChannel].pcm_bit_width != 16)
 							{
-								DecoderServiceCt[DecoderChannel].toSavePos[i] = (((int32_t)((DecoderServiceCt[DecoderChannel].toSavePos)[2 * i]) + ((DecoderServiceCt[DecoderChannel].toSavePos)[2 * i + 1])) / 2);
+								int32_t		*toSavePos = (int32_t *)DecoderServiceCt[DecoderChannel].toSavePos;
+								for(i = 0; i < gAudioDecoders[DecoderChannel]->song_info.pcm_data_length; i++)
+								{
+									toSavePos[i] = (((int32_t)((toSavePos)[2 * i]) + ((toSavePos)[2 * i + 1])) / 2);
+								}
+							}
+							else
+						#endif
+							{
+								for(i = 0; i < gAudioDecoders[DecoderChannel]->song_info.pcm_data_length; i++)
+								{
+									DecoderServiceCt[DecoderChannel].toSavePos[i] = (((int32_t)((DecoderServiceCt[DecoderChannel].toSavePos)[2 * i]) + ((DecoderServiceCt[DecoderChannel].toSavePos)[2 * i + 1])) / 2);
+								}
 							}
 						}
 						else//单扩为双
 						{
-							for(i = gAudioDecoders[DecoderChannel]->song_info.pcm_data_length - 1; i >= 0; i--)
+						#ifdef LOSSLESS_DECODER_HIGH_RESOLUTION
+							if(DecoderServiceCt[DecoderChannel].pcm_bit_width != 16)
 							{
-								DecoderServiceCt[DecoderChannel].toSavePos[2 * i + 1] = (DecoderServiceCt[DecoderChannel].toSavePos)[i];
-								DecoderServiceCt[DecoderChannel].toSavePos[2 * i] = (DecoderServiceCt[DecoderChannel].toSavePos)[i];
+								int32_t		*toSavePos = (int32_t *)DecoderServiceCt[DecoderChannel].toSavePos;
+								for(i = gAudioDecoders[DecoderChannel]->song_info.pcm_data_length - 1; i >= 0; i--)
+								{
+									toSavePos[2 * i + 1] = (toSavePos)[i];
+									toSavePos[2 * i] = (toSavePos)[i];
+								}
+							}
+							else
+						#endif
+							{
+								for(i = gAudioDecoders[DecoderChannel]->song_info.pcm_data_length - 1; i >= 0; i--)
+								{
+									DecoderServiceCt[DecoderChannel].toSavePos[2 * i + 1] = (DecoderServiceCt[DecoderChannel].toSavePos)[i];
+									DecoderServiceCt[DecoderChannel].toSavePos[2 * i] = (DecoderServiceCt[DecoderChannel].toSavePos)[i];
+								}
 							}
 						}
 					}
@@ -318,7 +380,6 @@ static void DecoderProcess(DecoderChannels DecoderChannel)
 
 					savedSize = SaveDecodedPcmData(DecoderServiceCt[DecoderChannel].toSavePos, DecoderChannel,
 								(DecoderServiceCt[DecoderChannel].pcmDataSize - DecoderServiceCt[DecoderChannel].savedSize) / DecoderServiceCt[DecoderChannel].Channel);
-
 					if(savedSize > 0)
 					{
 
@@ -328,6 +389,11 @@ static void DecoderProcess(DecoderChannels DecoderChannel)
 						MessageSend(GetAudioCoreServiceMsgHandle(), &msgSend);
 			
 						DecoderServiceCt[DecoderChannel].savedSize += savedSize * DecoderServiceCt[DecoderChannel].Channel;
+					#ifdef LOSSLESS_DECODER_HIGH_RESOLUTION
+						if(DecoderServiceCt[DecoderChannel].pcm_bit_width != 16)
+							DecoderServiceCt[DecoderChannel].toSavePos += savedSize * DecoderServiceCt[DecoderChannel].Channel *2;
+						else
+					#endif
 						DecoderServiceCt[DecoderChannel].toSavePos += savedSize * DecoderServiceCt[DecoderChannel].Channel;
 						if(DecoderServiceCt[DecoderChannel].savedSize == DecoderServiceCt[DecoderChannel].pcmDataSize) //上次解码输出已全部 放入fifo
 						{
@@ -372,13 +438,32 @@ static int16_t SaveDecodedPcmData(int16_t * PcmData,DecoderChannels DecoderChann
 		return -1;
 	}
 	osMutexLock(DecoderServiceCt[DecoderChannel].DecoderPcmFifoMutex);
+#ifdef LOSSLESS_DECODER_HIGH_RESOLUTION
+	if(DecoderServiceCt[DecoderChannel].pcm_bit_width != 16)
+	{
+		SpaceSampleLen = MCUCircular_GetSpaceLen(&DecoderServiceCt[DecoderChannel].DecoderCircularBuf)/(DecoderServiceCt[DecoderChannel].Channel * 4) - 1;
 
-	SpaceSampleLen = MCUCircular_GetSpaceLen(&DecoderServiceCt[DecoderChannel].DecoderCircularBuf)/(DecoderServiceCt[DecoderChannel].Channel * 2) - 1;
+		ProcessSampleLen = SpaceSampleLen < PcmDataLen ? SpaceSampleLen : PcmDataLen;
+		if(DecoderServiceCt[DecoderChannel].pcm_bit_width == 32)	//32转成24bit
+		{
+			uint32_t i = 0;
+			int32_t * Pcm32Data = (int16_t *)PcmData;
+			for(i=0;i<ProcessSampleLen * DecoderServiceCt[DecoderChannel].Channel;i++)
+			{
+				Pcm32Data[i] >>= 8;
+			}
+		}
+		MCUCircular_PutData(&DecoderServiceCt[DecoderChannel].DecoderCircularBuf, PcmData, ProcessSampleLen * DecoderServiceCt[DecoderChannel].Channel * 4);
+	}
+	else
+#endif
+	{
+		SpaceSampleLen = MCUCircular_GetSpaceLen(&DecoderServiceCt[DecoderChannel].DecoderCircularBuf)/(DecoderServiceCt[DecoderChannel].Channel * 2) - 1;
 
-	ProcessSampleLen = SpaceSampleLen < PcmDataLen ? SpaceSampleLen : PcmDataLen;
+		ProcessSampleLen = SpaceSampleLen < PcmDataLen ? SpaceSampleLen : PcmDataLen;
 
-	MCUCircular_PutData(&DecoderServiceCt[DecoderChannel].DecoderCircularBuf, PcmData, ProcessSampleLen * DecoderServiceCt[DecoderChannel].Channel * 2);
-
+		MCUCircular_PutData(&DecoderServiceCt[DecoderChannel].DecoderCircularBuf, PcmData, ProcessSampleLen * DecoderServiceCt[DecoderChannel].Channel * 2);
+	}
 	osMutexUnlock(DecoderServiceCt[DecoderChannel].DecoderPcmFifoMutex);
 	return ProcessSampleLen;
 }
@@ -455,7 +540,7 @@ void DecoderOslockUnlock(void)
 			DecoderServiceCt[decoder_index].DecoderPcmFifoMutex = NULL;
 		}
 	}
-}
+}
 
 int32_t DecoderInit(void *io_handle, DecoderChannels DecoderChannel, int32_t ioType, int32_t decoderType)
 {
@@ -508,32 +593,35 @@ int32_t DecoderInit(void *io_handle, DecoderChannels DecoderChannel, int32_t ioT
 			DecoderServiceCt[DecoderChannel].decoderState = DecoderStateInitialized;
 			APP_DBG("[SONG_INFO]: ChannelCnt : %6d\n",		  (int)gAudioDecoders[DecoderChannel]->song_info.num_channels);
 			APP_DBG("[SONG_INFO]: SampleRate : %6d Hz\n",	  (int)gAudioDecoders[DecoderChannel]->song_info.sampling_rate);
+#ifdef LOSSLESS_DECODER_HIGH_RESOLUTION
+			APP_DBG("[SONG_INFO]: pcm_bit_width : %d\n",	  (int)gAudioDecoders[DecoderChannel]->song_info.pcm_bit_width);
+			DecoderServiceCt[DecoderChannel].pcm_bit_width = gAudioDecoders[DecoderChannel]->song_info.pcm_bit_width;
+#endif
 #ifdef CFG_AUDIO_OUT_AUTO_SAMPLE_RATE_44100_48000
 			AudioOutSampleRateSet((int)gAudioDecoders[DecoderChannel]->song_info.sampling_rate);
 #endif
 #ifdef CFG_FUNC_MIXER_SRC_EN
-			if(DecoderChannel == DECODER_MODE_CHANNEL)
+			AudioCoreSourceChange(DecoderServiceCt[DecoderChannel].DecoderSourecNum,
+								  gAudioDecoders[DecoderChannel]->song_info.num_channels,
+								  gAudioDecoders[DecoderChannel]->song_info.sampling_rate);
+#ifdef	CFG_AUDIO_WIDTH_24BIT
+			if(DecoderChannel == DECODER_MODE_CHANNEL &&
+			  (GetSystemMode() == ModeUDiskAudioPlay || GetSystemMode() == ModeCardAudioPlay))
 			{
-				//需要先播空
-#ifdef CFG_FUNC_RECORDER_EN
-				if(GetSystemMode() == ModeUDiskPlayBack || GetSystemMode() == ModeCardPlayBack)
+				uint8_t source_index = DecoderServiceCt[DecoderChannel].DecoderSourecNum;
+				if(gAudioDecoders[DecoderChannel]->song_info.pcm_bit_width == 24 || gAudioDecoders[DecoderChannel]->song_info.pcm_bit_width == 32)
 				{
-					AudioCoreSourceChange(PLAYBACK_SOURCE_NUM, gAudioDecoders[DecoderChannel]->song_info.num_channels, gAudioDecoders[DecoderChannel]->song_info.sampling_rate);
+					AudioCore.AudioSource[source_index].BitWidth = PCM_DATA_24BIT_WIDTH;
+					AudioCore.AudioSource[source_index].BitWidthConvFlag = 0;
 				}
 				else
-#endif
 				{
-					AudioCoreSourceChange(APP_SOURCE_NUM, gAudioDecoders[DecoderChannel]->song_info.num_channels, gAudioDecoders[DecoderChannel]->song_info.sampling_rate);
+					AudioCore.AudioSource[source_index].BitWidth = PCM_DATA_16BIT_WIDTH;
+					AudioCore.AudioSource[source_index].BitWidthConvFlag = 1;
 				}
 			}
-#ifdef CFG_REMIND_SOUND_DECODING_USE_LIBRARY
-			else if(DecoderChannel == DECODER_REMIND_CHANNEL)
-			{
-				AudioCoreSourceChange(REMIND_SOURCE_NUM, gAudioDecoders[DecoderChannel]->song_info.num_channels, gAudioDecoders[DecoderChannel]->song_info.sampling_rate);
-			}	
-#endif			
 #endif
-
+#endif
 			DecoderServiceCt[DecoderChannel].MiniInputLimit = 0;
 			DecoderServiceCt[DecoderChannel].Handler = NULL;
 			DecoderServiceCt[DecoderChannel].StreamEmptyCnt = 0;
@@ -615,7 +703,15 @@ static uint16_t DecoderPcmDataGet(void * pcmData,DecoderChannels DecoderChannel,
 	{
 		return 0;
 	}
-	getSize = sampleLen * 2 * DecoderServiceCt[DecoderChannel].Channel;//采样点数 * 2byte深度* 通道数
+
+	uint8_t pcm_len = 2 * DecoderServiceCt[DecoderChannel].Channel;
+
+#ifdef LOSSLESS_DECODER_HIGH_RESOLUTION
+	if(DecoderServiceCt[DecoderChannel].pcm_bit_width != 16)
+		pcm_len *= 2;
+#endif
+
+	getSize = sampleLen * pcm_len; //采样点数 * 2byte深度* 通道数
 	if(getSize == 0)
 	{
 		return 0;
@@ -634,7 +730,7 @@ static uint16_t DecoderPcmDataGet(void * pcmData,DecoderChannels DecoderChannel,
 
 	osMutexUnlock(DecoderServiceCt[DecoderChannel].DecoderPcmFifoMutex);
 
-	return dataSize / (2 * DecoderServiceCt[DecoderChannel].Channel);
+	return dataSize / pcm_len;
 }
 
 static uint16_t DecoderPcmDataLenGet(DecoderChannels DecoderChannel)
@@ -643,7 +739,17 @@ static uint16_t DecoderPcmDataLenGet(DecoderChannels DecoderChannel)
 	{
 		return 0;
 	}
-	return MCUCircular_GetDataLen(&DecoderServiceCt[DecoderChannel].DecoderCircularBuf) / (2 * DecoderServiceCt[DecoderChannel].Channel);
+	else
+	{
+		uint8_t pcm_len = 2 * DecoderServiceCt[DecoderChannel].Channel;
+
+	#ifdef LOSSLESS_DECODER_HIGH_RESOLUTION
+		if(DecoderServiceCt[DecoderChannel].pcm_bit_width != 16)
+			pcm_len *= 2;
+	#endif
+
+		return MCUCircular_GetDataLen(&DecoderServiceCt[DecoderChannel].DecoderCircularBuf) / pcm_len;
+	}
 }
 
 uint16_t ModeDecoderPcmDataGet(void * pcmData,uint16_t sampleLen)// call by audio core one by one

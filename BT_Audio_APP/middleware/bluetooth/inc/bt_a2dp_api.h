@@ -25,10 +25,10 @@
 * @{
 */
 
-#include "type.h"
-
 #ifndef __BT_A2DP_API_H__
 #define __BT_A2DP_API_H__
+
+#include "type.h"
 
 /******************************************************************
  * The audio data format received from A2DP of Bluetooth stack.
@@ -149,6 +149,11 @@ typedef struct _A2dpAppFeatures
 {
 	A2dpAudioDataFormat	a2dpAudioDataFormat;
 	BTA2dpCallbackFunc	a2dpAppCallback;
+	
+#if	BT_SOURCE_SUPPORT
+	BTA2dpCallbackFunc	a2dpSourceAppCallback;
+	uint8_t 			a2dp_sink_source_support; //sink/source STREAM模式选择 : 0=A2DP_STREAM_TYPE_SOURCE; 1=A2DP_STREAM_TYPE_SINK
+#endif
 }A2dpAppFeatures;
 
 /*****************************************************************
@@ -159,6 +164,17 @@ typedef struct _A2dpAppFeatures
  * @Note   a2dp协议回调事件/参数
  *****************************************************************/
 void BtA2dpCallback(BT_A2DP_CALLBACK_EVENT event, BT_A2DP_CALLBACK_PARAMS * param);
+
+#if	BT_SOURCE_SUPPORT
+/*****************************************************************
+ * @brief  bt a2dp source callback function
+ * @param  event: BT_A2DP_CALLBACK_EVENT
+ * @param  param: BT_A2DP_CALLBACK_PARAMS
+ * @return 
+ * @Note   a2dp协议回调事件/参数
+ *****************************************************************/
+void BtA2dpSourceCallback(BT_A2DP_CALLBACK_EVENT event, BT_A2DP_CALLBACK_PARAMS * param);
+#endif
 
 /******************************************************************
  * @brief  A2DP Initial.

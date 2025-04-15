@@ -12,35 +12,21 @@
  **************************************************************************************
  */
 
-#include <string.h>
-#include "type.h"
 #include "app_config.h"
 #include "app_message.h"
-#include "gpio.h"
 #include "dma.h"
-#include "audio_adc.h"
 #include "main_task.h"
 #include "audio_vol.h"
-#include "rtos_api.h"
-#include "adc_interface.h"
-#include "dac_interface.h"
-#include "bt_avrcp_api.h"
 #include "bt_manager.h"
 #include "bt_play_api.h"
 #include "bt_play_mode.h"
 #include "audio_core_api.h"
-#include "decoder.h"
-#include "audio_core_service.h"
 #include "remind_sound.h"
-#include "breakpoint.h"
-#include "debug.h"
-#include "irqn.h"
 #include "bt_stack_service.h"
-#include "mcu_circular_buf.h"
 #include "ctrlvars.h"
-#include "mode_task_api.h"
 #include "audio_effect.h"
-#include "Bt_interface.h"
+#include "bt_interface.h"
+#include "mode_task.h"
 
 
 #ifdef CFG_APP_BT_MODE_EN
@@ -96,7 +82,10 @@ extern uint16_t A2DPDataGet(void* Buf, uint16_t Samples);
 static void BtPlayRunning(uint16_t msgId);
 
 
-#ifdef BT_REAL_STATE
+/************************************************************************************************************
+ * 蓝牙连接状态
+ * 提供给客户进行灯效显示
+ ************************************************************************************************************/
 BT_USER_STATE GetBtUserState(void)
 {
 	return btManager.btuserstate;
@@ -105,7 +94,6 @@ void SetBtUserState(BT_USER_STATE bt_state)
 {
 	btManager.btuserstate = bt_state;
 }
-#endif
 
 /************************************************************************************************************
  * @func        BtPlayInit
@@ -171,14 +159,14 @@ static bool BtPlayInitRes(void)
 		return FALSE;
 	}
 
-#if (BT_AVRCP_SONG_TRACK_INFOR == ENABLE)
+#if (BT_AVRCP_SONG_TRACK_INFOR)
 	extern void GetBtMediaInfo(void *params);
 	BtAppiFunc_GetMediaInfo(GetBtMediaInfo);
 #else
 	BtAppiFunc_GetMediaInfo(NULL);
 #endif	
 	
-#if (BT_AVRCP_VOLUME_SYNC == ENABLE)
+#if (BT_AVRCP_VOLUME_SYNC)
 	//模式音量同步手机音量值
 	//在无音量同步功能的手机连接成功后,不需要同步手机的音量
 	if(GetBtManager()->avrcpSyncEnable)
@@ -242,7 +230,7 @@ void BtPlayRun(uint16_t msgId)
 	#endif
 }
 
-#if (BT_AUTO_PLAY_MUSIC == ENABLE) 
+#if (BT_AUTO_PLAY_MUSIC)
 static struct 
 {
 	uint32_t delay_cnt;
@@ -300,7 +288,7 @@ void BtAutoPlayMusicProcess(void)
 extern uint32_t ChangePlayerStateGet(void);
 static void BtPlayRunning(uint16_t msgId)
 {
-#if (BT_AUTO_PLAY_MUSIC == ENABLE)
+#if (BT_AUTO_PLAY_MUSIC)
 	BtAutoPlayMusicProcess();
 #endif
 	switch(msgId)
@@ -383,7 +371,7 @@ static void BtPlayRunning(uint16_t msgId)
 			break;
 
 		case MSG_BT_PLAY_VOLUME_SET:
-#if (BT_AVRCP_VOLUME_SYNC == ENABLE)
+#if (BT_AVRCP_VOLUME_SYNC)
 			if(GetAvrcpState(BtCurIndex_Get()) != BT_AVRCP_STATE_CONNECTED)
 				break;
 			
@@ -392,7 +380,7 @@ static void BtPlayRunning(uint16_t msgId)
 #endif
 			break;
 
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 		case MSG_BT_HF_REDAIL_LAST_NUM:
 			if(GetHfpState(BtCurIndex_Get()) >= BT_HFP_STATE_CONNECTED)
 			{
@@ -417,7 +405,7 @@ static void BtPlayRunning(uint16_t msgId)
 		case MSG_BT_CONNECT_CTRL:
 			if((GetA2dpState(BtCurIndex_Get()) >= BT_A2DP_STATE_CONNECTED)
 				|| (GetAvrcpState(BtCurIndex_Get()) >= BT_AVRCP_STATE_CONNECTED)
-#if (BT_HFP_SUPPORT == ENABLE)
+#if (BT_HFP_SUPPORT)
 				|| (GetHfpState(BtCurIndex_Get()) >= BT_HFP_STATE_CONNECTED)
 #endif
 				)
@@ -463,14 +451,18 @@ bool BtPlayInit(void)
 	DMA_ChannelAllocTableSet((uint8_t *)DmaChannelMap);
 	if(!ModeCommonInit())
 	{
+		ModeCommonDeinit();
 		return FALSE;
 	}
-
+#if (BT_SOURCE_SUPPORT)// source
+	BtSourceBtModeInit();
+#else
 	if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF)
 		BtFastPowerOn();
 	else if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_DISABLE)
 		BtPowerOn();
-	
+#endif// source
+
 	ret = BtPlayInitRes();
 	APP_DBG("Bt Play mode\n");
 
@@ -480,8 +472,6 @@ bool BtPlayInit(void)
 		SetBtPlayState(BT_PLAYER_STATE_PLAYING);
 	else
 		SetBtPlayState(BT_PLAYER_STATE_STOP);
-
-	btManager.btTwsPairingStartDelayCnt = 0;
 
 	btManager.hfp_CallFalg = 0;
 
@@ -566,15 +556,16 @@ bool BtPlayDeinit(void)
 	osMutexUnlock(SbcDecoderMutex);
 	
 	APP_DBG("!!BtPlayCt\n");
+#if (BT_SOURCE_SUPPORT)// source
+	BtSourceBtModeDeinit();
+#else
 	if(  sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF
 	  || sys_parameter.bt_BackgroundType == BT_BACKGROUND_DISABLE	)
 	{
-		if(GetSysModeState(ModeBtHfPlay) != ModeStateInit && GetSysModeState(ModeTwsSlavePlay) != ModeStateInit)
+		if(GetSysModeState(ModeBtHfPlay) != ModeStateInit)
 		{
-			uint8_t i;
-			for(i=0; i<BT_LINK_DEV_NUM;i++)
-				BTDisconnect(i);
-			i = 0;
+			uint8_t i = 0;
+			BtDisconnectCtrl(TRUE);
 			while(btManager.linkedNumber != 0)
 			{
 				//APP_DBG("...\n");
@@ -593,7 +584,7 @@ bool BtPlayDeinit(void)
 			BtStackServiceWaitResume();
 		}
 	}
-
+#endif
 	osPortFree(BtPlayCt);
 	BtPlayCt = NULL;
 #ifdef BT_AUDIO_AAC_ENABLE

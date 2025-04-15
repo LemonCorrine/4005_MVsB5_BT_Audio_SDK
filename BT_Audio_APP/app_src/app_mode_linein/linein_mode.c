@@ -208,6 +208,7 @@ bool LineInPlayInit(void)
 
 	if(!ModeCommonInit())
 	{
+		ModeCommonDeinit();
 		return FALSE;
 	}
 	if(!LineInPlayResMalloc(AudioCoreFrameSizeGet(DefaultNet)))

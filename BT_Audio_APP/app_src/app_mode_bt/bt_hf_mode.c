@@ -12,35 +12,19 @@
  **************************************************************************************
  */
 
-#include <string.h>
-#include "type.h"
 #include "app_config.h"
 #include "app_message.h"
 //driver
-#include "dac.h"
-#include "gpio.h"
 #include "dma.h"
-#include "audio_adc.h"
-#include "debug.h"
 //middleware
 #include "main_task.h"
 #include "audio_vol.h"
-#include "rtos_api.h"
-#include "adc_interface.h"
-#include "dac_interface.h"
 #include "bt_manager.h"
-#include "resampler.h"
-#include "mcu_circular_buf.h"
 #include "audio_core_api.h"
-#include "audio_decoder_api.h"
-#include "sbcenc_api.h"
-#include "bt_config.h"
-#include "cvsd_plc.h"
 #include "ctrlvars.h"
 #include "bt_interface.h"
 //application
 #include "bt_hf_mode.h"
-#include "decoder.h"
 #include "bt_hf_api.h"
 #include "audio_effect.h"
 #include "bt_app_hfp_deal.h"
@@ -61,7 +45,7 @@
 *
 *****************************************************************************************************************************************************************/
 
-#if defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE)
+#if defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT)
 static const uint8_t DmaChannelMap[6] = {
 	PERIPHERAL_ID_AUDIO_ADC0_RX,
 	PERIPHERAL_ID_AUDIO_ADC1_RX,
@@ -274,7 +258,12 @@ static void BtHfRingRemindNumberRunning(void)
 //用于显示通话时间
 void BtHfActiveTimeCount(void)
 {
-	if(GetHfpState(BtCurIndex_Get()) >= BT_HFP_STATE_ACTIVE)
+
+	if(GetHfpState(BtCurIndex_Get()) >= BT_HFP_STATE_ACTIVE
+#if BT_HFG_SUPPORT
+		|| gSwitchSourceAndSink == A2DP_SET_SOURCE
+#endif
+		)
 	{
 		gBtHfCt->BtHfTimerMsCount++;
 		if(gBtHfCt->BtHfTimerMsCount>=1000) //1s
@@ -1147,5 +1136,5 @@ void SpecialDeviceFunc(void)
 	}
 }
 
-#endif //#if defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE)
+#endif //#if defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT)
 

@@ -284,6 +284,7 @@ bool  I2SInPlayInit(void)
 
 	if(!ModeCommonInit())
 	{
+		ModeCommonDeinit();
 		return FALSE;
 	}
 	if(!I2SInPlayResMalloc(AudioCoreFrameSizeGet(DefaultNet)))
@@ -334,24 +335,18 @@ void I2SInPlayRun(uint16_t msgId)
 	if (I2S_SampleRateCheckInterruptGet(CFG_RES_I2S_MODULE))
 	{
 		{
-			I2S_SampleRateSet(CFG_RES_I2S_MODULE, 88200);
-			AudioSpdifOut_SampleRateChange(88200);
+			Clock_PllLock(225792);
 		}//Add the above actions to make I2S_SampleRateGet right
 		CurrentSampleRate = I2S_SampleRateGet(CFG_RES_I2S_MODULE);
 		I2S_SampleRateSet(CFG_RES_I2S_MODULE, CurrentSampleRate);
 		APP_DBG("I2SIn samplerate change to:%ld\n", CurrentSampleRate);
-//		if((CurrentSampleRate == 11025) || (CurrentSampleRate == 22050) || (CurrentSampleRate == 44100)
-//				|| (CurrentSampleRate == 88200) || (CurrentSampleRate == 176400))
-//			Clock_AudioMclkSel(AUDIO_I2S1, PLL_CLOCK1);
-//		else
-//			Clock_AudioMclkSel(AUDIO_I2S1, PLL_CLOCK2);
 		AudioSpdifOut_SampleRateChange(CurrentSampleRate);
 		SyncModule_Reset();
-		I2S_SampleRateCheckInterruptClr(CFG_RES_I2S_MODULE);
 
-		MessageContext msgSend;
-		msgSend.msgId = MSG_EFFECTREINIT;
-		MessageSend(GetMainMessageHandle(), &msgSend);
+		extern bool AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel);
+		AudioEffectModeSel(mainAppCt.EffectMode, 1);
+
+		I2S_SampleRateCheckInterruptClr(CFG_RES_I2S_MODULE);
 	}
 #endif
 #endif

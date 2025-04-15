@@ -72,8 +72,6 @@ extern HDMIInfo         *gHdmiCt;
 
 typedef struct _HdmiInPlayContext
 {
-	TaskState			state;
-
 	uint32_t			*hdmiARCFIFO;	    //ARC的DMA循环fifo
 	uint32_t            *sourceBuf_ARC;		//取ARC数据
 	uint32_t            *hdmiARCCarry;
@@ -81,40 +79,12 @@ typedef struct _HdmiInPlayContext
 	uint32_t			*hdmiARCPcmFifo;
 	MCU_CIRCULAR_CONTEXT hdmiPcmCircularBuf;
 
-	AudioCoreContext 	*AudioCoreHdmiIn;
-#if	defined(CFG_FUNC_REMIND_SOUND_EN)
-	uint16_t*			Source2Decoder;
-	TaskState			DecoderSync;
-	bool				IsSoundRemindDone;
-#endif
-
-#ifdef CFG_FUNC_RECORDER_EN
-	TaskState			RecorderSync;
-#endif
-
-	//play
-	uint32_t 			SampleRate;
-
-	ResamplerPolyphaseContext* ResamplerCt;
-	uint32_t*			resampleOutBuf;
-
 	uint32_t			hdmiSampleRate;
-
-	uint32_t 			hdmiDmaWritePtr;
-	uint32_t 			hdmiDmaReadPtr;
-	uint32_t 			hdmiPreSample;
-	uint8_t  			hdmiSampleRateCheckFlg;
-	uint32_t 			hdmiSampleRateFromSW;
 
 	uint8_t    			hdmiArcDone;
 	uint8_t     		hdmiRetransCnt;
 	TIMER       		hdmiMaxRespondTime;
 	SPDIF_TYPE_STR  	AudioInfo;
-
-#ifdef	CFG_FUNC_SOFT_ADJUST_IN
-	int16_t 			pcmRemain[PCM_REMAIN_SMAPLES * 4];//用于缓存底层给上来超过128samples的数据
-	int16_t 			pcmRemainLen;
-#endif
 }HdmiInPlayContext;
 
 
@@ -155,7 +125,6 @@ static HdmiInPlayContext*		hdmiInPlayCt;
 
 //osMutexId			hdmiPcmFifoMutex;
 bool 				HdmiSpdifLockFlag = FALSE;
-uint32_t 			hdmiCurSampleRate = 0;
 bool 				unmuteLockFlag = 0;
 TIMER 				unmuteLockTime;
 
@@ -186,14 +155,6 @@ bool HdmiInPlayResMalloc(uint16_t SampleLen)
 	MCUCircular_Config(&hdmiInPlayCt->hdmiPcmCircularBuf, hdmiInPlayCt->hdmiARCPcmFifo, AudioCoreFrameSizeGet(DefaultNet) * sizeof(PCM_DATA_TYPE) * 2 * 2 * 2);
 	memset(hdmiInPlayCt->hdmiARCPcmFifo, 0, AudioCoreFrameSizeGet(DefaultNet) * sizeof(PCM_DATA_TYPE) * 2 * 2 * 2);
 
-#if	defined(CFG_FUNC_REMIND_SOUND_EN)
-	hdmiInPlayCt->Source2Decoder = (uint16_t*)osPortMalloc(SampleLen * 2 * 2);//One Frame
-	if(hdmiInPlayCt->Source2Decoder == NULL)
-	{
-		return FALSE;
-	}
-	memset(hdmiInPlayCt->Source2Decoder, 0, SampleLen * 2 * 2);//2K
-#endif
 	return TRUE;
 }
 
@@ -228,8 +189,6 @@ bool HdmiInPlayResMalloc(uint16_t SampleLen)
 		return FALSE;
 	}
 	memset(hdmiInPlayCt, 0, sizeof(HdmiInPlayContext));
-	// Audio core config
-	hdmiInPlayCt->SampleRate =  AudioCoreMixSampleRateGet(DefaultNet);
 
 	if(!HdmiInPlayResMalloc(AudioCoreFrameSizeGet(DefaultNet)))
 	{
@@ -253,29 +212,9 @@ bool HdmiInPlayResMalloc(uint16_t SampleLen)
 	memset(hdmiInPlayCt->hdmiARCCarry24, 0, HDMI_ARC_CARRY_LEN);
 #endif
 
-#if 0
-	hdmiInPlayCt->ResamplerCt = (ResamplerPolyphaseContext*)osPortMalloc(sizeof(ResamplerPolyphaseContext));
-	if(hdmiInPlayCt->ResamplerCt == NULL)
-	{
-		return FALSE;
-	}
-	hdmiInPlayCt->resampleOutBuf = (uint32_t *)osPortMalloc(HDMI_SRC_RESAMPLER_OUT_LEN);
-	if(hdmiInPlayCt->resampleOutBuf == NULL)
-	{
-		return FALSE;
-	}
-#endif
-	hdmiInPlayCt->hdmiDmaWritePtr 		 = 0;
-	hdmiInPlayCt->hdmiDmaReadPtr  		 = 0;
-	hdmiInPlayCt->hdmiSampleRateCheckFlg = 0;
-	hdmiInPlayCt->hdmiSampleRateFromSW 	 = 0;
-	hdmiInPlayCt->hdmiPreSample			 = 0;
-
-
 	memset(&hdmiInPlayCt->AudioInfo, 0, sizeof(SPDIF_TYPE_STR));
 	hdmiInPlayCt->AudioInfo.audio_type = SPDIF_AUDIO_PCM_DATA_TYPE;
 
-	hdmiInPlayCt->AudioCoreHdmiIn = (AudioCoreContext *)&AudioCore;
 
 	HDMI_ARC_Init((uint16_t *)hdmiInPlayCt->hdmiARCFIFO, AudioCoreFrameSizeGet(DefaultNet) * 2 * 2 * 2 * 2, &hdmiInPlayCt->hdmiPcmCircularBuf);
 	HDMI_CEC_DDC_Init();
@@ -359,7 +298,6 @@ bool HdmiInPlayResMalloc(uint16_t SampleLen)
 #endif
 
 	HdmiSpdifLockFlag = FALSE;
-	hdmiCurSampleRate = 0;
 	unmuteLockFlag = 0;
 
 #ifndef CFG_FUNC_REMIND_SOUND_EN
@@ -370,25 +308,6 @@ bool HdmiInPlayResMalloc(uint16_t SampleLen)
 #endif
 
 	return TRUE;
-}
-
-static void HdmiInSampleRateChange(void)
-{
-#if 1//def CFG_FUNC_MIXER_SRC_EN
-	AudioCoreSourceChange(HDMI_IN_SOURCE_NUM, 2, hdmiInPlayCt->hdmiSampleRate);
-#else
-	if(hdmiInPlayCt->hdmiSampleRate != hdmiInPlayCt->SampleRate)
-	{
-		hdmiInPlayCt->SampleRate = hdmiInPlayCt->hdmiSampleRate;//注意此处调整会造成提示音和mic数据dac不正常。
-		APP_DBG("Dac Sample:%d\n",(int)hdmiInPlayCt->SampleRate);
-#ifdef CFG_RES_AUDIO_DACX_EN
-		AudioDAC_SampleRateChange(DAC1, hdmiInPlayCt->SampleRate);
-#endif
-#ifdef CFG_RES_AUDIO_DAC0_EN
-		AudioDAC_SampleRateChange(DAC0, hdmiInPlayCt->SampleRate);
-#endif
-	}
-#endif
 }
 
 void HdmiInPlayRun(uint16_t msgId)
@@ -436,13 +355,12 @@ void HdmiInPlayRun(uint16_t msgId)
 					if(HdmiSpdifLockFlag == TRUE)
 					{
 						//硬件采样率获取，设定。
-						if(hdmiCurSampleRate != SPDIF_SampleRateGet(CFG_HDMI_SPDIF_NUM))
+						if(hdmiInPlayCt->hdmiSampleRate != SPDIF_SampleRateGet(CFG_HDMI_SPDIF_NUM))
 						{
-							hdmiCurSampleRate = SPDIF_SampleRateGet(CFG_HDMI_SPDIF_NUM);
+							hdmiInPlayCt->hdmiSampleRate = SPDIF_SampleRateGet(CFG_HDMI_SPDIF_NUM);
 
-							APP_DBG("Get samplerate: %d\n", (int)hdmiCurSampleRate);
-							hdmiInPlayCt->hdmiSampleRate = hdmiCurSampleRate;
-							HdmiInSampleRateChange();
+							APP_DBG("Get samplerate: %d\n", (int)hdmiInPlayCt->hdmiSampleRate);
+							AudioCoreSourceChange(HDMI_IN_SOURCE_NUM, 2, hdmiInPlayCt->hdmiSampleRate);
 						}
 
 						if(unmuteLockFlag == 1)
@@ -642,7 +560,6 @@ bool HdmiInPlayDeinit(void)
 	HDMI_CEC_DDC_DeInit();
 	HDMI_ARC_DeInit();
 
-	hdmiInPlayCt->AudioCoreHdmiIn = NULL;
 	if(hdmiInPlayCt->hdmiARCFIFO != NULL)
 	{
 		osPortFree(hdmiInPlayCt->hdmiARCFIFO);
@@ -674,28 +591,6 @@ bool HdmiInPlayDeinit(void)
 		osPortFree(hdmiInPlayCt->hdmiARCPcmFifo);
 		hdmiInPlayCt->hdmiARCPcmFifo = NULL;
 	}
-
-
-#if	defined(CFG_FUNC_REMIND_SOUND_EN)
-	if(hdmiInPlayCt->Source2Decoder != NULL)
-	{
-		osPortFree(hdmiInPlayCt->Source2Decoder);
-		hdmiInPlayCt->Source2Decoder = NULL;
-	}
-#endif
-
-#if 0
-	if(hdmiInPlayCt->ResamplerCt != NULL)
-	{
-		osPortFree(hdmiInPlayCt->ResamplerCt);
-		hdmiInPlayCt->ResamplerCt = NULL;
-	}
-	if(hdmiInPlayCt->resampleOutBuf != NULL)
-	{
-		osPortFree(hdmiInPlayCt->resampleOutBuf);
-		hdmiInPlayCt->resampleOutBuf = NULL;
-	}
-#endif
 
 	ModeCommonDeinit();//通路全部释放
 
