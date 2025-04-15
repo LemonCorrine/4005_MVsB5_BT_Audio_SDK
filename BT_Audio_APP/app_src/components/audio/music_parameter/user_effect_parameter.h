@@ -206,6 +206,8 @@ void AudioEffect_SinkGain_Update(uint8_t Index);
 
 void AudioEffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t *param_input, uint8_t param_len);
 
+void AudioEffect_update_local_effect_status(uint8_t addr, uint8_t effect_enable);
+
 void AudioEffect_update_local_block_params(uint8_t addr);
 
 uint8_t AudioEffect_effect_status_Get(AUDIOEFFECT_EFFECT_TYPE type);

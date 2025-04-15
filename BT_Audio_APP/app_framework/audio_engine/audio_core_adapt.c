@@ -863,7 +863,7 @@ void AudioCorePcmDataBitWidthConv(PCM_DATA_TYPE *PcmBuf,uint16_t dataSize,PCM_DA
 	{
 		for(n=0; n < dataSize / sizeof(int32_t); n++)
 		{
-			PcmBuf16[n] = PcmBuf32[n] >> 8;
+			PcmBuf16[n] = __nds32__clips(((int32_t)PcmBuf32[n] + 128) >> 8, (16) - 1);
 		}
 	}
 }
@@ -1625,7 +1625,7 @@ void AudioCoreSinkSet(uint8_t Index)
 #ifdef CFG_AUDIO_WIDTH_24BIT
 			if(Sink->BitWidthConvFlag == 1)
 			{
-				AudioCorePcmDataBitWidthConv(Sink->PcmOutBuf,SINKFRAME(Index) * 2 * Sink->Channels,Sink->BitWidth);
+				AudioCorePcmDataBitWidthConv(Sink->PcmOutBuf,SINKFRAME(Index) * PcmDataLen,Sink->BitWidth);
 			}
 #endif
 			Sink->DataSetFunc(Sink->PcmOutBuf, SINKFRAME(Index));
@@ -1855,6 +1855,8 @@ void AudioCoreSourceChange(uint8_t Index, uint8_t Channels, uint32_t SampleRate)
 		{
 			resampler_polyphase_init(&SrcAdapter->SrcCt, AudioCore.AudioSource[Index].Channels, GetRatioEnum(1000 * AudioCore.SampleRate[AudioCore.AudioSource[Index].Net] / SrcAdapter->SampleRate));
 		}
+		SrcAdapter->SrcBufHandler.R = 0;
+		SrcAdapter->SrcBufHandler.W = 0;
 	}
 }
 
@@ -1948,7 +1950,9 @@ void AudioCoreSinkDepthChange(uint8_t Index, uint32_t NewDepth)
 
 bool AudioCoreSourceIsInit(uint8_t Index)
 {
-	if(Index < AUDIO_CORE_SOURCE_MAX_NUM && AudioCore.AudioSource[Index].PcmInBuf)
+	if(Index < AUDIO_CORE_SOURCE_MAX_NUM &&
+		(AudioCore.AudioSource[Index].AdaptBuf || //修改下判断条件，PcmInBuf不在audiocore中申请，可以多次初始化
+		AudioCore.AudioSource[Index].AdjAdapter))
 	{
 		return TRUE;
 	}

@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define MUSIC_ROBOEFFECT_LIB_VER "2.10.0"
+#define MUSIC_ROBOEFFECT_LIB_VER "2.12.0"
 
 typedef enum _MUSIC_roboeffect_io_enum
 {

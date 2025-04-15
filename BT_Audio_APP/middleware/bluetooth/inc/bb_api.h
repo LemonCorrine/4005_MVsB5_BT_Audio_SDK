@@ -10,6 +10,12 @@ void Bluetooth_common_init(void* params);
 void Bt_init(void* params);
 void Ble_init(void);
 
+/***************************************************
+ * BT debug infor
+ * 在BtStackServiceEntrance循环前调用
+ **************************************************/
+void BtDebugEnable(void);
+
 void SetBluetoothMode(uint8_t mode);
 
 /***************************************************

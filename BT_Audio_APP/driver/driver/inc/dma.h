@@ -436,6 +436,8 @@ DMA_ERROR DMA_ChannelChange(uint8_t SrcID,uint8_t DstID);
 
 void DMA_AllChannelClose(void);
 
+DMA_ERROR DMA_ConfigDwidth(uint8_t PeripheralID, uint8_t Dwidth);
+
 #ifdef  __cplusplus
 }
 #endif//__cplusplus

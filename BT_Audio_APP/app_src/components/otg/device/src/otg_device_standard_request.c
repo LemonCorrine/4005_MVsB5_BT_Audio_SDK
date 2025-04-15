@@ -308,6 +308,10 @@ void OTG_DeviceStandardRequest()
 				UsbAudioSpeaker.AltSet = Setup[2];
 				DBG("speaker %d",Setup[2]);
 				UsbAudioSpeaker.ByteSet = SpeakerByteSet[UsbAudioSpeaker.AltSet];
+				if(UsbAudioSpeaker.AltSet == 0)
+				{
+					UsbAudioSpeaker.AltSlow = 1;
+				}
 			}
 		#endif
 			break;

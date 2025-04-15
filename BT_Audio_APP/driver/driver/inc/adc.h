@@ -25,24 +25,6 @@
 extern "C"{
 #endif // __cplusplus 
 
-typedef enum __ADC_DC_CLK_DIV
-{
-	CLK_DIV_NONE = 0,
-	CLK_DIV_2,
-	CLK_DIV_4,
-	CLK_DIV_8,
-	CLK_DIV_16,
-	CLK_DIV_32,
-	CLK_DIV_64,
-	CLK_DIV_128,
-	CLK_DIV_256,
-	CLK_DIV_512,
-	CLK_DIV_1024,
-	CLK_DIV_2048,
-	CLK_DIV_4096
-	
-}ADC_DC_CLK_DIV;
-
 //0000 :PAD_VBAT
 //0001 :PAD_DVDD33
 //0010 :PAD_VDD15
@@ -116,18 +98,33 @@ void ADC_Disable(void);
 void ADC_Calibration(void);
 
 /**
+ SARADC source clock is system clock, defualt is 120MHz
+ result after frequency division should >= 15M
+	12'd0: clock divider is disable
+	12'd1: clock divided by 2
+	12'd2: clock divided by 4
+	12'd3: clock divided by 6
+	12'd4: clock divided by 8
+	......
+	12'd2047: clock divided by 4094
+	12'd2048: clock divided by 4096
+	clock divided by 2*aux_clk_div, max divider number is 2*2048=4096
+	default value is 12'd4: divider number is 2*4=8
+**/
+/**
  * @brief  设置ADC工作时钟分频
- * @param  Div 分频系数
+ * @param  Div 分频系数  范围：0-2048
  * @return 无
  */
-void ADC_ClockDivSet(ADC_DC_CLK_DIV Div);
+void ADC_ClockDivSet(uint32_t Div);
+
 
 /**
  * @brief  获取ADC工作时钟分频
  * @param  无
  * @return 分频系数
  */
-ADC_DC_CLK_DIV ADC_ClockDivGet(void);
+uint32_t ADC_ClockDivGet(void);
 
 /**
  * @brief  ADC参考电压选择

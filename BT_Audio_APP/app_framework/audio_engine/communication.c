@@ -426,8 +426,8 @@ void Communication_Effect_0x02(void)///systme ram
 	memcpy(&tx_buf[5], &UsedRamSize, 2);
 	memcpy(&tx_buf[7], &cpu_mips, 2);
 	//是否自动刷新数据，后续需要改进 Sam mask
-	memcpy(&tx_buf[9], &gCtrlVars.AutoRefresh, 1);
-	if(gCtrlVars.AutoRefresh)  gCtrlVars.AutoRefresh = 0;
+	tx_buf[9] = gCtrlVars.AutoRefresh;
+	gCtrlVars.AutoRefresh = AutoRefresh_NONE;
 
 	memcpy(&tx_buf[10], &CpuMaxFreq, 2);
 	memcpy(&tx_buf[12], &CpuMaxRamSize, 2);
@@ -584,6 +584,10 @@ void Comm_ADC0_0x04(uint8_t * buf)
 		case 7://adc0 fade time
 			break;
 		case 8://adc0 mclk src
+#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+			memcpy(&gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source, &buf[1], 2);
+	        Clock_AudioMclkSel(AUDIO_ADC0, gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source);
+#endif
 		    break;
 		case 9://hpc0 en
 			break;
@@ -612,7 +616,7 @@ void Communication_Effect_0x04(uint8_t *buf, uint32_t len)////ADC0 DIGITAL
 		memcpy(&tx_buf[15], &gCtrlVars.HwCt.ADC0DigitalCt.adc_lr_swap,2);
 		memcpy(&tx_buf[17], &gCtrlVars.HwCt.ADC0DigitalCt.adc_hpc, 2);
 		tx_buf[19] = 5;
-		tx_buf[21] = 0;
+		memcpy(&tx_buf[21], &gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source, 2);
 		memcpy(&tx_buf[23], &gCtrlVars.HwCt.ADC0DigitalCt.adc_dc_blocker_en, 2);////adc0 hpc en
 		tx_buf[25] = 0x16;
 		Communication_Effect_Send(tx_buf, 26);///25+3*4+1
@@ -762,6 +766,10 @@ void Comm_ADC1_0x07(uint8_t * buf)
 		case 7://adc1 fade time
 			break;
 		case 8://adc1 mclk src
+#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+			memcpy(&gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source, &buf[1], 2);
+	        Clock_AudioMclkSel(AUDIO_ADC1, gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source);
+#endif
 		    break;
 		case 9://hpc1 en
 			memcpy(&TmpData, &buf[1], 2);
@@ -793,7 +801,7 @@ void Communication_Effect_0x07(uint8_t *buf, uint32_t len)///ADC1 DIGITAL
 		memcpy(&tx_buf[15],  &gCtrlVars.HwCt.ADC1DigitalCt.adc_lr_swap,2);
 		memcpy(&tx_buf[17], &gCtrlVars.HwCt.ADC1DigitalCt.adc_hpc, 2);
 		tx_buf[19] = 5;
-		tx_buf[21] = 0;
+		memcpy(&tx_buf[21], &gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source, 2);
 		memcpy(&tx_buf[23], &gCtrlVars.HwCt.ADC1DigitalCt.adc_dc_blocker_en, 2);////adc0 hpc en
 		tx_buf[25] = 0x16;
 		Communication_Effect_Send(tx_buf, 26);///25+3*4+1
@@ -983,13 +991,13 @@ void Comm_DAC0_0x09(uint8_t * buf)
 		case 3:////dac0 L volume
 			memcpy(&TmpData, &buf[1], 2);
 			gCtrlVars.HwCt.DAC0Ct.dac_dig_l_vol = TmpData > 0x3fff? 0x3fff : TmpData;
-			gCtrlVars.HwCt.DAC0Ct.dac_dig_r_vol = gCtrlVars.HwCt.DAC0Ct.dac_dig_l_vol;
+//			gCtrlVars.HwCt.DAC0Ct.dac_dig_r_vol = gCtrlVars.HwCt.DAC0Ct.dac_dig_l_vol;
 			AudioDAC_VolSet(DAC0, gCtrlVars.HwCt.DAC0Ct.dac_dig_l_vol, gCtrlVars.HwCt.DAC0Ct.dac_dig_r_vol);
 			break;
 		case 4:////dac0 R volume
 			memcpy(&TmpData, &buf[1], 2);
 			gCtrlVars.HwCt.DAC0Ct.dac_dig_r_vol = TmpData > 0x3fff? 0x3fff : TmpData;
-			gCtrlVars.HwCt.DAC0Ct.dac_dig_l_vol = gCtrlVars.HwCt.DAC0Ct.dac_dig_r_vol;
+//			gCtrlVars.HwCt.DAC0Ct.dac_dig_l_vol = gCtrlVars.HwCt.DAC0Ct.dac_dig_r_vol;
 			AudioDAC_VolSet(DAC0, gCtrlVars.HwCt.DAC0Ct.dac_dig_l_vol, gCtrlVars.HwCt.DAC0Ct.dac_dig_r_vol);
 			break;
         case 5:///DAC0 dither
@@ -1020,6 +1028,11 @@ void Comm_DAC0_0x09(uint8_t * buf)
             AudioDAC_DoutModeSet(DAC0, (DOUT_MODE)gCtrlVars.HwCt.DAC0Ct.dac_out_mode, WIDTH_24_BIT_2);//注意DAC位宽，一般情况下使用不到
 #endif
             break;
+        case 13:///dac0 mclk source
+#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+			memcpy(&gCtrlVars.HwCt.DAC0Ct.dac_mclk_source, &buf[1], 2);
+	        Clock_AudioMclkSel(DAC0, gCtrlVars.HwCt.DAC0Ct.dac_mclk_source);
+#endif
 		default:
 			break;
 	}
@@ -1046,6 +1059,7 @@ void Communication_Effect_0x09(uint8_t *buf, uint32_t len)///DAC0
 		memcpy(&tx_buf[17], &gCtrlVars.HwCt.DAC0Ct.dac_scramble, 2);
 		memcpy(&tx_buf[19], &gCtrlVars.HwCt.DAC0Ct.dac_out_mode, 2);
         tx_buf[27] = 5;
+		memcpy(&tx_buf[31], &gCtrlVars.HwCt.DAC0Ct.dac_mclk_source, 2);
 		tx_buf[33] = 0x16;
 		Communication_Effect_Send(tx_buf,34);
 	}
@@ -1073,20 +1087,47 @@ void Communication_Effect_0x09(uint8_t *buf, uint32_t len)///DAC0
 	}
 }
 
+void Comm_I2S0_0x0B(uint8_t * buf)
+{
+
+	switch(buf[0])//I2S0
+	{
+		case 3:///I2S0 mclk source
+#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+			memcpy(&gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source, &buf[1], 2);
+			Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
+#endif
+			break;
+		default:
+			break;
+	}
+}
 void Communication_Effect_0x0B(uint8_t *buf, uint32_t len)//I2S0
 {
+	uint16_t i,k;
 	if(len == 0) //ask
 	{
 		memset(tx_buf, 0, sizeof(tx_buf));
-#if defined(CFG_APP_I2SIN_MODE_EN) || defined(CFG_RES_AUDIO_I2SOUT_EN)
+#if defined(CFG_APP_I2SIN_MODE_EN) || defined(CFG_RES_AUDIO_I2SOUT_EN) || defined(CFG_RES_AUDIO_I2S_MIX_IN_EN) || defined(CFG_RES_AUDIO_I2S_MIX_OUT_EN)
 		tx_buf[0]  = 0xa5;
 		tx_buf[1]  = 0x5a;
 		tx_buf[2]  = 0x0b;
 		tx_buf[3]  = 1 + 11*2;///1 + len * sizeof(int16)
 		tx_buf[4]  = 0xff;
+#if (defined(CFG_RES_AUDIO_I2SOUT_EN) && (CFG_RES_I2S_MODULE == 0)) || (defined(CFG_RES_AUDIO_I2S_MIX_OUT_EN) && (CFG_RES_MIX_I2S_MODULE == 0))
+		tx_buf[5] = 1;
+#else
+		tx_buf[5] = 0;
+#endif
+#if (defined(CFG_APP_I2SIN_MODE_EN) && (CFG_RES_I2S_MODULE == 0)) || (defined(CFG_RES_AUDIO_I2S_MIX_IN_EN) && (CFG_RES_MIX_I2S_MODULE == 0))
+		tx_buf[7] = 1;
+#else
+		tx_buf[7] = 0;
+#endif
 		tx_buf[9]  = (CFG_PARA_I2S_SAMPLERATE >> 8) & 0xff;
 		tx_buf[10] = (CFG_PARA_I2S_SAMPLERATE) & 0xff;
-		tx_buf[14] = CFG_RES_I2S_MODE;
+		tx_buf[12] = (gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source) & 0xff;
+		tx_buf[14] = (CFG_RES_I2S_MODE) & 0xff;
 		tx_buf[16] = 2;
 //		tx_buf[18] = 0;
 //		tx_buf[20] = 0;
@@ -1095,23 +1136,71 @@ void Communication_Effect_0x0B(uint8_t *buf, uint32_t len)//I2S0
 #endif
 		Communication_Effect_Send(tx_buf,28);
 	}
+	else
+	{
+		switch(buf[0])///I2S0
+		{
+			case 0xff:
+				buf++;
+				for(i = 0; i < 19; i++)
+				{
+					cbuf[0] = i;////id
+					for(k = 0; k < CTL_DATA_SIZE; k++)
+					{
+						cbuf[ k + 1] = (uint8_t)buf[k];
+					}
+					Comm_I2S0_0x0B(&cbuf[0]);
+					buf += 2;
+				}
+				break;
+			default:
+				Comm_I2S0_0x0B(buf);
+				break;
+		}
+	}
 }
 
+void Comm_I2S1_0x0C(uint8_t * buf)
+{
+
+	switch(buf[0])//I2S1
+	{
+		case 3:///I2S1 mclk source
+#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+			memcpy(&gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source, &buf[1], 2);
+			Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
+#endif
+			break;
+		default:
+			break;
+	}
+}
 void Communication_Effect_0x0C(uint8_t *buf, uint32_t len)//I2S0
 {
+	uint16_t i,k;
 	if(len == 0) //ask
 	{
 		memset(tx_buf, 0, sizeof(tx_buf));
-#if defined(CFG_APP_I2SIN_MODE_EN) || defined(CFG_RES_AUDIO_I2SOUT_EN)
+#if defined(CFG_APP_I2SIN_MODE_EN) || defined(CFG_RES_AUDIO_I2SOUT_EN) || defined(CFG_RES_AUDIO_I2S_MIX_IN_EN) || defined(CFG_RES_AUDIO_I2S_MIX_OUT_EN)
 		tx_buf[0]  = 0xa5;
 		tx_buf[1]  = 0x5a;
 		tx_buf[2]  = 0x0c;
 		tx_buf[3]  = 1 + 11*2;///1 + len * sizeof(int16)
 		tx_buf[4]  = 0xff;
-
+#if (defined(CFG_RES_AUDIO_I2SOUT_EN) && (CFG_RES_I2S_MODULE == 1)) || (defined(CFG_RES_AUDIO_I2S_MIX_OUT_EN) && (CFG_RES_MIX_I2S_MODULE == 1))
+		tx_buf[5] = 1;
+#else
+		tx_buf[5] = 0;
+#endif
+#if (defined(CFG_APP_I2SIN_MODE_EN) && (CFG_RES_I2S_MODULE == 1)) || (defined(CFG_RES_AUDIO_I2S_MIX_IN_EN) && (CFG_RES_MIX_I2S_MODULE == 1))
+		tx_buf[7] = 1;
+#else
+		tx_buf[7] = 0;
+#endif
 		tx_buf[9]  = (CFG_PARA_I2S_SAMPLERATE >> 8) & 0xff;
 		tx_buf[10] = (CFG_PARA_I2S_SAMPLERATE) & 0xff;
-		tx_buf[14] = CFG_RES_I2S_MODE;
+		tx_buf[12] = (gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source) & 0xff;
+		tx_buf[14] = (CFG_RES_I2S_MODE) & 0xff;
 		tx_buf[16] = 2;
 //		tx_buf[18] = 0;
 //		tx_buf[20] = 0;
@@ -1119,6 +1208,28 @@ void Communication_Effect_0x0C(uint8_t *buf, uint32_t len)//I2S0
 		tx_buf[27] = 0x16;
 #endif
 		Communication_Effect_Send(tx_buf,28);
+	}
+	else
+	{
+		switch(buf[0])///I2S1
+		{
+			case 0xff:
+				buf++;
+				for(i = 0; i < 19; i++)
+				{
+					cbuf[0] = i;////id
+					for(k = 0; k < CTL_DATA_SIZE; k++)
+					{
+						cbuf[ k + 1] = (uint8_t)buf[k];
+					}
+					Comm_I2S1_0x0C(&cbuf[0]);
+					buf += 2;
+				}
+				break;
+			default:
+				Comm_I2S1_0x0C(buf);
+				break;
+		}
 	}
 }
 
@@ -1166,6 +1277,39 @@ void Communication_Effect_0x80(uint8_t *buf, uint32_t len)
 	{
 
 	}
+}
+
+void Communication_Effect_0xfb(uint8_t *buf, uint32_t len)
+{
+	uint8_t num = buf[0], *addr = &(buf[1]), out_num = 0;
+	uint32_t *ptr_size = (uint32_t *)&(tx_buf[5]);
+
+	tx_buf[0] = 0xa5;
+	tx_buf[1] = 0x5a;
+	tx_buf[2] = 0xfb;
+
+	for(int i = 0; i < num; i++)
+	{
+		int32_t t_size;
+		t_size = roboeffect_get_effect_memory_size(addr[i], AudioCore.Audioeffect.user_effect_list, AudioCore.Audioeffect.user_effect_parameters);
+		// printf("-->0x%02X: %d\n", addr[i], t_size);
+		if(t_size < 0) break;//not enough nodes to get
+		*ptr_size = t_size;
+		ptr_size++;
+		out_num++;
+	}
+	tx_buf[3] = 1 + out_num * 4;
+	tx_buf[4] = out_num;
+	tx_buf[tx_buf[3] + 4] = 0x16;
+
+	// printf("send %d: ", tx_buf[3] + 5);
+	// for(int i = 0; i<tx_buf[3] + 5; i++)
+	// {
+	// 	printf("%02X ", tx_buf[i]);
+	// }
+	// printf("\n");
+
+	Communication_Effect_Send(tx_buf, tx_buf[3] + 5);
 }
 
 //32个字节
@@ -1288,6 +1432,9 @@ void Communication_Effect_Config(uint8_t Control, uint8_t *buf, uint32_t len)
 			break;
 		case 0x80:
 			Communication_Effect_0x80(buf, len);
+			break;
+		case 0xfb:
+			 Communication_Effect_0xfb(buf, len);
 			break;
 		case 0xfc://user define tag
 			 Communication_Effect_0xfc(buf, len);

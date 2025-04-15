@@ -68,6 +68,8 @@ uint16_t AudioI2S1_DataSet(void *Buf, uint16_t Len);
 uint16_t AudioI2S0_TX_DataLenGet(void);
 uint16_t AudioI2S1_TX_DataLenGet(void);
 
+void AudioI2S_SampleRateChange(I2S_MODULE Module,uint32_t SampleRate);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus 

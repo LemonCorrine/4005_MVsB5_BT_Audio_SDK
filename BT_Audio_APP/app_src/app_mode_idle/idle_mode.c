@@ -364,18 +364,22 @@ void IdleModeRun(uint16_t msgId)
 			break;
 		case MSG_DEVICE_SERVICE_U_DISK_IN:	//插U盘开机
 			IdlePrevModeSet(ModeUDiskAudioPlay);
+#ifdef CFG_FUNC_REMIND_SOUND_EN
 			if(GetRemindSoundItemDisable())
 				IdleMode.AutoPowerOnState = NEED_POWER_ON;	//播放开机提示音，然后进入模式
 			else
+#endif
 				IdleMode.AutoPowerOnState = ENTER_POWER_ON;	//直接进入模式，不需要播放开机提示音
 			break;
 		case MSG_DEVICE_SERVICE_CARD_IN:
 			break;
 		case MSG_DEVICE_SERVICE_USB_DEVICE_IN://插声卡开机
 			IdlePrevModeSet(ModeUsbDevicePlay);
+#ifdef CFG_FUNC_REMIND_SOUND_EN
 			if(GetRemindSoundItemDisable())
 				IdleMode.AutoPowerOnState = NEED_POWER_ON;	//播放开机提示音，然后进入模式
 			else
+#endif
 				IdleMode.AutoPowerOnState = ENTER_POWER_ON;	//直接进入模式，不需要播放开机提示音
 			break;
 		default:

@@ -30,9 +30,9 @@ extern "C"{
 #define REMAP_DBG(format, ...)		//DBG(format, ##__VA_ARGS__)
 
 #define FLASH_ADDR 			0x0
-#define TCM_SIZE   			1//8
+#define TCM_SIZE   			3//8
 #define SRAM_END_ADDR		0x2003C000
-#define TCM_SRAM_START_ADDR	0x20011400
+#define TCM_SRAM_START_ADDR	0x20002000
 
 extern uint32_t gSramEndAddr;
 typedef enum
@@ -51,10 +51,10 @@ typedef enum
 
 /**
  * @brief	使能remap功能
- * @param	num	 有ADDR_REMAP1、ADDR_REMAP2，指定一个即可
- * @param	src	 源地址，必须4KB对齐
- * @param	dst	 目的地址，必须4KB对齐
- * @param	size 单位是KB，必须4KB对齐
+ * @param	num	 ADDR_REMAP_ID
+ * @param	src	 源地址，必须1KB对齐
+ * @param	dst	 目的地址，必须1KB对齐
+ * @param	size 单位是KB，必须1KB对齐
  * @return	错误码，详情见REMAP_ERROR
  * @note
  */
@@ -62,28 +62,31 @@ REMAP_ERROR Remap_AddrRemapSet(ADDR_REMAP_ID num, uint32_t src, uint32_t dst, ui
 
 /**
  * @brief	关闭remap功能
- * @param	num	 有ADDR_REMAP1、ADDR_REMAP2，指定一个即可
- * @return	错误码，详情见REMAP_ERROR
+ * @param	num	 ADDR_REMAP_ID
+ * @return	None
  * @note
  */
 void Remap_AddrRemapDisable(ADDR_REMAP_ID num);
 
 /**
- * @brief	使能TCM功能，主要是将flash驱动映射到memcpy中
- * @param	StartAddr	源地址，必须4KB对齐
- * @param	size 		单位是KB，必须4KB对齐
- * @return	错误码，详情见REMAP_ERROR
+ * @brief	使能ADDR_REMAP0 TCM功能
+ * @param	StartAddr	源地址，必须1KB对齐
+ * @param	TCMStartAddr TCM RAM目标地址，必须1KB对齐
+ * @param	size 		单位是KB，必须1KB对齐
+ * @return	None
  * @note
  */
-REMAP_ERROR Remap_InitTcm(uint32_t StartAddr, uint32_t size);
+#define Remap_InitTcm(StartAddr, TCMStartAddr, size) 	do{ memcpy(TCMStartAddr, StartAddr, size*1024);\
+															Remap_AddrRemapSet(ADDR_REMAP0, StartAddr, TCMStartAddr, size);\
+														}while(0)
 
 /**
- * @brief	禁能TCM功能
+ * @brief	禁能ADDR_REMAP0 TCM功能
  * @param	None
  * @return	None
  * @note
  */
-void Remap_DisableTcm(void);
+#define Remap_DisableTcm()								Remap_AddrRemapDisable(ADDR_REMAP0)
 
 #ifdef __cplusplus
 }

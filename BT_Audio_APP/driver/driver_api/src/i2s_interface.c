@@ -16,6 +16,10 @@ void AudioI2S_Init(I2S_MODULE Module, I2SParamCt *ct)
 	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
 	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ);
 
+	if(AUDIO_PLL_CLK1_FREQ > 12288000) //audio clk设置了高频率，分频 N=1
+		I2S_MclkFreqSet(Module,AUDIO_PLL_CLK1_FREQ,AUDIO_PLL_CLK2_FREQ,1); //mclk_frequency/(N+1)
+	else
+		I2S_MclkFreqSet(Module,AUDIO_PLL_CLK1_FREQ,AUDIO_PLL_CLK2_FREQ,0);
 	//tx
 	if(ct->I2sTxRxEnable & 0x1)
 	{
@@ -32,9 +36,13 @@ void AudioI2S_Init(I2S_MODULE Module, I2SParamCt *ct)
 	if(Module == I2S0_MODULE)
     {
 		if(IsSelectMclkClk1(ct->SampleRate))
+		{
 			Clock_AudioMclkSel(AUDIO_I2S0, PLL_CLOCK1);
+		}
 		else
+		{
 			Clock_AudioMclkSel(AUDIO_I2S0, PLL_CLOCK2);
+		}
 		
 		I2S_FadeTimeSet(I2S0_MODULE,90);
 		I2S_FadeEnable(I2S0_MODULE);// bkd add 2021.11.09
@@ -42,15 +50,19 @@ void AudioI2S_Init(I2S_MODULE Module, I2SParamCt *ct)
     else if(Module == I2S1_MODULE)
     {
     	if(IsSelectMclkClk1(ct->SampleRate))
+    	{
 			Clock_AudioMclkSel(AUDIO_I2S1, PLL_CLOCK1);
+    	}
 		else
+		{
 			Clock_AudioMclkSel(AUDIO_I2S1, PLL_CLOCK2);
-		
+		}
 		I2S_FadeTimeSet(I2S1_MODULE,90);
 		I2S_FadeEnable(I2S1_MODULE);//  bkd add 2021.11.09
     }
 
 	I2S_SampleRateSet(Module, ct->SampleRate);
+
 	if(ct->IsMasterMode == 0)
 	{
 		I2S_MasterModeSet(Module, ct->I2sFormat, ct->I2sBits);
@@ -267,4 +279,32 @@ uint16_t AudioI2S0_TX_DataLenGet(void)
 uint16_t AudioI2S1_TX_DataLenGet(void)
 {
 	return DMA_CircularDataLenGet(PERIPHERAL_ID_I2S1_TX) / 4;
+}
+
+void AudioI2S_SampleRateChange(I2S_MODULE Module,uint32_t SampleRate)
+{
+	if(Module == I2S0_MODULE)
+    {
+		if(IsSelectMclkClk1(SampleRate))
+		{
+			Clock_AudioMclkSel(AUDIO_I2S0, PLL_CLOCK1);
+		}
+		else
+		{
+			Clock_AudioMclkSel(AUDIO_I2S0, PLL_CLOCK2);
+		}
+		I2S_SampleRateSet(Module, SampleRate);
+    }
+    else if(Module == I2S1_MODULE)
+    {
+    	if(IsSelectMclkClk1(SampleRate))
+    	{
+			Clock_AudioMclkSel(AUDIO_I2S1, PLL_CLOCK1);
+    	}
+		else
+		{
+			Clock_AudioMclkSel(AUDIO_I2S1, PLL_CLOCK2);
+		}
+    	I2S_SampleRateSet(Module, SampleRate);
+    }
 }

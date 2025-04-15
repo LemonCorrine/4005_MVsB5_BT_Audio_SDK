@@ -80,7 +80,7 @@
 #include "beamforming.h"
 
 // audio effect library version
-#define AUDIO_EFFECT_LIBRARY_VERSION "2.34.1"
+#define AUDIO_EFFECT_LIBRARY_VERSION "2.35.0"
 
 // audio effect versions (Info below is for convenience only. In case of any contradiction, the version info in the respective file header shall prevail.)
 #define EFFECT_VERSION_ADPCM_CODEC                  "2.0.1"
@@ -93,12 +93,12 @@
 #define EFFECT_VERSION_CHORUS                       "1.2.1"
 #define EFFECT_VERSION_CHORUS2                      "2.1.0"
 #define EFFECT_VERSION_COMPANDER                    "1.0.2"
-#define EFFECT_VERSION_DC_BLOCKER                   "1.1.1"
+#define EFFECT_VERSION_DC_BLOCKER                   "1.2.0"
 #define EFFECT_VERSION_DISTORTION_DS1               "1.2.0"
 #define EFFECT_VERSION_DISTORTION_EXP               "1.0.0"
 #define EFFECT_VERSION_DYNAMIC_RANGE_COMPRESSOR     "4.1.0"
 #define EFFECT_VERSION_ECHO                         "2.2.0"
-#define EFFECT_VERSION_ENGINE_SOUND                 "1.1.0"
+#define EFFECT_VERSION_ENGINE_SOUND                 "1.1.1"
 #define EFFECT_VERSION_EQ                           "8.3.1"
 #define EFFECT_VERSION_EQ_DRC                       "1.1.0"
 #define EFFECT_VERSION_EXCITER                      "1.3.0"
@@ -119,10 +119,10 @@
 #define EFFECT_VERSION_PHASE_SHIFTER                "1.1.0"
 #define EFFECT_VERSION_PINGPONG                     "1.5.0"
 #define EFFECT_VERSION_PITCH_DETECTOR               "2.1.1"
-#define EFFECT_VERSION_PITCH_SHIFTER                "1.7.7"
+#define EFFECT_VERSION_PITCH_SHIFTER                "1.8.0"
 #define EFFECT_VERSION_PITCH_SHIFTER_PRO            "2.2.0"
-#define EFFECT_VERSION_REVERB                       "1.9.2"
-#define EFFECT_VERSION_REVERB_PLATE                 "2.2.0"
+#define EFFECT_VERSION_REVERB                       "2.1.0"
+#define EFFECT_VERSION_REVERB_PLATE                 "2.3.0"
 #define EFFECT_VERSION_REVERB_PRO                   "1.3.1"
 #define EFFECT_VERSION_SILENCE_DETECTOR             "1.2.0"
 #define EFFECT_VERSION_STEREO_WIDENER               "1.3.1"

@@ -178,7 +178,7 @@ void SpdifDataCarry(void)
 bool SpdifPlayInit(void)
 {
 	AudioCoreIO AudioIOSet;
-	bool ret;
+	bool ret = FALSE;
 
 	if(SpdifPlayCt != NULL)
 	{
@@ -472,6 +472,9 @@ void SpdifPlayRun(uint16_t msgId)
 		{
 			SpdifPlayCt->SampleRate = SPDIF_SampleRateGet(CFG_SPDIF_MODULE);
 			APP_DBG("Get SampleRate: %d\n", (int)SpdifPlayCt->SampleRate);
+#ifdef CFG_AUDIO_OUT_AUTO_SAMPLE_RATE_44100_48000
+			AudioOutSampleRateSet(SpdifPlayCt->SampleRate);
+#endif
 			AudioCoreSourceChange(SPDIF_SOURCE_NUM, 0, SpdifPlayCt->SampleRate);
 
 #ifdef SPDIF_DPLL_LOCK_MODE

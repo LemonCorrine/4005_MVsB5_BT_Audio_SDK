@@ -294,8 +294,8 @@ void BtReconnectDevCreate(uint8_t *addr, uint8_t tryCount, uint8_t interval, uin
 {
 	if(btManager.btReconExcuteSt == (&btManager.btReconPhoneSt))
 	{
-		APP_DBG("BtReconnectDev is running..., stop\n");
-		BtReconnectDevStop();
+		APP_DBG("BtReconnectDev is running..., wait\n");
+		//BtReconnectDevStop();
 		return;
 	}
 

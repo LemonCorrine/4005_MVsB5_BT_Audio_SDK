@@ -22,6 +22,7 @@ extern "C" {
 #include "app_config.h"
 #include "bt_config.h"
 #include "audio_core_api.h"
+#include "clk.h"
 
 #define  MIN_BASS_TREB_GAIN             (0)
 #define  MAX_BASS_TREB_GAIN             (15)
@@ -235,12 +236,23 @@ typedef struct _HardwareConfigContext
 	SPDIFContext		SPDIFCt;
 }HardwareConfigContext;
 
+typedef enum _AutoRefreshType
+{
+	AutoRefresh_NONE = 0,			//不需要刷新
+	AutoRefresh_ALL_PARA = 1,		//刷新0x00开始的所有参数
+	AutoRefresh_ALL_EFFECTS_PARA = 2,//刷新0x81开始所有音效参数
+
+	//3-255 刷新指定地址的参数
+	AutoRefresh_0x03_PARA,
+	AutoRefresh_0x04_PARA,
+}AutoRefreshType;
+
 //-----system var--------------------------//
 typedef struct _ControlVariablesContext
 {
 	//for system control 0x01
 	//for System status 0x02
-	uint16_t 			AutoRefresh;//调音时音效参数发生改变，上位机会自动读取音效数据，1=允许上位读，0=不需要上位机读取
+	AutoRefreshType 			AutoRefresh;
 
 	HardwareConfigContext HwCt;
 

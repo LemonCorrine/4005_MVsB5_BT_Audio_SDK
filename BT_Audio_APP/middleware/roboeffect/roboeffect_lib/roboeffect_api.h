@@ -13,7 +13,7 @@
 #define __ROBOEFFECT_API_H__
 
 /*Roboeffect Library version*/
-#define ROBOEFFECT_LIB_VER "2.10.0"
+#define ROBOEFFECT_LIB_VER "2.12.2"
 
 #include <stdio.h>
 #include <nds32_intrinsic.h>
@@ -30,14 +30,13 @@
 #define ROBOEFFECT_IO_TYPE_DES 2
 #define IO_UNIT_MAX 8
 
-typedef bool (*roboeffect_effect_apply_func)(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
-typedef bool (*roboeffect_effect_init_func)(void *node);
-typedef bool (*roboeffect_effect_config_func)(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);//can be all param(param_num=0xff) or only ONE param(param_num=1)
-typedef int32_t (*roboeffect_effect_scratch_size_func)(uint32_t sample_rate, uint16_t frame_size, uint16_t width, uint8_t ch_num, int16_t *parameters);
+
 
 #define ROBOEFFECT_CH_MONO          1
 #define ROBOEFFECT_CH_STEREO        2
 #define ROBOEFFECT_CH_MONO_STEREO   3
+
+#define ALIGN4(x) (((x) + 3) & ~3)
 
 typedef enum _roboeffect_effect_type_enum
 {
@@ -111,7 +110,7 @@ typedef enum _roboeffect_effect_type_enum
 
 typedef enum _ROBOEFFECT_ERROR_CODE
 {
-    ROBOEFFECT_EFFECT_NOT_EXISTED = -256,
+  ROBOEFFECT_EFFECT_NOT_EXISTED = -256,
 	ROBOEFFECT_EFFECT_PARAMS_NOT_FOUND,
 	ROBOEFFECT_INSUFFICIENT_MEMORY,
 	ROBOEFFECT_EFFECT_INIT_FAILED,
@@ -121,6 +120,7 @@ typedef enum _ROBOEFFECT_ERROR_CODE
 	ROBOEFFECT_ADDRESS_NOT_EXISTED,
 	ROBOEFFECT_PARAMS_ERROR,
 	ROBOEFFECT_FRAME_SIZE_ERROR,
+	ROBOEFFECT_MEMORY_SIZE_QUERY_ERROR,
 
 	// No Error
 	ROBOEFFECT_ERROR_OK = 0,					/**< no error */
@@ -257,6 +257,29 @@ typedef struct _roboeffect_effect_list_info
 	const roboeffect_exec_effect_info *effect_info;
 } roboeffect_effect_list_info;//parameter header for all
 
+typedef struct _roboeffect_memory_size_query
+{
+	uint32_t sample_rate;
+	uint32_t frame_size;
+	uint32_t ch_num;
+	uint32_t data_width;
+	int16_t *params;
+} roboeffect_memory_size_query;
+
+typedef struct _roboeffect_memory_size_response
+{
+	uint32_t context_memory_size;
+	uint32_t additional_memory_size;
+	uint32_t scratch_memory_size;
+} roboeffect_memory_size_response;
+
+typedef bool (*roboeffect_effect_apply_func)(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
+typedef bool (*roboeffect_effect_init_func)(void *node);
+typedef bool (*roboeffect_effect_config_func)(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);//can be all param(param_num=0xff) or only ONE param(param_num=1)
+typedef int32_t (*roboeffect_effect_memory_size_func)(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
+
+
+
 typedef struct _roboeffect_effect_property_struct
 {
 	uint8_t type_num;
@@ -269,7 +292,7 @@ typedef struct _roboeffect_effect_property_struct
 	roboeffect_effect_config_func config_func;//if parameter change in init, should call init_func
 	roboeffect_effect_apply_func apply_func;
 
-	roboeffect_effect_scratch_size_func scratch_func;
+	roboeffect_effect_memory_size_func memory_size_func;
 
 	// int16_t param_list[ROBOEFFECT_PARAM_LEN_MAX];
 	// roboeffect_param_cfg_method cfg_method[ROBOEFFECT_PARAM_LEN_MAX];//define how to config parameters
@@ -442,14 +465,14 @@ int16_t roboeffect_get_parameter_number(void *main_context, uint8_t address);
  */
 uint32_t roboeffect_get_suit_frame_size(void *main_contex, uint32_t target_frame_size, uint8_t address, int8_t operation);
 /**
- * @brief Get effect class name.
+ * @brief Get effect type name.
  * 
  * @param main_context : context memory allocated by user  
  * @param address : effect node's address, start from 0x81  
- * @param name_output : name string, user need send a block of memory to hold it.
+ * @param type_output : name string, user need send a block of memory to hold it.
  * @return ROBOEFFECT_ERROR_CODE 
  */
-ROBOEFFECT_ERROR_CODE roboeffect_get_effect_name(void *main_context, uint8_t address, char *name_output);
+ROBOEFFECT_ERROR_CODE roboeffect_get_effect_type(void *main_context, uint8_t address, char *type_output);
 
 /**
  * @brief Get effect class version number.

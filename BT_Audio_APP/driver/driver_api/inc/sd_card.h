@@ -183,6 +183,8 @@ bool SDIO_CmdSend(uint8_t Cmd, uint32_t Param, uint16_t TimeOut);
 
 void SDCard_Force_Exit(void);
 
+//配置SDIO使能 byte模式
+//#define CFG_SDIO_BYTE_MODE_ENABLE
 
 #ifdef  __cplusplus
 }

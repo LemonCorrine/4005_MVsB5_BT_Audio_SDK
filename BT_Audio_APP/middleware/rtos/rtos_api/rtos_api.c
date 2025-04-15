@@ -17,8 +17,9 @@
 #include "debug.h"
 #include <nds32_intrinsic.h>
 #include "timeout.h"
+#ifdef CFG_APP_CONFIG
 #include "bt_em_config.h"
-
+#endif
 extern void vPortDefineHeapRegions( const HeapRegion_t * const pxHeapRegions ); //defined by heap_5s.c add for warning by pi
 extern uint32_t Clock_CoreClockFreqGet(void);
 extern void DecoderOslockUnlock(void);
@@ -350,6 +351,7 @@ void vApplicationIdleHook(void)
 		}
 		__nds32__standby_no_wake_grant();
 #else
+	#ifdef CFG_APP_CONFIG
 		{
 			#include "app_message.h"
 			extern bool AudioCoreDataSpaceCheck(void);
@@ -361,6 +363,7 @@ void vApplicationIdleHook(void)
 				MessageSend(GetAudioCoreServiceMsgHandle(), &msgSend);
 			}
 		}
+	#endif
 #endif
 }
 

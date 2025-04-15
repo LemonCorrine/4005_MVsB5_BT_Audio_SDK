@@ -32,11 +32,6 @@ static const uint8_t DmaChannelMap[6] = {
 	PERIPHERAL_ID_AUDIO_ADC0_RX,
 	PERIPHERAL_ID_AUDIO_ADC1_RX,
 	PERIPHERAL_ID_AUDIO_DAC0_TX,
-//#ifdef CFG_DUMP_DEBUG_EN
-//	CFG_DUMP_UART_TX_DMA_CHANNEL,
-//#else
-//	PERIPHERAL_ID_SDIO_TX,
-//#endif
 #ifdef CFG_RES_AUDIO_I2S_MIX_IN_EN
 	PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX_I2S_MODULE,
 #else
@@ -108,7 +103,7 @@ bool UsbDevicePlayResMalloc(uint16_t SampleLen)
 	return TRUE;
 }
 
-void UsbDevicePlayResInit(void)
+bool UsbDevicePlayResInit(void)
 {
 	//Core Source1 para
 	AudioCoreIO	AudioIOSet;
@@ -143,6 +138,9 @@ void UsbDevicePlayResInit(void)
 	{
 		AudioIOSet.SampleRate = CFG_PARA_SAMPLE_RATE;//初始值
 	}
+#ifdef CFG_AUDIO_OUT_AUTO_SAMPLE_RATE_44100_48000
+	AudioOutSampleRateSet(AudioIOSet.SampleRate);
+#endif
 #ifdef	CFG_AUDIO_WIDTH_24BIT
 	AudioIOSet.IOBitWidth = 1;//0,16bit,1:24bit
 	AudioIOSet.IOBitWidthConvFlag = 0;//不需要数据进行位宽扩展
@@ -150,6 +148,7 @@ void UsbDevicePlayResInit(void)
 	if(!AudioCoreSourceInit(&AudioIOSet, USB_AUDIO_SOURCE_NUM))
 	{
 		DBG("Usbin source error!\n");
+		return FALSE;
 	}
 	AudioCoreSourceAdjust(USB_AUDIO_SOURCE_NUM, TRUE);//仅在init通路配置微调后，通路使能时 有效
 #endif //CFG_RES_AUDIO_USB_IN_EN
@@ -195,6 +194,7 @@ void UsbDevicePlayResInit(void)
 	}
 	AudioCoreSinkAdjust(USB_AUDIO_SINK_NUM,TRUE);
 #endif //CFG_RES_AUDIO_USB_OUT_EN
+	return TRUE;
 }
 //usb声卡模式硬件相关初始化
 void UsbDevicePlayHardwareInit(void)
@@ -253,7 +253,11 @@ bool UsbDevicePlayInit(void)
 		APP_DBG("UsbDevicePlayResMalloc Res Error!\n");
 		return FALSE;
 	}
-	UsbDevicePlayResInit();
+	if(!UsbDevicePlayResInit())
+	{
+		APP_DBG("UsbDevicePlayResInit Res Error!\n");
+		return FALSE;
+	}
 	//Core Process
 #ifdef CFG_FUNC_AUDIO_EFFECT_EN
 	AudioCoreProcessConfig((AudioCoreProcessFunc)AudioMusicProcess);

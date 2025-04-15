@@ -285,6 +285,9 @@ void DeviceStorRead10(void)// bkd change sdio1 to 0
 	DMA_InterruptFlagClear(PERIPHERAL_ID_SDIO_RX, DMA_DONE_INT);
 	DMA_BlockConfig(PERIPHERAL_ID_SDIO_RX);
 	DMA_BlockBufSet(PERIPHERAL_ID_SDIO_RX, (ReqCnt % 2) ? CARD_BUF_A : CARD_BUF_B, SD_BLOCK_SIZE);
+#ifdef CFG_SDIO_BYTE_MODE_ENABLE
+	DMA_ConfigDwidth(PERIPHERAL_ID_SDIO_RX, DMA_DWIDTH_BYTE);
+#endif
 	DMA_ChannelEnable(PERIPHERAL_ID_SDIO_RX);
 	SDIO_MultiBlockDisable();
 	SDIO_AutoKillRXClkEnable();
@@ -304,6 +307,9 @@ void DeviceStorRead10(void)// bkd change sdio1 to 0
 			DMA_InterruptFlagClear(PERIPHERAL_ID_SDIO_RX, DMA_DONE_INT);
 			DMA_BlockConfig(PERIPHERAL_ID_SDIO_RX);
 			DMA_BlockBufSet(PERIPHERAL_ID_SDIO_RX, (ReqCnt % 2) ? CARD_BUF_A : CARD_BUF_B, SD_BLOCK_SIZE);//0,2,4,6 A 1357B
+#ifdef CFG_SDIO_BYTE_MODE_ENABLE
+			DMA_ConfigDwidth(PERIPHERAL_ID_SDIO_RX, DMA_DWIDTH_BYTE);
+#endif
 			DMA_ChannelEnable(PERIPHERAL_ID_SDIO_RX);
 			SDIO_DataTransfer(1);
 			SDIO_ClkEnable();
@@ -374,6 +380,9 @@ void DeviceStorWrite10(void)
 		DMA_InterruptFlagClear(PERIPHERAL_ID_SDIO_TX, DMA_DONE_INT);
 		DMA_BlockConfig(PERIPHERAL_ID_SDIO_TX);
 		DMA_BlockBufSet(PERIPHERAL_ID_SDIO_TX, (uint8_t*)((ReqCnt%2) ? (uint8_t*)CARD_BUF_B : (uint8_t*)CARD_BUF_A), SD_BLOCK_SIZE);
+#ifdef CFG_SDIO_BYTE_MODE_ENABLE
+		DMA_ConfigDwidth(PERIPHERAL_ID_SDIO_TX, DMA_DWIDTH_BYTE);
+#endif
 		DMA_ChannelEnable(PERIPHERAL_ID_SDIO_TX);
 		SDIO_SingleBlockConfig(SDIO_DIR_TX,SD_BLOCK_SIZE);
 		SDIO_DataTransfer(1);

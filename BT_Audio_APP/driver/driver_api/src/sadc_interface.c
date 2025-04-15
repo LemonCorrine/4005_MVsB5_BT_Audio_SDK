@@ -4,6 +4,7 @@
 #include "clk.h"
 #include "pmu.h"
 #include "powercontroller.h"
+#include "debug.h"
 #ifdef CFG_APP_CONFIG
 #include "app_config.h"
 #else
@@ -21,7 +22,7 @@ void SarADC_Init(void)
 #endif
 
 	ADC_Enable();
-	ADC_ClockDivSet(CLK_DIV_128);//30M / 8
+	ADC_ClockDivSet(4);  //120M / (2*4) = 15M
 	ADC_VrefSet(ADC_VREF_VDDA);//1:VDDA; 0:VDD
 	ADC_ModeSet(ADC_CON_SINGLE);
 

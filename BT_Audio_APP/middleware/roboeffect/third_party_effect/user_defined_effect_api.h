@@ -58,13 +58,13 @@
 bool roboeffect_simple_gain_init_if(void *node);
 bool roboeffect_simple_gain_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
 bool roboeffect_simple_gain_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
-int32_t roboeffect_simple_gain_scratch_size(uint32_t sample_rate, uint16_t frame_size, uint16_t width, uint8_t ch_num, int16_t *parameters);
+int32_t roboeffect_simple_gain_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
 
 
 //Add SIMPLE_GAIN_INTERFACE to USER_DEFINED_INTERFACE
 #define SIMPLE_GAIN_INTERFACE \
-	{ROBOEFFECT_SIMPLE_GAIN, ROBOEFFECT_CH_MONO_STEREO, FZ_ANY, 2, (sizeof(simple_gain_struct)),\
-	roboeffect_simple_gain_init_if, roboeffect_simple_gain_config_if, roboeffect_simple_gain_apply_if, NULL,\
+	{ROBOEFFECT_SIMPLE_GAIN, ROBOEFFECT_CH_MONO_STEREO, FZ_ANY, 2, 4,\
+	roboeffect_simple_gain_init_if, roboeffect_simple_gain_config_if, roboeffect_simple_gain_apply_if, roboeffect_simple_gain_memory_size_if,\
 	},
 
 

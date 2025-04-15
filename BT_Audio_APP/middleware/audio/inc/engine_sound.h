@@ -4,7 +4,7 @@
  * @brief	Simulation of engine sound
  *
  * @author	ZHAO Ying (Alfred)
- * @version	v1.1.0
+ * @version	v1.1.1
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************
@@ -56,8 +56,8 @@ typedef struct _EngineSoundContext
 	EngineSoundPCMReadCallback cb;
 	int32_t frame_state;
 	int32_t sound1, sound2;
-	PSContext ct1, ct2;
-	PSContext *pct1, *pct2;
+	PitchShifterContext16 ct1, ct2;
+	PitchShifterContext16 *pct1, *pct2;
 	int32_t rpm, rpmfi, rpma, rpmb, rpm_min, rpm_max;
 	int16_t pcm1[MAX_W_SIZE / 2];
 	int16_t pcm2[MAX_W_SIZE / 2];

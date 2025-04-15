@@ -275,6 +275,10 @@ TIMER_ERROR_CODE Timer_InterruptFlagClear(TIMER_INDEX TimerIndex, TIMER_INTERRUP
  */
 void SysTimerIntFlagClear(void);
 
+bool TIMER_DmaRequestEnable(TIMER_INDEX TimerIdx);
+
+bool TIMER_DmaRequestDisable(TIMER_INDEX TimerIdx);
+
 #ifdef  __cplusplus
 }
 #endif//__cplusplus

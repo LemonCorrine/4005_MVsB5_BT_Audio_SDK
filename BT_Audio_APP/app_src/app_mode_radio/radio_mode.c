@@ -474,7 +474,11 @@ void RadioPlayResInit(void)
 #endif
 
 	AudioADC_DigitalInit(ADC0_MODULE, CFG_PARA_SAMPLE_RATE,BitWidth, (void*)sRadioPlayCt->ADCFIFO, sRadioPlayCt->ADCFIFO_len);
-
+#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+	Clock_AudioMclkSel(AUDIO_ADC0, gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source);
+#else
+	gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source = Clock_AudioMclkGet(AUDIO_ADC0);
+#endif
 
 #if (RADIO_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN1)
 #ifdef CFG_ADCDAC_SEL_LOWPOWERMODE

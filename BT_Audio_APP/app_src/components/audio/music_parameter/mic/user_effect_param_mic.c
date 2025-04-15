@@ -14,7 +14,7 @@
 const unsigned char user_effect_parameters_mic_mic[] = {
 0x68, 0x03, /*total data length*/
 
-0x02, 0x22, 0x01, /*Effect Version*/
+0x02, 0x23, 0x00, /*Effect Version*/
 
 0x81, /*mic_eq0*/
 0x69,/*length*/

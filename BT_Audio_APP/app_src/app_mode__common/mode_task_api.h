@@ -27,5 +27,8 @@ void tws_device_open_isr(void);
 
 void PauseAuidoCore(void);
 
+#ifdef CFG_AUDIO_OUT_AUTO_SAMPLE_RATE_44100_48000
+void AudioOutSampleRateSet(uint32_t SampleRate);
+#endif
 
 #endif /* _MODE_TASK_API_H_ */
