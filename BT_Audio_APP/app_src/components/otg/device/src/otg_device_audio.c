@@ -395,6 +395,9 @@ void OTG_DeviceAudioRequest(void)
 			{
 				UsbAudioSpeaker.AudioSampleRate = SWAP_BUF_TO_U32(Request);
 				printf("UsbAudioSpeaker.AudioSampleRate:%u\n",(unsigned int)UsbAudioSpeaker.AudioSampleRate);
+			#ifdef CFG_AUDIO_OUT_AUTO_SAMPLE_RATE_44100_48000
+				 AudioOutSampleRateSet(UsbAudioSpeaker.AudioSampleRate);
+			#endif
 				AudioCoreSourceChange(USB_AUDIO_SOURCE_NUM, UsbAudioSpeaker.Channels, UsbAudioSpeaker.AudioSampleRate);
 			}
 		}
@@ -785,6 +788,9 @@ void OTG_DeviceAudioRequest(void)
 		{
 			UsbAudioSpeaker.AudioSampleRate = SWAP_BUF_TO_U32(Request);//Request[1]*256 + Request[0];
 			APP_DBG("UsbAudioSpeaker.AudioSampleRate:%u\n",(unsigned int)UsbAudioSpeaker.AudioSampleRate);
+		#ifdef CFG_AUDIO_OUT_AUTO_SAMPLE_RATE_44100_48000
+			AudioOutSampleRateSet(UsbAudioSpeaker.AudioSampleRate);
+		#endif
 			AudioCoreSourceChange(USB_AUDIO_SOURCE_NUM, UsbAudioSpeaker.Channels, UsbAudioSpeaker.AudioSampleRate);
 		}
 		else if(AudioCmd == GET_CUR_2)
@@ -871,6 +877,18 @@ void UsbAudioTimer1msProcess(void)
 		UsbAudioSpeaker.FramCount = 0;
 		UsbAudioSpeaker.TempFramCount = 0;
 		AudioCoreSourceDisable(USB_AUDIO_SOURCE_NUM);
+	}
+	if(UsbAudioSpeaker.AltSlow)
+	{
+		if(UsbAudioSpeaker.FramCount > 100)
+		{
+			AudioCoreSourceUnmute(USB_AUDIO_SOURCE_NUM,1,1);
+			UsbAudioSpeaker.AltSlow = 0;
+		}
+		else
+		{
+			AudioCoreSourceMute(USB_AUDIO_SOURCE_NUM,1,1);
+		}
 	}
 #endif
 

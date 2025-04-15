@@ -41,7 +41,14 @@ bool roboeffect_simple_gain_init_if(void *node)
 	gain_info->data_a = 0xAB;
 	gain_info->data_b = 0xCD;
 
-	printf("%s called.", __func__);
+	/**
+	 * get additional memory pointer
+	*/
+	gain_info->ptr = roboeffect_user_defined_malloc(node, 16);
+
+	/*Use gain_info->ptr to cache something*/
+
+	// printf("%s called.", __func__);
 	return TRUE;
 }
 
@@ -55,7 +62,7 @@ bool roboeffect_simple_gain_config_if(void *node, int16_t *new_param, uint8_t pa
 	/**
 	 * check parameters and update to effect instance
 	*/
-	if(ROBOEFFECT_ERROR_OK < roboeffect_user_defined_params_check(node, new_param, param_num, len, &method_flag))
+	if(ROBOEFFECT_ERROR_OK > roboeffect_user_defined_params_check(node, new_param, param_num, len, &method_flag))
 	{
 		return FALSE;
 	}
@@ -140,7 +147,25 @@ bool roboeffect_simple_gain_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_
 		}
 	}
 
-	printf("*");
+	return TRUE;
+}
+
+bool roboeffect_simple_gain_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response)
+{
+	int32_t max_delay_samples = ceilf(query->params[0] * query->sample_rate / 1000.0f);
+
+	response->context_memory_size = sizeof(simple_gain_struct);
+
+	if(query->params[0] == 0)
+	{
+		response->additional_memory_size = ceilf(max_delay_samples/32.0f)*19;
+	}
+	else if(query->params[0] == 1)
+	{
+		response->additional_memory_size = max_delay_samples * 2;
+	}
+
+	response->scratch_memory_size = 0;
 
 	return TRUE;
 }

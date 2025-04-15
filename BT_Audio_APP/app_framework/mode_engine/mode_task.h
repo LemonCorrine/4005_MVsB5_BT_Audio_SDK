@@ -109,7 +109,7 @@ void SysModeChangeTimeoutProcess(void);
 void SysModeEnter(SysModeNumber SetMode);
 void SendModeKeyMsg(void);
 bool GetModeDefineState(SysModeNumber sys_mode);
-
+bool SysCurModeReboot(void);
 
 
 #ifdef __cplusplus

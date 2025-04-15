@@ -335,6 +335,16 @@ I2S_ERROR_CODE I2S_FadeEnable(I2S_MODULE I2SModuleIndex);
  */
 I2S_ERROR_CODE I2S_FadeDisable(I2S_MODULE I2SModuleIndex);
 
+/**
+ * @brief  设置I2S模块MCLK频率
+ * @param  I2SModuleIndex : I2S_MODULE
+ * @param  mclk0 : 			MCLK0频率：11.2896M  或者 11.2896M * 4
+ * @param  mclk1 : 			MCLK1频率：12.288M   或者 12.288M  * 4
+ * @param  Div : 			分频比(0/1/2/3)，mclk_frequency = mclk0/(Div+1) 或者 mclk1/(Div+1)
+ * @return
+ */
+void I2S_MclkFreqSet(I2S_MODULE I2SModuleIndex, uint32_t mclk0,uint32_t mclk1,uint32_t Div);
+
 
 //0:master mode ;1:slave mode 外设未接不要配slave
 #define	I2S_MASTER_MODE			0

@@ -474,7 +474,7 @@ void DefaultParamgsInit(void)
 {
 	memset(&gCtrlVars,  0, sizeof(gCtrlVars));
 	//for system control 0x01
-	gCtrlVars.AutoRefresh = 1;//调音时音效参数发生改变，上位机会自动读取音效数据，1=允许上位读，0=不需要上位机读取
+	gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
 
 	if(AudioCore.Audioeffect.context_memory)
 	{

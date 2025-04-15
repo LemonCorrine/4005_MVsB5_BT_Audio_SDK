@@ -295,7 +295,7 @@ void BtA2dpStreamStart(BT_A2DP_CALLBACK_PARAMS * param)
 	else
 #endif
 		{
-			HardWareMuteOrUnMute();
+//			HardWareMuteOrUnMute();
 			a2dp_unmute_delay_cnt = 0;
 		}
 	}
@@ -411,7 +411,7 @@ void BtA2dpStreamSuspend(BT_A2DP_CALLBACK_PARAMS * param)
 		if( (GetA2dpState(0) != BT_A2DP_STATE_STREAMING) && (GetA2dpState(1) != BT_A2DP_STATE_STREAMING) )//防止抢播可能会出现的断音
 #endif
 		{
-			HardWareMuteOrUnMute();
+//			HardWareMuteOrUnMute();
 			a2dp_unmute_delay_cnt = 0;
 		}
 	}

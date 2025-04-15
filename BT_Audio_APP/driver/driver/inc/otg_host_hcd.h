@@ -30,7 +30,8 @@ extern "C" {
 #define	HOST_CONTROL_EP			0
 #define	HOST_BULK_IN_EP			1
 #define	HOST_BULK_OUT_EP		1
-#define	HOST_INT_IN_EP			2
+#define	HOST_INT_IN_EP			1
+#define	HOST_INT_OUT_EP			1
 #define	HOST_ISO_OUT_EP			2
 #define	HOST_ISO_IN_EP			2
 

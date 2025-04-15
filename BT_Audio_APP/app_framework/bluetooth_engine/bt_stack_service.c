@@ -834,19 +834,14 @@ static void BtStackServiceEntrance(void * param)
 {
 	BtBbParams			bbParams;
 	MessageContext		msgRecv;
-	extern uint32_t DebugBBLmLink;
 	
 	SetBluetoothMode(BLE_SUPPORT|(BT_SUPPORT<<1));
 	
-	DebugBBLmLink = 1;	//Ä¬ÈÏ¿ªÆôlm debug
-
 	//load bt stack all params
 	LoadBtConfigurationParams();
 	
 	//BB init
 	ConfigBtBbParams(&bbParams);
-
-
 
 	Bluetooth_common_init(&bbParams);
 #if ( BT_SUPPORT == ENABLE )

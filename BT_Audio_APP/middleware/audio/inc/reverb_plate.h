@@ -4,7 +4,7 @@
  * @brief	Plate class reverberation effect for both 16 bit & 24 bit.
  *
  * @author	ZHAO Ying (Alfred)
- * @version	v2.2.0
+ * @version	v2.3.0
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************
@@ -34,7 +34,7 @@ typedef enum _REVERB_PLATE_ERROR_CODE
 } REVERB_PLATE_ERROR_CODE;
 
 
-typedef struct _ReverbPlate16Context
+typedef struct _ReverbPlateContext16
 {
 	int32_t sample_rate;
 	int32_t num_channels;
@@ -82,10 +82,10 @@ typedef struct _ReverbPlate16Context
 	int16_t ap8delayline[3936];
 	int16_t predelayline[MAX_REVERB_PLATE_PREDELAY];
 
-} ReverbPlate16Context;
+} ReverbPlateContext16;
 
 /** reverb context */
-typedef struct _ReverbPlate24Context
+typedef struct _ReverbPlateContext24
 {
 	int32_t sample_rate;
 	int32_t num_channels;
@@ -133,7 +133,7 @@ typedef struct _ReverbPlate24Context
     uint8_t ap8delayline[3936*3];
     uint8_t predelayline[MAX_REVERB_PLATE_PREDELAY*3];
 
-} ReverbPlate24Context;
+} ReverbPlateContext24;
 
 
 #ifdef __cplusplus
@@ -143,55 +143,55 @@ extern "C" {
 
 /**
  * @brief Initialize reverberation audio effect module.
- * @param ct Pointer to a ReverbPlate16Context object.
+ * @param ct Pointer to a ReverbPlateContext16 object.
  * @param num_channels Number of channels. Both 1 and 2 channels are supported.
  * @param sample_rate Sample rate.
  * @param highcut_freq Lowpass filter cutoff in the range 0 to sample_rate/2.
  * @param modulation_en Enable delay modulation. 0: disabled, 1: enabled
  * @return error code. REVERB_PLATE_ERROR_OK means successful, other codes indicate error.
  */
-int32_t reverb_plate_init16(ReverbPlate16Context *ct, int32_t num_channels, int32_t sample_rate, int32_t highcut_freq, int32_t modulation_en);
+int32_t reverb_plate_init16(ReverbPlateContext16 *ct, int32_t num_channels, int32_t sample_rate, int32_t highcut_freq, int32_t modulation_en);
 
 
 /**
  * @brief Initialize reverberation audio effect module.
- * @param ct Pointer to a ReverbPlate24Context object.
+ * @param ct Pointer to a ReverbPlateContext24 object.
  * @param num_channels Number of channels. Both 1 and 2 channels are supported.
  * @param sample_rate Sample rate.
  * @param highcut_freq Lowpass filter cutoff in the range 0 to sample_rate/2.
  * @param modulation_en Enable delay modulation. 0: disabled, 1: enabled
  * @return error code. REVERB_PLATE_ERROR_OK means successful, other codes indicate error.
  */
-int32_t reverb_plate_init24(ReverbPlate24Context *ct, int32_t num_channels, int32_t sample_rate, int32_t highcut_freq, int32_t modulation_en);
+int32_t reverb_plate_init24(ReverbPlateContext24 *ct, int32_t num_channels, int32_t sample_rate, int32_t highcut_freq, int32_t modulation_en);
 
 
 /**
  * @brief Apply reverberation effect to a frame of PCM data.
- * @param ct Pointer to a ReverbPlate16Context object.
+ * @param ct Pointer to a ReverbPlateContext16 object.
  * @param pcm_in Address of the PCM input. The PCM layout must be the same as in Microsoft WAVE format for both mono and stereo cases.
  * @param pcm_out Address of the PCM output. The PCM layout must be the same as in Microsoft WAVE format for both mono and stereo cases.
  *        pcm_out can be the same as pcm_in. In this case, the PCM is changed in-place.
  * @param n Number of PCM samples to process. 
  * @return error code. REVERB_PLATE_ERROR_OK means successful, other codes indicate error.
  */
-int32_t reverb_plate_apply16(ReverbPlate16Context *ct, int16_t *pcm_in, int16_t *pcm_out, int32_t n);
+int32_t reverb_plate_apply16(ReverbPlateContext16 *ct, int16_t *pcm_in, int16_t *pcm_out, int32_t n);
 
 
 /**
  * @brief Apply reverberation effect to a frame of PCM data (24-bit PCM in & out).
- * @param ct Pointer to a ReverbPlate24Context object.
+ * @param ct Pointer to a ReverbPlateContext24 object.
  * @param pcm_in Address of the PCM input. The PCM layout must be the same as in Microsoft WAVE format for both mono and stereo cases.
  * @param pcm_out Address of the PCM output. The PCM layout must be the same as in Microsoft WAVE format for both mono and stereo cases.
  *        pcm_out can be the same as pcm_in. In this case, the PCM is changed in-place.
  * @param n Number of PCM samples to process. 
  * @return error code. REVERB_PLATE_ERROR_OK means successful, other codes indicate error.
  */
-int32_t reverb_plate_apply24(ReverbPlate24Context *ct, int32_t *pcm_in, int32_t *pcm_out, int32_t n);
+int32_t reverb_plate_apply24(ReverbPlateContext24 *ct, int32_t *pcm_in, int32_t *pcm_out, int32_t n);
 
 
 /**
  * @brief Configure reverberation effect's parameters.
- * @param ct0 Pointer to a ReverbPlate16Context or ReverbPlate24Context object.
+ * @param ct0 Pointer to a ReverbPlateContext16 or ReverbPlateContext24 object.
  * @param predelay Pre-delay in samples. Range: 0~MAX_PLATE_REVERB_PREDELAY
  * @param diffusion Density of reverb tail. Diffusion is proportional to the rate at which the reverb tail builds in density. Increasing Diffusion pushes the reflections closer together, thickening the sound. Reducing Diffusion creates more discrete echoes. Range: 0~100 for 0~100%.
  * @param decay Decay of reverb tail. Decay factor is proportional to the time it takes for reflections to run out of energy. To model a large room, use a long reverb tail. To model a small room, use a short reverb tail. Range: 0~100 for 0~100%.

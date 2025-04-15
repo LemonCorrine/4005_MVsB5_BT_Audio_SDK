@@ -14,7 +14,7 @@
 const unsigned char user_effect_parameters_Karaoke_HanMai[] = {
 0xb8, 0x04, /*total data length*/
 
-0x02, 0x22, 0x01, /*Effect Version*/
+0x02, 0x23, 0x00, /*Effect Version*/
 
 0x81, /*gain_control0*/
 0x05,/*length*/

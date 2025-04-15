@@ -366,9 +366,8 @@ static void MediaPlayMsgProcess(uint16_t msgId)
  */
 bool MediaPlayInit(void)
 {
-
 	bool ret = FALSE;
-	
+
 	if(sMediaPlayCt != NULL)
 	{
 		return FALSE;
@@ -523,7 +522,16 @@ bool MediaPlayInit(void)
 		HardWareMuteOrUnMute();
 	}
 #endif
-	
+
+#ifndef CFG_SDIO_BYTE_MODE_ENABLE
+	if(GetSystemMode() == ModeCardAudioPlay || GetSystemMode() == ModeCardPlayBack)
+	{
+		extern uint32_t * SD_WordModeBuf;
+		if(SD_WordModeBuf == NULL)
+			SD_WordModeBuf = osPortMalloc(4*1024);
+		APP_DBG("SD_WordModeBuf = osPortMalloc(4*1024)\n");
+	}
+#endif
 	return TRUE;
 }
 
@@ -633,7 +641,18 @@ bool MediaPlayDeinit(void)
 	AudioCoreProcessConfig((void*)AudioNoAppProcess);
 	AudioCoreSourceDisable(sMediaPlayCt->SourceNum);
 	//AudioCoreSourceUnmute(sMediaPlayCt->SourceNum, TRUE, TRUE);
-	
+#ifndef CFG_SDIO_BYTE_MODE_ENABLE
+	if(GetSystemMode() == ModeCardAudioPlay || GetSystemMode() == ModeCardPlayBack)
+	{
+		extern uint32_t * SD_WordModeBuf;
+		if(SD_WordModeBuf)
+		{
+			osPortFree(SD_WordModeBuf);
+			APP_DBG("osPortFree(SD_WordModeBuf)\n");
+		}
+		SD_WordModeBuf = NULL;
+	}
+#endif
 #ifndef CFG_FUNC_MIXER_SRC_EN
 #ifdef CFG_RES_AUDIO_DACX_EN
 	AudioDAC_SampleRateChange(ALL, CFG_PARA_SAMPLE_RATE);//»Ö¸´

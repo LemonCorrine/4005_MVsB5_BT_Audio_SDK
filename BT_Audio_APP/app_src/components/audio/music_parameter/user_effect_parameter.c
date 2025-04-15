@@ -8,11 +8,19 @@
 #include "main_task.h"
 #include "bt_config.h"
 
+#ifdef CFG_FUNC_EFFECT_BYPASS_EN
 extern const AUDIOEFFECT_EFFECT_PARA_TABLE bypass_node;
-extern const AUDIOEFFECT_EFFECT_PARA_TABLE hfp_node;
+#else
+#ifdef CFG_FUNC_MIC_KARAOKE_EN
 extern const AUDIOEFFECT_EFFECT_PARA_TABLE karaoke_node;
+#else
 extern const AUDIOEFFECT_EFFECT_PARA_TABLE mic_node;
 extern const AUDIOEFFECT_EFFECT_PARA_TABLE music_node;
+#endif
+#endif
+#if defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE)
+extern const AUDIOEFFECT_EFFECT_PARA_TABLE hfp_node;
+#endif
 
 static const AUDIOEFFECT_EFFECT_PARA_TABLE *effect_para_table[] =
 {
@@ -48,7 +56,9 @@ static const uint16_t audioeffectVolArr[CFG_PARA_MAX_VOLUME_NUM + 1] =
 #endif
 };
 
+#ifdef CFG_FUNC_MIC_KARAOKE_EN
 static ReverbMaxUnit ReverbMaxParam = {0 , 0 , 0 ,0};
+#endif
 
 AUDIOEFFECT_EFFECT_PARA_TABLE * GetCurEffectParaNode(void)
 {
@@ -202,7 +212,7 @@ void AudioEffect_ReverbStep_Ajust(uint8_t ReverbStep)
 		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Reverbnode, 3, &Reverbparam->roomsize_scale);
 		AudioEffect_update_local_params(Reverbnode, 3, &Reverbparam->roomsize_scale, 2);
 	}
-	gCtrlVars.AutoRefresh = 1;
+	gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
 #endif
 }
 
@@ -261,7 +271,7 @@ void AudioEffect_ReverbPlateStep_Ajust(uint8_t ReverbStep)
 		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, ReverbPlatenode, 6, &ReverbPlateparam->wetdrymix);
 		AudioEffect_update_local_params(ReverbPlatenode, 6, &ReverbPlateparam->wetdrymix, 2);
 	}
-	gCtrlVars.AutoRefresh = 1;
+	gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
 #endif
 }
 
@@ -449,6 +459,29 @@ void AudioEffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t 
 //			*(uint16_t *)params = *(uint16_t *)param_input;
 			memcpy((uint16_t *)params, (uint16_t *)param_input, param_len);
 //			DBG("addr:0x%x,index:%d,local:0x%x, len:%d\n", addr, param_index, *(uint16_t *)params, param_len);
+			break;
+		}
+		else
+		{
+			params++;
+			len = *params;
+			params += (len + 1);
+			data_len -= (len + 1);
+		}
+	}
+}
+
+void AudioEffect_update_local_effect_status(uint8_t addr, uint8_t effect_enable)
+{
+	uint8_t *params = AudioCore.Audioeffect.user_effect_parameters + 5;
+	uint16_t data_len = *(uint16_t *)AudioCore.Audioeffect.user_effect_parameters - 5;
+	uint8_t len = 0;
+	while(data_len)
+	{
+		if(*params == addr)
+		{
+			params += 2;
+			*params = effect_enable;
 			break;
 		}
 		else

@@ -42,7 +42,7 @@
 #include "bt_em_config.h"
 
 //-----------------globle timer----------------------//
-volatile uint32_t gInsertEventDelayActTimer = 2500; // ms
+volatile uint32_t gInsertEventDelayActTimer = 1000; // ms
 volatile uint32_t gChangeModeTimeOutTimer = CHANGE_MODE_TIMEOUT_COUNT;
 volatile uint32_t gDeviceCheckTimer = DEVICE_DETECT_TIMER; //ms
 //volatile uint32_t gDeviceUSBDeviceTimer = DEVICE_USB_DEVICE_DETECT_TIMER ;//ms

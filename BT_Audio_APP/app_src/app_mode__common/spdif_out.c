@@ -24,7 +24,8 @@ bool Clock_APllLock(uint32_t PllFreq);
 
 void AudioSpdifOut_SampleRateChange(uint32_t SampleRate)
 {
-	if((SampleRate == 11025) || (SampleRate == 22050) || (SampleRate == 44100)|| (SampleRate == 88200))
+	if((SampleRate == 11025) || (SampleRate == 22050) || (SampleRate == 44100)
+			|| (SampleRate == 88200) || (SampleRate == 176400))
 	{
 		Clock_PllLock(225792);
 	}
@@ -58,7 +59,7 @@ uint16_t AudioSpdifTXDataSet(void* Buf, uint16_t Len)
 	Length = Len * 4;
 	m = SPDIF_PCMDataToSPDIFData(SPDIF_OUT_NUM,(int32_t *)Buf, Length, (int32_t *)SpdifBuf, SPDIF_WORDLTH_16BIT);
 #endif
-	DMA_CircularDataPut(SPDIF_OUT_DMA_ID, (void *)Buf, Length & 0xFFFFFFFC);
+	DMA_CircularDataPut(SPDIF_OUT_DMA_ID, (void *)SpdifBuf, m & 0xFFFFFFFC);
 
 
 	return 0;

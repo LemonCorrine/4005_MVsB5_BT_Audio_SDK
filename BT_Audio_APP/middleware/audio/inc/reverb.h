@@ -4,7 +4,7 @@
  * @brief	Reverberation effect
  *
  * @author	ZHAO Ying (Alfred)
- * @version	v1.9.2
+ * @version	v2.1.0
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************
@@ -58,8 +58,8 @@ typedef enum _REVERB_ERROR_CODE
 	REVERB_ERROR_OK = 0,					/**< no error              */
 } REVERB_ERROR_CODE;
 
-/** reverb context */
-typedef struct _ReverbContext
+/** reverb context for 16-bit PCM */
+typedef struct _ReverbContext16
 {
 	int32_t sample_rate;
 	int32_t num_channels;	
@@ -67,19 +67,40 @@ typedef struct _ReverbContext
 	int32_t wet, wet1, wet2;
 	int32_t roomsize;
 	int32_t damping;
-	//int16_t d0[DELAYL_TOTAL_SIZE];
-	//int16_t d1[DELAYR_TOTAL_SIZE];
-	int16_t d0c[DELAYL8_COMB_SIZE];
-	int16_t d1c[DELAYR8_COMB_SIZE];
-	int32_t d0a[DELAYL8_ALLPASS_SIZE];
-	int32_t d1a[DELAYR8_ALLPASS_SIZE];
 	int32_t s0[COMB_NUM];
 	int32_t s1[COMB_NUM];
 	int32_t comb_bufidx0[COMB_NUM];
 	int32_t comb_bufidx1[COMB_NUM];
 	int32_t allpass_bufidx0[ALLPASS_NUM];
 	int32_t allpass_bufidx1[ALLPASS_NUM];
-} ReverbContext;
+
+	int16_t d0c[DELAYL8_COMB_SIZE];
+	int16_t d1c[DELAYR8_COMB_SIZE];
+	int32_t d0a[DELAYL8_ALLPASS_SIZE];
+	int32_t d1a[DELAYR8_ALLPASS_SIZE];
+} ReverbContext16;
+
+/** reverb context for 24-bit PCM */
+typedef struct _ReverbContext24
+{
+	int32_t sample_rate;
+	int32_t num_channels;
+	int32_t dry;
+	int32_t wet, wet1, wet2;
+	int32_t roomsize;
+	int32_t damping;
+	int32_t s0[COMB_NUM];
+	int32_t s1[COMB_NUM];
+	int32_t comb_bufidx0[COMB_NUM];
+	int32_t comb_bufidx1[COMB_NUM];
+	int32_t allpass_bufidx0[ALLPASS_NUM];
+	int32_t allpass_bufidx1[ALLPASS_NUM];
+
+	uint8_t d0c[DELAYL8_COMB_SIZE * 3];
+	uint8_t d1c[DELAYR8_COMB_SIZE * 3];
+	uint8_t d0a[DELAYL8_ALLPASS_SIZE * 3];
+	uint8_t d1a[DELAYR8_ALLPASS_SIZE * 3];
+} ReverbContext24;
 
 
 #ifdef __cplusplus
@@ -87,39 +108,68 @@ extern "C" {
 #endif//__cplusplus
 
 /**
- * @brief Initialize reverberation audio effect module.
- * @param ct Pointer to a ReverbContext object.
+ * @brief Initialize reverberation audio effect module for 16-bit PCM.
+ * @param ct Pointer to a ReverbContext16 object.
  * @param num_channels number of channels. Both 1 and 2 channels are supported.
  * @param sample_rate sample rate
  * @return error code. REVERB_ERROR_OK means successful, other codes indicate error.
  */
-int32_t reverb_init(ReverbContext *ct, int32_t num_channels, int32_t sample_rate);
-
+int32_t reverb_init16(ReverbContext16 *ct, int32_t num_channels, int32_t sample_rate);
 
 /**
- * @brief Apply reverberation effect to a frame of PCM data.
- * @param ct Pointer to a ReverbContext object.
+ * @brief Initialize reverberation audio effect module for 24-bit PCM.
+ * @param ct Pointer to a ReverbContext24 object.
+ * @param num_channels number of channels. Both 1 and 2 channels are supported.
+ * @param sample_rate sample rate
+ * @return error code. REVERB_ERROR_OK means successful, other codes indicate error.
+ */
+int32_t reverb_init24(ReverbContext24 *ct, int32_t num_channels, int32_t sample_rate);
+
+/**
+ * @brief Apply reverberation effect to a frame of 16-bit PCM data.
+ * @param ct Pointer to a ReverbContext16 object.
  * @param pcm_in Address of the PCM input. The PCM layout must be the same as in Microsoft WAVE format for both mono and stereo cases.
  * @param pcm_out Address of the PCM output. The PCM layout must be the same as in Microsoft WAVE format for both mono and stereo cases.
  *        pcm_out can be the same as pcm_in. In this case, the PCM is changed in-place.
  * @param n Number of PCM samples to process. 
  * @return error code. REVERB_ERROR_OK means successful, other codes indicate error.
  */
-int32_t reverb_apply(ReverbContext *ct, int16_t *pcm_in, int16_t *pcm_out, int32_t n);
-
+int32_t reverb_apply16(ReverbContext16 *ct, int16_t *pcm_in, int16_t *pcm_out, int32_t n);
 
 /**
- * @brief Configure reverberation effect's parameters.
- * @param ct Pointer to a ReverbContext object.
+ * @brief Apply reverberation effect to a frame of 24-bit PCM data.
+ * @param ct Pointer to a ReverbContext24 object.
+ * @param pcm_in Address of the PCM input. The PCM layout must be the same as in Microsoft WAVE format for both mono and stereo cases.
+ * @param pcm_out Address of the PCM output. The PCM layout must be the same as in Microsoft WAVE format for both mono and stereo cases.
+ *        pcm_out can be the same as pcm_in. In this case, the PCM is changed in-place.
+ * @param n Number of PCM samples to process.
+ * @return error code. REVERB_ERROR_OK means successful, other codes indicate error.
+ */
+int32_t reverb_apply24(ReverbContext24 *ct, int32_t *pcm_in, int32_t *pcm_out, int32_t n);
+
+/**
+ * @brief Configure reverberation effect's parameters for 16-bit PCM.
+ * @param ct Pointer to a ReverbContext16 object.
  * @param dry_scale Scale of the dry part in the output. Range: 0 ~ 200 for 0 ~ 200% of the original input.
  * @param wet_scale Scale of the wet part in the output. Range: 0 ~ 300 for 0 ~ 300% of the reverb effect.
  * @param width_scale Scale of the stereo seperation in the output. Range: 0 ~ 100 for 0 ~ 100% seperation.
- * @param roomsize_scale Scale of the room size. Range: 0 ~ 100 for 0 ~ 100% of the room size
+ * @param roomsize_scale Scale of the room size. Range: 0 ~ 100 for 0 ~ 100% of the room size.
  * @param damping_scale Scale of the damping factor. Range: 0 ~ 100 for 0 ~ 100% of the damping factor.
  * @return error code. REVERB_ERROR_OK means successful, other codes indicate error.
  */
-int32_t reverb_configure(ReverbContext *ct, int32_t dry_scale, int32_t wet_scale, int32_t width_scale, int32_t roomsize_scale, int32_t damping_scale);
+int32_t reverb_configure16(ReverbContext16 *ct, int32_t dry_scale, int32_t wet_scale, int32_t width_scale, int32_t roomsize_scale, int32_t damping_scale);
 
+/**
+ * @brief Configure reverberation effect's parameters for 24-bit PCM.
+ * @param ct Pointer to a ReverbContext24 object.
+ * @param dry_scale Scale of the dry part in the output. Range: 0 ~ 200 for 0 ~ 200% of the original input.
+ * @param wet_scale Scale of the wet part in the output. Range: 0 ~ 300 for 0 ~ 300% of the reverb effect.
+ * @param width_scale Scale of the stereo seperation in the output. Range: 0 ~ 100 for 0 ~ 100% seperation.
+ * @param roomsize_scale Scale of the room size. Range: 0 ~ 100 for 0 ~ 100% of the room size.
+ * @param damping_scale Scale of the damping factor. Range: 0 ~ 100 for 0 ~ 100% of the damping factor.
+ * @return error code. REVERB_ERROR_OK means successful, other codes indicate error.
+ */
+int32_t reverb_configure24(ReverbContext24 *ct, int32_t dry_scale, int32_t wet_scale, int32_t width_scale, int32_t roomsize_scale, int32_t damping_scale);
 
 #ifdef __cplusplus
 }

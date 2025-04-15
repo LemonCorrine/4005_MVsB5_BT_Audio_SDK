@@ -35,7 +35,6 @@
 #include "hdmi_in_api.h"
 #include "usb_audio_mode.h"
 //static bool IsBackUpFlag = FALSE;
-static bool MipsLog = TRUE;
 //#ifdef CFG_FUNC_BREAKPOINT_EN
  //TIMER TimerBreakPoint;
 //#endif
@@ -439,7 +438,7 @@ DetectCardExit:
 					OTG_DeviceFifoInit();
 					OTG_DeviceInit();
 					SetUSBDeviceInitState(TRUE);
-					gCtrlVars.AutoRefresh = 1;
+					gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
 				}
 #endif
 			}
@@ -627,25 +626,28 @@ void DeviceServicePocess(uint16_t device_msgId)
 		RtcStateCtrl();
 #endif
 #if defined(CFG_FUNC_DEBUG_EN) || defined(CFG_FUNC_USBDEBUG_EN)
-		if((GetSysTick1MsCnt() % MIPS_LOG_INTERVAL) < (MIPS_LOG_INTERVAL / 2))
 		{
-			if(MipsLog)
+			static bool MipsLog = TRUE;
+			if((GetSysTick1MsCnt() % MIPS_LOG_INTERVAL) < (MIPS_LOG_INTERVAL / 2))
 			{
-#ifdef ENABLE_COUNT_INSTANT_MCPS
-				uint16_t InstantVal = InstantMcpsFull();
-				if(SysemMipsPercent < 10000 / 2)
+				if(MipsLog)
 				{
-					DBG("Fullload:%d mS ", (int)(InstantVal ? InstantVal : MIPS_LOG_INTERVAL));
+	#ifdef ENABLE_COUNT_INSTANT_MCPS
+					uint16_t InstantVal = InstantMcpsFull();
+					if(SysemMipsPercent < 10000 / 2)
+					{
+						DBG("Fullload:%d mS ", (int)(InstantVal ? InstantVal : MIPS_LOG_INTERVAL));
+					}
+	#endif
+					APP_DBG("MCPS:%d M  ", (int)((10000 - SysemMipsPercent) * (Clock_CoreClockFreqGet() / 1000000)) / 10000);
+					APP_DBG("RAM:%d\n", (int)(CFG_CHIP_RAM_SIZE - osPortRemainMem())/1024);
+					MipsLog = FALSE;
 				}
-#endif
-				APP_DBG("MCPS:%d M  ", (int)((10000 - SysemMipsPercent) * (Clock_CoreClockFreqGet() / 1000000)) / 10000);
-				APP_DBG("RAM:%d\n", (int)(CFG_CHIP_RAM_SIZE - osPortRemainMem())/1024);
-				MipsLog = FALSE;
 			}
-		}
-		else
-		{
-			MipsLog = TRUE;
+			else
+			{
+				MipsLog = TRUE;
+			}
 		}
 #endif
 	}

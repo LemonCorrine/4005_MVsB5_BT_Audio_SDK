@@ -176,6 +176,18 @@ bool I2SInPlayResInit(void)
 	I2S_AlignModeSet(CFG_RES_I2S_MODULE, I2S_LOW_BITS_ACTIVE);
 	AudioI2S_Init(CFG_RES_I2S_MODULE,&i2s_set);
 
+#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+	if(CFG_RES_I2S_MODULE == I2S0_MODULE)
+		Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
+	else
+		Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
+#else
+	if(CFG_RES_I2S_MODULE == I2S0_MODULE)
+		gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source = Clock_AudioMclkGet(AUDIO_I2S0);
+	else
+		gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source = Clock_AudioMclkGet(AUDIO_I2S1);
+#endif
+
 //	//note Soure0.和sink0已经在main app中配置，不要随意配置
 	//Core Soure1.Para
 	AudioCoreIO	AudioIOSet;
@@ -288,7 +300,7 @@ bool  I2SInPlayInit(void)
 		HardWareMuteOrUnMute();
 	}
 #endif
-
+	AudioCoreSourceUnmute(I2SIN_SOURCE_NUM, TRUE, TRUE);
 	return ret;
 }
 /**

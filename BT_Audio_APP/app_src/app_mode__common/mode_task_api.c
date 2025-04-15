@@ -23,6 +23,7 @@
 #include "hdmi_in_api.h"
 #include "roboeffect_api.h"
 #include "user_effect_parameter.h"
+#include "clk.h"
 //app
 #include "bt_stack_service.h"
 #if (BT_AVRCP_VOLUME_SYNC == ENABLE)
@@ -32,9 +33,6 @@
 #ifdef CFG_RES_AUDIO_SPDIFOUT_EN
 #include "spdif_out.h"
 #endif
-
-extern volatile SysModeStruct SysMode[];
-extern uint32_t GetModeIndexInModeLoop(SysModeNumber *sys_mode);
 
 #ifdef CFG_FUNC_I2S_MIX_MODE
 extern void I2S_MixInit(void);
@@ -70,6 +68,51 @@ void SDCardForceExitFuc(void)
 }
 #endif
 
+#ifdef CFG_AUDIO_OUT_AUTO_SAMPLE_RATE_44100_48000
+void AudioOutSampleRateSet(uint32_t SampleRate)
+{
+	AUDIOEFFECT_EFFECT_PARA *mpara;
+	extern uint32_t IsBtHfMode(void);
+
+	if(IsBtHfMode() || mainAppCt.EffectMode == EFFECT_MODE_HFP_AEC)
+		return;
+
+	if((SampleRate == 11025) || (SampleRate == 22050) || (SampleRate == 44100)
+			|| (SampleRate == 88200) || (SampleRate == 176400))
+	{
+		SampleRate = 44100;
+	}
+	else
+	{
+		SampleRate = 48000;
+	}
+	mpara = get_user_effect_parameters(mainAppCt.EffectMode);
+	if(mpara->user_effect_list->sample_rate == SampleRate)
+		return;
+	APP_DBG("SampleRate: %d --> %d\n",(int)mpara->user_effect_list->sample_rate,(int)SampleRate);
+
+	AudioCoreMixSampleRateSet(DefaultNet, SampleRate);
+	mpara->user_effect_list->sample_rate = SampleRate;
+#ifdef CFG_RES_AUDIO_DAC0_EN
+	AudioDAC0_SampleRateChange(SampleRate);
+	gCtrlVars.HwCt.DAC0Ct.dac_mclk_source = Clock_AudioMclkGet(AUDIO_DAC0);
+#endif
+
+#ifdef CFG_RES_AUDIO_I2SOUT_EN
+	AudioI2S_SampleRateChange(CFG_RES_I2S_MODULE,SampleRate);
+	if(CFG_RES_I2S_MODULE == I2S0_MODULE)
+		gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source = Clock_AudioMclkGet(AUDIO_I2S0);
+	else
+		gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source = Clock_AudioMclkGet(AUDIO_I2S1);
+#endif
+
+#if CFG_RES_MIC_SELECT
+	AudioADC_SampleRateChange(ADC1_MODULE,SampleRate);
+	gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source = Clock_AudioMclkGet(AUDIO_ADC1);
+#endif
+}
+#endif
+
 void PauseAuidoCore(void)
 {
 	while(GetAudioCoreServiceState() != TaskStatePaused)
@@ -83,26 +126,7 @@ bool AudioEffectInit()
 {
 	if(AudioCore.Audioeffect.effect_addr)
 	{
-		uint8_t *params = AudioCore.Audioeffect.user_effect_parameters + 5;
-		uint16_t data_len = *(uint16_t *)AudioCore.Audioeffect.user_effect_parameters - 5;
-		uint8_t len = 0;
-		while(data_len)
-		{
-			if(*params == AudioCore.Audioeffect.effect_addr)
-			{
-				params += 2;
-				*params = AudioCore.Audioeffect.effect_enable;
-				break;
-			}
-			else
-			{
-				params++;
-				len = *params;
-				params += (len + 1);
-				data_len -= (len + 1);
-			}
-		};
-
+		AudioEffect_update_local_effect_status(AudioCore.Audioeffect.effect_addr, AudioCore.Audioeffect.effect_enable);
 		DBG("Audioeffect ReInit:0x%x\n", AudioCore.Audioeffect.effect_addr);
 	}
 	else
@@ -128,18 +152,74 @@ bool AudioEffectInit()
 		DBG("EFFECT_MODE: %s\n", para->user_effect_name);
 	}
 
-	//When effect change framesize to 512 and then switch mode, AudioCore need reset to default.
-	//AudioCoreFrameSizeSet(DefaultNet, CFG_PARA_SAMPLES_PER_FRAME);
-	AudioCoreFrameSizeSet(DefaultNet, AudioCore.Audioeffect.user_effect_list->frame_size);
-
 	AudioCore.Audioeffect.audioeffect_memory_size = roboeffect_get_memory_current_size(
 			AudioCore.Audioeffect.user_effect_steps, AudioCore.Audioeffect.user_effect_list, AudioCore.Audioeffect.user_effect_parameters);
-	DBG("Audio effect malloc memory: %ld\n", AudioCore.Audioeffect.audioeffect_memory_size);
+	DBG("Audio effect need malloc memory: %ld\n", AudioCore.Audioeffect.audioeffect_memory_size);
+
 
 	if(AudioCore.Audioeffect.audioeffect_memory_size < 0)
 	{
-		DBG("get context size failed. %ld\n", AudioCore.Audioeffect.audioeffect_memory_size);
+		DBG("**************************************\n!!!ERROR!!!\n");
+		switch(AudioCore.Audioeffect.audioeffect_memory_size)
+		{
+			case ROBOEFFECT_EFFECT_NOT_EXISTED:
+			DBG("某个音效不存在 \n");
+			break;
+			case ROBOEFFECT_EFFECT_PARAMS_NOT_FOUND:
+			DBG("没有找到相关地址的音效参数 \n");
+			break;
+			case ROBOEFFECT_INSUFFICIENT_MEMORY:
+			DBG("内存不足 \n");
+			break;
+			case ROBOEFFECT_EFFECT_INIT_FAILED:
+			DBG("音效参数不合法 \n");
+			break;
+			case ROBOEFFECT_ILLEGAL_OPERATION:
+			DBG("音效参数中存在错误操作 \n");
+			break;
+			case ROBOEFFECT_EFFECT_LIB_NOT_MATCH_1:
+			DBG("音效参数版本需要更新 \n");
+			break;
+			case ROBOEFFECT_EFFECT_LIB_NOT_MATCH_2:
+			DBG("Roboeffect库和音效库版本不匹配 \n");
+			break;
+			case ROBOEFFECT_ADDRESS_NOT_EXISTED:
+			DBG("音效参数地址不存在  \n");
+			break;
+			case ROBOEFFECT_PARAMS_ERROR:
+			DBG("自定义音效错误  \n");
+			break;
+			case ROBOEFFECT_FRAME_SIZE_ERROR:
+			DBG("帧长错误  \n");
+			break;
+			case ROBOEFFECT_MEMORY_SIZE_QUERY_ERROR:
+			DBG("内存查询错误  \n");
+			break;
+		}
+		DBG("**************************************\n");
 		return FALSE;
+	}
+
+	if(AudioCore.Audioeffect.audioeffect_memory_size >= (xPortGetFreeHeapSize() - 5120))
+	{
+		DBG("**************************************\n");
+		if(AudioCore.Audioeffect.effect_addr)
+		{
+			DBG("Error:memory is not enough because effect 0x%x need too much!!!\nDon't open it.\n", AudioCore.Audioeffect.effect_addr);
+		}
+		else
+		{
+			DBG("Error:memory is not enough!!! Please disable some effects.\n");
+			DBG("**************************************\n");
+			return FALSE;
+		}
+		DBG("**************************************\n");
+		AudioCore.Audioeffect.effect_enable = 0;
+		AudioEffect_update_local_effect_status(AudioCore.Audioeffect.effect_addr, AudioCore.Audioeffect.effect_enable);
+		AudioCore.Audioeffect.user_effect_list->frame_size = AudioCoreFrameSizeGet(DefaultNet);
+		AudioCore.Audioeffect.audioeffect_memory_size = roboeffect_get_memory_current_size(
+				AudioCore.Audioeffect.user_effect_steps, AudioCore.Audioeffect.user_effect_list, AudioCore.Audioeffect.user_effect_parameters);
+		DBG("Finally malloc:%ld, leave:%ld\n", AudioCore.Audioeffect.audioeffect_memory_size, xPortGetFreeHeapSize());
 	}
 	/**
 	 * malloc context memory
@@ -173,15 +253,11 @@ bool AudioEffectInit()
 			SystemVolSet();
 		}
 	}
-	else
-	{
-		DBG("**************************************\n");
-		DBG("Error:memory is not enough!!!\n");
-		DBG("malloc:%ld, leave:%ld\n", AudioCore.Audioeffect.audioeffect_memory_size, xPortGetFreeHeapSize());
-		DBG("**************************************\n");
-		return FALSE;
-	}
 
+	//After effect init done, AudioCore know what frame size should be set.
+	AudioCoreFrameSizeSet(DefaultNet, roboeffect_get_suit_frame_size(
+			AudioCore.Audioeffect.context_memory, AudioCore.Audioeffect.audioeffect_frame_size, AudioCore.Audioeffect.effect_addr,
+			(AudioCore.Audioeffect.effect_enable ? 1 : -1)));
 	roboeffect_prot_init();
 	return TRUE;
 }
@@ -213,6 +289,18 @@ void AudioI2sOutParamsSet(void)
 
 	I2S_AlignModeSet(CFG_RES_I2S_MODULE, I2S_LOW_BITS_ACTIVE);
 	AudioI2S_Init(CFG_RES_I2S_MODULE, &i2s_set);//
+
+#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+	if(CFG_RES_I2S_MODULE == I2S0_MODULE)
+		Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
+	else
+		Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
+#else
+	if(CFG_RES_I2S_MODULE == I2S0_MODULE)
+		gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source = Clock_AudioMclkGet(AUDIO_I2S0);
+	else
+		gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source = Clock_AudioMclkGet(AUDIO_I2S1);
+#endif
 }
 #endif
 
@@ -220,17 +308,21 @@ void AudioI2sOutParamsSet(void)
 bool ModeCommonInit(void)
 {
 	AudioCoreIO AudioIOSet;
-	uint16_t FifoLenStereo;
+	uint16_t FifoLenStereo,i;
+	AUDIOEFFECT_EFFECT_PARA *mpara;
 
 	if(!AudioEffectInit())
 	{
 		DBG("!!!audioeffect init must be earlier than sink init!!!.\n");
-		if(AudioCore.Audioeffect.effect_addr)
-		{
-			AudioCore.Audioeffect.effect_enable = 0;
-			DBG("audioeffect init again because cannot enable effect:%d\n", AudioEffectInit());
-		}
 	}
+
+	mpara = get_user_effect_parameters(mainAppCt.EffectMode);
+	mpara->user_effect_list->sample_rate = CFG_PARA_SAMPLE_RATE;
+	for(i = 0; i < MaxNet; i++)
+	{
+		AudioCoreMixSampleRateSet(i, CFG_PARA_SAMPLE_RATE);//默认系统采样率
+	}
+	APP_DBG("Systerm SampleRate: %d\n",(int)mpara->user_effect_list->sample_rate);
 
 	FifoLenStereo = AudioCoreFrameSizeGet(DefaultNet) * sizeof(PCM_DATA_TYPE) * 2 * 2;//立体声8倍大小于帧长，单位byte
 
@@ -292,10 +384,17 @@ bool ModeCommonInit(void)
 		BitWidth = 16;
 	#endif
 		AudioDAC_Init(&ct,mainAppCt.SampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
+
+	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+		Clock_AudioMclkSel(AUDIO_DAC0, gCtrlVars.HwCt.DAC0Ct.dac_mclk_source);
+	#else
+		gCtrlVars.HwCt.DAC0Ct.dac_mclk_source = Clock_AudioMclkGet(AUDIO_DAC0);
+	#endif
 	}
 	else//sam add,20230221
 	{
 		AudioDAC0_SampleRateChange(CFG_PARA_SAMPLE_RATE);
+		gCtrlVars.HwCt.DAC0Ct.dac_mclk_source = Clock_AudioMclkGet(AUDIO_DAC0);
 	#ifdef	CFG_AUDIO_WIDTH_24BIT
 		AudioCore.AudioSink[AUDIO_DAC0_SINK_NUM].BitWidth = AudioIOSet.IOBitWidth;
 		AudioCore.AudioSink[AUDIO_DAC0_SINK_NUM].BitWidthConvFlag = AudioIOSet.IOBitWidthConvFlag;
@@ -335,6 +434,11 @@ bool ModeCommonInit(void)
 		AudioADC_DigitalInit(ADC1_MODULE, mainAppCt.SampleRate,ADC_WIDTH_16BITS,(void*)mainAppCt.ADCFIFO, FifoLenStereo);
 	#endif
 
+	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+		Clock_AudioMclkSel(AUDIO_ADC1, gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source);
+	#else
+		gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source = Clock_AudioMclkGet(AUDIO_ADC1);
+	#endif
 		//Soure0.
 		memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
 		AudioIOSet.Adapt = STD;
@@ -672,6 +776,11 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 		//Mic1   digital
 		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_16BITS,(void*)mainAppCt.ADCFIFO,FifoLenStereo);
 
+	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+		Clock_AudioMclkSel(AUDIO_ADC1, gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source);
+	#else
+		gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source = Clock_AudioMclkGet(AUDIO_ADC1);
+	#endif
 		//Soure0.
 		memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
 		AudioIOSet.Adapt = STD;
@@ -710,6 +819,12 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 		//Mic1	 digital
 		memset(mainAppCt.ADCFIFO, 0, FifoLenStereo);
 		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_16BITS, (void*)mainAppCt.ADCFIFO, FifoLenStereo);
+
+	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+		Clock_AudioMclkSel(AUDIO_ADC1, gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source);
+	#else
+		gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source = Clock_AudioMclkGet(AUDIO_ADC1);
+	#endif
 	}
 #endif
 
@@ -801,10 +916,17 @@ bool AudioIoCommonForHfp(uint32_t sampleRate, uint16_t gain)
 		BitWidth = 16;
 	#endif
 		AudioDAC_Init(&ct,sampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
+
+	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+		Clock_AudioMclkSel(AUDIO_DAC0, gCtrlVars.HwCt.DAC0Ct.dac_mclk_source);
+	#else
+		gCtrlVars.HwCt.DAC0Ct.dac_mclk_source = Clock_AudioMclkGet(AUDIO_DAC0);
+	#endif
 	}
 	else
 	{
 		AudioDAC0_SampleRateChange(sampleRate);
+		gCtrlVars.HwCt.DAC0Ct.dac_mclk_source = Clock_AudioMclkGet(AUDIO_DAC0);
 		printf("mode task io set\n");
 #ifdef	CFG_AUDIO_WIDTH_24BIT
 		AudioCore.AudioSink[AUDIO_DAC0_SINK_NUM].BitWidth = AudioIOSet.IOBitWidth;
@@ -912,11 +1034,7 @@ void AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 
 		if(!AudioEffectInit())
 		{
-			if(AudioCore.Audioeffect.effect_addr)
-			{
-				AudioCore.Audioeffect.effect_enable = 0;
-				DBG("audioeffect init again because cannot enable effect:%d\n", AudioEffectInit());
-			}
+			DBG("audioeffect init fail, please check!!!\n");
 		}
 
 		for(i = 0; i < AUDIO_CORE_SOURCE_MAX_NUM; i++)
@@ -1331,10 +1449,10 @@ void CommonMsgProccess(uint16_t Msg)
 #ifdef CFG_FUNC_BREAKPOINT_EN
 			BackupInfoUpdata(BACKUP_SYS_INFO);
 #endif
-			APP_DBG("EffectMode = %d\n", mainAppCt.EffectMode);
 
 			AUDIOEFFECT_EFFECT_PARA *mpara = get_user_effect_parameters(mainAppCt.EffectMode);
 
+			DBG("EFFECT_MODE: %s\n", mpara->user_effect_name);
 			if (mpara->user_effect_list->frame_size == AudioCoreFrameSizeGet(DefaultNet))
 			{
 				AudioEffectModeSel(mainAppCt.EffectMode, 2);//sel: 0=init hw, 1=effect, 2=hw + effect
@@ -1374,7 +1492,7 @@ void CommonMsgProccess(uint16_t Msg)
 			{
 				HardWareMuteOrUnMute();
 			}
-			gCtrlVars.AutoRefresh = 1;
+			gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
 #endif
 #endif
 			break;
@@ -1386,6 +1504,8 @@ void CommonMsgProccess(uint16_t Msg)
 			}
 			int8_t opera = AudioCore.Audioeffect.effect_enable ? 1 : -1;
 			uint8_t addr = AudioCore.Audioeffect.effect_addr;
+			uint32_t FrameSize = AudioCoreFrameSizeGet(DefaultNet);
+
 //			AUDIOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(mainAppCt.EffectMode);
 
 //			APP_DBG("Audioeffect FrameSize %d, %d\n", opera, roboeffect_get_suit_frame_size(
@@ -1399,15 +1519,15 @@ void CommonMsgProccess(uint16_t Msg)
 						AudioCore.Audioeffect.context_memory, AudioCore.Audioeffect.audioeffect_frame_size, AudioCore.Audioeffect.effect_addr, opera);
 				APP_DBG("Need Change FrameSize to %ld\n", AudioCore.Audioeffect.user_effect_list->frame_size);
 
-				SysMode[GetModeIndexInModeLoop(&mainAppCt.SysCurrentMode)].SysModeDeInit();
-				AudioCoreFrameSizeSet(DefaultNet, AudioCore.Audioeffect.user_effect_list->frame_size);
-				SysMode[GetModeIndexInModeLoop(&mainAppCt.SysCurrentMode)].SysModeInit();
-				SysMode[GetModeIndexInModeLoop(&mainAppCt.SysCurrentMode)].SysModeRun(0);
-				RemindSoundClearPlay();
-
-				SoftFlagDeregister(SoftFlagAudioCoreSourceIsDeInit);
-				AudioCoreServiceResume();
-				gCtrlVars.AutoRefresh = 1;
+				if(!SysCurModeReboot())
+				{
+					//当前模式重启失败，恢复上次参数，再次重启模式
+					if(AudioCore.Audioeffect.effect_enable)
+						AudioCore.Audioeffect.effect_enable = 0;
+					AudioCore.Audioeffect.user_effect_list->frame_size = FrameSize;
+					SysCurModeReboot();
+				}
+				gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
 			}
 			else
 			{

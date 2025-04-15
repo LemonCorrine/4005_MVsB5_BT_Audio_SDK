@@ -52,6 +52,18 @@ static void AudioI2sOutParamsSet(void)
 
 	I2S_AlignModeSet(CFG_RES_MIX_I2S_MODULE, I2S_LOW_BITS_ACTIVE);
 	AudioI2S_Init(CFG_RES_MIX_I2S_MODULE, &i2s_set);//
+
+#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+	if(CFG_RES_MIX_I2S_MODULE == I2S0_MODULE)
+		Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
+	else
+		Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
+#else
+	if(CFG_RES_MIX_I2S_MODULE == I2S0_MODULE)
+		gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source = Clock_AudioMclkGet(AUDIO_I2S0);
+	else
+		gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source = Clock_AudioMclkGet(AUDIO_I2S1);
+#endif
 }
 #endif
 
@@ -97,6 +109,18 @@ bool I2S_MixInit(void)
 		I2S_ModuleDisable(CFG_RES_MIX_I2S_MODULE);
 		I2S_AlignModeSet(CFG_RES_MIX_I2S_MODULE, I2S_LOW_BITS_ACTIVE);
 		AudioI2S_Init(CFG_RES_MIX_I2S_MODULE,&i2s_set);
+
+	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+		if(CFG_RES_MIX_I2S_MODULE == I2S0_MODULE)
+			Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
+		else
+			Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
+	#else
+		if(CFG_RES_MIX_I2S_MODULE == I2S0_MODULE)
+			gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source = Clock_AudioMclkGet(AUDIO_I2S0);
+		else
+			gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source = Clock_AudioMclkGet(AUDIO_I2S1);
+	#endif
 
 	#if ((CFG_RES_MIX_I2S_MODE == I2S_MASTER_MODE) || !defined(CFG_FUNC_MIX_I2S_IN_SYNC_EN))
 		{//master 或者关微调

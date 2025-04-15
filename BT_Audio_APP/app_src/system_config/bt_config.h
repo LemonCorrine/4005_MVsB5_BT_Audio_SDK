@@ -113,7 +113,9 @@ enum
  */
 #define BT_A2DP_SUPPORT				ENABLE //A2DPºÍAVRCP¹ØÁª
 #if CFG_RES_MIC_SELECT
-#define BT_HFP_SUPPORT				ENABLE
+	#define BT_HFP_SUPPORT				ENABLE
+#else
+	#define BT_HFP_SUPPORT				DISABLE
 #endif
 #define BT_SPP_SUPPORT				DISABLE
 	

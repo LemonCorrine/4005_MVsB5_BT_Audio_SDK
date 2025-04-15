@@ -19,6 +19,7 @@ typedef struct _simple_gain_struct
 {
 	int16_t data_a;
 	int16_t data_b;
+	int32_t *ptr;
 } simple_gain_struct;
 
 #endif/*__SIMPLE_GAIN_H__*/

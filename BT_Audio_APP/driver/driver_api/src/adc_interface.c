@@ -72,7 +72,7 @@ void AudioADC_DigitalInit(ADC_MODULE Module, uint32_t SampleRate, AUDIO_BitWidth
     	{
     		AudioADC_OverflowClear(ADC1_MODULE);
     	}
-        
+
     	if(IsSelectMclkClk1(SampleRate))
     	{
     		Clock_AudioMclkSel(AUDIO_ADC1, PLL_CLOCK1);
@@ -328,4 +328,32 @@ uint16_t AudioADC1_DataGet(void* Buf, uint16_t Len)
     }
 
     return Length / 4;
+}
+
+void AudioADC_SampleRateChange(ADC_MODULE Module,uint32_t SampleRate)
+{
+	if(Module == ADC0_MODULE)
+    {
+    	if(IsSelectMclkClk1(SampleRate))
+    	{
+    		Clock_AudioMclkSel(AUDIO_ADC0, PLL_CLOCK1);
+    	}
+    	else
+    	{
+    		Clock_AudioMclkSel(AUDIO_ADC0, PLL_CLOCK2);
+    	}
+    	AudioADC_SampleRateSet(ADC0_MODULE, SampleRate);
+    }
+    else if(Module == ADC1_MODULE)
+    {
+    	if(IsSelectMclkClk1(SampleRate))
+    	{
+    		Clock_AudioMclkSel(AUDIO_ADC1, PLL_CLOCK1);
+    	}
+    	else
+    	{
+    		Clock_AudioMclkSel(AUDIO_ADC1, PLL_CLOCK2);
+    	}
+    	AudioADC_SampleRateSet(ADC1_MODULE, SampleRate);
+    }
 }

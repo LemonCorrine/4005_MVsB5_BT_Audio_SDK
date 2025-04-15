@@ -571,6 +571,13 @@ void Clock_AudioPllClockSet(CLK_MODE ClkMode, PLL_CLK_INDEX Index, uint32_t Targ
 void Clock_AudioMclkSel(AUDIO_MODULE Module, MCLK_CLK_SEL ClkSel);
 
 /**
+ * @brief	获取音频模块主时钟源
+ * @param	Module 音频模块
+ * @return  时钟来源类型
+ */
+MCLK_CLK_SEL Clock_AudioMclkGet(AUDIO_MODULE Module);
+
+/**
  * @brief	音频时钟源采样率微调，PLL1和PLL2
  * @param	Index PLL源，PLL_CLK_1:11.2896M;PLL_CLK_2:12.288M;
  * @param	Sign  0：调慢；1：调快

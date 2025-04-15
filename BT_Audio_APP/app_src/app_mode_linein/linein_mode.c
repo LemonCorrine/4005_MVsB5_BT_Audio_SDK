@@ -153,6 +153,12 @@ void LineinADCDigitalInit(void)
 #endif
 
 	AudioADC_DigitalInit(ADC0_MODULE, CFG_PARA_SAMPLE_RATE,BitWidth, (void*)sLineInPlayCt->ADCFIFO, sLineInPlayCt->ADCFIFO_len);
+
+#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+	Clock_AudioMclkSel(AUDIO_ADC0, gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source);
+#else
+	gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source = Clock_AudioMclkGet(AUDIO_ADC0);
+#endif
 }
 
 void LineInPlayResInit(void)
@@ -360,6 +366,12 @@ bool LineInMixPlayInit(void)
 	AudioAnaChannelSet(LINEIN_INPUT_CHANNEL);
 
 	AudioADC_DigitalInit(ADC0_MODULE, CFG_PARA_SAMPLE_RATE, AudioIOSet.IOBitWidth,(void*)sLineInPlayCt->ADCFIFO, sLineInPlayCt->ADCFIFO_len);
+
+#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+	Clock_AudioMclkSel(AUDIO_ADC0, gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source);
+#else
+	gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source = Clock_AudioMclkGet(AUDIO_ADC0);
+#endif
 
 #if (LINEIN_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN1)
 #ifdef CFG_ADCDAC_SEL_LOWPOWERMODE

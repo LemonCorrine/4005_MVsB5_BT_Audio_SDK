@@ -357,14 +357,15 @@ static void SystemInit(void)
 	SoftFlagDeregister((~SoftFlagUpgradeOK)&SoftFlagMask);
 #endif
 
-	CtrlVarsInit();//音频系统硬件变量初始化，系统变量初始化
-
 #ifdef CFG_APP_HDMIIN_MODE_EN
 	HDMI_CEC_DDC_Init();
 #endif
 	///////////////////////////////AudioCore/////////////////////////////////////////
 	mainAppCt.AudioCore =  (AudioCoreContext*)&AudioCore;
 	memset(mainAppCt.AudioCore, 0, sizeof(AudioCoreContext));
+
+	CtrlVarsInit();//音频系统硬件变量初始化，系统变量初始化
+
 	for(i = 0; i < MaxNet; i++)
 	{
 		AudioCoreMixSampleRateSet(i, CFG_PARA_SAMPLE_RATE);//默认系统采样率
