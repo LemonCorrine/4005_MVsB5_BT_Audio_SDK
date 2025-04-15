@@ -120,6 +120,8 @@ typedef struct _MediaRecorderContext
 	FFILE				*RecordFile;
 
 #endif
+
+	uint16_t 			SendAgainID;
 }MediaRecorderContext;
 
 static  MediaRecorderContext*		RecorderCt = NULL;
@@ -971,6 +973,21 @@ static void MediaRecorderEntrance(void * param)
 }
 
 bool MediaRecorderServiceKill(void);
+void RecServierToParent(uint16_t id)
+{
+	MessageContext		msgSend;
+
+	// Send message to main app
+	msgSend.msgId		= id;
+	MessageSend(GetMainMessageHandle(), &msgSend);
+}
+
+void RecServierToParentAgain(uint16_t id)
+{
+	RecServierToParent(MSG_STOP_REC);
+	if(RecorderCt)
+		RecorderCt->SendAgainID = id;
+}
 /***************************************************************************************
  *
  * APIs
@@ -1081,7 +1098,8 @@ bool MediaRecorderServiceKill(void)
 		osPortFree(RecorderCt->Sink1Fifo);
 		RecorderCt->Sink1Fifo = NULL;
 	}
-
+	if(RecorderCt->SendAgainID)
+		RecServierToParent(RecorderCt->SendAgainID);
 	osPortFree(RecorderCt);
 	RecorderCt = NULL;
 	return TRUE;
@@ -1098,21 +1116,22 @@ xTaskHandle GetMediaRecorderTaskHandle(void)
 {
 	if(RecorderCt != NULL && RecorderCt->taskHandle != NULL)
 	{
-		APP_DBG("Rec Service Run ...\n");
+//		APP_DBG("Rec Service Run ...\n");
 		return RecorderCt->taskHandle;
 	}else{
-		APP_DBG("Rec Service Null ...\n");
+//		APP_DBG("Rec Service Null ...\n");
 		return NULL;
 	}
 }
+
 TaskState GetMediaRecorderState(void)
 {
 	if(RecorderCt != NULL)
 	{
-		APP_DBG("Rec State = %d\n",RecorderCt->state);
+//		APP_DBG("Rec State = %d\n",RecorderCt->state);
 		return RecorderCt->state;
 	}else{
-		APP_DBG("Rec State Task StateNone\n");
+//		APP_DBG("Rec State Task StateNone\n");
 		return TaskStateNone;
 	}
 }
@@ -1220,20 +1239,19 @@ void RecServicePause(void)
 		}
 	}
 }
-void RecServierToParent(uint16_t id)
-{
-	MessageContext		msgSend;
-
-	// Send message to main app
-	msgSend.msgId		= id;
-	MessageSend(GetMainMessageHandle(), &msgSend);
-}
 
 void RecServierMsg(uint32_t *msg)
 {
 	switch(*msg)
 	{
 #ifdef CFG_FUNC_RECORDER_EN
+		case MSG_STOP_REC:
+			if(GetMediaRecorderState() == TaskStateRunning)//Â¼Òô Í£Ö¹
+			{
+				APP_DBG("MSG_STOP_REC\n");
+				MediaRecorderServiceDeinit();
+			}
+			break;
 		case MSG_REC:
 			APP_DBG("MSG_REC\n");
 			if(GetSystemMode() == ModeCardAudioPlay || GetSystemMode() == ModeUDiskAudioPlay)

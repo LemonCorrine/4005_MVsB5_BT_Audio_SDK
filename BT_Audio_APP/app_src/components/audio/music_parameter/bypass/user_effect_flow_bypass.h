@@ -1,9 +1,9 @@
 /***************************************************
  * @file     bypass.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.6.15                 
+ * @author  ACPWorkbench: 3.7.0                 
  * @version V1.1.0                                  
- * @Created 2023-10-27T11:18:31                                      
+ * @Created 2023-11-30T14:22:36                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define BYPASS_ROBOEFFECT_LIB_VER "2.7.11"
+#define BYPASS_ROBOEFFECT_LIB_VER "2.9.1"
 
 typedef enum _BYPASS_roboeffect_io_enum
 {
@@ -28,6 +28,7 @@ typedef enum _BYPASS_roboeffect_io_enum
     BYPASS_SINK_APP_SINK,
     BYPASS_SINK_DAC0_SINK,
     BYPASS_SINK_STEREO_SINK,
+    BYPASS_SINK_SPDIF_SINK,
     BYPASS_SINK_REC_SINK,
 } BYPASS_roboeffect_io_enum;
 

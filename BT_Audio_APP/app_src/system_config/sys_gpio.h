@@ -160,13 +160,6 @@
 	#define CFG_PARA_WAKEUP_GPIO_IOKEY2		WAKEUP_GPIOA26 //同步设置唤醒端口
 #endif
 
-/**电位器功能选择**/
-#ifdef CFG_ADC_LEVEL_KEY_EN
-	#define MAX_ADCLEVL_LEVEL_VAL 	        4096//电位器最大电压值:4096对应3.3v
-	#define MAX_ADCLEVL_STEP_NUMBER 	    (CFG_PARA_MAX_VOLUME_NUM+1)//电位器调节最大步数，范围:0-32
-    #define DISTANCE_BETWEEN_STEP 		    5//电位器滤波采样值://5//15//25 
-#endif
-
 //****************************************************************************************
 //						SPDIF光纤同轴功能相关配置参数
 //****************************************************************************************

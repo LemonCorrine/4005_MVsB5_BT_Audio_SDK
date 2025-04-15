@@ -459,6 +459,7 @@ typedef enum
     MSG_FOLDER_GUOXUE,	//  
     MSG_FOLDER_YINGYU,	// 
     MSG_REC,
+	MSG_STOP_REC,
     MSG_REC_PLAYBACK,
     MSG_REC_FILE_DEL,	
     MSG_REC_MUSIC,          // «∑Ò∂‘“Ù¿÷¬º“Ù—°‘Ò

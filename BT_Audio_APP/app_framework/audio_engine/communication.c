@@ -198,7 +198,7 @@ bool roboeffect_effect_update_params_entrance(uint8_t addr, uint8_t *buf, uint32
 
                 	if(len == 3)
                 	{
-                		roboeffect_update_local_params(addr, index, params, len);
+                		roboeffect_update_local_params(addr, index, params, len - 1);
                 	}
                 	else
                 	{

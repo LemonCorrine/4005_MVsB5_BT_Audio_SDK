@@ -1,9 +1,9 @@
 /***************************************************
  * @file     music.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.6.11
+ * @author  ACPWorkbench: 3.7.0                 
  * @version V1.1.0                                  
- * @Created 2023-10-12T15:19:06
+ * @Created 2023-12-01T16:02:27                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define MUSIC_ROBOEFFECT_LIB_VER "2.7.8"
+#define MUSIC_ROBOEFFECT_LIB_VER "2.10.0"
 
 typedef enum _MUSIC_roboeffect_io_enum
 {
@@ -28,6 +28,7 @@ typedef enum _MUSIC_roboeffect_io_enum
     MUSIC_SINK_DAC0_SINK,
     MUSIC_SINK_APP_SINK,
     MUSIC_SINK_STEREO_SINK,
+    MUSIC_SINK_SPDIF_SINK,
     MUSIC_SINK_REC_SINK,
 } MUSIC_roboeffect_io_enum;
 
@@ -54,6 +55,7 @@ typedef enum _MUSIC_roboeffect_effect_list_enum{
     MUSIC_gain_control1_ADDR,
     MUSIC_eq0_ADDR,
     MUSIC_low_level_compressor0_ADDR,
+    MUSIC_gain_control3_ADDR,
     MUSIC_COUNT_ADDR,
 
 } MUSIC_roboeffect_effect_list_enum;

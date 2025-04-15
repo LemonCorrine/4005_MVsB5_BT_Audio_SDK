@@ -111,7 +111,14 @@ uint16_t UsbAudioSpeakerDataLenGet(void)
 //	printf("ret len: %d\r\n",Len);
 	return Len;
 }
-
+uint16_t UsbAudioSpeakerDepthGet(void)
+{
+	uint16_t Len;
+	Len = UsbAudioSpeaker.CircularBuf.BufDepth;
+	Len = Len / 8;
+	printf(" UsbAudioSpeaker BufDepth: %d\r\n",Len);
+	return Len;
+}
 //chip->pc 保存数据到缓存区
 uint16_t UsbAudioMicDataSet(void *Buffer, uint16_t Len)
 {
@@ -140,7 +147,14 @@ uint16_t UsbAudioMicSpaceLenGet(void)
 	return Len;
 }
 
-
+uint16_t UsbAudioMicDepthGet(void)
+{
+	uint16_t Len;
+	Len = UsbAudioMic.CircularBuf.BufDepth;
+	Len = Len / (4 * MIC_CHANNELS_NUM);
+//	printf(" UsbAudioMic BufDepth: %d\r\n",Len);
+	return Len;
+}
 
 //转采样直接在中断中处理，转采样时间大约是180us。
 //注意一下需要4字节对齐
@@ -219,15 +233,20 @@ void OnDeviceAudioSendIsoPacket(void)
 	{
 		RealLen = UsbAudioMic.AudioSampleRate/1000;
 	}
-//	if(UsbAudioMic.FramCount < (CFG_PARA_SAMPLE_RATE/44+20))
-	if(UsbAudioMic.FramCount < 2)
+	if(UsbAudioMic.FramCount < (UsbAudioMic.AudioSampleRate/CFG_PARA_SAMPLE_RATE)*10)
 	{
-		OTG_DeviceISOSend(DEVICE_ISO_IN_EP,(uint8_t*)iso_buf,0);
-		return;
+		memset(iso_buf,0,RealLen*4*channel);
 	}
-	if(UsbAudioMic.PCMBuffer != NULL)
+	else if(UsbAudioMic.PCMBuffer != NULL)
 	{
-		MCUCircular_GetData(&UsbAudioMic.CircularBuf, iso_buf,RealLen*4*channel);
+		if(MCUCircular_GetDataLen(&UsbAudioMic.CircularBuf) < RealLen*4*channel)
+		{
+			memset(iso_buf,0,RealLen*4*channel);
+		}
+		else
+		{
+			MCUCircular_GetData(&UsbAudioMic.CircularBuf, iso_buf,RealLen*4*channel);
+		}
 	}
 
 #ifdef CFG_RES_AUDIO_USB_VOL_SET_EN

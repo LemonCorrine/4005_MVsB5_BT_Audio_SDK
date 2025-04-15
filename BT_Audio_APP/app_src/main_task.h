@@ -81,6 +81,12 @@ typedef struct _MainAppContext
 #ifdef CFG_RES_AUDIO_USB_OUT_EN
 	uint32_t			*SinkBuf_UsbOut;
 #endif
+
+#ifdef CFG_RES_AUDIO_SPDIFOUT_EN
+	uint32_t			*SPDIF_OUT_FIFO;
+	uint32_t			SPDIF_OUT_FIFO_LEN;
+#endif
+
 	uint32_t			*ADCFIFO;
 /******************************************************************/
 

@@ -1,9 +1,9 @@
 /***************************************************
  * @file    user_effect_param_HunXiang.c                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.5.3                  
+ * @author  ACPWorkbench: 3.7.0                  
  * @version V1.1.0                                 
- * @Created 2023-09-08T19:46:22                                      
+ * @Created 2023-12-01T17:30:58                                      
  * @Graphics Name Karaoke                                      
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -12,7 +12,7 @@
 #include "type.h"
 
 const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
-0xb1, 0x04, /*total data length*/
+0xb8, 0x04, /*total data length*/
 
 0x02, 0x22, 0x01, /*Effect Version*/
 
@@ -427,38 +427,44 @@ const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
 0x08, 0x07, /*Pregain3*/
 0x00, 0x00, /*Pregain4*/
 
-0x9c, /*gain_control8*/
+0x9c, /*gain_control13*/
+0x05,/*length*/
+0x01, /*enable*/
+0x00, 0x00, /*mute*/
+0x00, 0x00, /*gain*/
+
+0x9d, /*gain_control8*/
 0x05,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*mute*/
 0x00, 0x00, /*gain*/
 
-0x9d, /*voice_changer0*/
+0x9e, /*voice_changer0*/
 0x05,/*length*/
 0x00, /*enable*/
 0xc8, 0x00, /*pitch*/
 0x82, 0x00, /*formant*/
 
-0x9e, /*voice_changer_pro0*/
+0x9f, /*voice_changer_pro0*/
 0x05,/*length*/
 0x00, /*enable*/
 0xc8, 0x00, /*pitch*/
 0x82, 0x00, /*formant*/
 
-0x9f, /*gain_control12*/
+0xa0, /*gain_control12*/
 0x05,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*mute*/
 0x00, 0x00, /*gain*/
 
-0xa0, /*auto_tune0*/
+0xa1, /*auto_tune0*/
 0x07,/*length*/
 0x00, /*enable*/
 0x04, 0x00, /*key*/
 0x00, 0x00, /*snap*/
 0x02, 0x00, /*pitch accuracy*/
 
-0xa1, /*eq5*/
+0xa2, /*eq5*/
 0x69,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*Pregain*/
@@ -514,7 +520,7 @@ const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
 0xd4, 0x02, /*Filter10_Q*/
 0x00, 0x00, /*Filter10_Gain*/
 
-0xa2, /*echo0*/
+0xa3, /*echo0*/
 0x0f,/*length*/
 0x00, /*enable*/
 0x40, 0x1f, /*cutoff frequency*/
@@ -525,13 +531,13 @@ const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
 0x64, 0x00, /*dry*/
 0x64, 0x00, /*wet*/
 
-0xa3, /*gain_control3*/
+0xa4, /*gain_control3*/
 0x05,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*mute*/
 0x00, 0x00, /*gain*/
 
-0xa4, /*eq6*/
+0xa5, /*eq6*/
 0x69,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*Pregain*/
@@ -587,7 +593,7 @@ const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
 0xd4, 0x02, /*Filter10_Q*/
 0x00, 0x00, /*Filter10_Gain*/
 
-0xa5, /*reverb0*/
+0xa6, /*reverb0*/
 0x0d,/*length*/
 0x00, /*enable*/
 0x64, 0x00, /*dry*/
@@ -597,7 +603,7 @@ const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
 0x23, 0x00, /*damping*/
 0x00, 0x00, /*mono*/
 
-0xa6, /*reverb_plate0*/
+0xa7, /*reverb_plate0*/
 0x0f,/*length*/
 0x00, /*enable*/
 0x20, 0x4e, /*high cutoff frequency*/
@@ -608,25 +614,25 @@ const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
 0x05, 0x00, /*damping*/
 0x50, 0x00, /*wetdrymix*/
 
-0xa7, /*gain_control4*/
+0xa8, /*gain_control4*/
 0x05,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*mute*/
 0x00, 0x00, /*gain*/
 
-0xa8, /*gain_control6*/
+0xa9, /*gain_control6*/
 0x05,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*mute*/
 0x00, 0x00, /*gain*/
 
-0xa9, /*gain_control9*/
+0xaa, /*gain_control9*/
 0x05,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*mute*/
 0x00, 0x00, /*gain*/
 
-0xaa, /*eq9*/
+0xab, /*eq9*/
 0x69,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*Pregain*/
@@ -682,7 +688,7 @@ const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
 0xd4, 0x02, /*Filter10_Q*/
 0x00, 0x00, /*Filter10_Gain*/
 
-0xab, /*drc2*/
+0xac, /*drc2*/
 0x35,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*mode*/
@@ -712,19 +718,19 @@ const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
 0x00, 0x00, /*Pregain3*/
 0x00, 0x00, /*Pregain4*/
 
-0xac, /*gain_control10*/
+0xad, /*gain_control10*/
 0x05,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*mute*/
 0x00, 0x00, /*gain*/
 
-0xad, /*gain_control11*/
+0xae, /*gain_control11*/
 0x05,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*mute*/
 0x00, 0x00, /*gain*/
 
-0xae, /*gain_control14*/
+0xaf, /*gain_control14*/
 0x05,/*length*/
 0x00, /*enable*/
 0x00, 0x00, /*mute*/

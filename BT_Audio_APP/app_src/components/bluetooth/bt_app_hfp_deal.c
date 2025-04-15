@@ -284,7 +284,7 @@ void BtHfpScoLinkConnected(BT_HFP_CALLBACK_PARAMS * param)
 		SetHfpState(btManager.HfpCurIndex, BT_HFP_STATE_ACTIVE);
 		return;
 	}
-	Set_Current_SCO_ID(0);
+	//Set_Current_SCO_ID(0);
 	#endif
 
 	SetScoConnectFlag(TRUE);

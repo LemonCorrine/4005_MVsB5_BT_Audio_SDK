@@ -9,11 +9,11 @@
  * Copyright (C) Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  *************************************************************************************
  */
-
 #include "app_config.h"
 #include "app_message.h"
 
 #ifdef CFG_ADC_LEVEL_KEY_EN
+#include "main_task.h"
 #include "adc_levels.h"
 #include "adc.h"
 //#include "config.h"
@@ -24,6 +24,9 @@
 
 static uint8_t ADCLevelsScanCount        = 0;
 
+#define MAX_ADCLEVL_LEVEL_VAL 	        4096						//电位器最大电压值:4096对应3.3v
+#define MAX_ADCLEVL_STEP_NUMBER 	    (CFG_PARA_MAX_VOLUME_NUM+1)	//电位器调节最大步数，范围:0-32
+#define DISTANCE_BETWEEN_STEP 		    5							//电位器滤波采样值://5//15//25
 /*
 ****************************************************************
 * ADC通道初始化列表

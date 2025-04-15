@@ -5,16 +5,16 @@
 #include "ble_app_func.h"
 //#include "bt_app_func.h"
 #include "bt_manager.h"
-#include "app_config.h"
+#include "bt_config.h"
 
 extern BT_CONFIGURATION_PARAMS		*btStackConfigParams;
 
 #include "debug.h"
 #if (BLE_SUPPORT == ENABLE)
 
-extern void SetBleLocalAddress(const char *addr);
+extern void user_set_ble_bd_addr(uint8_t* local_addr);
 
-#define BLE_DFLT_DEVICE_NAME			("BP10-BLE")	//BLE名称
+#define BLE_DFLT_DEVICE_NAME			(sys_parameter.ble_LocalDeviceName)	//BLE名称
 #define BLE_DFLT_DEVICE_NAME_LEN		(strlen(BLE_DFLT_DEVICE_NAME))
 
 /// default read perm
@@ -155,7 +155,7 @@ uint8_t LeInitConfigParams(void)
 
 	printf("RD_P: 0x%04x,WR_P: 0x%04x,NTF_P: 0x%04x,IND_P: 0x%04x",RD_P,WR_P,NTF_P,IND_P);
     LeAppRegCB(AppEventCallBack); // 注册应用层事件回调函数
-
+    user_set_ble_bd_addr(btStackConfigParams->ble_LocalDeviceAddr);
     // BLE广播数据内容填充
     le_user_config.ble_device_name_len = BLE_DFLT_DEVICE_NAME_LEN;
     memcpy(le_user_config.ble_device_name,BLE_DFLT_DEVICE_NAME,le_user_config.ble_device_name_len);

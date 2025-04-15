@@ -280,6 +280,7 @@ void DeviceStorRead10(void)// bkd change sdio1 to 0
 #ifdef FUNC_OS_EN
 	osMutexLock(SDIOMutex);
 #endif
+	DMA_ChannelChange(PERIPHERAL_ID_SDIO_TX,PERIPHERAL_ID_SDIO_RX);
 	DMA_ChannelDisable(PERIPHERAL_ID_SDIO_RX);
 	DMA_InterruptFlagClear(PERIPHERAL_ID_SDIO_RX, DMA_DONE_INT);
 	DMA_BlockConfig(PERIPHERAL_ID_SDIO_RX);
@@ -368,6 +369,7 @@ void DeviceStorWrite10(void)
 			;
 		}
 		SDIO_DataTransfer(0);
+		DMA_ChannelChange(PERIPHERAL_ID_SDIO_RX,PERIPHERAL_ID_SDIO_TX);
 		DMA_ChannelDisable(PERIPHERAL_ID_SDIO_TX);
 		DMA_InterruptFlagClear(PERIPHERAL_ID_SDIO_TX, DMA_DONE_INT);
 		DMA_BlockConfig(PERIPHERAL_ID_SDIO_TX);

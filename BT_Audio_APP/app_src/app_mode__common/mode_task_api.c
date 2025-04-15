@@ -29,6 +29,10 @@
 #include "bt_app_avrcp_deal.h"
 #endif
 
+#ifdef CFG_RES_AUDIO_SPDIFOUT_EN
+#include "spdif_out.h"
+#endif
+
 #define roboeffect_malloc osPortMallocFromEnd
 #define roboeffect_free osPortFree
 extern volatile SysModeStruct SysMode[];
@@ -113,13 +117,11 @@ bool RoboeffectInit()
 		
 		ROBOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(mainAppCt.EffectMode);
 
-		AudioCore.Roboeffect.user_effect_list = get_local_effect_list_buf();
-		memcpy(AudioCore.Roboeffect.user_effect_list,para->user_effect_list,sizeof(roboeffect_effect_list_info));
-
 		AudioCore.Roboeffect.effect_count = para->user_effect_list->count + 0x80;
 		AudioCore.Roboeffect.user_effect_steps = para->user_effect_steps;
 		AudioCore.Roboeffect.user_effects_script = para->user_effects_script;
 		AudioCore.Roboeffect.user_effects_script_len = para->get_user_effects_script_len();
+		AudioCore.Roboeffect.user_effect_list = para->user_effect_list;
 		AudioCore.Roboeffect.user_effect_parameters = osPortMalloc(get_user_effect_parameters_len(para->user_effect_parameters) * sizeof(uint8_t));
 		memcpy(AudioCore.Roboeffect.user_effect_parameters, para->user_effect_parameters,get_user_effect_parameters_len(para->user_effect_parameters) * sizeof(uint8_t));
 		AudioCore.Roboeffect.user_module_parameters = para->user_module_parameters;
@@ -463,6 +465,61 @@ bool ModeCommonInit(void)
 	}
 #endif
 
+#ifdef CFG_RES_AUDIO_SPDIFOUT_EN
+
+	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
+	AudioIOSet.Depth = AudioCore.FrameSize[0] * 2 ;
+#ifdef	CFG_AUDIO_WIDTH_24BIT
+	AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
+	AudioIOSet.IOBitWidthConvFlag = 0;//不需要做位宽转换处理
+#endif
+	if(!AudioCoreSinkIsInit(AUDIO_SPDIF_SINK_NUM))
+	{
+		mainAppCt.SPDIF_OUT_FIFO_LEN = AudioIOSet.Depth * sizeof(PCM_DATA_TYPE) * 2;
+		mainAppCt.SPDIF_OUT_FIFO = (uint32_t*)osPortMalloc(mainAppCt.SPDIF_OUT_FIFO_LEN);//I2S fifo
+		if(mainAppCt.SPDIF_OUT_FIFO != NULL)
+		{
+			memset(mainAppCt.SPDIF_OUT_FIFO, 0, mainAppCt.SPDIF_OUT_FIFO_LEN);
+		}
+		else
+		{
+			APP_DBG("malloc SPDIF_OUT_FIFO error\n");
+			return FALSE;
+		}
+
+		AudioIOSet.Adapt = SRC_ONLY;
+		AudioIOSet.Sync = TRUE;
+		AudioIOSet.Channels = 2;
+		AudioIOSet.Net = DefaultNet;
+		AudioIOSet.HighLevelCent = 60;
+		AudioIOSet.LowLevelCent = 40;
+		AudioIOSet.SampleRate = CFG_PARA_SAMPLE_RATE;//根据实际外设选择
+
+		AudioIOSet.DataIOFunc = AudioSpdifTXDataSet;
+		AudioIOSet.LenGetFunc = AudioSpdifTXDataSpaceLenGet;
+
+
+
+		if(!AudioCoreSinkInit(&AudioIOSet, AUDIO_SPDIF_SINK_NUM))
+		{
+			DBG("spdif out init error");
+			return FALSE;
+		}
+		AudioSpdifOutParamsSet();
+		AudioCoreSinkEnable(AUDIO_SPDIF_SINK_NUM);
+		AudioCoreSinkAdjust(AUDIO_SPDIF_SINK_NUM, TRUE);
+	}
+	else//sam add,20230221
+	{
+		SPDIF_SampleRateSet(SPDIF_OUT_NUM,CFG_PARA_SAMPLE_RATE);
+	#ifdef	CFG_AUDIO_WIDTH_24BIT
+		AudioCore.AudioSink[AUDIO_SPDIF_SINK_NUM].BitWidth = AudioIOSet.IOBitWidth;
+		AudioCore.AudioSink[AUDIO_SPDIF_SINK_NUM].BitWidthConvFlag = AudioIOSet.IOBitWidthConvFlag;
+		AudioCore.AudioSink[AUDIO_SPDIF_SINK_NUM].Sync = TRUE;
+	#endif
+	}
+#endif
+
 #ifdef CFG_FUNC_BREAKPOINT_EN
 	//注意 是否需要模式过滤，部分模式无需记忆和恢复
 	if(GetSystemMode() != ModeIdle)
@@ -533,6 +590,22 @@ void ModeCommonDeinit(void)
 		mainAppCt.I2SFIFO = NULL;
 	}
 	AudioCoreSinkDeinit(AUDIO_I2SOUT_SINK_NUM);
+#endif
+
+#if defined(CFG_RES_AUDIO_SPDIFOUT_EN)
+	SPDIF_ModuleDisable(SPDIF_OUT_NUM);
+	DMA_InterruptFlagClear(SPDIF_OUT_DMA_ID, DMA_DONE_INT);
+	DMA_InterruptFlagClear(SPDIF_OUT_DMA_ID, DMA_THRESHOLD_INT);
+	DMA_InterruptFlagClear(SPDIF_OUT_DMA_ID, DMA_ERROR_INT);
+	DMA_ChannelDisable(SPDIF_OUT_DMA_ID);
+
+	if(mainAppCt.SPDIF_OUT_FIFO != NULL)
+	{
+		APP_DBG("SPDIF OUT FIFO\n");
+		osPortFree(mainAppCt.SPDIF_OUT_FIFO);
+		mainAppCt.SPDIF_OUT_FIFO = NULL;
+	}
+	AudioCoreSinkDeinit(AUDIO_SPDIF_SINK_NUM);
 #endif
 
 //#endif
@@ -1208,12 +1281,12 @@ void CommonMsgProccess(uint16_t Msg)
 			break;
 
 		case MSG_VOCAL_CUT:
-//			APP_DBG("MSG_VOCAL_CUT\n");
-//			gCtrlVars.vocal_cut_unit.vocal_cut_en = !gCtrlVars.vocal_cut_unit.vocal_cut_en;
-//			#ifdef CFG_FUNC_DISPLAY_EN
-//            msgSend.msgId = MSG_DISPLAY_SERVICE_VOCAL_CUT;
-//            MessageSend(GetSysModeMsgHandle(), &msgSend);
-//			#endif
+			APP_DBG("MSG_VOCAL_CUT\n");
+			Roboeffect_effect_enable(VOCAL_CUT, !Roboeffect_effect_status_Get(VOCAL_CUT));
+			#ifdef CFG_FUNC_DISPLAY_EN
+            msgSend.msgId = MSG_DISPLAY_SERVICE_VOCAL_CUT;
+            MessageSend(GetSysModeMsgHandle(), &msgSend);
+			#endif
 			break;
 
 		case MSG_VB:
@@ -1252,6 +1325,9 @@ void CommonMsgProccess(uint16_t Msg)
 			{
 				mainAppCt.EffectMode++;
 			}
+#ifdef CFG_FUNC_BREAKPOINT_EN
+			BackupInfoUpdata(BACKUP_SYS_INFO);
+#endif
 			APP_DBG("EffectMode = %d\n", mainAppCt.EffectMode);
 
 			ROBOEFFECT_EFFECT_PARA *mpara = get_user_effect_parameters(mainAppCt.EffectMode);
@@ -1288,9 +1364,8 @@ void CommonMsgProccess(uint16_t Msg)
 				SoftFlagDeregister(SoftFlagAudioCoreSourceIsDeInit);
 				AudioCoreServiceResume();
 			}
-#ifdef CFG_FUNC_MIC_KARAOKE_EN
-			Roboeffect_ReverbStep_Ajust(mainAppCt.ReverbStep);		//Switch effect mode also need to sync reverb step
-#endif
+
+			AudioEffectParamSync();		//switch effect mode also need to sync some params
 
 			if(IsAudioPlayerMute() == TRUE)
 			{
@@ -1340,9 +1415,6 @@ void CommonMsgProccess(uint16_t Msg)
 			}
             AudioCore.Roboeffect.reinit_done = 1;
 			gCtrlVars.AutoRefresh = addr;
-			break;
-		case MSG_REC_MUSIC:
-			SetRecMusic(0);
 			break;
 
 		#ifdef CFG_FUNC_RTC_EN

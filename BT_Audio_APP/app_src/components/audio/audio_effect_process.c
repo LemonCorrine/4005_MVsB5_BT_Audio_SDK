@@ -14,13 +14,7 @@
 #include "bt_manager.h"
 #include "mode_task.h"
 #include "bt_hf_api.h"
-
-#include "roboeffect_api.h"
 #include "user_effect_parameter.h"
-
-//EffectNodeList  gEffectNodeList[AUDIO_EFFECT_GROUP_NUM];
-extern uint8_t AudioCoreSourceToRoboeffect(int8_t source);
-extern uint8_t AudioCoreSinkToRoboeffect(int8_t sink);
 
 #ifdef CFG_FUNC_EQMODE_FADIN_FADOUT_EN
 extern uint32_t music_eq_mode_unit;
@@ -41,9 +35,9 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 
 	for(s = 0; s < AUDIO_CORE_SOURCE_MAX_NUM; s++)
 	{
-		if(!pAudioCore->AudioSource[s].Active)
+		if(AudioCoreSourceToRoboeffect(s) != AUDIOCORE_SOURCE_SINK_ERROR)
 		{
-			if(AudioCoreSourceToRoboeffect(s) != AUDIOCORE_SOURCE_SINK_ERROR)
+			if(!pAudioCore->AudioSource[s].Active || mainAppCt.gSysVol.MuteFlag || pAudioCore->AudioSource[s].LeftMuteFlag)
 			{
 				memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(s)),
 									0, n * sizeof(PCM_DATA_TYPE) * 2);
@@ -105,9 +99,9 @@ void AudioEffectProcessBTHF(AudioCoreContext *pAudioCore)
 
 	for(s = 0; s < AUDIO_CORE_SOURCE_MAX_NUM; s++)
 	{
-		if(!pAudioCore->AudioSource[s].Active)
+		if(AudioCoreSourceToRoboeffect(s) != AUDIOCORE_SOURCE_SINK_ERROR)
 		{
-			if(AudioCoreSourceToRoboeffect(s) != AUDIOCORE_SOURCE_SINK_ERROR)
+			if(!pAudioCore->AudioSource[s].Active || mainAppCt.gSysVol.MuteFlag || pAudioCore->AudioSource[s].LeftMuteFlag)
 			{
 				memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(s)),
 									0, n * 2 * 2);
@@ -158,9 +152,9 @@ void AudioBypassProcess(AudioCoreContext *pAudioCore)
 
 	for(s = 0; s < AUDIO_CORE_SOURCE_MAX_NUM; s++)
 	{
-		if(!pAudioCore->AudioSource[s].Active)
+		if(AudioCoreSourceToRoboeffect(s) != AUDIOCORE_SOURCE_SINK_ERROR)
 		{
-			if(AudioCoreSourceToRoboeffect(s) != AUDIOCORE_SOURCE_SINK_ERROR)
+			if(!pAudioCore->AudioSource[s].Active || mainAppCt.gSysVol.MuteFlag || pAudioCore->AudioSource[s].LeftMuteFlag)
 			{
 				memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(s)),
 									0, n * sizeof(PCM_DATA_TYPE) * 2);

@@ -13,7 +13,7 @@
 #define __ROBOEFFECT_API_H__
 
 /*Roboeffect Library version*/
-#define ROBOEFFECT_LIB_VER "2.9.1"
+#define ROBOEFFECT_LIB_VER "2.10.0"
 
 #include <stdio.h>
 #include <nds32_intrinsic.h>

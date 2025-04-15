@@ -1,9 +1,9 @@
 /***************************************************
  * @file    user_effect_param_mic.c                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.5.4                  
+ * @author  ACPWorkbench: 3.7.0                  
  * @version V1.1.0                                 
- * @Created 2023-09-12T16:42:03                                      
+ * @Created 2023-12-01T13:40:14                                      
  * @Graphics Name mic                                      
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -12,7 +12,7 @@
 #include "type.h"
 
 const unsigned char user_effect_parameters_mic_mic[] = {
-0x61, 0x03, /*total data length*/
+0x68, 0x03, /*total data length*/
 
 0x02, 0x22, 0x01, /*Effect Version*/
 
@@ -429,8 +429,8 @@ const unsigned char user_effect_parameters_mic_mic[] = {
 
 0x92, /*gain_control1*/
 0x05,/*length*/
-0x00, /*enable*/
-0x00, 0x00, /*mute*/
+0x01, /*enable*/
+0x01, 0x00, /*mute*/
 0x00, 0x00, /*gain*/
 
 0x93, /*eq0*/
@@ -496,6 +496,12 @@ const unsigned char user_effect_parameters_mic_mic[] = {
 0x5c, 0x08, /*gain*/
 0x0a, 0x00, /*attack_time*/
 0xe8, 0x03, /*release_time*/
+
+0x95, /*remind_gain_control*/
+0x05,/*length*/
+0x01, /*enable*/
+0x00, 0x00, /*mute*/
+0x00, 0x00, /*gain*/
 
 };
 

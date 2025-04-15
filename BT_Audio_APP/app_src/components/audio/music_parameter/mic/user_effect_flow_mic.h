@@ -1,9 +1,9 @@
 /***************************************************
- * @file     mic.h
+ * @file     mic.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.6.11
+ * @author  ACPWorkbench: 3.7.0                 
  * @version V1.1.0                                  
- * @Created 2023-10-12T14:43:41
+ * @Created 2023-12-01T13:40:02                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define MIC_ROBOEFFECT_LIB_VER "2.7.8"
+#define MIC_ROBOEFFECT_LIB_VER "2.10.0"
 
 typedef enum _MIC_roboeffect_io_enum
 {
@@ -28,6 +28,7 @@ typedef enum _MIC_roboeffect_io_enum
     MIC_SINK_DAC0_SINK,
     MIC_SINK_APP_SINK,
     MIC_SINK_STEREO_SINK,
+    MIC_SINK_SPDIF_SINK,
     MIC_SINK_REC_SINK,
 } MIC_roboeffect_io_enum;
 
@@ -54,6 +55,7 @@ typedef enum _MIC_roboeffect_effect_list_enum{
     MIC_gain_control1_ADDR,
     MIC_eq0_ADDR,
     MIC_low_level_compressor0_ADDR,
+    MIC_remind_gain_control_ADDR,
     MIC_COUNT_ADDR,
 
 } MIC_roboeffect_effect_list_enum;

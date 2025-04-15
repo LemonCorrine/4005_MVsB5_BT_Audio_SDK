@@ -95,13 +95,13 @@ const ROBOEFFECT_EFFECT_PARA_TABLE karaoke_node =
 	.effect_addr =
 	{
 		.REVERB_ADDR = KARAOKE_reverb0_ADDR,
+		.REVERBPLATE_ADDR = KARAOKE_reverb_plate0_ADDR,
 		.ECHO_ADDR = KARAOKE_echo0_ADDR,
 		.SILENCE_DETECTOR_ADDR = KARAOKE_silence_detector0_ADDR,
 		.VOICE_CHANGER_ADDR = KARAOKE_voice_changer0_ADDR,
 		.APP_SOURCE_GAIN_ADDR = KARAOKE_gain_control0_ADDR,
 		.MIC_SOURCE_GAIN_ADDR = KARAOKE_gain_control1_ADDR,
-		.DAC0_SINK_GAIN_ADDR = KARAOKE_gain_control0_ADDR,	//框图里面没有，暂时复用app source
-		.APP_SINK_GAIN_ADDR = KARAOKE_gain_control10_ADDR,
+		.REMIND_SOURCE_GAIN_ADDR = KARAOKE_gain_control13_ADDR,
 	},
 
 	//ROBOEFFECT effect SOURCE映射
@@ -124,6 +124,7 @@ const ROBOEFFECT_EFFECT_PARA_TABLE karaoke_node =
 		.stereo_sink = KARAOKE_SINK_STEREO_SINK,
 		.rec_sink = KARAOKE_SINK_REC_SINK,
 		.i2s_mix_sink = KARAOKE_SINK_I2S_MIX_SINK,
+		.spdif_sink = KARAOKE_SINK_SPDIF_SINK,
 	},
 
 	//ROBOEFFECT effect 参数

@@ -132,9 +132,7 @@ osMutexId RemindMutex = NULL;
 
 uint32_t get_remind_state(void)
 {
-
-return RemindSoundCt.player_init;
-
+	return RemindSoundCt.player_init;
 }
 
 void RemindSoundAudioPlayEnd(void);
@@ -363,6 +361,7 @@ void RemindSoundPlayEndNotify(void)
 		RemindSoundCt.MuteAppFlag = FALSE;	
 		//AudioCoreSourceUnmute(MIC_SOURCE_NUM,TRUE,TRUE);
 		AudioCoreSourceUnmute(APP_SOURCE_NUM,TRUE,TRUE);
+		//Roboeffect_AppSourceMute_Set(RemindSoundCt.MuteAppFlag);
 	}
 	
 	SendRemindSoundEndMsg();
@@ -522,6 +521,11 @@ void RemindSoundItemRequestDisable(void)
 	RemindSoundCt.Disable = TRUE;
 }
 
+bool GetRemindSoundItemDisable(void)
+{
+	return RemindSoundCt.Disable;
+}
+
 bool RemindSoundServiceItemRequest(char *SoundItem, uint32_t play_attribute)
 {
 	uint8_t i;
@@ -561,6 +565,7 @@ bool RemindSoundServiceItemRequest(char *SoundItem, uint32_t play_attribute)
 	REMIND_DBG("i:%d Addr:%x Attr:%x\n", i, ItemRef, play_attribute);
 	if(RemindSoundCt.EmptyIndex > 1
 			&& (RemindSoundCt.Request[0].Attr & REMIND_ATTR_CLEAR) == 0
+			&& (play_attribute & REMIND_ATTR_NEED_HOLD_PLAY) == 0
 			&& (RemindSoundCt.Request[0].Attr & REMIND_PRIO_MASK) == REMIND_PRIO_NORMAL)
 	{//当前播放 REMIND_PRIO_NORMAL时 先停播。
 		//需检测同步。
@@ -768,7 +773,12 @@ bool RemindSoundRun(SysModeState ModeState)
 					{
 						RemindSoundCt.ItemState = REMIND_ITEM_PREPARE;
 						RemindSoundCt.player_init = MP2_DECODE_HEADER;
-
+						if(RemindSoundCt.Request[0].Attr & REMIND_ATTR_NEED_MUTE_APP_SOURCE)
+						{
+							RemindSoundCt.MuteAppFlag = TRUE;
+							AudioCoreSourceMute(APP_SOURCE_NUM,TRUE,TRUE);
+							//Roboeffect_AppSourceMute_Set(RemindSoundCt.MuteAppFlag);
+						}
 						break;
 					}
 					else

@@ -373,7 +373,7 @@ void MicVolSmoothProcess(void)
 			mainAppCt.MicVolume++;
 		}
 		mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM] = mainAppCt.MicVolume;
-		AudioCoreSourceVolSet(MIC_SOURCE_NUM, gSysVolArr[mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]], gSysVolArr[mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]]);
+		AudioCoreSourceVolSet(MIC_SOURCE_NUM, roboeffectVolArr[mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]], roboeffectVolArr[mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]]);
 		APP_DBG("MicVolume = %d\n",mainAppCt.MicVolume);
 	}
 //    //-------------bass 电位器渐变调节-----------------------------------------//

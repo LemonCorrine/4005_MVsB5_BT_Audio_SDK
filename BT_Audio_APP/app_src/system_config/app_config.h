@@ -44,14 +44,14 @@
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(0)
 #define  CFG_SDK_MINOR_VERSION		(2)
-#define  CFG_SDK_PATCH_VERSION	    (8)
+#define  CFG_SDK_PATCH_VERSION	    (9)
 
 
 //****************************************************************************************
 // 系统App功能模式选择
 //****************************************************************************************
 #define CFG_APP_IDLE_MODE_EN
-//#define CFG_APP_BT_MODE_EN
+#define CFG_APP_BT_MODE_EN
 #define	CFG_APP_USB_PLAY_MODE_EN
 #define	CFG_APP_CARD_PLAY_MODE_EN
 #define	CFG_APP_LINEIN_MODE_EN
@@ -134,6 +134,16 @@
 /**I2S音频输出通道配置选择**/
 //#define CFG_RES_AUDIO_I2SOUT_EN
 
+/**光纤同轴音频输出通道配置选择**/
+//#define CFG_RES_AUDIO_SPDIFOUT_EN
+#ifdef CFG_RES_AUDIO_SPDIFOUT_EN
+	#define SPDIF_OUT_NUM			SPDIF1
+	#define SPDIF_OUT_DMA_ID		PERIPHERAL_ID_SPDIF1_TX
+	#ifdef CFG_AUDIO_WIDTH_24BIT
+		#define CFG_AUDIO_SPDIFOUT_24BIT	//打开SPDIF_TX 24bit输出，关闭SPDIF_TX 16bit输出
+	#endif
+#endif
+
 //****************************************************************************************
 //     I2S相关配置选择
 //说明:
@@ -144,17 +154,19 @@
 #if defined(CFG_APP_I2SIN_MODE_EN) || defined(CFG_RES_AUDIO_I2SOUT_EN)
 #include"i2s.h"
 //i2s gpio配置，必须都配置成i2s1或者i2s0
-#define I2S_MCLK_GPIO					I2S1_MCLK_OUT_A6 //选择MCLK_OUT/MCLK_IN脚，I2S自动配置成master/slave
-#define I2S_LRCLK_GPIO					I2S1_LRCLK_A7
-#define I2S_BCLK_GPIO					I2S1_BCLK_A9
+#define I2S_MCLK_GPIO					I2S0_MCLK_OUT_A24 //选择MCLK_OUT/MCLK_IN脚，I2S自动配置成master/slave
+#define I2S_LRCLK_GPIO					I2S0_LRCLK_A20
+#define I2S_BCLK_GPIO					I2S0_BCLK_A21
 #ifdef CFG_RES_AUDIO_I2SOUT_EN
-	#define I2S_DOUT_GPIO				I2S1_DOUT_A10
+	#define I2S_DOUT_GPIO				I2S0_DOUT_A22
 #endif
 #ifdef CFG_APP_I2SIN_MODE_EN
-	#define I2S_DIN_GPIO				I2S1_DIN_A10
+	#define I2S_DIN_GPIO				I2S0_DIN_A23
 #endif
 #define CFG_RES_I2S_MODE				GET_I2S_MODE(I2S_MCLK_GPIO)		//根据I2S_MCLK_GPIO自动配置master/slave
+																		//也可以手动配置成1或者0  0:master mode ;1:slave mode
 #define	CFG_RES_I2S_MODULE				GET_I2S_I2S_PORT(I2S_MCLK_GPIO)	//根据I2S_MCLK_GPIO自动配置i2s1/i2s0
+																		//也可以手动配置成1或者0  0 ---> i2s0  1 ---> i2s1
 #define CFG_PARA_I2S_SAMPLERATE			44100
 #define CFG_FUNC_I2S_IN_SYNC_EN			//缺省为SRA
 #define CFG_FUNC_I2S_OUT_SYNC_EN
@@ -192,14 +204,14 @@
 #ifdef CFG_FUNC_MIC_KARAOKE_EN
 //Line in mix for Karaoke
 #ifndef CFG_APP_LINEIN_MODE_EN
-	#define CFG_FUNC_LINEIN_MIX_MODE
+//	#define CFG_FUNC_LINEIN_MIX_MODE
 #endif
 // I2S mix mode for Karaoke
 //#define CFG_RES_AUDIO_I2S_MIX_OUT_EN
 //#define CFG_RES_AUDIO_I2S_MIX_IN_EN
 //USB Audio mix for Karaoke
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
-	#define CFG_FUNC_USB_AUDIO_MIX_MODE //USB Audio mix需要开启USB_AUDIO_MODE
+//	#define CFG_FUNC_USB_AUDIO_MIX_MODE //USB Audio mix需要开启USB_AUDIO_MODE
 #endif
 #if defined(CFG_RES_AUDIO_I2S_MIX_IN_EN) || defined(CFG_RES_AUDIO_I2S_MIX_OUT_EN)
 	#define CFG_FUNC_I2S_MIX_MODE
@@ -356,6 +368,19 @@
 /**LRC歌词功能 **/
 //#define CFG_FUNC_LRC_EN			 	// LRC歌词文件解析
 
+/*------browser function------*/
+//#define FUNC_BROWSER_PARALLEL_EN  		//browser Parallel
+//#define FUNC_BROWSER_TREE_EN  			//browser tree
+#if	defined(FUNC_BROWSER_PARALLEL_EN)||defined(FUNC_BROWSER_TREE_EN)
+#define FUNCTION_FILE_SYSTEM_REENTRY
+#if defined(FUNC_BROWSER_TREE_EN)||defined(FUNC_BROWSER_PARALLEL_EN)
+#define GUI_ROW_CNT_MAX		5		//最多显示多少行
+#else
+#define GUI_ROW_CNT_MAX		1		//最多显示多少行
+#endif
+#endif
+/*------browser function------*/
+
 /**字符编码类型转换 **/
 /**目前支持Unicode     ==> Simplified Chinese (DBCS)**/
 /**字符转换库由fatfs提供，故需要包含文件系统**/
@@ -429,7 +454,7 @@
 //****************************************************************************************
 #define CFG_FUNC_REMIND_SOUND_EN
 #ifdef CFG_FUNC_REMIND_SOUND_EN
-	#define CFG_PARAM_FIXED_REMIND_VOL   	10		//固定提示音音量值,0表示受music vol同步控制
+	#define CFG_PARAM_FIXED_REMIND_VOL   	CFG_PARA_SYS_VOLUME_DEFAULT		//固定提示音音量值,0表示受music vol同步控制
 #endif
 
 //****************************************************************************************

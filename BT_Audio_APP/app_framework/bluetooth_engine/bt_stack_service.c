@@ -63,8 +63,8 @@ extern AvrcpAdvMediaStatus sPlayStatus[BT_LINK_DEV_NUM];
 
 
 //BR/EDR STACK SERVICE
-#define BT_STACK_SERVICE_STACK_SIZE		1024//768
-#define BT_STACK_SERVICE_PRIO			5
+#define BT_STACK_SERVICE_STACK_SIZE		768
+#define BT_STACK_SERVICE_PRIO			4
 #define BT_STACK_NUM_MESSAGE_QUEUE		20
 
 typedef struct _BtStackServiceContext

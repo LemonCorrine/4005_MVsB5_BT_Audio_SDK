@@ -464,22 +464,7 @@ const roboeffect_effect_property_struct effect_property_for_robo[] = {
 	{ROBOEFFECT_ROUTE_SELECTOR, ROBOEFFECT_CH_MONO_STEREO, FZ_ANY, ROBOEFFECT_ROUTE_SELECTOR_PARAM_LEN, 4,
 	ROBOEFFECT_EFF_IF_NAME_INIT(route_selector), ROBOEFFECT_EFF_IF_NAME_CONF(route_selector), ROBOEFFECT_EFF_IF_NAME_APPLY(route_selector), NULL,
 	},
-
-	{ROBOEFFECT_AI_DENOISE, ROBOEFFECT_CH_MONO, FZ_ANY, ROBOEFFECT_AI_DENOISE_PARAM_LEN, (sizeof(ai_denoise_struct) + AI_MEMORY_SIZE + AI_RAM_SIZE),
-#if AI_DENOISE_ENABLE
-	ROBOEFFECT_EFF_IF_NAME_INIT(ai_denoise), ROBOEFFECT_EFF_IF_NAME_CONF(ai_denoise), ROBOEFFECT_EFF_IF_NAME_APPLY(ai_denoise), ROBOEFFECT_EFF_IF_NAME_SCRATCH(ai_denoise),
-#else
-	ROBOEFFECT_EFF_IF_NAME_INIT(null), ROBOEFFECT_EFF_IF_NAME_CONF(null), ROBOEFFECT_EFF_IF_NAME_APPLY(null), ROBOEFFECT_EFF_IF_NAME_SCRATCH(null),
-#endif/*AI_DENOISE_ENABLE*/
-	},
-
-	{ROBOEFFECT_USER_GAIN, ROBOEFFECT_CH_MONO_STEREO, FZ_ANY, ROBOEFFECT_USER_GAIN_PARAM_LEN, (sizeof(user_gain_struct)),
-#if USER_GAIN_ENABLE
-	ROBOEFFECT_EFF_IF_NAME_INIT(user_gain), ROBOEFFECT_EFF_IF_NAME_CONF(user_gain), ROBOEFFECT_EFF_IF_NAME_APPLY(user_gain), NULL,
-#else
-	ROBOEFFECT_EFF_IF_NAME_INIT(null), ROBOEFFECT_EFF_IF_NAME_CONF(null), ROBOEFFECT_EFF_IF_NAME_APPLY(null), NULL,
-#endif/*USER_GAIN_ENABLE*/
-	},
+	USER_DEFINED_INTERFACE
 
 };
 
@@ -503,7 +488,7 @@ char *effect_lib_version_return(void)
 
 const uint8_t effect_property_for_display[] = {
 0x02, 0x22, 0x01, //audio_effect_library@2.34.1
-0x3B, //sizeof(effect_property_for_robo)/sizeof(roboeffect_effect_property_struct), //total effect number 59
+ROBOEFFECT_TOTAL_MAX, //total effect number %d
 /*****auto_tune*****/
 0x14, 0x01, //item len=276
 0x01, 0x04, 0x00, //auto_tune@1.4.0
@@ -6178,69 +6163,14 @@ const uint8_t effect_property_for_display[] = {
 
 0x00, //ui_layout is auto
 /*****route_selector end*****/
-/*****ai_denoise*****/
-0x33, 0x00, //item len=51
-0x01, 0x02, 0x00, //ai_denoise@1.2.0
-0x0A, //effect name length
-0x61, 0x69, 0x5F, 0x64, 0x65, 0x6E, 0x6F, 0x69, 0x73, 0x65, 
-0x00, //bits width is 16
-0x01, //input1 channel is mono
-0x00, //input2 channel is N/A
-0x01, //output channel is mono
-0x01, //params_number is 1
 
-0x0D, //index: 00, denoise_level
-0x64, 0x65, 0x6E, 0x6F, 0x69, 0x73, 0x65, 0x5F, 0x6C, 0x65, 0x76, 0x65, 0x6C, 
-0x02, //value: value
-0x00, 0x00, //min 0
-0x5A, 0x00, //max 90
-0x01, 0x00, //step 1
-0x1E, 0x00, //default: 30
-0x02, 0x00, //method: METHOD_CFG_1
-
-0x00, //denoise_level: spinbox
-0x00, //unit length 0
-0x00, //fract 0
-0x01, 0x00, //ratio 1
-0x00, //tips length 0
-
-0x00, //ui_layout is auto
-/*****ai_denoise end*****/
-/*****user_gain*****/
-0x2B, 0x00, //item len=43
-0x01, 0x00, 0x00, //user_gain@1.0.0
-0x09, //effect name length
-0x75, 0x73, 0x65, 0x72, 0x5F, 0x67, 0x61, 0x69, 0x6E, 
-0x02, //bits width is 16/24
-0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
-0x03, //output channel is mono/stereo
-0x01, //params_number is 1
-
-0x04, //index: 00, gain
-0x67, 0x61, 0x69, 0x6E, 
-0x02, //value: value
-0xD8, 0xDC, //min -9000
-0xB0, 0x04, //max 1200
-0x0A, 0x00, //step 10
-0x00, 0x00, //default: 0
-0x00, 0x00, //method: METHOD_NONE
-
-0x01, //gain: hslider
-0x02, //unit length 2
-0x64, 0x42, 
-0x02, //fract 2
-0x64, 0x00, //ratio 100
-0x00, //tips length 0
-
-0x00, //ui_layout is auto
-/*****user_gain end*****/
+USER_DEFINED_LIBS_DATA
 
 };
 
 uint16_t sizeof_effect_property_for_display(void)
 {
-	return sizeof(effect_property_for_display);// 12046 bytes
+	return sizeof(effect_property_for_display);// 11947 bytes
 }
 
 int16_t *roboeffect_get_param_by_raw_data(uint8_t addr, uint8_t *enable, uint8_t *len, const uint8_t *parameters)

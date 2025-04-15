@@ -52,7 +52,7 @@ void FirstTalkingPhoneIndexSet(uint8_t Index)
 {
 	APP_DBG("set frist index:%d\n",Index);
 
-	if(FirstTalkingPhoneIndex == Index)
+	/*if(FirstTalkingPhoneIndex == Index)
 		return;
 
 	if(FirstTalkingPhoneIndex == 0xff)
@@ -74,6 +74,7 @@ void FirstTalkingPhoneIndexSet(uint8_t Index)
 	}
 
 	FirstTalkingPhoneIndex = Index;
+	*/
 }
 
 uint8_t FirstTalkingPhoneIndexGet(void)

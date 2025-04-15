@@ -14,7 +14,6 @@
 #include <stdint.h>
 #include "debug.h"
 #include "app_config.h"
-#include "audio_effect_library.h"
 #include "clk.h"
 #include "ctrlvars.h"
 #include "spi_flash.h"
@@ -28,43 +27,6 @@
 #include "user_effect_parameter.h"
 
 ControlVariablesContext gCtrlVars;
-
-const uint8_t AutoTuneKeyTbl[13] ={ 
- 'a','A','b','B','C','d','D','e','E','F','g','G','X',
-};
- 
-const uint8_t AutoTuneSnapTbl[3] ={ 
-'n','u','l',
-};
-
-const int16_t DeltafTable[8] = {
- -7,-5,-3,3,5,7,0,
-};
-
-const uint8_t MIC_BOOST_LIST[5]={
-	4,//dis
-	0,//0db
-	1,//6db
-	2,//12db
-	3,//20db
-};
-
-const uint8_t PlateReverbRoomTab[16]={
-
-	0,10,11,13,14,15,20,25,30,35,40,45,48,50,52,70,
-
-};
-const uint8_t ReverbRoomTab[16]={
-	
-	0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,80,
-
-};
-	
-const int16_t EchoDlyTab_16[16] =
-{
-    0,		10,	    50,	    100,	120,	140,	160,	180,  
-    200,	210,	220,	230,	240,	260,	280,	320,
-};
 
 const int16_t DigVolTab_16[16] =
 {
@@ -505,11 +467,6 @@ void CtrlVarsInit(void)
 
 	//音频系统硬件模块变量初始化
 	DefaultParamgsInit();
-
-	//用户特殊音效参数默认值初始化
-	//DefaultParamgsUserInit();
-	//从flash固定区域导出硬件参数并验证数据合法性
-	//
 }
 
 //各个模块默认参数设置函数
@@ -517,7 +474,7 @@ void DefaultParamgsInit(void)
 {
 	memset(&gCtrlVars,  0, sizeof(gCtrlVars));
 	//for system control 0x01
-	gCtrlVars.AutoRefresh         = 1;//调音时音效参数发生改变，上位机会自动读取音效数据，1=允许上位读，0=不需要上位机读取
+	gCtrlVars.AutoRefresh = 1;//调音时音效参数发生改变，上位机会自动读取音效数据，1=允许上位读，0=不需要上位机读取
 
 	if(AudioCore.Roboeffect.context_memory)
 	{
@@ -526,15 +483,18 @@ void DefaultParamgsInit(void)
 	else
 	{
 		ROBOEFFECT_EFFECT_PARA *para;
+		if (mainAppCt.EffectMode  == 0)
+		{
 #ifdef CFG_FUNC_EFFECT_BYPASS_EN
-	mainAppCt.EffectMode = EFFECT_MODE_BYPASS;
+			mainAppCt.EffectMode = EFFECT_MODE_BYPASS;
 #else
 #ifdef CFG_FUNC_MIC_KARAOKE_EN
-	mainAppCt.EffectMode = EFFECT_MODE_HunXiang;
+			mainAppCt.EffectMode = EFFECT_MODE_HunXiang;
 #else
-	mainAppCt.EffectMode = EFFECT_MODE_MIC;
+			mainAppCt.EffectMode = EFFECT_MODE_MIC;
 #endif
 #endif
+		}
 		para = get_user_effect_parameters(mainAppCt.EffectMode);
 		memcpy(&gCtrlVars.HwCt, para->user_module_parameters, sizeof(gCtrlVars.HwCt));
 	}
