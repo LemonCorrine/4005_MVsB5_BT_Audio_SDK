@@ -42,7 +42,7 @@
 								<option id="nds.c.compiler.option.include.paths.341946989" name="Include paths (-I)" superClass="nds.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/otg/host/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/otg/device/inc}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/audio/music_parameter/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/components/audio/music_parameter}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/driver/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/src/materials}&quot;"/>
@@ -86,6 +86,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/lrc/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/rtos/rtos_api}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/rtos/freertos/inc}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/BT_Audio_APP/middleware/roboeffect/src}&quot;"/>
 								</option>
 								<option id="nds.c.compiler.option.debugging.level.315162434" name="Debug Level" superClass="nds.c.compiler.option.debugging.level" value="nds.c.debugging.level.max" valueType="enumerated"/>
 								<option id="nds.c.compiler.option.misc.other.1628901459" name="Other flags" superClass="nds.c.compiler.option.misc.other" value="-c -fmessage-length=0 -ldsp -mext-dsp -std=gnu99" valueType="string"/>
@@ -320,15 +321,13 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="config.nds32le-elf-mculib-v3s.exe.debug.1519929465;config.nds32le-elf-mculib-v3s.exe.debug.1519929465.1342593476;tool.nds32le-elf-mculib-v3s.c.compiler.exe.debug.2120626048.1434683451;tool.nds.c.compiler.input.224311378">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.andestech.ide.cdt.managedbuilder.core.ndsManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="config.nds32le-elf-mculib-v3s.exe.debug.1519929465;config.nds32le-elf-mculib-v3s.exe.debug.1519929465.;tool.nds32le-elf-mculib-v3s.c.compiler.exe.debug.2120626048;tool.nds.c.compiler.input.1831185095">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.andestech.ide.cdt.managedbuilder.core.ndsManagedMakePerProjectProfileC"/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="config.nds32le-elf-mculib-v3s.exe.debug.1519929465;config.nds32le-elf-mculib-v3s.exe.debug.1519929465.1898296117;tool.nds32le-elf-mculib-v3s.c.compiler.exe.debug.2120626048.1543104291;tool.nds.c.compiler.input.1663245586">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.andestech.ide.cdt.managedbuilder.core.ndsManagedMakePerProjectProfileC"/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="config.nds32le-elf-mculib-v3s.exe.debug.1519929465;config.nds32le-elf-mculib-v3s.exe.debug.1519929465.;tool.nds32le-elf-mculib-v3s.c.compiler.base.548536476;tool.nds.c.compiler.input.619503611">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.andestech.ide.cdt.managedbuilder.core.ndsManagedMakePerProjectProfileC"/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="config.nds32le-elf-mculib-v3s.exe.release.1922083503;config.nds32le-elf-mculib-v3s.exe.release.1922083503.;tool.nds32le-elf-mculib-v3s.c.compiler.exe.release.1480700085;tool.nds.c.compiler.input.250630512">
@@ -337,9 +336,11 @@
 		<scannerConfigBuildInfo instanceId="config.nds32le-elf-mculib-v3s.exe.debug.1519929465;config.nds32le-elf-mculib-v3s.exe.debug.1519929465.1488509470;tool.nds32le-elf-mculib-v3s.c.compiler.base.2132857468;tool.nds.c.compiler.input.1885296127">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.andestech.ide.cdt.managedbuilder.core.ndsManagedMakePerProjectProfileC"/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="config.nds32le-elf-mculib-v3s.exe.debug.1519929465;config.nds32le-elf-mculib-v3s.exe.debug.1519929465.1342593476;tool.nds32le-elf-mculib-v3s.c.compiler.exe.debug.2120626048.1434683451;tool.nds.c.compiler.input.224311378">
+		<scannerConfigBuildInfo instanceId="config.nds32le-elf-mculib-v3s.exe.debug.1519929465;config.nds32le-elf-mculib-v3s.exe.debug.1519929465.;tool.nds32le-elf-mculib-v3s.c.compiler.base.548536476;tool.nds.c.compiler.input.619503611">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.andestech.ide.cdt.managedbuilder.core.ndsManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="config.nds32le-elf-mculib-v3s.exe.debug.1519929465;config.nds32le-elf-mculib-v3s.exe.debug.1519929465.1898296117;tool.nds32le-elf-mculib-v3s.c.compiler.exe.debug.2120626048.1543104291;tool.nds.c.compiler.input.1663245586">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.andestech.ide.cdt.managedbuilder.core.ndsManagedMakePerProjectProfileC"/>
 		</scannerConfigBuildInfo>
 	</storageModule>
-	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 </cproject>
