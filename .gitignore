@@ -1,0 +1,67 @@
+/source/
+/.vscode/
+/BT_Audio_APP/.metadata/
+/BT_Audio_APP/Release/
+*.bin
+*.o
+*.d
+*.elf
+*.prefs
+*.flash.ui*
+*.c
+*.h
+*.a
+*.exe
+*.mp3
+*.txt
+*.ld
+*.sag
+*.ini
+*.bat
+*.chm
+*.pdf
+*.S
+# *.apk
+*.project
+*.cproject
+# *.xlsx
+# *.html
+# *.gatt
+# *.hhh
+
+Examples/examples/Example_Clk/Debug/
+Examples/examples/AudioAlgLib/Debug/
+Examples/examples/Component_Algorithm/Debug/
+Examples/examples/Demo_BT/Debug/
+Examples/examples/Demo_FreeRTOS/Debug/
+Examples/examples/Demo_RGB/Debug/
+Examples/examples/Demo_RTC_Timer/Debug/
+Examples/examples/Example_ADC/Debug/
+Examples/examples/Example_AudioADC/Debug/
+Examples/examples/Example_AudioADC_AI/Debug/
+Examples/examples/Example_AudioDMIC/Debug/
+Examples/examples/Example_CAN/Debug/
+Examples/examples/Example_DAC/Debug/
+Examples/examples/Example_DMA/Debug/
+Examples/examples/Example_FFT/Debug/
+Examples/examples/Example_Flash/Debug/
+Examples/examples/Example_GPIO/Debug/
+Examples/examples/Example_I2C/Debug/
+Examples/examples/Example_I2S/Debug/
+Examples/examples/Example_IR/Debug/
+Examples/examples/Example_LEDC/Debug/
+Examples/examples/Example_PMU/Debug/
+Examples/examples/Example_PowerConsumption/Debug/
+Examples/examples/Example_PWC/Debug/
+Examples/examples/Example_PWM/Debug/
+Examples/examples/Example_RTC/Debug/
+Examples/examples/Example_SDIO/Debug/
+Examples/examples/Example_SPDIF/Debug/
+Examples/examples/Example_SPIS/Debug/
+Examples/examples/Example_Timer/Debug/
+Examples/examples/Example_UART/Debug/
+Examples/examples/Example_USB/Debug/
+RemoteSystemsTempFiles/
+.metadata/
+_ICEman_/
+*.*bak
