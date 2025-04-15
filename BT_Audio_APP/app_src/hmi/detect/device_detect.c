@@ -438,7 +438,7 @@ DetectCardExit:
 					OTG_DeviceFifoInit();
 					OTG_DeviceInit();
 					SetUSBDeviceInitState(TRUE);
-					gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
+//					gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
 				}
 #endif
 			}

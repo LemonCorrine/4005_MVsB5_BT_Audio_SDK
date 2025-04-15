@@ -29,6 +29,12 @@
 #include "bt_spp_api.h"
 #include "bt_em_config.h"
 #include "bt_common_api.h"
+#if BT_OBEX_SUPPORT == ENABLE
+#include "bt_obex_api.h"
+#endif
+#if BT_PBAP_SUPPORT == ENABLE
+#include "bt_pbap_api.h"
+#endif
 
 extern BT_CONFIGURATION_PARAMS		*btStackConfigParams;
 
@@ -505,6 +511,40 @@ bool BtStackInit(void)
 	{
 		APP_DBG("Hfp Init ErrCode [%x]\n", (int)retInit);
 		return FALSE;
+	}
+#endif
+
+#if ( BT_OBEX_SUPPORT == ENABLE )
+	retInit = ObexAppInit(BtObexCallback);
+	if(retInit == 0)
+	{
+		APP_DBG("Obex Init Error!\n");
+		return FALSE;
+	}
+	else
+	{
+		if(ObexAppMtuSizeSet(0x0f) == 0)//set obex mtu size //mtu-msb default:0x3f
+		{
+			APP_DBG("Obex mtu size set error!\n");
+			return FALSE;
+		}
+	}
+#endif
+	
+#if ( BT_PBAP_SUPPORT == ENABLE )
+	retInit = PbapAppInit(BtPbapCallback);
+	if(retInit == 0)
+	{
+		APP_DBG("Pbap Init Error!\n");
+		return FALSE;
+	}
+	else
+	{
+		if(PBAP_MtuSizeSet(PBAP_MTU_SIZE))
+		{
+			APP_DBG("pbap mtu size set error!\n");
+			return FALSE;
+		}
 	}
 #endif
 

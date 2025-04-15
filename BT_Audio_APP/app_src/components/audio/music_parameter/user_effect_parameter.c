@@ -16,7 +16,9 @@ extern const AUDIOEFFECT_EFFECT_PARA_TABLE karaoke_mode;
 #else
 extern const AUDIOEFFECT_EFFECT_PARA_TABLE mic_mode;
 extern const AUDIOEFFECT_EFFECT_PARA_TABLE music_mode;
+#ifdef CFG_AI_DENOISE_EN
 extern const AUDIOEFFECT_EFFECT_PARA_TABLE micusbAI_mode;
+#endif
 #endif
 #endif
 #if defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE)
@@ -33,7 +35,9 @@ static const AUDIOEFFECT_EFFECT_PARA_TABLE *effect_para_table[] =
 #else
 	&mic_mode,
 	&music_mode,
+#ifdef CFG_AI_DENOISE_EN
 	&micusbAI_mode,
+#endif
 #endif
 #endif
 #if defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE)
@@ -172,6 +176,8 @@ void AudioEffect_ReverbStep_Ajust(uint8_t ReverbStep)
 		{
 			param = ReverbStep * step;
 		}
+		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Echoaddr, 2, &param);
+		AudioEffect_update_local_params(Echoaddr, 2, &param, 2);
 
 		step = ReverbMaxParam.max_echo_depth / MAX_MIC_REVB_STEP;
 		if(ReverbStep >= (MAX_MIC_REVB_STEP-1))
@@ -185,8 +191,6 @@ void AudioEffect_ReverbStep_Ajust(uint8_t ReverbStep)
 
 		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Echoaddr, 1, &param);
 		AudioEffect_update_local_params(Echoaddr, 1, &param, 2);
-		roboeffect_set_effect_parameter(AudioCore.Audioeffect.context_memory, Echoaddr, 2, &param);
-		AudioEffect_update_local_params(Echoaddr, 2, &param, 2);
 	}
 	if(AudioEffect_effectAddr_check(Reverbaddr))
 	{
@@ -449,8 +453,9 @@ void AudioEffect_SinkGain_Update(uint8_t sink)
 
 void AudioEffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t *param_input, uint8_t param_len)
 {
-	uint8_t *params = AudioCore.Audioeffect.user_effect_parameters + 5;
-	uint16_t data_len = *(uint16_t *)AudioCore.Audioeffect.user_effect_parameters - 5;
+	uint16_t third_data_len = *(uint16_t *)(AudioCore.Audioeffect.user_effect_parameters + 8);
+	uint8_t *params = AudioCore.Audioeffect.user_effect_parameters + 8 + third_data_len + 2;
+	uint16_t data_len = *(uint16_t *)AudioCore.Audioeffect.user_effect_parameters - 8 - third_data_len - 2;
 	uint8_t len = 0;
 
 //	DBG("input: 0x%x\n", *(uint16_t *)param_input);
@@ -477,8 +482,9 @@ void AudioEffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t 
 
 void AudioEffect_update_local_effect_status(uint8_t addr, uint8_t effect_enable)
 {
-	uint8_t *params = AudioCore.Audioeffect.user_effect_parameters + 5;
-	uint16_t data_len = *(uint16_t *)AudioCore.Audioeffect.user_effect_parameters - 5;
+	uint16_t third_data_len = *(uint16_t *)(AudioCore.Audioeffect.user_effect_parameters + 8);
+	uint8_t *params = AudioCore.Audioeffect.user_effect_parameters + 8 + third_data_len + 2;
+	uint16_t data_len = *(uint16_t *)AudioCore.Audioeffect.user_effect_parameters - 8 - third_data_len - 2;
 	uint8_t len = 0;
 	while(data_len)
 	{
@@ -500,8 +506,9 @@ void AudioEffect_update_local_effect_status(uint8_t addr, uint8_t effect_enable)
 
 void AudioEffect_update_local_block_params(uint8_t addr)
 {
-	uint8_t *params = AudioCore.Audioeffect.user_effect_parameters + 5;
-	uint16_t data_len = *(uint16_t *)AudioCore.Audioeffect.user_effect_parameters - 5;
+	uint16_t third_data_len = *(uint16_t *)(AudioCore.Audioeffect.user_effect_parameters + 8);
+	uint8_t *params = AudioCore.Audioeffect.user_effect_parameters + 8 + third_data_len + 2;
+	uint16_t data_len = *(uint16_t *)AudioCore.Audioeffect.user_effect_parameters - 8 - third_data_len - 2;
 	uint8_t len = 0;
 	const uint8_t *p = (uint8_t *)roboeffect_get_effect_parameter(AudioCore.Audioeffect.context_memory, addr, 0xFF);
 //	uint8_t i = 0;
@@ -708,7 +715,7 @@ void AudioEffectParamSync(void)
 
 bool AudioEffect_effectAddr_check(uint8_t addr)
 {
-	if(addr < 0x81 || addr > (AudioCore.Audioeffect.user_effect_list->count + 0x80))
+	if(addr < 0x81 || addr > (AudioCore.Audioeffect.cur_effect_para->user_effect_list->count + 0x80))
 		return FALSE;
 //	if(!roboeffect_get_effect_status(AudioCore.Audioeffect.context_memory, addr))
 //			return FALSE;

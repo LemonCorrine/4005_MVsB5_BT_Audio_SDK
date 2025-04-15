@@ -147,6 +147,33 @@ typedef enum
 	BT_AVRCP_STATE_CONNECTED,	
 } BT_AVRCP_STATE;
 
+
+#ifdef BT_REAL_STATE
+typedef enum{
+	BT_USER_STATE_NONE,
+	BT_USER_STATE_RECON,
+	BT_USER_STATE_PREPAIR,
+	BT_USER_STATE_CONNECTED,
+	BT_USER_STATE_DISCONNECTED,
+} BT_USER_STATE;
+void SetBtUserState(BT_USER_STATE bt_state);
+BT_USER_STATE GetBtUserState(void);
+#endif
+
+typedef enum
+{
+	BT_OBEX_STATE_NONE,
+	BT_OBEX_STATE_CONNECTING,
+	BT_OBEX_STATE_CONNECTED,
+} BT_OBEX_STATE;
+
+typedef enum
+{
+	BT_PBAP_STATE_NONE,
+	BT_PBAP_STATE_CONNECTING,
+	BT_PBAP_STATE_CONNECTED,
+} BT_PBAP_STATE;
+
 typedef uint8_t TIMER_FLAG;
 #define TIMER_UNUSED					0x00
 #define TIMER_USED						0x01
@@ -375,6 +402,18 @@ typedef struct _BT_MANAGER_ST
 	uint32_t				btEventFlagCount;		//处理响应时间
 
 	uint8_t					hfp_CallFalg;//判断是不是通话中连接蓝牙进入的通话模式
+#ifdef BT_REAL_STATE
+	BT_USER_STATE           btuserstate;
+#endif
+#if (BT_OBEX_SUPPORT == ENABLE)
+		//obex
+		BT_OBEX_STATE			obexState;
+#endif
+
+#if (BT_PBAP_SUPPORT == ENABLE)
+		//pbap
+	BT_PBAP_STATE			pbapState;
+#endif
 } BT_MANAGER_ST;
 
 extern BT_MANAGER_ST		btManager;
@@ -705,29 +744,27 @@ void BtConnectCtrl(void);
  *******************************************************************/
 void BtDisconnectCtrl(void);
 
-/********************************************************************
- * @brief	BtSetAccessMode_NoDisc_NoCon
- * @param
- * @return
- * @note	经典蓝牙可见性配置: 不可被搜索,不可被连接
- *******************************************************************/
-void BtSetAccessMode_NoDisc_NoCon(void);
 
 /********************************************************************
- * @brief	BtSetAccessMode_NoDisc_Con
- * @param
+ * @brief	BtSetAccessModeApi
+ * @param   BtAccessMode 
+			BtAccessModeNotAccessible		0x00 /*!< Non-discoverable or connectable		
+			BtAccessModeDiscoverbleOnly		0x01 /*!< Discoverable but not connectable		
+			BtAccessModeConnectableOnly		0x02 /*!< Connectable but not discoverable		
+			BtAccessModeGeneralAccessible	0x03 /*!< General discoverable and connectable	
  * @return
- * @note	经典蓝牙可见性配置: 不可被搜索,可被连接
+ * @note	经典蓝牙可见性配置接口
  *******************************************************************/
-void BtSetAccessMode_NoDisc_Con(void);
+
+void BtSetAccessModeApi(uint8_t accessMode);
 
 /********************************************************************
- * @brief	BtSetAccessMode_Disc_Con
+ * @brief	BtSetAccessMode_select
  * @param
  * @return
- * @note	经典蓝牙可见性配置: 可被搜索,可被连接
+ * @note	开机蓝牙可见性配置: 根据客户需求配置选择可见性
  *******************************************************************/
-void BtSetAccessMode_Disc_Con(void);
+void BtSetAccessMode_select(void);
 
 /********************************************************************
  * @brief	Bt Address Is Valid

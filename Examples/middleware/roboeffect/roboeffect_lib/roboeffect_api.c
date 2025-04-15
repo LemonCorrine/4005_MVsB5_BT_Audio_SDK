@@ -273,7 +273,7 @@ const roboeffect_effect_property_struct effect_property_for_robo[] = {
 #endif/*THREE_D_PLUS_ENABLE*/
 	},
 
-	{ROBOEFFECT_SINE_GENERATOR, ROBOEFFECT_CH_STEREO, FZ_ANY, ROBOEFFECT_SINE_GENERATOR_PARAM_LEN, 4,
+	{ROBOEFFECT_SINE_GENERATOR, ROBOEFFECT_CH_MONO_STEREO, FZ_ANY, ROBOEFFECT_SINE_GENERATOR_PARAM_LEN, 4,
 #if SINE_GENERATOR_ENABLE
 	ROBOEFFECT_EFF_IF_NAME_INIT(sine_generator), ROBOEFFECT_EFF_IF_NAME_CONF(sine_generator), ROBOEFFECT_EFF_IF_NAME_APPLY(sine_generator), ROBOEFFECT_EFF_IF_NAME_MEMORY_SIZE(sine_generator),
 #else
@@ -457,6 +457,22 @@ const roboeffect_effect_property_struct effect_property_for_robo[] = {
 #endif/*ROBOT_TONE_ENABLE*/
 	},
 
+	{ROBOEFFECT_NOISE_GENERATOR, ROBOEFFECT_CH_MONO, FZ_ANY, ROBOEFFECT_NOISE_GENERATOR_PARAM_LEN, 4,
+#if NOISE_GENERATOR_ENABLE
+	ROBOEFFECT_EFF_IF_NAME_INIT(noise_generator), ROBOEFFECT_EFF_IF_NAME_CONF(noise_generator), ROBOEFFECT_EFF_IF_NAME_APPLY(noise_generator), ROBOEFFECT_EFF_IF_NAME_MEMORY_SIZE(noise_generator),
+#else
+	ROBOEFFECT_EFF_IF_NAME_INIT(null), ROBOEFFECT_EFF_IF_NAME_CONF(null), ROBOEFFECT_EFF_IF_NAME_APPLY(null), ROBOEFFECT_EFF_IF_NAME_MEMORY_SIZE(null),
+#endif/*NOISE_GENERATOR_ENABLE*/
+	},
+
+	{ROBOEFFECT_NOISE_SUPPRESSOR_BLUE_DUAL, ROBOEFFECT_CH_MONO, FZ_ANY, ROBOEFFECT_NOISE_SUPPRESSOR_BLUE_DUAL_PARAM_LEN, 4,
+#if NOISE_SUPPRESSOR_BLUE_DUAL_ENABLE
+	ROBOEFFECT_EFF_IF_NAME_INIT(noise_suppressor_blue_dual), ROBOEFFECT_EFF_IF_NAME_CONF(noise_suppressor_blue_dual), ROBOEFFECT_EFF_IF_NAME_APPLY(noise_suppressor_blue_dual), ROBOEFFECT_EFF_IF_NAME_MEMORY_SIZE(noise_suppressor_blue_dual),
+#else
+	ROBOEFFECT_EFF_IF_NAME_INIT(null), ROBOEFFECT_EFF_IF_NAME_CONF(null), ROBOEFFECT_EFF_IF_NAME_APPLY(null), ROBOEFFECT_EFF_IF_NAME_MEMORY_SIZE(null),
+#endif/*NOISE_SUPPRESSOR_BLUE_DUAL_ENABLE*/
+	},
+
 	{ROBOEFFECT_FADER, ROBOEFFECT_CH_MONO_STEREO, FZ_ANY, ROBOEFFECT_FADER_PARAM_LEN, 4,
 	ROBOEFFECT_EFF_IF_NAME_INIT(fader), ROBOEFFECT_EFF_IF_NAME_CONF(fader), ROBOEFFECT_EFF_IF_NAME_APPLY(fader), ROBOEFFECT_EFF_IF_NAME_MEMORY_SIZE(fader),
 	},
@@ -502,17 +518,25 @@ char *effect_lib_version_return(void)
 	return AUDIO_EFFECT_LIBRARY_VERSION;
 }
 
+__attribute__((section(".robo_property")))
 const uint8_t effect_property_for_display[] = {
-0x02, 0x25, 0x00, //audio_effect_library@2.37.0
-ROBOEFFECT_TOTAL_MAX, //total effect number %d
+0x00, 0x02, 0x00, //protocol@0.2.0
+0x02, 0x10, 0x02, //roboeffect_library@2.16.2
+0x02, 0x26, 0x00, //audio_effect_library@2.38.0
+ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN, //number of total inner effects
+(ROBOEFFECT_TOTAL_MAX-ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN), //number of total 3rd party effects
 /*****auto_tune*****/
-0x14, 0x01, //item len=276
+0x16, 0x01, //item len=278
 0x01, 0x04, 0x00, //auto_tune@1.4.0
 0x09, //effect name length
 0x61, 0x75, 0x74, 0x6F, 0x5F, 0x74, 0x75, 0x6E, 0x65, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x03, //params_number is 3
 
@@ -549,24 +573,32 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****auto_tune end*****/
 /*****dc_blocker*****/
-0x13, 0x00, //item len=19
+0x15, 0x00, //item len=21
 0x01, 0x02, 0x00, //dc_blocker@1.2.0
 0x0A, //effect name length
 0x64, 0x63, 0x5F, 0x62, 0x6C, 0x6F, 0x63, 0x6B, 0x65, 0x72, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x00, //params_number is 0
 /*****dc_blocker end*****/
 /*****drc*****/
-0xFC, 0x02, //item len=764
+0xFE, 0x02, //item len=766
 0x04, 0x01, 0x00, //drc@4.1.0
 0x03, //effect name length
 0x64, 0x72, 0x63, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x1A, //params_number is 26
 
@@ -969,13 +1001,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****drc end*****/
 /*****echo*****/
-0xF6, 0x00, //item len=246
+0xF8, 0x00, //item len=248
 0x02, 0x02, 0x00, //echo@2.2.0
 0x04, //effect name length
 0x65, 0x63, 0x68, 0x6F, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x07, //params_number is 7
 
@@ -1095,13 +1131,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x01, 0x02, //wet: 1,2
 /*****echo end*****/
 /*****eq*****/
-0xAF, 0x05, //item len=1455
+0xB1, 0x05, //item len=1457
 0x08, 0x03, 0x01, //eq@8.3.1
 0x02, //effect name length
 0x65, 0x71, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x34, //params_number is 52
 
@@ -1821,13 +1861,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****eq end*****/
 /*****noise_suppressor_expander*****/
-0x8C, 0x00, //item len=140
+0x8E, 0x00, //item len=142
 0x01, 0x02, 0x02, //noise_suppressor_expander@1.2.2
 0x19, //effect name length
 0x6E, 0x6F, 0x69, 0x73, 0x65, 0x5F, 0x73, 0x75, 0x70, 0x70, 0x72, 0x65, 0x73, 0x73, 0x6F, 0x72, 0x5F, 0x65, 0x78, 0x70, 0x61, 0x6E, 0x64, 0x65, 0x72, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x04, //params_number is 4
 
@@ -1897,13 +1941,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****noise_suppressor_expander end*****/
 /*****freq_shifter*****/
-0x35, 0x00, //item len=53
+0x37, 0x00, //item len=55
 0x01, 0x07, 0x00, //freq_shifter@1.7.0
 0x0C, //effect name length
 0x66, 0x72, 0x65, 0x71, 0x5F, 0x73, 0x68, 0x69, 0x66, 0x74, 0x65, 0x72, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x01, //input1 channel is mono
-0x00, //input2 channel is N/A
 0x01, //output channel is mono
 0x01, //params_number is 1
 
@@ -1920,13 +1968,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****freq_shifter end*****/
 /*****howling_suppressor*****/
-0x55, 0x00, //item len=85
+0x57, 0x00, //item len=87
 0x02, 0x00, 0x01, //howling_suppressor@2.0.1
 0x12, //effect name length
 0x68, 0x6F, 0x77, 0x6C, 0x69, 0x6E, 0x67, 0x5F, 0x73, 0x75, 0x70, 0x70, 0x72, 0x65, 0x73, 0x73, 0x6F, 0x72, 
+0x00, //effect category
 0x00, //bits width is 16
+0x01, //input counter
+
+0x00, //input1 description
+
 0x01, //input1 channel is mono
-0x00, //input2 channel is N/A
 0x01, //output channel is mono
 0x01, //params_number is 1
 
@@ -1943,13 +1995,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****howling_suppressor end*****/
 /*****noise_gate*****/
-0x9F, 0x00, //item len=159
+0xA1, 0x00, //item len=161
 0x02, 0x01, 0x00, //noise_gate@2.1.0
 0x0A, //effect name length
 0x6E, 0x6F, 0x69, 0x73, 0x65, 0x5F, 0x67, 0x61, 0x74, 0x65, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x05, //params_number is 5
 
@@ -2042,13 +2098,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x02, 0x01, //hold: 2,1
 /*****noise_gate end*****/
 /*****pitch_shifter*****/
-0x34, 0x00, //item len=52
+0x36, 0x00, //item len=54
 0x01, 0x08, 0x00, //pitch_shifter@1.8.0
 0x0D, //effect name length
 0x70, 0x69, 0x74, 0x63, 0x68, 0x5F, 0x73, 0x68, 0x69, 0x66, 0x74, 0x65, 0x72, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x01, //params_number is 1
 
@@ -2071,13 +2131,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****pitch_shifter end*****/
 /*****reverb*****/
-0x9E, 0x00, //item len=158
+0xA0, 0x00, //item len=160
 0x02, 0x01, 0x00, //reverb@2.1.0
 0x06, //effect name length
 0x72, 0x65, 0x76, 0x65, 0x72, 0x62, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x06, //params_number is 6
 
@@ -2179,13 +2243,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, 0x03, //mono: 0,3
 /*****reverb end*****/
 /*****silence_detector*****/
-0x44, 0x00, //item len=68
+0x46, 0x00, //item len=70
 0x01, 0x02, 0x01, //silence_detector@1.2.1
 0x10, //effect name length
 0x73, 0x69, 0x6C, 0x65, 0x6E, 0x63, 0x65, 0x5F, 0x64, 0x65, 0x74, 0x65, 0x63, 0x74, 0x6F, 0x72, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x01, //params_number is 1
 
@@ -2209,13 +2277,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, 0xFF, //PCM amplitude: 0,255
 /*****silence_detector end*****/
 /*****three_d*****/
-0x2D, 0x00, //item len=45
+0x2F, 0x00, //item len=47
 0x03, 0x04, 0x00, //three_d@3.4.0
 0x07, //effect name length
 0x74, 0x68, 0x72, 0x65, 0x65, 0x5F, 0x64, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x01, //params_number is 1
 
@@ -2238,13 +2310,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****three_d end*****/
 /*****virtual_bass*****/
-0x65, 0x00, //item len=101
+0x67, 0x00, //item len=103
 0x04, 0x04, 0x02, //virtual_bass@4.4.2
 0x0C, //effect name length
 0x76, 0x69, 0x72, 0x74, 0x75, 0x61, 0x6C, 0x5F, 0x62, 0x61, 0x73, 0x73, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x03, //params_number is 3
 
@@ -2291,13 +2367,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****virtual_bass end*****/
 /*****voice_changer*****/
-0x49, 0x00, //item len=73
+0x4B, 0x00, //item len=75
 0x01, 0x06, 0x03, //voice_changer@1.6.3
 0x0D, //effect name length
 0x76, 0x6F, 0x69, 0x63, 0x65, 0x5F, 0x63, 0x68, 0x61, 0x6E, 0x67, 0x65, 0x72, 
+0x00, //effect category
 0x00, //bits width is 16
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x02, //params_number is 2
 
@@ -2336,13 +2416,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****voice_changer end*****/
 /*****gain_control*****/
-0x3F, 0x00, //item len=63
+0x41, 0x00, //item len=65
 0x01, 0x00, 0x01, //gain_control@1.0.1
 0x0C, //effect name length
 0x67, 0x61, 0x69, 0x6E, 0x5F, 0x63, 0x6F, 0x6E, 0x74, 0x72, 0x6F, 0x6C, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x02, //params_number is 2
 
@@ -2376,13 +2460,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x01, 0xFF, //gain: 1,255
 /*****gain_control end*****/
 /*****vocal_cut*****/
-0x2E, 0x00, //item len=46
+0x30, 0x00, //item len=48
 0x02, 0x00, 0x00, //vocal_cut@2.0.0
 0x09, //effect name length
 0x76, 0x6F, 0x63, 0x61, 0x6C, 0x5F, 0x63, 0x75, 0x74, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x02, //input1 channel is stereo
-0x00, //input2 channel is N/A
 0x02, //output channel is stereo
 0x01, //params_number is 1
 
@@ -2404,13 +2492,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****vocal_cut end*****/
 /*****reverb_pro*****/
-0xCD, 0x01, //item len=461
+0xCF, 0x01, //item len=463
 0x01, 0x04, 0x00, //reverb_pro@1.4.0
 0x0A, //effect name length
 0x72, 0x65, 0x76, 0x65, 0x72, 0x62, 0x5F, 0x70, 0x72, 0x6F, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x02, //input1 channel is stereo
-0x00, //input2 channel is N/A
 0x02, //output channel is stereo
 0x10, //params_number is 16
 
@@ -2690,13 +2782,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x03, 0x06, //outputlpf: 3,6
 /*****reverb_pro end*****/
 /*****voice_changer_pro*****/
-0x4D, 0x00, //item len=77
+0x4F, 0x00, //item len=79
 0x02, 0x05, 0x01, //voice_changer_pro@2.5.1
 0x11, //effect name length
 0x76, 0x6F, 0x69, 0x63, 0x65, 0x5F, 0x63, 0x68, 0x61, 0x6E, 0x67, 0x65, 0x72, 0x5F, 0x70, 0x72, 0x6F, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x01, //input1 channel is mono
-0x00, //input2 channel is N/A
 0x01, //output channel is mono
 0x02, //params_number is 2
 
@@ -2735,13 +2831,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****voice_changer_pro end*****/
 /*****phase_control*****/
-0x3B, 0x00, //item len=59
+0x3D, 0x00, //item len=61
 0x01, 0x00, 0x00, //phase_control@1.0.0
 0x0D, //effect name length
 0x70, 0x68, 0x61, 0x73, 0x65, 0x5F, 0x63, 0x6F, 0x6E, 0x74, 0x72, 0x6F, 0x6C, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x01, //params_number is 1
 
@@ -2764,13 +2864,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****phase_control end*****/
 /*****vocal_remover*****/
-0x5E, 0x00, //item len=94
+0x60, 0x00, //item len=96
 0x01, 0x04, 0x00, //vocal_remover@1.4.0
 0x0D, //effect name length
 0x76, 0x6F, 0x63, 0x61, 0x6C, 0x5F, 0x72, 0x65, 0x6D, 0x6F, 0x76, 0x65, 0x72, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x02, //input1 channel is stereo
-0x00, //input2 channel is N/A
 0x02, //output channel is stereo
 0x02, //params_number is 2
 
@@ -2809,13 +2913,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****vocal_remover end*****/
 /*****pitch_shifter_pro*****/
-0x38, 0x00, //item len=56
+0x3A, 0x00, //item len=58
 0x02, 0x02, 0x01, //pitch_shifter_pro@2.2.1
 0x11, //effect name length
 0x70, 0x69, 0x74, 0x63, 0x68, 0x5F, 0x73, 0x68, 0x69, 0x66, 0x74, 0x65, 0x72, 0x5F, 0x70, 0x72, 0x6F, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x01, //params_number is 1
 
@@ -2838,13 +2946,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****pitch_shifter_pro end*****/
 /*****virtual_bass_classic*****/
-0x5E, 0x00, //item len=94
+0x60, 0x00, //item len=96
 0x03, 0x11, 0x00, //virtual_bass_classic@3.17.0
 0x14, //effect name length
 0x76, 0x69, 0x72, 0x74, 0x75, 0x61, 0x6C, 0x5F, 0x62, 0x61, 0x73, 0x73, 0x5F, 0x63, 0x6C, 0x61, 0x73, 0x73, 0x69, 0x63, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x02, //params_number is 2
 
@@ -2883,13 +2995,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****virtual_bass_classic end*****/
 /*****pcm_delay*****/
-0xAF, 0x00, //item len=175
+0xB1, 0x00, //item len=177
 0x02, 0x02, 0x00, //pcm_delay@2.2.0
 0x09, //effect name length
 0x70, 0x63, 0x6D, 0x5F, 0x64, 0x65, 0x6C, 0x61, 0x79, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x03, //params_number is 3
 
@@ -2938,13 +3054,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****pcm_delay end*****/
 /*****harmonic_exciter*****/
-0x68, 0x00, //item len=104
+0x6A, 0x00, //item len=106
 0x01, 0x03, 0x00, //harmonic_exciter@1.3.0
 0x10, //effect name length
 0x68, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x69, 0x63, 0x5F, 0x65, 0x78, 0x63, 0x69, 0x74, 0x65, 0x72, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x03, //params_number is 3
 
@@ -2997,13 +3117,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****harmonic_exciter end*****/
 /*****chorus*****/
-0xCA, 0x00, //item len=202
+0xCC, 0x00, //item len=204
 0x01, 0x02, 0x01, //chorus@1.2.1
 0x06, //effect name length
 0x63, 0x68, 0x6F, 0x72, 0x75, 0x73, 
+0x00, //effect category
 0x00, //bits width is 16
+0x01, //input counter
+
+0x00, //input1 description
+
 0x01, //input1 channel is mono
-0x00, //input2 channel is N/A
 0x01, //output channel is mono
 0x06, //params_number is 6
 
@@ -3112,13 +3236,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x01, 0x02, //wet: 1,2
 /*****chorus end*****/
 /*****auto_wah*****/
-0xCE, 0x00, //item len=206
+0xD0, 0x00, //item len=208
 0x01, 0x02, 0x00, //auto_wah@1.2.0
 0x08, //effect name length
 0x61, 0x75, 0x74, 0x6F, 0x5F, 0x77, 0x61, 0x68, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x01, //input1 channel is mono
-0x00, //input2 channel is N/A
 0x01, //output channel is mono
 0x06, //params_number is 6
 
@@ -3225,13 +3353,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x02, 0x02, //wet: 2,2
 /*****auto_wah end*****/
 /*****stereo_widener*****/
-0x26, 0x00, //item len=38
+0x28, 0x00, //item len=40
 0x01, 0x03, 0x01, //stereo_widener@1.3.1
 0x0E, //effect name length
 0x73, 0x74, 0x65, 0x72, 0x65, 0x6F, 0x5F, 0x77, 0x69, 0x64, 0x65, 0x6E, 0x65, 0x72, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x02, //input1 channel is stereo
-0x00, //input2 channel is N/A
 0x02, //output channel is stereo
 0x01, //params_number is 1
 
@@ -3246,13 +3378,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****stereo_widener end*****/
 /*****pingpong*****/
-0xDB, 0x00, //item len=219
+0xDD, 0x00, //item len=221
 0x01, 0x05, 0x00, //pingpong@1.5.0
 0x08, //effect name length
 0x70, 0x69, 0x6E, 0x67, 0x70, 0x6F, 0x6E, 0x67, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x02, //input1 channel is stereo
-0x00, //input2 channel is N/A
 0x02, //output channel is stereo
 0x05, //params_number is 5
 
@@ -3338,13 +3474,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x01, 0x01, //max delay: 1,1
 /*****pingpong end*****/
 /*****three_d_plus*****/
-0x32, 0x00, //item len=50
+0x34, 0x00, //item len=52
 0x01, 0x00, 0x02, //three_d_plus@1.0.2
 0x0C, //effect name length
 0x74, 0x68, 0x72, 0x65, 0x65, 0x5F, 0x64, 0x5F, 0x70, 0x6C, 0x75, 0x73, 
+0x00, //effect category
 0x00, //bits width is 16
+0x01, //input counter
+
+0x00, //input1 description
+
 0x02, //input1 channel is stereo
-0x00, //input2 channel is N/A
 0x02, //output channel is stereo
 0x01, //params_number is 1
 
@@ -3368,13 +3508,13 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 /*****three_d_plus end*****/
 /*****sine_generator*****/
 0x05, 0x01, //item len=261
-0x01, 0x01, 0x02, //sine_generator@1.1.2
+0x01, 0x02, 0x00, //sine_generator@1.2.0
 0x0E, //effect name length
 0x73, 0x69, 0x6E, 0x65, 0x5F, 0x67, 0x65, 0x6E, 0x65, 0x72, 0x61, 0x74, 0x6F, 0x72, 
+0x00, //effect category
 0x02, //bits width is 16/24
-0x02, //input1 channel is stereo
-0x00, //input2 channel is N/A
-0x02, //output channel is stereo
+0x00, //input counter
+0x03, //output channel is mono/stereo
 0x05, //params_number is 5
 
 0x0E, //index: 00, channel enable
@@ -3460,13 +3600,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x01, 0x02, //right amplitude: 1,2
 /*****sine_generator end*****/
 /*****noise_suppressor_blue*****/
-0x3F, 0x00, //item len=63
+0x41, 0x00, //item len=65
 0x02, 0x01, 0x01, //noise_suppressor_blue@2.1.1
 0x15, //effect name length
 0x6E, 0x6F, 0x69, 0x73, 0x65, 0x5F, 0x73, 0x75, 0x70, 0x70, 0x72, 0x65, 0x73, 0x73, 0x6F, 0x72, 0x5F, 0x62, 0x6C, 0x75, 0x65, 
+0x00, //effect category
 0x00, //bits width is 16
+0x01, //input counter
+
+0x00, //input1 description
+
 0x01, //input1 channel is mono
-0x00, //input2 channel is N/A
 0x01, //output channel is mono
 0x01, //params_number is 1
 
@@ -3483,13 +3627,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****noise_suppressor_blue end*****/
 /*****flanger*****/
-0xE9, 0x00, //item len=233
+0xEB, 0x00, //item len=235
 0x01, 0x01, 0x00, //flanger@1.1.0
 0x07, //effect name length
 0x66, 0x6C, 0x61, 0x6E, 0x67, 0x65, 0x72, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x01, //input1 channel is mono
-0x00, //input2 channel is N/A
 0x01, //output channel is mono
 0x06, //params_number is 6
 
@@ -3600,13 +3748,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x01, 0x02, //wet: 1,2
 /*****flanger end*****/
 /*****freq_shifter_fine*****/
-0x35, 0x00, //item len=53
+0x37, 0x00, //item len=55
 0x02, 0x01, 0x00, //freq_shifter_fine@2.1.0
 0x11, //effect name length
 0x66, 0x72, 0x65, 0x71, 0x5F, 0x73, 0x68, 0x69, 0x66, 0x74, 0x65, 0x72, 0x5F, 0x66, 0x69, 0x6E, 0x65, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x01, //input1 channel is mono
-0x00, //input2 channel is N/A
 0x01, //output channel is mono
 0x01, //params_number is 1
 
@@ -3629,13 +3781,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****freq_shifter_fine end*****/
 /*****over_drive*****/
-0x3D, 0x00, //item len=61
+0x3F, 0x00, //item len=63
 0x01, 0x00, 0x00, //over_drive@1.0.0
 0x0A, //effect name length
 0x6F, 0x76, 0x65, 0x72, 0x5F, 0x64, 0x72, 0x69, 0x76, 0x65, 
+0x00, //effect category
 0x00, //bits width is 16
+0x01, //input counter
+
+0x00, //input1 description
+
 0x01, //input1 channel is mono
-0x00, //input2 channel is N/A
 0x01, //output channel is mono
 0x01, //params_number is 1
 
@@ -3658,13 +3814,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****over_drive end*****/
 /*****distortion_ds1*****/
-0x57, 0x00, //item len=87
+0x59, 0x00, //item len=89
 0x01, 0x02, 0x00, //distortion_ds1@1.2.0
 0x0E, //effect name length
 0x64, 0x69, 0x73, 0x74, 0x6F, 0x72, 0x74, 0x69, 0x6F, 0x6E, 0x5F, 0x64, 0x73, 0x31, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x01, //input1 channel is mono
-0x00, //input2 channel is N/A
 0x01, //output channel is mono
 0x02, //params_number is 2
 
@@ -3703,13 +3863,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****distortion_ds1 end*****/
 /*****eq_drc*****/
-0xF0, 0x08, //item len=2288
+0xF2, 0x08, //item len=2290
 0x01, 0x01, 0x00, //eq_drc@1.1.0
 0x06, //effect name length
 0x65, 0x71, 0x5F, 0x64, 0x72, 0x63, 
+0x00, //effect category
 0x00, //bits width is 16
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x4E, //params_number is 78
 
@@ -4818,12 +4982,20 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****eq_drc end*****/
 /*****aec*****/
-0x75, 0x00, //item len=117
+0x7F, 0x00, //item len=127
 0x06, 0x06, 0x01, //aec@6.6.1
 0x03, //effect name length
 0x61, 0x65, 0x63, 
+0x00, //effect category
 0x00, //bits width is 16
+0x02, //input counter
+
+0x03, //input1 description
+0x6D, 0x69, 0x63, 
 0x01, //input1 channel is mono
+
+0x03, //input2 description
+0x72, 0x65, 0x66, 
 0x01, //input2 channel is mono
 0x01, //output channel is mono
 0x01, //params_number is 1
@@ -4847,13 +5019,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****aec end*****/
 /*****compander*****/
-0xD2, 0x00, //item len=210
+0xD4, 0x00, //item len=212
 0x01, 0x00, 0x02, //compander@1.0.2
 0x09, //effect name length
 0x63, 0x6F, 0x6D, 0x70, 0x61, 0x6E, 0x64, 0x65, 0x72, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x06, //params_number is 6
 
@@ -4961,13 +5137,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x01, 0x00, //pregain: 1,0
 /*****compander end*****/
 /*****low_level_compressor*****/
-0x92, 0x00, //item len=146
+0x94, 0x00, //item len=148
 0x01, 0x00, 0x00, //low_level_compressor@1.0.0
 0x14, //effect name length
 0x6C, 0x6F, 0x77, 0x5F, 0x6C, 0x65, 0x76, 0x65, 0x6C, 0x5F, 0x63, 0x6F, 0x6D, 0x70, 0x72, 0x65, 0x73, 0x73, 0x6F, 0x72, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x04, //params_number is 4
 
@@ -5038,13 +5218,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****low_level_compressor end*****/
 /*****beat_tracker*****/
-0x71, 0x00, //item len=113
+0x73, 0x00, //item len=115
 0x01, 0x01, 0x01, //beat_tracker@1.1.1
 0x0C, //effect name length
 0x62, 0x65, 0x61, 0x74, 0x5F, 0x74, 0x72, 0x61, 0x63, 0x6B, 0x65, 0x72, 
+0x00, //effect category
 0x00, //bits width is 16
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x03, //params_number is 3
 
@@ -5097,13 +5281,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****beat_tracker end*****/
 /*****engine_sound*****/
-0xA0, 0x00, //item len=160
+0xA2, 0x00, //item len=162
 0x01, 0x01, 0x01, //engine_sound@1.1.1
 0x0C, //effect name length
 0x65, 0x6E, 0x67, 0x69, 0x6E, 0x65, 0x5F, 0x73, 0x6F, 0x75, 0x6E, 0x64, 
+0x00, //effect category
 0x00, //bits width is 16
+0x01, //input counter
+
+0x00, //input1 description
+
 0x01, //input1 channel is mono
-0x00, //input2 channel is N/A
 0x01, //output channel is mono
 0x05, //params_number is 5
 
@@ -5180,13 +5368,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x02, 0xFF, //current_rpm: 2,255
 /*****engine_sound end*****/
 /*****biquad*****/
-0xC1, 0x00, //item len=193
+0xC3, 0x00, //item len=195
 0x08, 0x03, 0x00, //biquad@8.3.0
 0x06, //effect name length
 0x62, 0x69, 0x71, 0x75, 0x61, 0x64, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x07, //params_number is 7
 
@@ -5276,13 +5468,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //tips length 0
 /*****biquad end*****/
 /*****chorus2*****/
-0x15, 0x01, //item len=277
+0x17, 0x01, //item len=279
 0x02, 0x01, 0x00, //chorus2@2.1.0
 0x07, //effect name length
 0x63, 0x68, 0x6F, 0x72, 0x75, 0x73, 0x32, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x01, //input1 channel is mono
-0x00, //input2 channel is N/A
 0x01, //output channel is mono
 0x08, //params_number is 8
 
@@ -5424,13 +5620,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x02, 0x02, //modulation2 rate: 2,2
 /*****chorus2 end*****/
 /*****reverb_plate*****/
-0xE2, 0x00, //item len=226
+0xE4, 0x00, //item len=228
 0x02, 0x03, 0x00, //reverb_plate@2.3.0
 0x0C, //effect name length
 0x72, 0x65, 0x76, 0x65, 0x72, 0x62, 0x5F, 0x70, 0x6C, 0x61, 0x74, 0x65, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x07, //params_number is 7
 
@@ -5547,13 +5747,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x01, 0x02, //wetdrymix: 1,2
 /*****reverb_plate end*****/
 /*****howling_suppressor_fine*****/
-0x4F, 0x00, //item len=79
+0x51, 0x00, //item len=81
 0x03, 0x01, 0x00, //howling_suppressor_fine@3.1.0
 0x17, //effect name length
 0x68, 0x6F, 0x77, 0x6C, 0x69, 0x6E, 0x67, 0x5F, 0x73, 0x75, 0x70, 0x70, 0x72, 0x65, 0x73, 0x73, 0x6F, 0x72, 0x5F, 0x66, 0x69, 0x6E, 0x65, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x01, //input1 channel is mono
-0x00, //input2 channel is N/A
 0x01, //output channel is mono
 0x02, //params_number is 2
 
@@ -5590,13 +5794,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****howling_suppressor_fine end*****/
 /*****howling_guard*****/
-0x3E, 0x01, //item len=318
+0x40, 0x01, //item len=320
 0x01, 0x01, 0x00, //howling_guard@1.1.0
 0x0D, //effect name length
 0x68, 0x6F, 0x77, 0x6C, 0x69, 0x6E, 0x67, 0x5F, 0x67, 0x75, 0x61, 0x72, 0x64, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x01, //input1 channel is mono
-0x00, //input2 channel is N/A
 0x01, //output channel is mono
 0x07, //params_number is 7
 
@@ -5715,13 +5923,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****howling_guard end*****/
 /*****virtual_bass_td*****/
-0x68, 0x00, //item len=104
+0x6A, 0x00, //item len=106
 0x04, 0x01, 0x06, //virtual_bass_td@4.1.6
 0x0F, //effect name length
 0x76, 0x69, 0x72, 0x74, 0x75, 0x61, 0x6C, 0x5F, 0x62, 0x61, 0x73, 0x73, 0x5F, 0x74, 0x64, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x03, //params_number is 3
 
@@ -5768,13 +5980,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****virtual_bass_td end*****/
 /*****over_drive_ploy*****/
-0x4D, 0x00, //item len=77
+0x4F, 0x00, //item len=79
 0x02, 0x01, 0x00, //over_drive_ploy@2.1.0
 0x0F, //effect name length
 0x6F, 0x76, 0x65, 0x72, 0x5F, 0x64, 0x72, 0x69, 0x76, 0x65, 0x5F, 0x70, 0x6C, 0x6F, 0x79, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x01, //input1 channel is mono
-0x00, //input2 channel is N/A
 0x01, //output channel is mono
 0x02, //params_number is 2
 
@@ -5813,13 +6029,17 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****over_drive_ploy end*****/
 /*****tremolo*****/
-0x71, 0x00, //item len=113
+0x73, 0x00, //item len=115
 0x01, 0x00, 0x01, //tremolo@1.0.1
 0x07, //effect name length
 0x74, 0x72, 0x65, 0x6D, 0x6F, 0x6C, 0x6F, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x01, //input1 channel is mono
-0x00, //input2 channel is N/A
 0x01, //output channel is mono
 0x03, //params_number is 3
 
@@ -5868,12 +6088,18 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****tremolo end*****/
 /*****beamforming*****/
-0xE7, 0x01, //item len=487
+0xEB, 0x01, //item len=491
 0x04, 0x02, 0x02, //beamforming@4.2.2
 0x0B, //effect name length
 0x62, 0x65, 0x61, 0x6D, 0x66, 0x6F, 0x72, 0x6D, 0x69, 0x6E, 0x67, 
+0x00, //effect category
 0x00, //bits width is 16
+0x02, //input counter
+
+0x00, //input1 description
 0x02, //input1 channel is stereo
+
+0x00, //input2 description
 0x02, //input2 channel is stereo
 0x02, //output channel is stereo
 0x0A, //params_number is 10
@@ -6050,24 +6276,32 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x01, 0x02, //signal_or_noise: 1,2
 /*****beamforming end*****/
 /*****virtual_surround_2ch*****/
-0x1D, 0x00, //item len=29
+0x1F, 0x00, //item len=31
 0x01, 0x02, 0x00, //virtual_surround_2ch@1.2.0
 0x14, //effect name length
 0x76, 0x69, 0x72, 0x74, 0x75, 0x61, 0x6C, 0x5F, 0x73, 0x75, 0x72, 0x72, 0x6F, 0x75, 0x6E, 0x64, 0x5F, 0x32, 0x63, 0x68, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x02, //input1 channel is stereo
-0x00, //input2 channel is N/A
 0x02, //output channel is stereo
 0x00, //params_number is 0
 /*****virtual_surround_2ch end*****/
 /*****robot_tone*****/
-0x34, 0x00, //item len=52
+0x36, 0x00, //item len=54
 0x01, 0x00, 0x00, //robot_tone@1.0.0
 0x0A, //effect name length
 0x72, 0x6F, 0x62, 0x6F, 0x74, 0x5F, 0x74, 0x6F, 0x6E, 0x65, 
+0x00, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x01, //input1 channel is mono
-0x00, //input2 channel is N/A
 0x01, //output channel is mono
 0x01, //params_number is 1
 
@@ -6088,14 +6322,88 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 
 0x00, //ui_layout is auto
 /*****robot_tone end*****/
+/*****noise_generator*****/
+0x6A, 0x00, //item len=106
+0x01, 0x00, 0x00, //noise_generator@1.0.0
+0x0F, //effect name length
+0x6E, 0x6F, 0x69, 0x73, 0x65, 0x5F, 0x67, 0x65, 0x6E, 0x65, 0x72, 0x61, 0x74, 0x6F, 0x72, 
+0x00, //effect category
+0x02, //bits width is 16/24
+0x00, //input counter
+0x01, //output channel is mono
+0x02, //params_number is 2
+
+0x0A, //index: 00, noise_type
+0x6E, 0x6F, 0x69, 0x73, 0x65, 0x5F, 0x74, 0x79, 0x70, 0x65, 
+0x01, //enum: enum
+0x22, //enum length 34
+0x77, 0x68, 0x69, 0x74, 0x65, 0x20, 0x6E, 0x6F, 0x69, 0x73, 0x65, 0x3B, 0x70, 0x69, 0x6E, 0x6B, 0x20, 0x6E, 0x6F, 0x69, 0x73, 0x65, 0x3B, 0x62, 0x72, 0x6F, 0x77, 0x6E, 0x20, 0x6E, 0x6F, 0x69, 0x73, 0x65, 
+0x00, 0x00, //default: 0
+0x01, 0x00, //method: METHOD_INIT
+
+0x09, //index: 01, amplitude
+0x61, 0x6D, 0x70, 0x6C, 0x69, 0x74, 0x75, 0x64, 0x65, 
+0x02, //value: value
+0x7C, 0xFC, //min -900
+0x00, 0x00, //max 0
+0x01, 0x00, //step 1
+0x00, 0x00, //default: 0
+0x00, 0x00, //method: METHOD_NONE
+
+0x00, //noise_type: comb_box
+
+0x00, //amplitude: spinbox
+0x02, //unit length 2
+0x64, 0x42, 
+0x02, //fract 2
+0x0A, 0x00, //ratio 10
+0x00, //tips length 0
+
+0x00, //ui_layout is auto
+/*****noise_generator end*****/
+/*****noise_suppressor_blue_dual*****/
+0x44, 0x00, //item len=68
+0x01, 0x04, 0x01, //noise_suppressor_blue_dual@1.4.1
+0x1A, //effect name length
+0x6E, 0x6F, 0x69, 0x73, 0x65, 0x5F, 0x73, 0x75, 0x70, 0x70, 0x72, 0x65, 0x73, 0x73, 0x6F, 0x72, 0x5F, 0x62, 0x6C, 0x75, 0x65, 0x5F, 0x64, 0x75, 0x61, 0x6C, 
+0x00, //effect category
+0x00, //bits width is 16
+0x02, //input counter
+
+0x04, //input1 description
+0x6E, 0x65, 0x61, 0x72, 
+0x01, //input1 channel is mono
+
+0x03, //input2 description
+0x66, 0x61, 0x72, 
+0x01, //input2 channel is mono
+0x01, //output channel is mono
+0x01, //params_number is 1
+
+0x08, //index: 00, ns_level
+0x6E, 0x73, 0x5F, 0x6C, 0x65, 0x76, 0x65, 0x6C, 
+0x01, //enum: enum
+0x05, //enum length 5
+0x30, 0x3B, 0x31, 0x3B, 0x32, 
+0x01, 0x00, //default: 1
+0x00, 0x00, //method: METHOD_NONE
+
+0x00, //ns_level: comb_box
+
+0x00, //ui_layout is auto
+/*****noise_suppressor_blue_dual end*****/
 /*****fader*****/
-0x88, 0x00, //item len=136
+0x8A, 0x00, //item len=138
 0x01, 0x00, 0x01, //fader@1.0.1
 0x05, //effect name length
 0x66, 0x61, 0x64, 0x65, 0x72, 
+0x01, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x03, //input1 channel is mono/stereo
-0x00, //input2 channel is N/A
 0x03, //output channel is mono/stereo
 0x03, //params_number is 3
 
@@ -6143,46 +6451,64 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****fader end*****/
 /*****downmix_2to1*****/
-0x15, 0x00, //item len=21
+0x17, 0x00, //item len=23
 0x01, 0x00, 0x00, //downmix_2to1@1.0.0
 0x0C, //effect name length
 0x64, 0x6F, 0x77, 0x6E, 0x6D, 0x69, 0x78, 0x5F, 0x32, 0x74, 0x6F, 0x31, 
+0x01, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x02, //input1 channel is stereo
-0x00, //input2 channel is N/A
 0x01, //output channel is mono
 0x00, //params_number is 0
 /*****downmix_2to1 end*****/
 /*****upmix_1to2*****/
-0x13, 0x00, //item len=19
+0x15, 0x00, //item len=21
 0x01, 0x00, 0x00, //upmix_1to2@1.0.0
 0x0A, //effect name length
 0x75, 0x70, 0x6D, 0x69, 0x78, 0x5F, 0x31, 0x74, 0x6F, 0x32, 
+0x01, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x01, //input1 channel is mono
-0x00, //input2 channel is N/A
 0x02, //output channel is stereo
 0x00, //params_number is 0
 /*****upmix_1to2 end*****/
 /*****channel_combiner*****/
-0x19, 0x00, //item len=25
+0x1D, 0x00, //item len=29
 0x01, 0x00, 0x00, //channel_combiner@1.0.0
 0x10, //effect name length
 0x63, 0x68, 0x61, 0x6E, 0x6E, 0x65, 0x6C, 0x5F, 0x63, 0x6F, 0x6D, 0x62, 0x69, 0x6E, 0x65, 0x72, 
+0x01, //effect category
 0x02, //bits width is 16/24
+0x02, //input counter
+
+0x00, //input1 description
 0x01, //input1 channel is mono
+
+0x00, //input2 description
 0x01, //input2 channel is mono
 0x02, //output channel is stereo
 0x00, //params_number is 0
 /*****channel_combiner end*****/
 /*****channel_selector*****/
-0x5A, 0x00, //item len=90
+0x5C, 0x00, //item len=92
 0x01, 0x00, 0x00, //channel_selector@1.0.0
 0x10, //effect name length
 0x63, 0x68, 0x61, 0x6E, 0x6E, 0x65, 0x6C, 0x5F, 0x73, 0x65, 0x6C, 0x65, 0x63, 0x74, 0x6F, 0x72, 
+0x01, //effect category
 0x02, //bits width is 16/24
+0x01, //input counter
+
+0x00, //input1 description
+
 0x02, //input1 channel is stereo
-0x00, //input2 channel is N/A
 0x01, //output channel is mono
 0x01, //params_number is 1
 
@@ -6199,12 +6525,18 @@ ROBOEFFECT_TOTAL_MAX, //total effect number %d
 0x00, //ui_layout is auto
 /*****channel_selector end*****/
 /*****route_selector*****/
-0x4B, 0x00, //item len=75
+0x4F, 0x00, //item len=79
 0x01, 0x00, 0x00, //route_selector@1.0.0
 0x0E, //effect name length
 0x72, 0x6F, 0x75, 0x74, 0x65, 0x5F, 0x73, 0x65, 0x6C, 0x65, 0x63, 0x74, 0x6F, 0x72, 
+0x01, //effect category
 0x02, //bits width is 16/24
+0x02, //input counter
+
+0x00, //input1 description
 0x03, //input1 channel is mono/stereo
+
+0x00, //input2 description
 0x03, //input2 channel is mono/stereo
 0x03, //output channel is mono/stereo
 0x01, //params_number is 1
@@ -6228,7 +6560,7 @@ USER_DEFINED_LIBS_DATA
 
 uint16_t sizeof_effect_property_for_display(void)
 {
-	return sizeof(effect_property_for_display);// 11872 bytes
+	return sizeof(effect_property_for_display);// 12188 bytes
 }
 
 int16_t *roboeffect_get_param_by_raw_data(uint8_t addr, uint8_t *enable, uint8_t *len, const uint8_t *parameters)

@@ -43,8 +43,8 @@
  * 前者是burner烧录时版本，后者是mva版本需关注*/
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(0)
-#define  CFG_SDK_MINOR_VERSION		(3)
-#define  CFG_SDK_PATCH_VERSION	    (1)
+#define  CFG_SDK_MINOR_VERSION		(4)
+#define  CFG_SDK_PATCH_VERSION	    (0)
 
 
 //****************************************************************************************
@@ -83,15 +83,13 @@
 /**USB声卡，读卡器，一线通功能 **/
 #ifdef  CFG_APP_USB_AUDIO_MODE_EN
 	#define CFG_PARA_USB_MODE	AUDIO_MIC
-	#define CFG_RES_AUDIO_USB_IN_EN		//缺省 作为模式通路使能
+
 	#define CFG_PARA_AUDIO_USB_IN_SYNC	//时钟偏差引起的 采样点同步
 	#define CFG_PARA_AUDIO_USB_IN_SRC	//转采样准备
 
-	#define CFG_RES_AUDIO_USB_OUT_EN
 	#define CFG_PARA_AUDIO_USB_OUT_SYNC	//时钟偏差引起的 采样点同步
 	#define CFG_PARA_AUDIO_USB_OUT_SRC	//转采样准备
 	#define CFG_RES_AUDIO_USB_VOL_SET_EN
-	//#define USB_READER_EN
 #endif
 
 //IDLE模式(假待机),powerkey/deepsleep可以同时选中也可以单独配置

@@ -17,6 +17,7 @@
 #define BT_MIN_TRIM					0x0
 #define BT_MAX_TRIM					0xf
 
+//#define BT_SNIFF_ENABLE
 /*****************************************************************
  * 蓝牙功能开关
  *****************************************************************/
@@ -124,12 +125,31 @@ enum
 	#define BT_HFP_SUPPORT				DISABLE
 #endif
 #define BT_SPP_SUPPORT				DISABLE
-	
+#define BT_OBEX_SUPPORT				DISABLE
+#define BT_PBAP_SUPPORT				DISABLE
+
+/*****************************************************************
+ *****************************************************************/
 //在非蓝牙模式下,播放音乐自动切换到播放模式
 //#define BT_AUTO_ENTER_PLAY_MODE
 
-//开机蓝牙不可见只回连状态
-//#define POWER_ON_BT_ACCESS_MODE_SET
+
+//开机经典蓝牙可见性选择
+//0 -> 不可见不可连接
+//1 -> 可见不可连接
+//2 -> 不可见可连接
+//3 -> 可见可连接
+enum
+{
+	BT_ACCESSBLE_NONE = 0,
+	BT_ACCESSBLE_DISCOVERBLEONLY = 1,
+	BT_ACCESSBLE_CONNECTABLEONLY = 2,
+	BT_ACCESSBLE_GENERAL = 3,
+};
+
+#define POWER_ON_BT_ACCESS_MODE_SET  BT_ACCESSBLE_GENERAL
+
+//#define BT_REAL_STATE  增加回连 配对 none等状态
 
 /*****************************************************************
  * 宏定义开关警告

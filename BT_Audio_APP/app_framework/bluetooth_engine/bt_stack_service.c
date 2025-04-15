@@ -82,19 +82,6 @@ typedef struct _BtStackServiceContext
 //	uint32_t			btExitSniffReconPhone;
 }BtStackServiceContext;
 
-//蓝牙服务sniff 服务task。
-#ifdef BT_SNIFF_ENABLE
-
-typedef struct _BtUserServiceContext
-{
-	xTaskHandle			taskHandle;
-	MessageHandle		msgHandle;
-	TaskState			serviceState;
-
-}BtUserServiceContext;
-
-#endif	//BT_SNIFF_ENABLE
-
 static BtStackServiceContext	*btStackServiceCt = NULL;
 
 BT_CONFIGURATION_PARAMS		*btStackConfigParams = NULL;
@@ -298,12 +285,11 @@ void BtMidMessageManage(BtMidMessageId messageId, uint8_t Param)
 			{
 				//APP_DBG("MSG_BT_MID_STACK_INIT\n");
 				//此处配置协议栈初始化完成后，是否进入到蓝牙可被搜索可被连接状态;
-				//1=进入到可被搜索可被连接状态;  0=进入到不可被搜索不可被连接状态
-				#ifdef POWER_ON_BT_ACCESS_MODE_SET
-				GetBtManager()->btAccessModeEnable = 0;
-				#else
-				GetBtManager()->btAccessModeEnable = 1;
-				#endif
+				//0 -> 不可见不可连接
+				//1 -> 可见不可连接
+				//2 -> 不可见可连接
+				//3 -> 可见可连接
+				GetBtManager()->btAccessModeEnable = POWER_ON_BT_ACCESS_MODE_SET;
 			}
 			break;
 
@@ -312,7 +298,9 @@ void BtMidMessageManage(BtMidMessageId messageId, uint8_t Param)
 				//MessageContext		msgSend;
 				msgSend.msgId		= MSG_BT_STATE_CONNECTED;
 				MessageSend(GetMainMessageHandle(), &msgSend);
-				
+#ifdef BT_SNIFF_ENABLE
+				Set_rwip_sleep_enable(1);
+#endif
 				DBG("BtMidMessageManage: MSG_BT_MID_STATE_CONNECTED\n");
 
 				//SetBtPlayState(BT_PLAYER_STATE_STOP);
@@ -331,7 +319,9 @@ void BtMidMessageManage(BtMidMessageId messageId, uint8_t Param)
 			{
 				SoftFlagRegister(SoftFlagDiscDelayMask);
 				DBG("BtMidMessageManage: MSG_BT_MID_STATE_DISCONNECT\n");
-
+#ifdef BT_SNIFF_ENABLE
+				Set_rwip_sleep_enable(0);
+#endif
 				//SetBtPlayState(BT_PLAYER_STATE_STOP);
 #if(BT_LINK_DEV_NUM == 2)
 				if((btManager.btLinked_env[0].a2dpState != BT_A2DP_STATE_STREAMING)
@@ -463,11 +453,6 @@ static void CheckBtEventTimer(void)
 
 	BtRstStateCheck();
 
-#ifdef	BT_SNIFF_ENABLE
-	BtStartEnterSniffStep();
-	BtExitSniffReconnectPhone();
-#endif
-
 }
 
 /**************************************************************************
@@ -533,6 +518,7 @@ void BtStackServiceMsgSend(uint16_t msgId)
  **********************************************************************************/
 void BtCntClkSet(void)
 {
+#if 0
 	//btclk freq set
 //	BACKUP_32KEnable(OSC32K_SOURCE);
 //	sniff_cntclk_set(1);//sniff cnt clk 32768 Hz default not use
@@ -557,6 +543,7 @@ void BtCntClkSet(void)
 	Clock_RcFreqAutoCntStart();
 
 	Clock_BBCtrlHOSCInDeepsleep(1);//Deepsleep时,BB接管HOSC
+#endif
 #endif
 }
 
@@ -1265,6 +1252,22 @@ static void BtRstStateCheck(void)
 	}
 }
 
+void BtResetAndKill(void)
+{
+	//bb reset
+	RF_PowerDownBySw();
+	WDG_Feed();
+//	rwip_reset();
+	BT_IntDisable();
+	WDG_Feed();
+	//Kill bt stack service
+	BtStackServiceKill();
+	WDG_Feed();
+	vTaskDelay(10);
+	RF_PowerDownByHw();
+	BT_ModuleClose();
+}
+
 /***********************************************************************************
  * 开关蓝牙
  * 断开蓝牙连接，删除蓝牙协议栈任务，关闭蓝牙晶振
@@ -1313,14 +1316,7 @@ void BtPowerOff(void)
 			break;
 	}
 	
-	//bb reset
-//	rwip_reset();
-	BT_IntDisable();
-	//Kill bt stack service
-	BtStackServiceKill();
-	vTaskDelay(10);
-	//reset bt module and close bt clock
-	BT_ModuleClose();
+	BtResetAndKill();
 }
 
 void BtPowerOn(void)
@@ -1397,7 +1393,7 @@ void BtFastPowerOn(void)
 		//从机从tws slave模式退出,无连接手机,则开启可被搜索可被连接
 		if(!btManager.btLinkState)
 		{
-			BtSetAccessMode_Disc_Con();
+			BtSetAccessMode_select();
 		}
 		
 		btStackServiceCt->serviceWaitResume = 0;

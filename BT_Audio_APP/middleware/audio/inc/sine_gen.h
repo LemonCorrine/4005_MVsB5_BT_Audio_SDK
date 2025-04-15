@@ -35,6 +35,7 @@ typedef enum _SINE_GEN_ERROR_CODE
 	SINE_GEN_FRQ_ERROR,
 	SINE_GEN_AMPL_ERROR,
 	SINE_GEN_INNER_ERROR,
+	SINE_GEN_CHANNEL_NUM_ERROR,
 
     //No Error
 	SINE_GEN_ERROR_OK = 0,
@@ -44,7 +45,7 @@ typedef enum _SINE_GEN_ERROR_CODE
 /** status for mute/un-mute */
 typedef enum _SineGenMuteStatus
 {
-    SINE_GEN_STATUS_NONE = 0,
+  SINE_GEN_STATUS_NONE = 0,
 	SINE_GEN_STATUS_FADE_IN,
 	SINE_GEN_STATUS_FADE_OUT
 } SineGenMuteStatus;
@@ -54,6 +55,7 @@ typedef struct _SineGenContext
 {
 	int32_t sample_rate;
 	int32_t channel_enable;
+	int32_t num_channels;
 	int32_t left_freq;
 	int32_t right_freq;
 
@@ -76,6 +78,7 @@ typedef struct _Sine32GenContext
 {
 	int32_t sample_rate;
 	int32_t channel_enable;
+	int32_t num_channels;
 	int32_t left_freq;
 	int32_t right_freq;
 
@@ -105,7 +108,7 @@ typedef struct _Sine32GenContext
  * @param right_ampl right channedl amplitud, -960~0 as -96.0dB ~ 0dB
  * @return SINE_GEN_ERROR_CODE 
  */
-SINE_GEN_ERROR_CODE sine_generator_init(SineGenContext *sgc, uint16_t sample_rate, int16_t channel_enable, int32_t left_freq, int32_t right_freq, int32_t left_ampl, int32_t right_ampl);
+SINE_GEN_ERROR_CODE sine_generator_init(SineGenContext *sgc, uint16_t sample_rate, int16_t channel_enable, int16_t num_channels, int32_t left_freq, int32_t right_freq, int32_t left_ampl, int32_t right_ampl);
 
 /**
  * @brief sine geenerator apply func
@@ -160,7 +163,7 @@ SINE_GEN_ERROR_CODE sine_generator_config_ampl(SineGenContext *sgc, int32_t left
  * @param right_ampl right channedl amplitud, -960~0 as -96.0dB ~ 0dB
  * @return SINE_GEN_ERROR_CODE 
  */
-SINE_GEN_ERROR_CODE sine32_generator_init(Sine32GenContext *sgc, uint16_t sample_rate, int16_t channel_enable, int32_t left_freq, int32_t right_freq, int32_t left_ampl, int32_t right_ampl);
+SINE_GEN_ERROR_CODE sine32_generator_init(Sine32GenContext *sgc, uint16_t sample_rate, int16_t channel_enable, int16_t num_channels, int32_t left_freq, int32_t right_freq, int32_t left_ampl, int32_t right_ampl);
 
 /**
  * @brief sine geenerator apply func
@@ -214,7 +217,7 @@ SINE_GEN_ERROR_CODE sine32_generator_config_ampl(Sine32GenContext *sgc, int32_t 
  * @param right_ampl right channedl amplitud, -960~0 as -96.0dB ~ 0dB
  * @return SINE_GEN_ERROR_CODE
  */
-SINE_GEN_ERROR_CODE sine24_generator_init(Sine32GenContext *sgc, uint16_t sample_rate, int16_t channel_enable, int32_t left_freq, int32_t right_freq, int32_t left_ampl, int32_t right_ampl);
+SINE_GEN_ERROR_CODE sine24_generator_init(Sine32GenContext *sgc, uint16_t sample_rate, int16_t channel_enable, int16_t num_channels, int32_t left_freq, int32_t right_freq, int32_t left_ampl, int32_t right_ampl);
 
 /**
  * @brief sine geenerator apply func

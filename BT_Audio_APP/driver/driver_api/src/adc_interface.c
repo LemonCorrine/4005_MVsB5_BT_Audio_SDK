@@ -213,6 +213,20 @@ void AudioADC_AnaInit(ADC_MODULE ADCMODULE, ADC_CHANNEL ChannelSel, AUDIO_ADC_IN
     }
 }
 
+void AudioADC_AnaDeInit(ADC_MODULE ADCMODULE)
+{
+    if(ADCMODULE == ADC0_MODULE)
+    {
+        AudioADC_PGAPowerUp(ADC0_MODULE, 0, 0);
+        AudioADC_PGASel(ADC0_MODULE, CHANNEL_LEFT, LINEIN_NONE);
+        AudioADC_PGASel(ADC0_MODULE, CHANNEL_RIGHT, LINEIN_NONE);
+    }
+    else
+    {
+        AudioADC_PGAPowerUp(ADC1_MODULE, 0, 0);
+    }
+}
+
 void AudioADC_DeInit(ADC_MODULE Module)
 {
 	if(Module == ADC0_MODULE)
@@ -220,14 +234,14 @@ void AudioADC_DeInit(ADC_MODULE Module)
 	    AudioADC_Disable(ADC0_MODULE);
         DMA_ChannelDisable(PERIPHERAL_ID_AUDIO_ADC0_RX);
         //DMA_ChannelClose(PERIPHERAL_ID_AUDIO_ADC0_RX);
-//        AudioADC_AnaDeInit(ADC0_MODULE);
+        AudioADC_AnaDeInit(ADC0_MODULE);
     }
     else if(Module == ADC1_MODULE)
     {
 	    AudioADC_Disable(ADC1_MODULE);
     	DMA_ChannelDisable(PERIPHERAL_ID_AUDIO_ADC1_RX);
     	//DMA_ChannelClose(PERIPHERAL_ID_AUDIO_ADC1_RX);
-//    	AudioADC_AnaDeInit(ADC1_MODULE);
+    	AudioADC_AnaDeInit(ADC1_MODULE);
     }
 }
 

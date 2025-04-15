@@ -99,7 +99,7 @@ uint8_t IRKeyIndexGet(void)
 
     if((IrKeyVal & 0x0000FFFF) == IR_MANU_ID)
     {
-        APP_DBG("IrKeyVal = %lx\n", IrKeyVal);
+//        APP_DBG("IrKeyVal = %lx\n", IrKeyVal);
         for(KeyIndex = 0; KeyIndex < IR_KEY_SUM; KeyIndex++)
         {
             if(((IrKeyVal >> 24) & 0x000000FF) == gIrVal[KeyIndex])

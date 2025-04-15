@@ -18,9 +18,9 @@
 #include "otg_device_audio.h"
 
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
-#define PCM_LEN_SIZE(a,b,c) (a*b*c/1000)
+#define PCM_LEN_SIZE(a,b,c) (FRQ_MAX_SZE(a)*b*c)
 #define PCM_LEN_MAX MAX(PCM_LEN_SIZE(USBD_AUDIO_FREQ,PCM24BIT,PACKET_CHANNELS_NUM),PCM_LEN_SIZE(USBD_AUDIO_MIC_FREQ,PCM24BIT,MIC_CHANNELS_NUM))
-#define OUT_PCM_LEN (USBD_AUDIO_FREQ/1000)*PACKET_CHANNELS_NUM*PCM24BIT
+#define OUT_PCM_LEN FRQ_MAX_SZE(USBD_AUDIO_FREQ)*PACKET_CHANNELS_NUM*PCM24BIT
 extern uint8_t Setup[];
 extern uint8_t Request[];
 extern void OTG_DeviceSendResp(uint16_t Resp, uint8_t n);
@@ -133,14 +133,11 @@ uint16_t UsbAudioSpeakerDepthGet(void)
 //chip->pc 保存数据到缓存区
 uint16_t UsbAudioMicDataSet(void *Buffer, uint16_t Len)
 {
-#ifdef CFG_RES_AUDIO_USB_OUT_EN
 	if(!UsbAudioMic.PCMBuffer)
 	{
 		return 0;
 	}
-
 	MCUCircular_PutData(&UsbAudioMic.CircularBuf, Buffer, Len * sizeof(PCM_DATA_TYPE) * UsbAudioMic.Channels);
-#endif
 	return Len;
 }
 
@@ -171,7 +168,7 @@ uint16_t UsbAudioMicDepthGet(void)
 //注意一下需要4字节对齐
 void OnDeviceAudioRcvIsoPacket(void)
 {
-#ifdef CFG_RES_AUDIO_USB_IN_EN
+#ifdef CFG_OTG_MODE_AUDIO_EN
 	uint32_t Len;
 	int32_t s;
 	int32_t left_pregain = UsbAudioSpeaker.LeftVol;
@@ -259,7 +256,7 @@ void OnDeviceAudioRcvIsoPacket(void)
 
 void OnDeviceAudioSendIsoPacket(void)
 {
-#ifdef CFG_RES_AUDIO_USB_OUT_EN
+#ifdef CFG_OTG_MODE_MIC_EN
 	int32_t s;
 	int32_t left_pregain = UsbAudioMic.LeftVol;
 	int32_t rigth_pregain = UsbAudioMic.RightVol;
@@ -749,7 +746,7 @@ void OTG_DeviceAudioRequest(void)
 		{
 			if(UsbAudioMic.AudioSampleRate == 0)
 			{
-				UsbAudioMic.AudioSampleRate = USBD_AUDIO_MIC_FREQ2;
+				UsbAudioMic.AudioSampleRate = USBD_AUDIO_MIC_FREQ;
 			}
 			OTG_DeviceControlSend((uint8_t*)&UsbAudioMic.AudioSampleRate, wLength,3);
 		}
@@ -757,24 +754,37 @@ void OTG_DeviceAudioRequest(void)
 		{
 			//Get Layout 3 parameter block
 			uint8_t para_block[] = {
-				SAMPLE_FREQ_NUM(4),           /* wNumSubRanges */
-
+				SAMPLE_FREQ_NUM(MIC_FREQ_NUM),           /* wNumSubRanges */
+#if (MIC_FREQ_NUM >= 6)
+                SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ5),        /* dMIN(1) */
+                SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ5),        /* dMAX(1) */
+                SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
+#endif
+#if (MIC_FREQ_NUM >= 5)
+                SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ4),        /* dMIN(1) */
+                SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ4),        /* dMAX(1) */
+                SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
+#endif
+#if (MIC_FREQ_NUM >= 4)
+                SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ3),        /* dMIN(1) */
+                SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ3),        /* dMAX(1) */
+                SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
+#endif
+#if (MIC_FREQ_NUM >= 3)
                 SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ2),        /* dMIN(1) */
                 SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ2),        /* dMAX(1) */
                 SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
-
-                SAMPLE_FREQ_4B(44100),        /* dMIN(1) */
-                SAMPLE_FREQ_4B(44100),        /* dMAX(1) */
-                SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
-
+#endif
+#if (MIC_FREQ_NUM >= 2)
                 SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ1),        /* dMIN(1) */
                 SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ1),        /* dMAX(1) */
                 SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
-
+#endif
+#if (MIC_FREQ_NUM >= 1)
                 SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ),        /* dMIN(2) */
                 SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ),        /* dMAX(2) */
                 SAMPLE_FREQ_4B(0x00),         /* dRES(2) */
-
+#endif
 			};
             if(wLength > sizeof(para_block))
             {
@@ -811,19 +821,37 @@ void OTG_DeviceAudioRequest(void)
 		{
             //Get Layout 3 parameter block
             uint8_t para_block[] = {
-				SAMPLE_FREQ_NUM(3),           /* wNumSubRanges */
-
-				SAMPLE_FREQ_4B(USBD_AUDIO_FREQ),        /* dMIN(1) */
-				SAMPLE_FREQ_4B(USBD_AUDIO_FREQ),        /* dMAX(1) */
-				SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
-
-                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ1),        /* dMIN(2) */
-                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ1),        /* dMAX(2) */
+				SAMPLE_FREQ_NUM(SPEAKER_FREQ_NUM),           /* wNumSubRanges */
+#if (SPEAKER_FREQ_NUM >= 6)
+                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ5),        /* dMIN(1) */
+                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ5),        /* dMAX(1) */
+                SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
+#endif
+#if (SPEAKER_FREQ_NUM >= 5)
+                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ4),        /* dMIN(1) */
+                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ4),        /* dMAX(1) */
+                SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
+#endif
+#if (SPEAKER_FREQ_NUM >= 4)
+                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ3),        /* dMIN(1) */
+                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ3),        /* dMAX(1) */
+                SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
+#endif
+#if (SPEAKER_FREQ_NUM >= 3)
+                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ2),        /* dMIN(1) */
+                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ2),        /* dMAX(1) */
+                SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
+#endif
+#if (SPEAKER_FREQ_NUM >= 2)
+                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ1),        /* dMIN(1) */
+                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ1),        /* dMAX(1) */
+                SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
+#endif
+#if (SPEAKER_FREQ_NUM >= 1)
+                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ),        /* dMIN(2) */
+                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ),        /* dMAX(2) */
                 SAMPLE_FREQ_4B(0x00),         /* dRES(2) */
-
-                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ2),        /* dMIN(2) */
-                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ2),        /* dMAX(2) */
-                SAMPLE_FREQ_4B(0x00),         /* dRES(2) */
+#endif
             };
             if(wLength > sizeof(para_block))
             {
@@ -859,7 +887,7 @@ void UsbAudioTimer1msProcess(void)
 	{
 		return;
 	}
-#ifdef CFG_RES_AUDIO_USB_IN_EN
+#ifdef CFG_OTG_MODE_AUDIO_EN
 	if(UsbAudioSpeaker.AltSet)//open stream
 	{
 		if(UsbAudioSpeaker.FramCount)//正在传数据 1-2帧数据
@@ -899,7 +927,7 @@ void UsbAudioTimer1msProcess(void)
 
 #endif
 
-#ifdef CFG_RES_AUDIO_USB_IN_EN
+#ifdef CFG_OTG_MODE_MIC_EN
 	if(UsbAudioMic.AltSet)//open stream
 	{
 		if(UsbAudioMic.FramCount)//正在传数据 切传输了1-2帧数据

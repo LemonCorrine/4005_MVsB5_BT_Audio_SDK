@@ -637,7 +637,7 @@ void AudioADC_BufferIBiasSet(ADC_MODULE ADCModule,  uint8_t LeftBuf,  uint8_t Ri
  * @brief  vmid初始化
  * @param  无
  * @return 无
- * @note   只使用audio_adc,不使用dac的时候,可以使用AudioADC_VMIDInit()替代AudioDAC_AllPowerOn(),来对vmid进行上电
+ * @note   只使用audio_adc,不使用dac的时候,可以使用AudioADC_VMIDInit替代AudioDAC_AllPowerOn,来对vmid进行上电。AudioADC_VMIDInit和AudioDAC_AllPowerOn不要重复使用
  */
 void AudioADC_VMIDInit(void);
 

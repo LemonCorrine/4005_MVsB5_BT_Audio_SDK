@@ -44,6 +44,7 @@
 #include "low_level_compressor.h"
 #include "mixer.h"
 #include "noise_gate.h"
+#include "noise_generator.h"
 #include "overdrive.h"
 #include "overdrive_poly.h"
 #include "pcm_delay.h"
@@ -81,7 +82,7 @@
 #include "beamforming.h"
 
 // audio effect library version
-#define AUDIO_EFFECT_LIBRARY_VERSION "2.37.0"
+#define AUDIO_EFFECT_LIBRARY_VERSION "2.38.0"
 
 // audio effect versions (Info below is for convenience only. In case of any contradiction, the version info in the respective file header shall prevail.)
 #define EFFECT_VERSION_ADPCM_CODEC                  "2.0.1"
@@ -114,6 +115,7 @@
 #define EFFECT_VERSION_LOW_LEVEL_COMPRESSOR         "1.0.0"
 #define EFFECT_VERSION_MIXER                        "1.0.0"
 #define EFFECT_VERSION_NOISE_GATE                   "2.1.0"
+#define EFFECT_VERSION_NOISE_GENERATOR              "1.0.0"
 #define EFFECT_VERSION_OVERDRIVE                    "1.0.0"
 #define EFFECT_VERSION_OVERDRIVE_POLY               "2.1.0"
 #define EFFECT_VERSION_PCM_DELAY                    "2.2.0"

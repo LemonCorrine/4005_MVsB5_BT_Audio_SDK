@@ -127,10 +127,10 @@ typedef enum __CLK_MODE{
 }CLK_MODE;
 
 typedef enum _CLK_32K_MODE{
-	RC_CLK32_MODE,			/*RC32K(RC 12M div) source*/
-	OSC_32K_MODE,			/*OSC32K source(HOSC_DIV_32K || LOSC_32K)*/
-	HOSC_DIV_32K_CLK_MODE,	/*HOSC DIV source*/
-	LOSC_32K_MODE,			/*LOSC 32K source*/
+	HOSC_DIV_32K_CLK_MODE = 0,	/*HOSC DIV source,OSC24M_or_RC12M_DIV_32k_clk*/
+	RC_CLK32_MODE,			/*RC32K source,bt_32k_clk */
+	PMU_32K_MODE,			/*pmu_32k_clk*/
+	LOSC_32K_MODE,			/*LOSC 32K source,RTC32K*/
 }CLK_32K_MODE;
 
 
@@ -489,19 +489,12 @@ void Clock_UARTClkSelect(CLK_MODE ClkMode);
 void Clock_Timer3ClkSelect(CLK_MODE ClkMode);
 
 /**
- * @brief	晶体32K时钟选择,系统时钟时钟还是RC时钟
- * @param	ClkMode 32K晶体时钟源选择
- *   @arg	HOSC_DIV_32K_CLK_MODE: 高频晶体时钟分频到32;
- *   @arg	LOSC_32K_MODE: 32K晶体时钟;
- * @return  无
- */
-void Clock_OSC32KClkSelect(CLK_32K_MODE ClkMode);
-
-/**
  * @brief	BTDM模块时钟选择,系统时钟时钟还是RC时钟
  * @param	ClkMode BTDM模块
- *   @arg	RC_CLK32_MODE: RC12M时钟分频到32K;
- *   @arg	OSC_32K_MODE: 晶体32K时钟(注意来源);
+ *   @arg	HOSC_DIV_32K_CLK_MODE: 24M晶体或者RC12M时钟分频到32K;
+ *   @arg	RC_CLK32_MODE: RC32K source,bt_32k_clk
+ *   @arg	PMU_32K_MODE: pmu_32k_clk
+ *   @arg	LOSC_32K_MODE: LOSC 32K source,RTC32K
  * @return  无
  */
 void Clock_BTDMClkSelect(CLK_32K_MODE ClkMode);

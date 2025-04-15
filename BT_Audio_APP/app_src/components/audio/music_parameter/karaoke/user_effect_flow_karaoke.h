@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_Karaoke.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.8.12                 
+ * @author  ACPWorkbench: 3.9.1                 
  * @version V1.1.0                                  
- * @Created 2024-02-06T16:47:59                                      
+ * @Created 2024-03-01T14:12:41                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define KARAOKE_ROBOEFFECT_LIB_VER "2.15.0"
+#define KARAOKE_ROBOEFFECT_LIB_VER "2.16.2"
 
 typedef enum _KARAOKE_roboeffect_io_enum
 {
@@ -38,8 +38,7 @@ typedef enum _KARAOKE_roboeffect_io_enum
 
 
 typedef enum _KARAOKE_roboeffect_effect_list_enum{
-    KARAOKE_START_ADDR = 0x80,
-    KARAOKE_silence_detector_music_ADDR,
+    KARAOKE_silence_detector_music_ADDR = 0x81,
     KARAOKE_gain_control0_ADDR,
     KARAOKE_noise_suppressor_expander0_ADDR,
     KARAOKE_compander0_ADDR,
@@ -97,4 +96,19 @@ extern roboeffect_effect_list_info user_effect_list_Karaoke;
 
 extern const roboeffect_effect_steps_table user_effect_steps_Karaoke;
 
+extern char *parameter_group_name_Karaoke[7];
+extern const unsigned char user_effect_parameters_Karaoke_HunXiang[];
+extern const unsigned char user_module_parameters_Karaoke_HunXiang[];
+extern const unsigned char user_effect_parameters_Karaoke_DianYin[];
+extern const unsigned char user_module_parameters_Karaoke_DianYin[];
+extern const unsigned char user_effect_parameters_Karaoke_MoYin[];
+extern const unsigned char user_module_parameters_Karaoke_MoYin[];
+extern const unsigned char user_effect_parameters_Karaoke_HanMai[];
+extern const unsigned char user_module_parameters_Karaoke_HanMai[];
+extern const unsigned char user_effect_parameters_Karaoke_NanBianNv[];
+extern const unsigned char user_module_parameters_Karaoke_NanBianNv[];
+extern const unsigned char user_effect_parameters_Karaoke_NvBianNan[];
+extern const unsigned char user_module_parameters_Karaoke_NvBianNan[];
+extern const unsigned char user_effect_parameters_Karaoke_WaWaYin[];
+extern const unsigned char user_module_parameters_Karaoke_WaWaYin[];
 #endif/*__USER_EFFECT_FLOW_KARAOKE_H__*/

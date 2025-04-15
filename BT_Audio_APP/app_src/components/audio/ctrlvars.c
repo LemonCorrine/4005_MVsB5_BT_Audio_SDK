@@ -481,7 +481,7 @@ void DefaultParamgsInit(void)
 
 	if(AudioCore.Audioeffect.context_memory)
 	{
-		memcpy(&gCtrlVars.HwCt, AudioCore.Audioeffect.user_module_parameters, sizeof(gCtrlVars.HwCt));
+		memcpy(&gCtrlVars.HwCt, AudioCore.Audioeffect.cur_effect_para->user_module_parameters, sizeof(gCtrlVars.HwCt));
 	}
 	else
 	{

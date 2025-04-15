@@ -10,10 +10,7 @@
  *
  * <h2><center>&copy; COPYRIGHT 2013 MVSilicon </center></h2>
  */
-#ifdef CFG_APP_CONFIG
 #include "app_config.h"
-#endif
-#ifdef USB_READER_EN
 #include <string.h>
 #include "type.h"
 #include "otg_device_hcd.h"
@@ -32,7 +29,7 @@
 #include "rtos_api.h" //add for mutex declare
 #endif
 
-
+#if(CFG_PARA_USB_MODE >= READER)
 // SCSI opcodes
 #define TEST_UNIT_READY				0x00
 #define REQUEST_SENSE				0x03

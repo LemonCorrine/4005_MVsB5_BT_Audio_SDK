@@ -35,19 +35,26 @@ void SarADC_Init(void)
 int16_t SarADC_LDOINVolGet(void)
 {
 	uint32_t DC_Data1;
-//	uint32_t DC_Data2;
+	uint32_t DC_Data2;
 
 	DC_Data1 = ADC_SingleModeDataGet(ADC_CHANNEL_VBAT);//zsq changes from ADC_CHANNEL_DAC_AVDD to ADC_CHANNEL_A16_MICBIAS
-//	DC_Data2 = ADC_SingleModeDataGet(ADC_CHANNEL_DVDD12);//zsq from  ADC_CHANNEL_VDD1V2 to ADC_CHANNEL_DVDD12
-//	DC_Data1 = (DC_Data1 * 2 * Power_LDO12Get()) / DC_Data2;
+	DC_Data2 = ADC_SingleModeDataGet(ADC_CHANNEL_DVDD12);//zsq from  ADC_CHANNEL_VDD1V2 to ADC_CHANNEL_DVDD12
 
-	DC_Data1 = (DC_Data1 * 2 * 1000)/(4095*1000/3300);
+	//DBG("\n%d, %d\n", DC_Data1, DC_Data2);
+	//DBG("11D = %d\n",Power_GetLDO11DConfigVoltage());
+	DC_Data1 = (DC_Data1 * 2 * Power_GetLDO11DConfigVoltage()) / DC_Data2;
 
+	//DC_Data1 = (DC_Data1 * 2 * 1000)/(4095*1000/3300);
+	//DC_Data1 = (DC_Data1 * 2 * 1000)/(4095*1000/3000);
+	if(Power_GetLDO33DConfigVoltage() < 3100)
+	{
+		DC_Data1 += 50;//VDD参考电压偏低需要做一些修正
+	}
 	if(DC_Data1 < 3200)
 	{
 		DC_Data1 += 30;//电压低于3.3V之后，采样计算值偏低
 	}
-	DBG("LDOIN ： %d\n", (int)DC_Data1);
+	//DBG("LDOIN ： %d\n", (int)DC_Data1);
 
 	return (int16_t)DC_Data1;
 }

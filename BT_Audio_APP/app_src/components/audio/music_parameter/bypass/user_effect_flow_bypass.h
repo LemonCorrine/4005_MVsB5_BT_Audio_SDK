@@ -1,9 +1,9 @@
 /***************************************************
- * @file     bypass.h                      
+ * @file     user_effect_flow_bypass.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.7.0                 
+ * @author  ACPWorkbench: 3.9.1                 
  * @version V1.1.0                                  
- * @Created 2023-11-30T14:22:36                                      
+ * @Created 2024-03-01T14:47:32                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define BYPASS_ROBOEFFECT_LIB_VER "2.15.0"
+#define BYPASS_ROBOEFFECT_LIB_VER "2.16.2"
 
 typedef enum _BYPASS_roboeffect_io_enum
 {
@@ -34,8 +34,7 @@ typedef enum _BYPASS_roboeffect_io_enum
 
 
 typedef enum _BYPASS_roboeffect_effect_list_enum{
-    BYPASS_START_ADDR = 0x80,
-    BYPASS_mic_gain_ADDR,
+    BYPASS_mic_gain_ADDR = 0x81,
     BYPASS_gain_control1_ADDR,
     BYPASS_gain_control0_ADDR,
     BYPASS_COUNT_ADDR,
@@ -48,4 +47,7 @@ extern roboeffect_effect_list_info user_effect_list_bypass;
 
 extern const roboeffect_effect_steps_table user_effect_steps_bypass;
 
+extern char *parameter_group_name_bypass[1];
+extern const unsigned char user_effect_parameters_bypass_Bypass[];
+extern const unsigned char user_module_parameters_bypass_Bypass[];
 #endif/*__USER_EFFECT_FLOW_BYPASS_H__*/

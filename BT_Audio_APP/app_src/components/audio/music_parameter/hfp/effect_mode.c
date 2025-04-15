@@ -12,8 +12,8 @@ static const AUDIOEFFECT_EFFECT_PARA effect_para[] =
 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_hfp,
 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_hfp,
 		.user_effects_script = (uint8_t *)user_effects_script_hfp,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_hfp_hfp,
-		.user_module_parameters = (uint8_t *)user_module_parameters_hfp_hfp,
+		.user_effect_parameters = (uint8_t *)user_effect_parameters_hfp_Hfp,
+		.user_module_parameters = (uint8_t *)user_module_parameters_hfp_Hfp,
 		.get_user_effects_script_len = get_user_effects_script_len_hfp,
 	}
 };

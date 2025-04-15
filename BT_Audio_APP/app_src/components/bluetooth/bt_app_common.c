@@ -526,7 +526,7 @@ static void BtAccessMode_DualPhoneAndTws(void)
 	{
 		if(btManager.btLinkState)
 		{
-			BtSetAccessMode_NoDisc_NoCon();
+			BtSetAccessModeApi(BtAccessModeNotAccessible);
 		}
 		else
 		{
@@ -534,15 +534,15 @@ static void BtAccessMode_DualPhoneAndTws(void)
 			{
 				if(IsBtAudioMode())
 				{
-					BtSetAccessMode_Disc_Con();
+					BtSetAccessMode_select();
 				}
 				else
 				{
-					BtSetAccessMode_NoDisc_NoCon();
+					BtSetAccessModeApi(BtAccessModeNotAccessible);
 				}
 			}
 			else
-				BtSetAccessMode_Disc_Con();
+				BtSetAccessMode_select();
 		}
 	}
 	else
@@ -551,18 +551,18 @@ static void BtAccessMode_DualPhoneAndTws(void)
 		{
 			if(IsIdleModeReady())
 			{
-				BtSetAccessMode_NoDisc_NoCon();
+				BtSetAccessModeApi(BtAccessModeNotAccessible);
 			}
 			else if(btManager.linkedNumber >= 2)
 			{
-				BtSetAccessMode_NoDisc_NoCon();
+				BtSetAccessModeApi(BtAccessModeNotAccessible);
 			}
 			else
 			{
 			#ifdef BT_LINK_2DEV_ACCESS_DIS_CON
-				BtSetAccessMode_Disc_Con();
+				BtSetAccessMode_select();
 			#else
-				BtSetAccessMode_NoDisc_Con();
+				BtSetAccessModeApi(BtAccessModeConnectableOnly);
 			#endif
 			}
 		}
@@ -570,30 +570,30 @@ static void BtAccessMode_DualPhoneAndTws(void)
 		{
 			if(IsIdleModeReady())
 			{
-				BtSetAccessMode_NoDisc_NoCon();
+				BtSetAccessModeApi(BtAccessModeNotAccessible);
 			}
 			else if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF)
 			{
 				if(IsBtAudioMode())
 				{
-					BtSetAccessMode_Disc_Con();
+					BtSetAccessMode_select();
 				}
 				else if(IsBtTwsSlaveMode())
 				{
-					BtSetAccessMode_NoDisc_NoCon();
+					BtSetAccessModeApi(BtAccessModeNotAccessible);
 				}
 				else
 				{
 					#if (CFG_TWS_ONLY_IN_BT_MODE == ENABLE)
-					BtSetAccessMode_NoDisc_NoCon();
+					BtSetAccessModeApi(BtAccessModeNotAccessible);
 					#else
-					BtSetAccessMode_NoDisc_Con();
+					BtSetAccessModeApi(BtAccessModeConnectableOnly);
 					#endif
 				}
 			}
 			else
 			{
-				BtSetAccessMode_Disc_Con();
+				BtSetAccessMode_select();
 			}
 		}
 	}
@@ -611,7 +611,7 @@ static void BtAccessMode_SinglePhoneAndTws(void)
 	{
 		if(btManager.btLinkState)
 		{
-			BtSetAccessMode_NoDisc_NoCon();
+			BtSetAccessModeApi(BtAccessModeNotAccessible);
 		}
 		else
 		{
@@ -619,15 +619,15 @@ static void BtAccessMode_SinglePhoneAndTws(void)
 			{
 				if(IsBtAudioMode())
 				{
-					BtSetAccessMode_Disc_Con();
+					BtSetAccessMode_select();
 				}
 				else
 				{
-					BtSetAccessMode_NoDisc_NoCon();
+					BtSetAccessModeApi(BtAccessModeNotAccessible);
 				}
 			}
 			else
-				BtSetAccessMode_Disc_Con();
+				BtSetAccessMode_select();
 		}
 	}
 	else
@@ -636,41 +636,41 @@ static void BtAccessMode_SinglePhoneAndTws(void)
 		{
 			if(IsIdleModeReady())
 			{
-				BtSetAccessMode_NoDisc_NoCon();
+				BtSetAccessModeApi(BtAccessModeNotAccessible);
 			}
 			else
 			{
-				BtSetAccessMode_NoDisc_Con();
+				BtSetAccessModeApi(BtAccessModeConnectableOnly);
 			}
 		}
 		else
 		{
 			if(IsIdleModeReady())
 			{
-				BtSetAccessMode_NoDisc_NoCon();
+				BtSetAccessModeApi(BtAccessModeNotAccessible);
 			}
 			if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF)
 			{
 				if(IsBtAudioMode())
 				{
-					BtSetAccessMode_Disc_Con();
+					BtSetAccessMode_select();
 				}
 				else if(IsBtTwsSlaveMode())
 				{
-					BtSetAccessMode_NoDisc_NoCon();
+					BtSetAccessModeApi(BtAccessModeNotAccessible);
 				}
 				else
 				{
 				#if (CFG_TWS_ONLY_IN_BT_MODE == ENABLE)
-					BtSetAccessMode_NoDisc_NoCon();
+					BtSetAccessModeApi(BtAccessModeNotAccessible);
 				#else
-					BtSetAccessMode_NoDisc_Con();
+					BtSetAccessModeApi(BtAccessModeConnectableOnly);
 				#endif
 				}
 			}
 			else
 			{
-				BtSetAccessMode_Disc_Con();
+				BtSetAccessMode_select();
 			}
 		}
 	}
@@ -689,18 +689,18 @@ static void BtAccessMode_DualPhone(void)
 	{
 		if(IsIdleModeReady())
 		{
-			BtSetAccessMode_NoDisc_NoCon();
+			BtSetAccessModeApi(BtAccessModeNotAccessible);
 		}
 		else if(btManager.linkedNumber >= 2)
 		{
-			BtSetAccessMode_NoDisc_NoCon();
+			BtSetAccessModeApi(BtAccessModeNotAccessible);
 		}
 		else
 		{
 #ifdef BT_LINK_2DEV_ACCESS_DIS_CON
-			BtSetAccessMode_Disc_Con();
+			BtSetAccessMode_select();
 #else
-			BtSetAccessMode_NoDisc_Con();
+			BtSetAccessModeApi(BtAccessModeConnectableOnly);
 #endif
 		}
 	}
@@ -708,22 +708,22 @@ static void BtAccessMode_DualPhone(void)
 	{
 		if(IsIdleModeReady())
 		{
-			BtSetAccessMode_NoDisc_NoCon();
+			BtSetAccessModeApi(BtAccessModeNotAccessible);
 		}
 		else if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF)
 		{
 			if(IsBtAudioMode())
 			{
-				BtSetAccessMode_Disc_Con();
+				BtSetAccessMode_select();
 			}
 			else
 			{
-				BtSetAccessMode_NoDisc_NoCon();
+				BtSetAccessModeApi(BtAccessModeNotAccessible);
 			}
 		}
 		else
 		{
-			BtSetAccessMode_Disc_Con();
+			BtSetAccessMode_select();
 		}
 	}
 }
@@ -739,28 +739,28 @@ static void BtAccessMode_SinglePhone(void)
 	
 	if(btManager.btLinkState)
 	{
-		BtSetAccessMode_NoDisc_NoCon();
+		BtSetAccessModeApi(BtAccessModeNotAccessible);
 	}
 	else
 	{
 		if(IsIdleModeReady())
 		{
-			BtSetAccessMode_NoDisc_NoCon();
+			BtSetAccessModeApi(BtAccessModeNotAccessible);
 		}
 		else if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF)
 		{
 			if(IsBtAudioMode())
 			{
-				BtSetAccessMode_Disc_Con();
+				BtSetAccessMode_select();
 			}
 			else
 			{
-				BtSetAccessMode_NoDisc_NoCon();
+				BtSetAccessModeApi(BtAccessModeNotAccessible);
 			}
 		}
 		else
 		{
-			BtSetAccessMode_Disc_Con();
+			BtSetAccessMode_select();
 		}
 	}
 }
@@ -798,23 +798,6 @@ void BtStackInitialized(void)
 	Set_rwip_sleep_enable(0);
 	
 	BtMidMessageSend(MSG_BT_MID_STACK_INIT, 0);
-}
-
-/*****************************************************************************************
- * ·´À¡remote devieÀ¶ÑÀ×´Ì¬ sniff/active
- ****************************************************************************************/
-void BtLinkModeChanged(BT_STACK_CALLBACK_PARAMS * param)
-{		
-#ifdef BT_SNIFF_ENABLE
-	if(param->params.modeChange.mode == BTLinkModeSniff)
-	{
-		Bt_sniff_sniff_start();
-	}
-	else
-	{
-		Bt_sniff_sniff_stop();
-	}
-#endif
 }
 
 /*****************************************************************************************

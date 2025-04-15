@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_hfp.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.8.12                 
+ * @author  ACPWorkbench: 3.9.1                 
  * @version V1.1.0                                  
- * @Created 2024-02-06T16:59:28                                      
+ * @Created 2024-03-01T16:17:53                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define HFP_ROBOEFFECT_LIB_VER "2.15.0"
+#define HFP_ROBOEFFECT_LIB_VER "2.16.2"
 
 typedef enum _HFP_roboeffect_io_enum
 {
@@ -34,8 +34,7 @@ typedef enum _HFP_roboeffect_io_enum
 
 
 typedef enum _HFP_roboeffect_effect_list_enum{
-    HFP_START_ADDR = 0x80,
-    HFP_silence_detector_mic_ADDR,
+    HFP_silence_detector_mic_ADDR = 0x81,
     HFP_aec0_ADDR,
     HFP_noise_suppressor_blue0_ADDR,
     HFP_mic_EQ_ADDR,
@@ -57,4 +56,7 @@ extern roboeffect_effect_list_info user_effect_list_hfp;
 
 extern const roboeffect_effect_steps_table user_effect_steps_hfp;
 
+extern char *parameter_group_name_hfp[1];
+extern const unsigned char user_effect_parameters_hfp_Hfp[];
+extern const unsigned char user_module_parameters_hfp_Hfp[];
 #endif/*__USER_EFFECT_FLOW_HFP_H__*/

@@ -1468,6 +1468,7 @@ void MediaPlayerTimerCB(void)
 			&& (gMediaPlayer->CurPlayTime >= (gMediaPlayer->RepeatAB.StartTime + gMediaPlayer->RepeatAB.Times)))
 	{
 		DecoderFB(gMediaPlayer->RepeatAB.Times * 1000,DECODER_MODE_CHANNEL);
+		gMediaPlayer->CurPlayTime -= gMediaPlayer->RepeatAB.Times;
 		APP_DBG("Repeat Mode running\n");
 	}
 	else if(GetMediaPlayerState() == PLAYER_STATE_FF

@@ -95,6 +95,18 @@ extern uint16_t A2DPDataLenGet(void);
 extern uint16_t A2DPDataGet(void* Buf, uint16_t Samples);
 static void BtPlayRunning(uint16_t msgId);
 
+
+#ifdef BT_REAL_STATE
+BT_USER_STATE GetBtUserState(void)
+{
+	return btManager.btuserstate;
+}
+void SetBtUserState(BT_USER_STATE bt_state)
+{
+	btManager.btuserstate = bt_state;
+}
+#endif
+
 /************************************************************************************************************
  * @func        BtPlayInit
  * @brief       BtPlay模式参数配置，资源初始化
@@ -395,11 +407,11 @@ static void BtPlayRunning(uint16_t msgId)
 		case MSG_BT_CONNECT_MODE:
 			if(GetBtDeviceConnState() != BtAccessModeGeneralAccessible)
 			{
-				BTSetAccessMode(BtAccessModeGeneralAccessible);
+				BtSetAccessModeApi(BtAccessModeGeneralAccessible);
 			}
 			else if(GetBtDeviceConnState() == BtAccessModeGeneralAccessible)
 			{
-				BTSetAccessMode(BtAccessModeConnectableOnly);
+				BtSetAccessModeApi(BtAccessModeConnectableOnly);
 			}
 			break;
 		case MSG_BT_CONNECT_CTRL:

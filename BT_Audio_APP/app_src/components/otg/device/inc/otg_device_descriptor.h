@@ -78,16 +78,20 @@ const uint8_t ConfigDescriptor_Tab(AUDIO_ONLY)[] =
 {
 #if HID_DATA_FUN_EN
 	//一共4个接口
-	0x09,0x02,156,0x00,0x04,0x01,0x00,0x80,0x32,
+	0x09,0x02,W_TOTAL_LENGTH(0x7A+USER_CONFIG_DESCRIPTOR_SIZE+18),0x04,0x01,0x00,0x80,0x32,
 #else
-	0x09,0x02,156-18,0x00,0x03,0x01,0x00,0x80,0x32,
+	0x09,0x02,W_TOTAL_LENGTH(0x7A+USER_CONFIG_DESCRIPTOR_SIZE),0x03,0x01,0x00,0x80,0x32,
 #endif
 	//0 audio control Interface
 	0x09,0x04,0x00,0x00,0x00,0x01,0x01,0x00,0x00,
 
-	0x09,0x24,0x01,0x00,0x01,/*0x4F*/40,0x00,0x01,0x01,
-	0x0C,0x24,0x02,0x01,0x01,0x01,0x00,0x02,0x03,0x00,0x00,0x00,
+	0x09,0x24,0x01,0x00,0x01,W_TOTAL_LENGTH(0x26+PACKET_CHANNELS_NUM),0x01,0x01,
+	0x0C,0x24,0x02,0x01,0x01,0x01,0x00,PACKET_CHANNELS_NUM,CHANNEL_CONFIG(PACKET_CHANNELS_NUM),0x00,0x00,0x00,
+#if (PACKET_CHANNELS_NUM == 1)
+	0x09,0x24,0x06,0x02,0x01,0x01,0x01,0x02,0x00,
+#else
 	0x0A,0x24,0x06,0x02,0x01,0x01,0x01,0x02,0x02,0x00,
+#endif
 	0x09,0x24,0x03,0x03,0x01,0x03,0x00,0x02,0x00,
 
 	//1 audio stream Interface, speeaker
@@ -95,10 +99,52 @@ const uint8_t ConfigDescriptor_Tab(AUDIO_ONLY)[] =
 
 	0x09,0x04,0x01,0x01,0x01,0x01,0x02,0x00,0x00,
 	0x07,0x24,0x01,0x01,0x01,0x01,0x00,
-	0x0E,0x24,0x02,0x01,PACKET_CHANNELS_NUM,SPEAKER_ALT1_BITS,SPEAKER_ALT1_BITS*8,0x02,SAMPLE_FREQ(USBD_AUDIO_FREQ),SAMPLE_FREQ(USBD_AUDIO_FREQ1),
+	SPEAKER_FREQ_DESCRIPTOR_SIZE,0x24,0x02,0x01,PACKET_CHANNELS_NUM,SPEAKER_ALT1_BITS,SPEAKER_ALT1_BITS*8,SPEAKER_FREQ_NUM,
+#if (SPEAKER_FREQ_NUM >= 6)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ5),
+#endif
+#if (SPEAKER_FREQ_NUM >= 5)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ4),
+#endif
+#if (SPEAKER_FREQ_NUM >= 4)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ3),
+#endif
+#if (SPEAKER_FREQ_NUM >= 3)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ2),
+#endif
+#if (SPEAKER_FREQ_NUM >= 2)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ1),
+#endif
+#if (SPEAKER_FREQ_NUM >= 1)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ),
+#endif
 	0x09, 0x05, DEVICE_ISO_OUT_EP, 0x09, AUDIO_EP_MAX_SZE(USBD_AUDIO_FREQ,PACKET_CHANNELS_NUM,SPEAKER_ALT1_BITS), 0x01, 0x00, 0x00,
 	0x07,0x25,0x01,0x01,0x00,0x00,0x00,
-
+#ifdef SPEAKER_ALT2_EN
+	0x09,0x04,0x01,0x02,0x01,0x01,0x02,0x00,0x00,
+	0x07,0x24,0x01,0x01,0x01,0x01,0x00,
+	SPEAKER_FREQ_DESCRIPTOR_SIZE,0x24,0x02,0x01,PACKET_CHANNELS_NUM,SPEAKER_ALT2_BITS,SPEAKER_ALT2_BITS*8,SPEAKER_FREQ_NUM,
+#if (SPEAKER_FREQ_NUM >= 6)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ5),
+#endif
+#if (SPEAKER_FREQ_NUM >= 5)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ4),
+#endif
+#if (SPEAKER_FREQ_NUM >= 4)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ3),
+#endif
+#if (SPEAKER_FREQ_NUM >= 3)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ2),
+#endif
+#if (SPEAKER_FREQ_NUM >= 2)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ1),
+#endif
+#if (SPEAKER_FREQ_NUM >= 1)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ),
+#endif
+	0x09, 0x05, DEVICE_ISO_OUT_EP, 0x09, AUDIO_EP_MAX_SZE(USBD_AUDIO_FREQ,PACKET_CHANNELS_NUM,SPEAKER_ALT2_BITS), 0x01, 0x00, 0x00,
+	0x07,0x25,0x01,0x01,0x00,0x00,0x00,
+#endif
 	//2 hid 播放控制
 	0x09,0x04,0x02,0x00,0x01,0x03,0x00,0x00,0x00,
 	0x09,0x21,0x01,0x02,0x00,0x01,0x22,sizeof(AudioCtrlReportDescriptor),0x00,
@@ -117,26 +163,73 @@ const uint8_t ConfigDescriptor_Tab(MIC_ONLY)[] =
 {
 #if HID_DATA_FUN_EN
 	//一共4个接口
-	0x09,0x02,163-3,0x00,0x04,0x01,0x00,0x80,0x32,
+	0x09,0x02,W_TOTAL_LENGTH(0x81+USER_CONFIG_DESCRIPTOR_SIZE+18),0x04,0x01,0x00,0x80,0x32,
 #else
-	0x09,0x02,163-18-3,0x00,0x03,0x01,0x00,0x80,0x32,
+	0x09,0x02,W_TOTAL_LENGTH(0x81+USER_CONFIG_DESCRIPTOR_SIZE),0x03,0x01,0x00,0x80,0x32,
 #endif
 	//0 audio control Interface
 	0x09,0x04,0x00,0x00,0x00,0x01,0x01,0x00,0x00,
-	0x09,0x24,0x01,0x00,0x01,47,0x00,0x01,0x01,
-	0x0C,0x24,0x02,0x04,0x01,0x02,0x00,0x02,0x03,0x00,0x00,0x00,
+	0x09,0x24,0x01,0x00,0x01,W_TOTAL_LENGTH(0x2D+MIC_CHANNELS_NUM),0x01,0x01,
+	0x0C,0x24,0x02,0x04,0x01,0x02,0x00,MIC_CHANNELS_NUM,CHANNEL_CONFIG(MIC_CHANNELS_NUM),0x00,0x00,0x00,
+#if (MIC_CHANNELS_NUM == 1)
+	0x09,0x24,0x06,0x05,0x04,0x01,0x01,0x02,0x00,
+#else
 	0x0A,0x24,0x06,0x05,0x04,0x01,0x01,0x02,0x02,0x00,
+#endif
 	0x07,0x24,0x05,0x06,0x01,0x05,0x00,
 	0x09,0x24,0x03,0x07,0x01,0x01,0x00,0x06,0x00,
 
 	//1 audio stream Interface, microphone
 	0x09,0x04,0x01,0x00,0x00,0x01,0x02,0x00,0x00,
+
 	0x09,0x04,0x01,0x01,0x01,0x01,0x02,0x00,0x00,
 	0x07,0x24,0x01,0x07,0x01,0x01,0x00,
-	11,0x24,0x02,0x01,MIC_CHANNELS_NUM,MIC_ALT1_BITS,MIC_ALT1_BITS*8,0x01,SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ),
-	0x09, 0x05, DEVICE_ISO_IN_EP, 0x09,AUDIO_EP_MAX_SZE(USBD_AUDIO_MIC_FREQ,MIC_CHANNELS_NUM,MIC_ALT1_BITS), 0x01, 0x00, 0x00,
+	MIC_FREQ_DESCRIPTOR_SIZE,0x24,0x02,0x01,MIC_CHANNELS_NUM,MIC_ALT1_BITS,MIC_ALT1_BITS*8,MIC_FREQ_NUM,
+#if (MIC_FREQ_NUM >= 6)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ5),
+#endif
+#if (MIC_FREQ_NUM >= 5)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ4),
+#endif
+#if (MIC_FREQ_NUM >= 4)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ3),
+#endif
+#if (MIC_FREQ_NUM >= 3)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ2),
+#endif
+#if (MIC_FREQ_NUM >= 2)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ1),
+#endif
+#if (MIC_FREQ_NUM >= 1)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ),
+#endif
+	0x09, 0x05, DEVICE_ISO_IN_EP, 0x09, AUDIO_EP_MAX_SZE(USBD_AUDIO_MIC_FREQ,MIC_CHANNELS_NUM,MIC_ALT1_BITS), 0x01, 0x00, 0x00,
 	0x07,0x25,0x01,0x01,0x00,0x00,0x00,
-
+#ifdef MIC_ALT2_EN
+	0x09,0x04,0x01,0x02,0x01,0x01,0x02,0x00,0x00,
+	0x07,0x24,0x01,0x07,0x01,0x01,0x00,
+	MIC_FREQ_DESCRIPTOR_SIZE,0x24,0x02,0x01,MIC_CHANNELS_NUM,MIC_ALT2_BITS,MIC_ALT2_BITS*8,MIC_FREQ_NUM,
+#if (MIC_FREQ_NUM >= 6)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ5),
+#endif
+#if (MIC_FREQ_NUM >= 5)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ4),
+#endif
+#if (MIC_FREQ_NUM >= 4)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ3),
+#endif
+#if (MIC_FREQ_NUM >= 3)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ2),
+#endif
+#if (MIC_FREQ_NUM >= 2)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ1),
+#endif
+#if (MIC_FREQ_NUM >= 1)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ),
+#endif
+	0x09, 0x05, DEVICE_ISO_IN_EP, 0x09, AUDIO_EP_MAX_SZE(USBD_AUDIO_MIC_FREQ,MIC_CHANNELS_NUM,MIC_ALT2_BITS), 0x01, 0x00, 0x00,
+	0x07,0x25,0x01,0x01,0x00,0x00,0x00,
+#endif
 	//2 hid 播放控制
 	0x09,0x04,0x02,0x00,0x01,0x03,0x00,0x00,0x00,
 	0x09,0x21,0x01,0x02,0x00,0x01,0x22,sizeof(AudioCtrlReportDescriptor),0x00,
@@ -156,9 +249,9 @@ const uint8_t ConfigDescriptor_Tab(AUDIO_MIC)[] =
 {
 #if HID_DATA_FUN_EN
 	//一共4个接口
-	0x09,0x02,W_TOTAL_LENGTH(0xEA+USER_CONFIG_DESCRIPTOR_SIZE+18),0x05,0x01,0x00,0x80,0x32,
+	0x09,0x02,W_TOTAL_LENGTH(0xC8+USER_CONFIG_DESCRIPTOR_SIZE+18),0x05,0x01,0x00,0x80,0x32,
 #else
-	0x09,0x02,W_TOTAL_LENGTH(0xEA+USER_CONFIG_DESCRIPTOR_SIZE),0x04,0x01,0x00,0x80,0x32,
+	0x09,0x02,W_TOTAL_LENGTH(0xC8+USER_CONFIG_DESCRIPTOR_SIZE),0x04,0x01,0x00,0x80,0x32,
 #endif
 	//0 audio control Interface
 	0x09,0x04,0x00,0x00,0x00,0x01,0x01,0x00,0x00,
@@ -184,13 +277,49 @@ const uint8_t ConfigDescriptor_Tab(AUDIO_MIC)[] =
 
 	0x09,0x04,0x01,0x01,0x01,0x01,0x02,0x00,0x00,
 	0x07,0x24,0x01,0x01,0x01,0x01,0x00,
-	0x11,0x24,0x02,0x01,PACKET_CHANNELS_NUM,SPEAKER_ALT1_BITS,SPEAKER_ALT1_BITS*8,0x03,SAMPLE_FREQ(USBD_AUDIO_FREQ),SAMPLE_FREQ(USBD_AUDIO_FREQ1),SAMPLE_FREQ(USBD_AUDIO_FREQ2),
+	SPEAKER_FREQ_DESCRIPTOR_SIZE,0x24,0x02,0x01,PACKET_CHANNELS_NUM,SPEAKER_ALT1_BITS,SPEAKER_ALT1_BITS*8,SPEAKER_FREQ_NUM,
+#if (SPEAKER_FREQ_NUM >= 6)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ5),
+#endif
+#if (SPEAKER_FREQ_NUM >= 5)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ4),
+#endif
+#if (SPEAKER_FREQ_NUM >= 4)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ3),
+#endif
+#if (SPEAKER_FREQ_NUM >= 3)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ2),
+#endif
+#if (SPEAKER_FREQ_NUM >= 2)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ1),
+#endif
+#if (SPEAKER_FREQ_NUM >= 1)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ),
+#endif
 	0x09, 0x05, DEVICE_ISO_OUT_EP, 0x09, AUDIO_EP_MAX_SZE(USBD_AUDIO_FREQ,PACKET_CHANNELS_NUM,SPEAKER_ALT1_BITS), 0x01, 0x00, 0x00,
 	0x07,0x25,0x01,0x01,0x00,0x00,0x00,
 #ifdef SPEAKER_ALT2_EN
 	0x09,0x04,0x01,0x02,0x01,0x01,0x02,0x00,0x00,
 	0x07,0x24,0x01,0x01,0x01,0x01,0x00,
-	0x11,0x24,0x02,0x01,PACKET_CHANNELS_NUM,SPEAKER_ALT2_BITS,SPEAKER_ALT2_BITS*8,0x03,SAMPLE_FREQ(USBD_AUDIO_FREQ),SAMPLE_FREQ(USBD_AUDIO_FREQ1),SAMPLE_FREQ(USBD_AUDIO_FREQ2),
+	SPEAKER_FREQ_DESCRIPTOR_SIZE,0x24,0x02,0x01,PACKET_CHANNELS_NUM,SPEAKER_ALT2_BITS,SPEAKER_ALT2_BITS*8,SPEAKER_FREQ_NUM,
+#if (SPEAKER_FREQ_NUM >= 6)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ5),
+#endif
+#if (SPEAKER_FREQ_NUM >= 5)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ4),
+#endif
+#if (SPEAKER_FREQ_NUM >= 4)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ3),
+#endif
+#if (SPEAKER_FREQ_NUM >= 3)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ2),
+#endif
+#if (SPEAKER_FREQ_NUM >= 2)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ1),
+#endif
+#if (SPEAKER_FREQ_NUM >= 1)
+	SAMPLE_FREQ(USBD_AUDIO_FREQ),
+#endif
 	0x09, 0x05, DEVICE_ISO_OUT_EP, 0x09, AUDIO_EP_MAX_SZE(USBD_AUDIO_FREQ,PACKET_CHANNELS_NUM,SPEAKER_ALT2_BITS), 0x01, 0x00, 0x00,
 	0x07,0x25,0x01,0x01,0x00,0x00,0x00,
 #endif
@@ -199,13 +328,49 @@ const uint8_t ConfigDescriptor_Tab(AUDIO_MIC)[] =
 
 	0x09,0x04,0x02,0x01,0x01,0x01,0x02,0x00,0x00,
 	0x07,0x24,0x01,0x07,0x01,0x01,0x00,
-	0x11,0x24,0x02,0x01,MIC_CHANNELS_NUM,MIC_ALT1_BITS,MIC_ALT1_BITS*8,0x03,SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ2),SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ1),SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ),
+	MIC_FREQ_DESCRIPTOR_SIZE,0x24,0x02,0x01,MIC_CHANNELS_NUM,MIC_ALT1_BITS,MIC_ALT1_BITS*8,MIC_FREQ_NUM,
+#if (MIC_FREQ_NUM >= 6)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ5),
+#endif
+#if (MIC_FREQ_NUM >= 5)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ4),
+#endif
+#if (MIC_FREQ_NUM >= 4)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ3),
+#endif
+#if (MIC_FREQ_NUM >= 3)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ2),
+#endif
+#if (MIC_FREQ_NUM >= 2)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ1),
+#endif
+#if (MIC_FREQ_NUM >= 1)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ),
+#endif
 	0x09, 0x05, DEVICE_ISO_IN_EP, 0x09, AUDIO_EP_MAX_SZE(USBD_AUDIO_MIC_FREQ,MIC_CHANNELS_NUM,MIC_ALT1_BITS), 0x01, 0x00, 0x00,
 	0x07,0x25,0x01,0x01,0x00,0x00,0x00,
 #ifdef MIC_ALT2_EN
 	0x09,0x04,0x02,0x02,0x01,0x01,0x02,0x00,0x00,
 	0x07,0x24,0x01,0x07,0x01,0x01,0x00,
-	0x11,0x24,0x02,0x01,MIC_CHANNELS_NUM,MIC_ALT2_BITS,MIC_ALT2_BITS*8,0x03,SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ2),SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ1),SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ),
+	MIC_FREQ_DESCRIPTOR_SIZE,0x24,0x02,0x01,MIC_CHANNELS_NUM,MIC_ALT2_BITS,MIC_ALT2_BITS*8,MIC_FREQ_NUM,
+#if (MIC_FREQ_NUM >= 6)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ5),
+#endif
+#if (MIC_FREQ_NUM >= 5)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ4),
+#endif
+#if (MIC_FREQ_NUM >= 4)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ3),
+#endif
+#if (MIC_FREQ_NUM >= 3)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ2),
+#endif
+#if (MIC_FREQ_NUM >= 2)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ1),
+#endif
+#if (MIC_FREQ_NUM >= 1)
+	SAMPLE_FREQ(USBD_AUDIO_MIC_FREQ),
+#endif
 	0x09, 0x05, DEVICE_ISO_IN_EP, 0x09, AUDIO_EP_MAX_SZE(USBD_AUDIO_MIC_FREQ,MIC_CHANNELS_NUM,MIC_ALT2_BITS), 0x01, 0x00, 0x00,
 	0x07,0x25,0x01,0x01,0x00,0x00,0x00,
 #endif
@@ -226,10 +391,10 @@ const uint8_t ConfigDescriptor_Tab(AUDIO_MIC)[] =
 	0x09,                                 /* bLength */
 	USB_CONFIGURATION_DESCRIPTOR_TYPE,    /* bDescriptorType */
 #if HID_DATA_FUN_EN
-	W_TOTAL_LENGTH(0x108+(PACKET_CHANNELS_NUM*4)+(MIC_CHANNELS_NUM*4)+18),
+	W_TOTAL_LENGTH(0x108+(PACKET_CHANNELS_NUM*4)+(MIC_CHANNELS_NUM*4)+SPEAKER_ALT2_DESCRIPTOR_SIZE+MIC_ALT2_DESCRIPTOR_SIZE+18),
 	0x05,                                 /* bNumInterfaces */
 #else
-	W_TOTAL_LENGTH(0x108+(PACKET_CHANNELS_NUM*4)+(MIC_CHANNELS_NUM*4))
+	W_TOTAL_LENGTH(0x108+(PACKET_CHANNELS_NUM*4)+(MIC_CHANNELS_NUM*4)+SPEAKER_ALT2_DESCRIPTOR_SIZE+MIC_ALT2_DESCRIPTOR_SIZE),
 	0x04,                                 /* bNumInterfaces */
 #endif
 	0x01,                                 /* bConfigurationValue */
@@ -304,11 +469,7 @@ const uint8_t ConfigDescriptor_Tab(AUDIO_MIC)[] =
 	0x00,                                 /* bAssocTerminal */
 	AUDIO_CLK_ID,                         /* bCSourceID*/
 	PACKET_CHANNELS_NUM,                  /* bNrChannels */
-#if (PACKET_CHANNELS_NUM == 1)
-	0x01,                                 /* wChannelConfig 0x00000003  Stereo */
-#else
-	0x03,
-#endif
+	CHANNEL_CONFIG(PACKET_CHANNELS_NUM),
 	0x00,
 	0x00,
 	0x00,
@@ -381,11 +542,7 @@ const uint8_t ConfigDescriptor_Tab(AUDIO_MIC)[] =
 	0x00,                                 /* bAssocTerminal */
 	AUDIO_MIC_CLK_ID,                     /* bCSourceID*/
 	MIC_CHANNELS_NUM,                     /* bNrChannels */
-#if (MIC_CHANNELS_NUM == 1)
-	0x01,                                 /* wChannelConfig 0x00000003  Stereo */
-#else
-	0x03,
-#endif
+	CHANNEL_CONFIG(MIC_CHANNELS_NUM),
 	0x00,
 	0x00,
 	0x00,
@@ -487,11 +644,7 @@ const uint8_t ConfigDescriptor_Tab(AUDIO_MIC)[] =
 	0x00,
 	0x00,
 	PACKET_CHANNELS_NUM,                  /* bNrChannels */
-#if (PACKET_CHANNELS_NUM == 1)
-	0x01,                                 /* wChannelConfig 0x00000003  Stereo */
-#else
-	0x03,
-#endif
+	CHANNEL_CONFIG(PACKET_CHANNELS_NUM),
 	0x00,
 	0x00,
 	0x00,
@@ -511,7 +664,7 @@ const uint8_t ConfigDescriptor_Tab(AUDIO_MIC)[] =
 	AUDIO_20_STANDARD_ENDPOINT_DESC_SIZE, /* bLength */
 	USB_ENDPOINT_DESCRIPTOR_TYPE,         /* bDescriptorType */
 	DEVICE_ISO_OUT_EP,                    /* bEndpointAddress 3 out endpoint for Audio */
-	USB_ENDPOINT_TYPE_ADAPTIVE,           /* bmAttributes */
+	USB_ENDPOINT_TYPE_SYNCHRONOUS,           /* bmAttributes */
 	AUDIO_EP_MAX_SZE(USBD_AUDIO_FREQ,SPEAKER_ALT1_BITS,PACKET_CHANNELS_NUM),    /* XXXX wMaxPacketSize in Bytes (Freq(Samples)*2(Stereo)*2(HalfWord)) */
 	0x01,                                 /* bInterval */
 	/* 07 byte*/
@@ -526,7 +679,67 @@ const uint8_t ConfigDescriptor_Tab(AUDIO_MIC)[] =
 	0x00,                                 /* wLockDelay */
 	0x00,
 	/* 08 byte*/
+#ifdef SPEAKER_ALT2_EN
+	/* Interface 1, Alternate Setting 2                                           */
+	AUDIO_INTERFACE_DESC_SIZE,  		  /* bLength */
+	USB_INTERFACE_DESCRIPTOR_TYPE,        /* bDescriptorType */
+	0x01,                                 /* bInterfaceNumber */
+	0x02,                                 /* bAlternateSetting */
+	0x01,                                 /* bNumEndpoints */
+	USB_DEVICE_CLASS_AUDIO,               /* bInterfaceClass */
+	AUDIO_SUBCLASS_AUDIOSTREAMING,        /* bInterfaceSubClass */
+	AUDIO_IP_VERSION_02_00,               /* bInterfaceProtocol */
+	0x00,                                 /* iInterface */
+	/* 09 byte*/
 
+	/* USB HeadSet Audio Streaming Interface Descriptor */
+	AUDIO_20_STREAMING_INTERFACE_DESC_SIZE,  /* bLength */
+	AUDIO_INTERFACE_DESCRIPTOR_TYPE,      /* bDescriptorType */
+	AUDIO_STREAMING_GENERAL,              /* bDescriptorSubtype */
+	AUDIO_IT_ID,                          /* 0x01: bTerminalLink */
+	0x00,                                 /* bmControls */
+	AUDIO_FORMAT_TYPE_I,                  /* bFormatType */
+	0x01,                                 /* bmFormats PCM */
+	0x00,
+	0x00,
+	0x00,
+	PACKET_CHANNELS_NUM,                  /* bNrChannels */
+	CHANNEL_CONFIG(PACKET_CHANNELS_NUM),
+	0x00,
+	0x00,
+	0x00,
+	0x00,                                 /* iChannelNames */
+	/* 16 byte*/
+
+	/* USB Speaker Audio Type I Format Interface Descriptor */
+	0x06,                                 /* bLength */
+	AUDIO_INTERFACE_DESCRIPTOR_TYPE,      /* bDescriptorType */
+	AUDIO_STREAMING_FORMAT_TYPE,          /* bDescriptorSubtype */
+	AUDIO_FORMAT_TYPE_I,                  /* bFormatType */
+	SPEAKER_ALT2_BITS,                    /* bSubslotSize */
+	SPEAKER_ALT2_BITS*8,                  /* bBitResolution */
+	/* 6 byte*/
+
+	/* Endpoint 1 - Standard Descriptor */
+	AUDIO_20_STANDARD_ENDPOINT_DESC_SIZE, /* bLength */
+	USB_ENDPOINT_DESCRIPTOR_TYPE,         /* bDescriptorType */
+	DEVICE_ISO_OUT_EP,                    /* bEndpointAddress 3 out endpoint for Audio */
+	USB_ENDPOINT_TYPE_SYNCHRONOUS,           /* bmAttributes */
+	AUDIO_EP_MAX_SZE(USBD_AUDIO_FREQ,SPEAKER_ALT2_BITS,PACKET_CHANNELS_NUM),    /* XXXX wMaxPacketSize in Bytes (Freq(Samples)*2(Stereo)*2(HalfWord)) */
+	0x01,                                 /* bInterval */
+	/* 07 byte*/
+
+	/* Endpoint - Audio Streaming Descriptor*/
+	AUDIO_20_STREAMING_ENDPOINT_DESC_SIZE,/* bLength */
+	AUDIO_ENDPOINT_DESCRIPTOR_TYPE,       /* bDescriptorType */
+	AUDIO_ENDPOINT_GENERAL,               /* bDescriptor */
+	0x00,                                 /* bmAttributes */
+	0x00,                                 /* bmControls */
+	0x00,                                 /* bLockDelayUnits */
+	0x00,                                 /* wLockDelay */
+	0x00,
+	/* 08 byte*/
+#endif
 
 	/* USB HeadSet Standard AS Interface Descriptor - Audio Streaming Zero Bandwidth */
 	/* Interface 2, Alternate Setting 0                                              */
@@ -542,7 +755,7 @@ const uint8_t ConfigDescriptor_Tab(AUDIO_MIC)[] =
 	/* 09 byte*/
 
 	/* USB MIC Standard AS Interface Descriptor - Audio Streaming Operational */
-	/* Interface 1, Alternate Setting 1                                           */
+	/* Interface 2, Alternate Setting 1                                           */
 	AUDIO_INTERFACE_DESC_SIZE,  			/* bLength */
 	USB_INTERFACE_DESCRIPTOR_TYPE,        /* bDescriptorType */
 	0x02,                                 /* bInterfaceNumber */
@@ -566,11 +779,7 @@ const uint8_t ConfigDescriptor_Tab(AUDIO_MIC)[] =
 	0x00,
 	0x00,
 	MIC_CHANNELS_NUM,                     /* bNrChannels */
-#if (MIC_CHANNELS_NUM == 1)
-	0x01,                                 /* wChannelConfig 0x00000003  Stereo */
-#else
-	0x03,
-#endif
+	CHANNEL_CONFIG(MIC_CHANNELS_NUM),
 	0x00,
 	0x00,
 	0x00,
@@ -590,7 +799,7 @@ const uint8_t ConfigDescriptor_Tab(AUDIO_MIC)[] =
 	AUDIO_20_STANDARD_ENDPOINT_DESC_SIZE, /* bLength */
 	USB_ENDPOINT_DESCRIPTOR_TYPE,         /* bDescriptorType */
 	DEVICE_ISO_IN_EP,                     /* bEndpointAddress 3 out endpoint for Audio */
-	USB_ENDPOINT_TYPE_ADAPTIVE,           /* bmAttributes */
+	USB_ENDPOINT_TYPE_SYNCHRONOUS,           /* bmAttributes */
 	AUDIO_EP_MAX_SZE(USBD_AUDIO_MIC_FREQ,MIC_CHANNELS_NUM,MIC_ALT1_BITS),//AUDIO_MIC_SZE(USBD_AUDIO_MIC_FREQ),    /* XXXX wMaxPacketSize in Bytes (Freq(Samples)*2(Stereo)*2(HalfWord)) */
 	0x01,                                 /* bInterval */
 	/* 07 byte*/
@@ -605,7 +814,68 @@ const uint8_t ConfigDescriptor_Tab(AUDIO_MIC)[] =
 	0x00,                                 /* wLockDelay */
 	0x00,
 	/* 08 byte*/
+#ifdef MIC_ALT2_EN
+	/* USB MIC Standard AS Interface Descriptor - Audio Streaming Operational */
+	/* Interface 2, Alternate Setting 2                                           */
+	AUDIO_INTERFACE_DESC_SIZE,  		  /* bLength 0x09 */
+	USB_INTERFACE_DESCRIPTOR_TYPE,        /* bDescriptorType */
+	0x02,                                 /* bInterfaceNumber */
+	0x02,                                 /* bAlternateSetting */
+	0x01,                                 /* bNumEndpoints */
+	USB_DEVICE_CLASS_AUDIO,               /* bInterfaceClass */
+	AUDIO_SUBCLASS_AUDIOSTREAMING,        /* bInterfaceSubClass */
+	AUDIO_IP_VERSION_02_00,               /* bInterfaceProtocol */
+	0x00,                                 /* iInterface */
+	/* 09 byte*/
 
+	/* USB HeadSet Audio Streaming Interface Descriptor */
+	AUDIO_20_STREAMING_INTERFACE_DESC_SIZE,  /* bLength 0x10*/
+	AUDIO_INTERFACE_DESCRIPTOR_TYPE,      /* bDescriptorType */
+	AUDIO_STREAMING_GENERAL,              /* bDescriptorSubtype */
+	AUDIO_MIC_OT_ID,                      /* 0x01: bTerminalLink */
+	0x05,                                 /* bmControls */
+	AUDIO_FORMAT_TYPE_I,                  /* bFormatType */
+	0x01,                                 /* bmFormats PCM */
+	0x00,
+	0x00,
+	0x00,
+	MIC_CHANNELS_NUM,                     /* bNrChannels */
+	CHANNEL_CONFIG(MIC_CHANNELS_NUM),
+	0x00,
+	0x00,
+	0x00,
+	0x00,                                 /* iChannelNames */
+	/* 16 byte*/
+
+	/* USB MIC Audio Type I Format Interface Descriptor */
+	0x06,                                 /* bLength */
+	AUDIO_INTERFACE_DESCRIPTOR_TYPE,      /* bDescriptorType */
+	AUDIO_STREAMING_FORMAT_TYPE,          /* bDescriptorSubtype */
+	AUDIO_FORMAT_TYPE_I,                  /* bFormatType */
+	MIC_ALT2_BITS,                        /* bSubslotSize */
+	MIC_ALT2_BITS*8,                      /* bBitResolution */
+	/* 6 byte*/
+
+	/* Endpoint 1 - Standard Descriptor */
+	AUDIO_20_STANDARD_ENDPOINT_DESC_SIZE, /* bLength 0x07*/
+	USB_ENDPOINT_DESCRIPTOR_TYPE,         /* bDescriptorType */
+	DEVICE_ISO_IN_EP,                     /* bEndpointAddress 3 out endpoint for Audio */
+	USB_ENDPOINT_TYPE_SYNCHRONOUS,        /* bmAttributes */
+	AUDIO_EP_MAX_SZE(USBD_AUDIO_MIC_FREQ,MIC_CHANNELS_NUM,MIC_ALT2_BITS),//AUDIO_MIC_SZE(USBD_AUDIO_MIC_FREQ),    /* XXXX wMaxPacketSize in Bytes (Freq(Samples)*2(Stereo)*2(HalfWord)) */
+	0x01,                                 /* bInterval */
+	/* 07 byte*/
+
+	/* Endpoint - Audio Streaming Descriptor*/
+	AUDIO_20_STREAMING_ENDPOINT_DESC_SIZE,/* bLength 0x08*/
+	AUDIO_ENDPOINT_DESCRIPTOR_TYPE,       /* bDescriptorType */
+	AUDIO_ENDPOINT_GENERAL,               /* bDescriptor */
+	0x00,                                 /* bmAttributes */
+	0x00,                                 /* bmControls */
+	0x00,                                 /* bLockDelayUnits */
+	0x00,                                 /* wLockDelay */
+	0x00,
+	/* 08 byte*/
+#endif
 	//3 hid 播放控制
 	0x09,0x04,0x03,0x00,0x01,0x03,0x00,0x00,0x00,
 	0x09,0x21,0x01,0x02,0x00,0x01,0x22,sizeof(AudioCtrlReportDescriptor),0x00,
