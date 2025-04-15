@@ -148,7 +148,7 @@ typedef struct _AudioCoreSink
 	SRC_ADAPTER						*SrcAdapter; //转采样适配器
 }AudioCoreSink;
 
-typedef struct _RoboeffectContext
+typedef struct _AudioeffectContext
 {
 	uint8_t *context_memory;
 	roboeffect_effect_list_info *user_effect_list;
@@ -157,14 +157,14 @@ typedef struct _RoboeffectContext
 	uint8_t *user_effects_script;
 	uint16_t user_effects_script_len;
 	uint8_t *user_module_parameters;
-	int32_t roboeffect_size;
-	int32_t roboeffect_size_max;
+	int32_t audioeffect_memory_size;
+	uint32_t audioeffect_frame_size;
 	uint8_t effect_count;
 	uint8_t effect_addr;
 	uint8_t effect_enable;
 	uint8_t reinit_done;
 	//ROBOEFFECT_ERROR_CODE roboeffect_ret;
-}RoboeffectContext;
+}AudioeffectContext;
 
 typedef struct _AudioCoreContext
 {
@@ -177,7 +177,7 @@ typedef struct _AudioCoreContext
 	AudioCoreSource AudioSource[AUDIO_CORE_SOURCE_MAX_NUM];
 	AudioCoreProcessFunc AudioEffectProcess;			//****流处理入口
 	AudioCoreSink   AudioSink[AUDIO_CORE_SINK_MAX_NUM];
-	RoboeffectContext 	Roboeffect;
+	AudioeffectContext 	Audioeffect;
 }AudioCoreContext;
 
 extern AudioCoreContext		AudioCore;
@@ -242,11 +242,6 @@ bool AudioCoreInit(void);
 void AudioCoreDeinit(void);
 
 void AudioCoreRun(void);
-
-//音量调整
-void AudioCoreSourceVolApply(void);
-void AudioCoreSinkVolApply(void);
-void AudioCoreAppSourceVolApply(uint16_t Source,int16_t *pcm_in,uint16_t n,uint16_t Channel);
 
 #ifdef	CFG_AUDIO_WIDTH_24BIT
 PCM_DATA_WIDTH AudioCoreSourceBitWidthGet(uint8_t Index);

@@ -85,8 +85,8 @@ uint8_t BtLocalVolLevel2AbsVolme(uint8_t localValue)
 void HardWareMuteOrUnMute(void)
 {
 	mainAppCt.gSysVol.MuteFlag = !mainAppCt.gSysVol.MuteFlag;
-//	Roboeffect_SinkMute_Set(mainAppCt.gSysVol.MuteFlag);
-//	Roboeffect_SourceMute_Set(mainAppCt.gSysVol.MuteFlag);
+//	Audioeffect_SinkMute_Set(mainAppCt.gSysVol.MuteFlag);
+//	Audioeffect_SourceMute_Set(mainAppCt.gSysVol.MuteFlag);
 }
 
 bool IsAudioPlayerMute(void)
@@ -226,7 +226,7 @@ void AudioMusicVolUp(void)
 	}
 	
 	APP_DBG("APP_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
-	AudioCoreSourceVolSet(APP_SOURCE_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]));
+	AudioCoreSourceVolSet(APP_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]));
 
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 	#if CFG_PARAM_FIXED_REMIND_VOL
@@ -235,12 +235,12 @@ void AudioMusicVolUp(void)
 	mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM] = mainAppCt.MusicVolume;
 	#endif
 	APP_DBG("REMIND_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]);
-	AudioCoreSourceVolSet(REMIND_SOURCE_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]));
+	AudioCoreSourceVolSet(REMIND_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]));
 #endif
 #ifdef CFG_FUNC_RECORDER_EN
 	mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM] = mainAppCt.MusicVolume;
 	APP_DBG("PLAYBACK_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]);
-	AudioCoreSourceVolSet(PLAYBACK_SOURCE_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]));
+	AudioCoreSourceVolSet(PLAYBACK_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]));
 #endif
 
 #ifdef CFG_APP_BT_MODE_EN
@@ -306,7 +306,7 @@ void AudioMusicVolDown(void)
 	}
 	
 	APP_DBG("APP_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
-	AudioCoreSourceVolSet(APP_SOURCE_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]));
+	AudioCoreSourceVolSet(APP_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]));
 
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 	#if CFG_PARAM_FIXED_REMIND_VOL
@@ -315,12 +315,12 @@ void AudioMusicVolDown(void)
 	mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM] = mainAppCt.MusicVolume;
 	#endif
 	APP_DBG("REMIND_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]);
-	AudioCoreSourceVolSet(REMIND_SOURCE_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]));
+	AudioCoreSourceVolSet(REMIND_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]));
 #endif
 #ifdef CFG_FUNC_RECORDER_EN
 	mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM] = mainAppCt.MusicVolume;
 	APP_DBG("PLAYBACK_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]);
-	AudioCoreSourceVolSet(PLAYBACK_SOURCE_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]));
+	AudioCoreSourceVolSet(PLAYBACK_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]));
 #endif
 
 #ifdef CFG_APP_BT_MODE_EN
@@ -369,7 +369,7 @@ void AudioMusicVol(uint8_t musicVol)
 #endif
 	APP_DBG("APP_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
 
-	AudioCoreSourceVolSet(APP_SOURCE_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]));
+	AudioCoreSourceVolSet(APP_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]));
 }
 
 void AudioMusicVolSet(uint8_t musicVol)
@@ -397,7 +397,7 @@ void AudioHfVolSet(uint8_t HfVol)
 	mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM] = mainAppCt.HfVolume;
 	
 	APP_DBG("source1 vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
-	AudioCoreSourceVolSet(APP_SOURCE_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]));
+	AudioCoreSourceVolSet(APP_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]));
 }
 #endif
 
@@ -418,7 +418,7 @@ void AudioMicVolUp(void)
 	}
     mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM] = mainAppCt.MicVolume;
 	APP_DBG("MIC_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]);
-	AudioCoreSourceVolSet(MIC_SOURCE_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]));
+	AudioCoreSourceVolSet(MIC_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]));
 }
 
 void AudioMicVolDown(void)
@@ -437,7 +437,7 @@ void AudioMicVolDown(void)
 	}
     mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM] = mainAppCt.MicVolume;
 	APP_DBG("MIC_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]);
-	AudioCoreSourceVolSet(MIC_SOURCE_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]));
+	AudioCoreSourceVolSet(MIC_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]));
 }
 #endif
 
@@ -465,7 +465,7 @@ void SystemVolUp(void)
 				}
 
 				APP_DBG("dac 0sink0 vol = %d\n", mainAppCt.gSysVol.AudioSinkVol[AUDIO_DAC0_SINK_NUM]);
-				AudioCoreSinkVolSet(AUDIO_DAC0_SINK_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DAC0_SINK_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DAC0_SINK_NUM]));
+				AudioCoreSinkVolSet(AUDIO_DAC0_SINK_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DAC0_SINK_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DAC0_SINK_NUM]));
 				break;
 #ifdef CFG_FUNC_RECORDER_EN
 			case AUDIO_RECORDER_SINK_NUM + AUDIO_CORE_SOURCE_MAX_NUM://sink1
@@ -475,7 +475,7 @@ void SystemVolUp(void)
 				}
 
 				APP_DBG("rec sink1 vol = %d\n", mainAppCt.gSysVol.AudioSinkVol[AUDIO_RECORDER_SINK_NUM]);
-				AudioCoreSinkVolSet(AUDIO_RECORDER_SINK_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_RECORDER_SINK_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_RECORDER_SINK_NUM]));
+				AudioCoreSinkVolSet(AUDIO_RECORDER_SINK_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_RECORDER_SINK_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_RECORDER_SINK_NUM]));
 				break;
 #endif
 #if defined(CFG_RES_AUDIO_DACX_EN )
@@ -486,7 +486,7 @@ void SystemVolUp(void)
 				}
 
 				APP_DBG("dacx sink2 vol = %d\n", mainAppCt.gSysVol.AudioSinkVol[AUDIO_DACX_SINK_NUM]);
-				AudioCoreSinkVolSet(AUDIO_DACX_SINK_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DACX_SINK_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DACX_SINK_NUM]));
+				AudioCoreSinkVolSet(AUDIO_DACX_SINK_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DACX_SINK_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DACX_SINK_NUM]));
 				break;
 #endif
 			case MIC_SOURCE_NUM://source0
@@ -496,7 +496,7 @@ void SystemVolUp(void)
 				}
 
 				APP_DBG("MIC_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]);
-				AudioCoreSourceVolSet(MIC_SOURCE_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]));
+				AudioCoreSourceVolSet(MIC_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]));
 				break;
 			case APP_SOURCE_NUM://source1
 				if(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM] < CFG_PARA_MAX_VOLUME_NUM)
@@ -506,7 +506,7 @@ void SystemVolUp(void)
 
 				APP_DBG("APP_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
 
-				AudioCoreSourceVolSet(APP_SOURCE_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]));
+				AudioCoreSourceVolSet(APP_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]));
 
 #ifdef CFG_APP_BT_MODE_EN
 #if (BT_AVRCP_VOLUME_SYNC == ENABLE)
@@ -538,7 +538,7 @@ void SystemVolUp(void)
 				}
 
 				APP_DBG("REMIND_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]);
-				AudioCoreSourceVolSet(REMIND_SOURCE_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]));
+				AudioCoreSourceVolSet(REMIND_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]));
 				break;
 #endif
 #ifdef CFG_FUNC_RECORDER_EN
@@ -549,7 +549,7 @@ void SystemVolUp(void)
 				}
 
 				APP_DBG("PLAYBACK_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]);
-				AudioCoreSourceVolSet(PLAYBACK_SOURCE_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]));
+				AudioCoreSourceVolSet(PLAYBACK_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]));
 				break;
 #endif
 /*
@@ -560,7 +560,7 @@ void SystemVolUp(void)
 				}
 
 				APP_DBG("source4 vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[4]);
-				AudioCoreSourceVolSet(4, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[4]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[4]));
+				AudioCoreSourceVolSet(4, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[4]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[4]));
 				break;
 */
 			default:
@@ -596,7 +596,7 @@ void SystemVolDown(void)
 				}
 
 				APP_DBG("dac0 sink vol = %d\n", mainAppCt.gSysVol.AudioSinkVol[AUDIO_DAC0_SINK_NUM]);
-				AudioCoreSinkVolSet(AUDIO_DAC0_SINK_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DAC0_SINK_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DAC0_SINK_NUM]));
+				AudioCoreSinkVolSet(AUDIO_DAC0_SINK_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DAC0_SINK_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DAC0_SINK_NUM]));
 				break;
 #ifdef CFG_FUNC_RECORDER_EN
 			case AUDIO_RECORDER_SINK_NUM + AUDIO_CORE_SOURCE_MAX_NUM://sink1
@@ -606,7 +606,7 @@ void SystemVolDown(void)
 				}
 
 				APP_DBG("rec sink vol = %d\n", mainAppCt.gSysVol.AudioSinkVol[AUDIO_RECORDER_SINK_NUM]);
-				AudioCoreSinkVolSet(AUDIO_RECORDER_SINK_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_RECORDER_SINK_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_RECORDER_SINK_NUM]));
+				AudioCoreSinkVolSet(AUDIO_RECORDER_SINK_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_RECORDER_SINK_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_RECORDER_SINK_NUM]));
 				break;
 #endif
 #if defined(CFG_RES_AUDIO_DACX_EN )
@@ -617,7 +617,7 @@ void SystemVolDown(void)
 				}
 				
 				APP_DBG("dacx sink vol = %d\n", mainAppCt.gSysVol.AudioSinkVol[AUDIO_DACX_SINK_NUM]);
-				AudioCoreSinkVolSet(AUDIO_DACX_SINK_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DACX_SINK_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DACX_SINK_NUM]));
+				AudioCoreSinkVolSet(AUDIO_DACX_SINK_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DACX_SINK_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[AUDIO_DACX_SINK_NUM]));
 				break;
 #endif
 
@@ -628,7 +628,7 @@ void SystemVolDown(void)
 				}
 
 				APP_DBG("MIC_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]);
-				AudioCoreSourceVolSet(MIC_SOURCE_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]));
+				AudioCoreSourceVolSet(MIC_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]));
 				break;
 			case APP_SOURCE_NUM://source1
 				if(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM] > 0)
@@ -637,7 +637,7 @@ void SystemVolDown(void)
 				}
 
 				APP_DBG("APP_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
-				AudioCoreSourceVolSet(APP_SOURCE_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]));
+				AudioCoreSourceVolSet(APP_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]));
 
 #ifdef CFG_APP_BT_MODE_EN
 #if (BT_AVRCP_VOLUME_SYNC == ENABLE)
@@ -669,7 +669,7 @@ void SystemVolDown(void)
 				}
 
 				APP_DBG("REMIND_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]);
-				AudioCoreSourceVolSet(REMIND_SOURCE_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]));
+				AudioCoreSourceVolSet(REMIND_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]));
 				break;
 #endif
 #ifdef CFG_FUNC_RECORDER_EN
@@ -680,7 +680,7 @@ void SystemVolDown(void)
 				}
 
 				APP_DBG("PLAYBACK_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]);
-				AudioCoreSourceVolSet(PLAYBACK_SOURCE_NUM, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]));
+				AudioCoreSourceVolSet(PLAYBACK_SOURCE_NUM, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[PLAYBACK_SOURCE_NUM]));
 				break;
 #endif
 
@@ -701,7 +701,7 @@ void SystemVolSet(void)
 	
 	for(i=0; i<AUDIO_CORE_SOURCE_MAX_NUM; i++)
 	{
-		AudioCoreSourceVolSet(i, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[i]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[i]));
+		AudioCoreSourceVolSet(i, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[i]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[i]));
 	}
 	for(i=0; i<AUDIO_CORE_SINK_MAX_NUM; i++)
 	{
@@ -713,7 +713,7 @@ void SystemVolSet(void)
 		else
 #endif
 		{
-			AudioCoreSinkVolSet(i, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[i]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[i]));
+			AudioCoreSinkVolSet(i, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[i]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSinkVol[i]));
 		}
 	}
 #ifdef CFG_FUNC_SHUNNING_EN
@@ -758,7 +758,7 @@ void AdcLevelMsgProcess(uint16_t Msg)//Sliding resistance
 				APP_DBG("MicVolumeBak = %d\n", mainAppCt.MicVolumeBak);
 			    //mainAppCt.gSysVol.AudioSourceVol[0] = mainAppCt.MicVolume = AdcValue;
 				//APP_DBG("source0 vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[0]);
-				//AudioCoreSourceVolSet(0, get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[0]), get_roboeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[0]));
+				//AudioCoreSourceVolSet(0, get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[0]), get_audioeffectVolArr(mainAppCt.gSysVol.AudioSourceVol[0]));
 				#endif
 				break;
 				

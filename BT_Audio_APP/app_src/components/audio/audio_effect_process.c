@@ -39,7 +39,7 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 		{
 			if(!pAudioCore->AudioSource[s].Active || mainAppCt.gSysVol.MuteFlag || pAudioCore->AudioSource[s].LeftMuteFlag)
 			{
-				memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(s)),
+				memset(roboeffect_get_source_buffer(AudioCore.Audioeffect.context_memory, AudioCoreSourceToRoboeffect(s)),
 									0, n * sizeof(PCM_DATA_TYPE) * 2);
 			}
 		}
@@ -65,7 +65,7 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 		}
 	}
 
-	roboeffect_apply(AudioCore.Roboeffect.context_memory);
+	roboeffect_apply(AudioCore.Audioeffect.context_memory);
 
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
 	if(usb_out)
@@ -103,7 +103,7 @@ void AudioEffectProcessBTHF(AudioCoreContext *pAudioCore)
 		{
 			if(!pAudioCore->AudioSource[s].Active || mainAppCt.gSysVol.MuteFlag || pAudioCore->AudioSource[s].LeftMuteFlag)
 			{
-				memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(s)),
+				memset(roboeffect_get_source_buffer(AudioCore.Audioeffect.context_memory, AudioCoreSourceToRoboeffect(s)),
 									0, n * 2 * 2);
 			}
 		}
@@ -121,7 +121,7 @@ void AudioEffectProcessBTHF(AudioCoreContext *pAudioCore)
 		hf_pcm_out[s] = hf_mic_in[s];
 	}
 #else
-	roboeffect_apply(AudioCore.Roboeffect.context_memory);
+	roboeffect_apply(AudioCore.Audioeffect.context_memory);
 #endif
 
 }
@@ -156,7 +156,7 @@ void AudioBypassProcess(AudioCoreContext *pAudioCore)
 		{
 			if(!pAudioCore->AudioSource[s].Active || mainAppCt.gSysVol.MuteFlag || pAudioCore->AudioSource[s].LeftMuteFlag)
 			{
-				memset(roboeffect_get_source_buffer(AudioCore.Roboeffect.context_memory, AudioCoreSourceToRoboeffect(s)),
+				memset(roboeffect_get_source_buffer(AudioCore.Audioeffect.context_memory, AudioCoreSourceToRoboeffect(s)),
 									0, n * sizeof(PCM_DATA_TYPE) * 2);
 			}
 		}
@@ -209,10 +209,29 @@ void AudioBypassProcess(AudioCoreContext *pAudioCore)
 	else
 #endif
 	{
-		for(s = 0; s < n; s++)
+		if(music_pcm)
 		{
-			monitor_out[2 * s + 0] = __nds32__clips(((int32_t)music_pcm[2 * s + 0] + (int32_t)mic_pcm[2 * s + 0] +1 ) >>1, 24-1);
-			monitor_out[2 * s + 1] = __nds32__clips(((int32_t)music_pcm[2 * s + 1] + (int32_t)mic_pcm[2 * s + 1] +1 ) >>1, 24-1);
+			if(mic_pcm)
+			{
+				for(s = 0; s < n; s++)
+				{
+#ifdef CFG_AUDIO_WIDTH_24BIT
+					monitor_out[2 * s + 0] = __nds32__clips(((int32_t)music_pcm[2 * s + 0] + (int32_t)mic_pcm[2 * s + 0] +1 ) >>1, 24-1);
+					monitor_out[2 * s + 1] = __nds32__clips(((int32_t)music_pcm[2 * s + 1] + (int32_t)mic_pcm[2 * s + 1] +1 ) >>1, 24-1);
+#else
+					monitor_out[2 * s + 0] = __nds32__clips(((int32_t)music_pcm[2 * s + 0] + (int32_t)mic_pcm[2 * s + 0] +1 ) >>1, 16-1);
+					monitor_out[2 * s + 1] = __nds32__clips(((int32_t)music_pcm[2 * s + 1] + (int32_t)mic_pcm[2 * s + 1] +1 ) >>1, 16-1);
+#endif
+				}
+			}
+			else
+			{
+				for(s = 0; s < n; s++)
+				{
+					monitor_out[2 * s + 0] = music_pcm[2 * s + 0];
+					monitor_out[2 * s + 1] = music_pcm[2 * s + 1];
+				}
+			}
 		}
 	}
 

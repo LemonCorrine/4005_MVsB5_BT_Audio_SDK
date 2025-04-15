@@ -17,10 +17,11 @@ extern const unsigned char user_module_parameters_Karaoke_NvBianNan[];
 extern const unsigned char user_effect_parameters_Karaoke_WaWaYin[];
 extern const unsigned char user_module_parameters_Karaoke_WaWaYin[];
 
-static const ROBOEFFECT_EFFECT_PARA effect_para[] =
+static const AUDIOEFFECT_EFFECT_PARA effect_para[] =
 {
 	 //HUNXIANG
 	{
+		.user_effect_name = (uint8_t *)"HunXiang",
 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
 		.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
@@ -30,6 +31,7 @@ static const ROBOEFFECT_EFFECT_PARA effect_para[] =
 	},
 	//DIANYIN
 	{
+		.user_effect_name = (uint8_t *)"DianYin",
 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
 		.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
@@ -39,6 +41,7 @@ static const ROBOEFFECT_EFFECT_PARA effect_para[] =
 	},
 	//MOYIN
 	{
+		.user_effect_name = (uint8_t *)"MoYin",
 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
 		.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
@@ -48,6 +51,7 @@ static const ROBOEFFECT_EFFECT_PARA effect_para[] =
 	},
 	//HANMAI
 	{
+		.user_effect_name = (uint8_t *)"HanMai",
 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
 		.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
@@ -57,6 +61,7 @@ static const ROBOEFFECT_EFFECT_PARA effect_para[] =
 	},
 	//NANBIANNV
 	{
+		.user_effect_name = (uint8_t *)"NanBianNv",
 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
 		.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
@@ -66,6 +71,7 @@ static const ROBOEFFECT_EFFECT_PARA effect_para[] =
 	},
 	//NVBIANNAN
 	{
+		.user_effect_name = (uint8_t *)"NvBianNan",
 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
 		.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
@@ -75,6 +81,7 @@ static const ROBOEFFECT_EFFECT_PARA effect_para[] =
 	},
 	//WAWAYIN
 	{
+		.user_effect_name = (uint8_t *)"WaWaYin",
 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
 		.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
@@ -84,7 +91,7 @@ static const ROBOEFFECT_EFFECT_PARA effect_para[] =
 	}
 };
 
-const ROBOEFFECT_EFFECT_PARA_TABLE karaoke_node =
+const AUDIOEFFECT_EFFECT_PARA_TABLE karaoke_node =
 {
 	//ROBOEFFECT effect ID 通过这个ID来搜索匹配
 	.effect_id    = EFFECT_MODE_HunXiang ,
@@ -105,7 +112,7 @@ const ROBOEFFECT_EFFECT_PARA_TABLE karaoke_node =
 	},
 
 	//ROBOEFFECT effect SOURCE映射
-	.roboeffect_source =
+	.audioeffect_source =
 	{
 		.mic_source = KARAOKE_SOURCE_MIC_SOURCE,
 		.app_source = KARAOKE_SOURCE_APP_SOURCE,
@@ -117,7 +124,7 @@ const ROBOEFFECT_EFFECT_PARA_TABLE karaoke_node =
 	},
 
 	//ROBOEFFECT effect SINK映射
-	.roboeffect_sink =
+	.audioeffect_sink =
 	{
 		.dac0_sink = KARAOKE_SINK_DAC0_SINK,
 		.app_sink = KARAOKE_SINK_APP_SINK,
@@ -128,5 +135,5 @@ const ROBOEFFECT_EFFECT_PARA_TABLE karaoke_node =
 	},
 
 	//ROBOEFFECT effect 参数
-	.roboeffect_para = (ROBOEFFECT_EFFECT_PARA *)&effect_para[0],
+	.audioeffect_para = (AUDIOEFFECT_EFFECT_PARA *)&effect_para[0],
 };

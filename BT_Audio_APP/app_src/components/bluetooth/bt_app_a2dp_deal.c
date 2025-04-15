@@ -174,6 +174,7 @@ void BtA2dpDisconnectedDev(BT_A2DP_CALLBACK_PARAMS * param)
 				break;
 			}
 		}
+#if (defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT == ENABLE))
 		if((GetHfpState(ConnectIndex) >= BT_HFP_STATE_CONNECTED))
 		{
 			if(btManager.btReconExcuteSt->TryCount)
@@ -190,6 +191,7 @@ void BtA2dpDisconnectedDev(BT_A2DP_CALLBACK_PARAMS * param)
 				printf("=============hfp cannot connect, finished..\n");
 			}
 		}
+#endif
 	}
 	
 
@@ -233,7 +235,6 @@ void BtA2dpConnectTimeout(BT_A2DP_CALLBACK_PARAMS * param)
 	}
 	SetA2dpState(param->index,BT_A2DP_STATE_NONE);
 }
-
 
 /*****************************************************************************************
 * A2DP Stream ¿ªÊ¼²¥·Å

@@ -197,8 +197,4 @@ bool AudioCoreMutedForClose(void);
 
 //audiocore左右声道设置为mute的通路，全部已播空至muted数据，可以清理fifo
 bool AudioCoreMutedForClear(void);
-
-void AudioFadein(int16_t* pcm_in, uint16_t pcm_length, uint16_t ch);
-
-void AudioFadeout(int16_t* pcm_in, uint16_t pcm_length, uint16_t ch);
 #endif /* BT_AUDIO_APP_SRC_INC_AUDIO_CORE_ADAPT_H_ */

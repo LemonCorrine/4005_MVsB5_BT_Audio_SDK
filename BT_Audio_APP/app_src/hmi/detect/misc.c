@@ -146,11 +146,11 @@ void ShunningModeProcess(void)
 			}
 		}
 
-		Roboeffect_GainControl_Set(get_roboeffect_addr(APP_SOURCE_GAIN), get_roboeffectVolArr(mainAppCt.aux_out_dyn_gain));
+		AudioEffect_GainControl_Set(APP_SOURCE_GAIN, get_audioeffectVolArr(mainAppCt.aux_out_dyn_gain));
 		return;
 	}
 
-	if(Roboeffect_SilenceDetector_Get(get_roboeffect_addr(SILENCE_DETECTOR)) > SHNNIN_VALID_DATA)///vol----
+	if(AudioEffect_SilenceDetector_Get(SILENCE_DETECTOR) > SHNNIN_VALID_DATA)///vol----
 	{
 		shnning_recover_dly = SHNNIN_VOL_RECOVER_TIME;
 		if(shnning_down_dly)
@@ -166,7 +166,7 @@ void ShunningModeProcess(void)
 			APP_DBG("Aux Shunning start\n");
 		}
 
-		Roboeffect_GainControl_Set(get_roboeffect_addr(APP_SOURCE_GAIN), get_roboeffectVolArr(mainAppCt.aux_out_dyn_gain));
+		AudioEffect_GainControl_Set(APP_SOURCE_GAIN, get_audioeffectVolArr(mainAppCt.aux_out_dyn_gain));
 	}
 	else
 	{
@@ -195,7 +195,7 @@ void ShunningModeProcess(void)
 			}
 		}
 
-		Roboeffect_GainControl_Set(get_roboeffect_addr(APP_SOURCE_GAIN), get_roboeffectVolArr(mainAppCt.aux_out_dyn_gain));
+		AudioEffect_GainControl_Set(APP_SOURCE_GAIN, get_audioeffectVolArr(mainAppCt.aux_out_dyn_gain));
 	}
 #endif
 }
@@ -373,7 +373,7 @@ void MicVolSmoothProcess(void)
 			mainAppCt.MicVolume++;
 		}
 		mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM] = mainAppCt.MicVolume;
-		AudioCoreSourceVolSet(MIC_SOURCE_NUM, roboeffectVolArr[mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]], roboeffectVolArr[mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]]);
+		AudioCoreSourceVolSet(MIC_SOURCE_NUM, audioeffectVolArr[mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]], audioeffectVolArr[mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]]);
 		APP_DBG("MicVolume = %d\n",mainAppCt.MicVolume);
 	}
 //    //-------------bass 电位器渐变调节-----------------------------------------//

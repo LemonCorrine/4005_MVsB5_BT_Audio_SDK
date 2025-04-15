@@ -107,10 +107,6 @@ extern uint32_t gHfFuncState;
 static uint32_t	flagVoiceDelayExitBtHf = 0;	//在语音标志关闭退出时，延时1s退出bt hf模式
 uint32_t	HfStateCount = 0;
 
-#ifdef CFG_FUNC_RECORDER_EN
-static uint8_t HfRecorderExitCnt = 0;
-extern TaskState GetMediaRecorderState(void);
-#endif
 //////////////////////////////////////////////////////////////////////////////////////
 extern void ModeCommonDeinit(void);
 
@@ -507,9 +503,6 @@ bool BtHfInit(void)
 	AudioCoreIO	AudioIOSet;
 	APP_DBG("BT HF init\n");
 	
-#ifdef CFG_FUNC_RECORDER_EN
-	HfRecorderExitCnt = 0;
-#endif
 	//蓝牙任务优先级恢复提升一级,和AudioCoreService同级
 	vTaskPrioritySet(GetBtStackServiceTaskHandle(), (GetBtStackServiceTaskPrio()+1));
 
@@ -692,25 +685,6 @@ void BtHfRun(uint16_t msgId)
 		BtHfModeExit();
 		sBtHfModeEixtList = 0;
 	}
-#ifdef CFG_FUNC_RECORDER_EN
-	if(HfRecorderExitCnt > 0)
-	{
-		HfRecorderExitCnt++;
-		if(GetMediaRecorderState() == TaskStateRunning)
-		{
-			if(HfRecorderExitCnt > 200) //延时200ms,还没有停止录音，继续发送
-			{
-				HfRecorderExitCnt = 1;
-				BtHfMsgToParent(MSG_STOP_REC);
-			}
-		}
-		else
-		{
-			BtHfModeExit();
-			HfRecorderExitCnt = 0;
-		}
-	}
-#endif
 
 	switch(msgId)
 	{
@@ -990,13 +964,6 @@ void BtHfModeEnter_Index(uint8_t index)
 			SoftFlagRegister(SoftFlagDelayEnterBtHf);
 		return;
 	}
-#ifdef CFG_FUNC_RECORDER_EN
-	if(GetMediaRecorderState() == TaskStateRunning)//停止录音
-	{
-		BtHfMsgToParent(MSG_STOP_REC);
-		return;
-	}
-#endif
 	if(BtHfModeExitFlag)
 	{
 		APP_DBG("BtHfModeEnter: BtHfModeExitFlag is return\n");
@@ -1043,13 +1010,7 @@ void BtHfModeEnter(void)
 		}
 		return;
 	}
-#ifdef CFG_FUNC_RECORDER_EN
-	if(GetMediaRecorderState() == TaskStateRunning)//停止录音
-	{
-		BtHfMsgToParent(MSG_STOP_REC);
-		return;
-	}
-#endif
+
 	if(BtHfModeExitFlag)
 	{
 		APP_DBG("BtHfModeEnter: BtHfModeExitFlag is return\n");
@@ -1093,14 +1054,6 @@ void BtHfModeExit(void)
 	}
 	flagVoiceDelayExitBtHf = 0;
 
-#ifdef CFG_FUNC_RECORDER_EN
-	if(GetMediaRecorderState() == TaskStateRunning && HfRecorderExitCnt == 0)//停止录音
-	{
-		BtHfMsgToParent(MSG_STOP_REC);
-		HfRecorderExitCnt = 1;
-		return;
-	}
-#endif
 	DBG("BtHfModeExitFlag = %d\n", (int)BtHfModeExitFlag);
 	//退出流程正在进行时，不再次处理，防止重入
 	if(BtHfModeExitFlag)

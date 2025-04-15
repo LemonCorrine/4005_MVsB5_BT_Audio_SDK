@@ -554,6 +554,22 @@ void MediaPlayRun(uint16_t msgId)
 		if(!MediaPlayerInitialize(sMediaPlayCt->Device, 1, 1))// decode step 2: include : DecoderInit(&gMediaPlayer->PlayerFile,DECODER_MODE_CHANNEL,(int32_t)IO_TYPE_FILE, (int32_t)SongFileType)
 		{
 			APP_DBG("Media decoder init error ,exit media init\n");
+
+#ifdef CFG_FUNC_RECORDER_EN
+			extern void RecServierToParent(uint16_t id);
+			if(GetSystemMode() == ModeUDiskPlayBack)
+			{
+				RecServierToParent(MSG_DEVICE_SERVICE_U_DISK_BACK_OUT);
+				return ;
+
+			}
+			else if(GetSystemMode() == ModeCardPlayBack)
+			{
+				RecServierToParent(MSG_DEVICE_SERVICE_CARD_BACK_OUT);
+				return ;
+			}
+#endif
+
 			if(!IsMediaPlugOut() && (GetSystemMode() == ModeUDiskAudioPlay || GetSystemMode() == ModeCardAudioPlay))
 			{
 				SendModeKeyMsg();

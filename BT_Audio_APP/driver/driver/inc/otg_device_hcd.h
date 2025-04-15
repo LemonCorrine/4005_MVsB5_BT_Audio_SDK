@@ -33,8 +33,6 @@ extern "C" {
 #define	DEVICE_FS_INT_OUT_MPS		64
 #define	DEVICE_FS_BULK_IN_MPS		64
 #define	DEVICE_FS_BULK_OUT_MPS		64
-#define	DEVICE_FS_ISO_IN_MPS		576
-#define	DEVICE_FS_ISO_OUT_MPS		384
 
 // Endpoint number. Fixed, user should not modify.
 #define	DEVICE_CONTROL_EP			0x00
@@ -125,6 +123,15 @@ void OTG_DeviceStallSend(uint8_t EndpointNum);
  * @return NONE
  */
 void OTG_DeviceEndpointReset(uint8_t EndpointNum, uint8_t EndpointType);
+
+
+/**
+ * @brief  设置某个端点单次传输最大包字节数
+ * @param  EndpointNum 端点号
+ * @param  Endpoint PacketSize
+ * @return NONE
+ */
+void OTG_DeviceEndpointPacketSizeSet(uint8_t EndpointNum, uint16_t PacketSize);
 
 
 /**

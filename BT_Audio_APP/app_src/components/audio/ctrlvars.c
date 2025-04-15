@@ -476,13 +476,13 @@ void DefaultParamgsInit(void)
 	//for system control 0x01
 	gCtrlVars.AutoRefresh = 1;//调音时音效参数发生改变，上位机会自动读取音效数据，1=允许上位读，0=不需要上位机读取
 
-	if(AudioCore.Roboeffect.context_memory)
+	if(AudioCore.Audioeffect.context_memory)
 	{
-		memcpy(&gCtrlVars.HwCt, AudioCore.Roboeffect.user_module_parameters, sizeof(gCtrlVars.HwCt));
+		memcpy(&gCtrlVars.HwCt, AudioCore.Audioeffect.user_module_parameters, sizeof(gCtrlVars.HwCt));
 	}
 	else
 	{
-		ROBOEFFECT_EFFECT_PARA *para;
+		AUDIOEFFECT_EFFECT_PARA *para;
 		if (mainAppCt.EffectMode  == 0)
 		{
 #ifdef CFG_FUNC_EFFECT_BYPASS_EN
@@ -506,7 +506,7 @@ void DefaultParamgsInit(void)
 	//scramble默认开启，设置成POS_NEG
 	gCtrlVars.HwCt.DAC0Ct.dac_scramble = POS_NEG + 1;
 	//L R数据反，默认交换数据
-#if (CFG_CHIP_SEL == CFG_CHIP_BP1524A1) || (CFG_CHIP_SEL == CFG_CHIP_BP1524A2) || (CFG_CHIP_SEL == CFG_CHIP_AP1524A1)
+#if (CFG_CHIP_SEL == CFG_CHIP_BP1524A1) || (CFG_CHIP_SEL == CFG_CHIP_BP1524A2) || (CFG_CHIP_SEL == CFG_CHIP_AP1524A1) || (CFG_CHIP_SEL == CFG_CHIP_BP1564A1) || (CFG_CHIP_SEL == CFG_CHIP_BP1564A2)
 	gCtrlVars.HwCt.DAC0Ct.dac_out_mode = MODE1;
 #else
 	gCtrlVars.HwCt.DAC0Ct.dac_out_mode = MODE0;
