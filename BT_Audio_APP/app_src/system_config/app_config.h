@@ -1,0 +1,532 @@
+/******************************************************************************
+ * @file    app_config.h
+ * @author
+ * @version V_NEW
+ * @date    2021-06-25
+ * @maintainer
+ * @brief
+ ******************************************************************************
+ * @attention
+ * <h2><center>&copy; COPYRIGHT 2013 MVSilicon </center></h2>
+ */
+
+#ifndef __APP_CONFIG_H__
+#define __APP_CONFIG_H__
+
+#include "type.h"
+
+
+//************************************************************************************************************
+//    本系统默认开启2个系统全局宏，在IDE工程配置(Build Settings-Compiler-Symbols)，此处用于提醒
+//*CFG_APP_CONFIG 和 FUNC_OS_EN*/
+//************************************************************************************************************
+
+//************************************************************************************************************
+//    功能开关说明：
+// *CFG_APP_*  : 软件系统应用模式开启，比如USB U盘播放歌曲应用模式的选择
+// *CFG_FUNC_* : 软件功能开关
+// *CFG_PARA_* : 系统软件参数设置
+// *CFG_RES_*  : 系统硬件资源配置
+// ************************************************************************************************************
+
+//24bit 音效开关宏控制
+//24bit SDK RAM开销会大幅度增加
+#define  CFG_AUDIO_WIDTH_24BIT
+
+
+//****************************************************************************************
+//       芯片型号选择配置
+// 应用开发时，一定要选对型号,防止上位机显示的mic和linein输入和硬件接口不一致
+//****************************************************************************************
+//#define  CFG_CHIP_B5X128
+//#define  CFG_CHIP_BP1524A1
+//#define  CFG_CHIP_BP1524A2
+//#define  CFG_CHIP_BP1564A1
+//#define  CFG_CHIP_BP1564A2
+//#define CFG_CHIP_BP1532A2
+//#define CFG_CHIP_AP1524A1
+#define CFG_CHIP_BP1532B1
+
+#define CFG_CHIP_RAM_SIZE		(256*1024)
+
+/**音频SDK版本号：V1.0.0**/
+/*0xB5：芯片B15X，01：大版本号， 00：小版本号， 00：用户修订号（由用户设定，可结合补丁号）；
+ *实际存储字节序：1A 01 00 00 ，略区别于sdk版本*/
+/*开启flash_boot时，用flashboot升级usercode后，boot明码区和code明码(如0xB8和0xB8+0x10000)两个值会不同，
+ * 前者是burner烧录时版本，后者是mva版本需关注*/
+#define	 CFG_SDK_VER_CHIPID			(0xB5)
+#define  CFG_SDK_MAJOR_VERSION		(0)
+#define  CFG_SDK_MINOR_VERSION		(2)
+#define  CFG_SDK_PATCH_VERSION	    (3)
+
+
+//****************************************************************************************
+// 系统App功能模式选择
+//****************************************************************************************
+#define CFG_APP_IDLE_MODE_EN
+//#define CFG_APP_BT_MODE_EN
+#define	CFG_APP_USB_PLAY_MODE_EN
+#define	CFG_APP_CARD_PLAY_MODE_EN
+#define	CFG_APP_LINEIN_MODE_EN
+//#define CFG_APP_RADIOIN_MODE_EN
+#define CFG_APP_USB_AUDIO_MODE_EN
+//#define CFG_APP_I2SIN_MODE_EN
+#define	CFG_APP_OPTICAL_MODE_EN	// SPDIF 光纤模式
+#define CFG_APP_COAXIAL_MODE_EN	// SPDIF 同轴模式
+
+#ifdef CFG_CHIP_AP1524A1
+#undef CFG_APP_BT_MODE_EN
+#endif
+
+#define CFG_FUNC_OPEN_SLOW_DEVICE_TASK
+
+//aux 2 B0/B1
+//aux 1 B2/B3
+#ifdef CFG_APP_LINEIN_MODE_EN
+#if defined(CFG_CHIP_BP1524A1) || defined(CFG_CHIP_BP1524A2) || defined(CFG_CHIP_BP1532A2) || defined(CFG_CHIP_AP1524A1) || defined(CFG_CHIP_BP1532B1)
+	#define LINEIN_INPUT_CHANNEL				(ANA_INPUT_CH_LINEIN2)
+#else
+	#define LINEIN_INPUT_CHANNEL				(ANA_INPUT_CH_LINEIN1)
+#endif
+#endif
+
+#ifdef CFG_APP_RADIOIN_MODE_EN
+    #define FUNC_RADIO_RDA5807_EN
+    //#define FUNC_RADIO_QN8035_EN  //芯片io时钟只支持12M，qn8035必须外挂晶振
+#if defined(FUNC_RADIO_RDA5807_EN) && defined(FUNC_RADIO_QN8035_EN)
+   #error Conflict: radio type error //不能同时选择两种显示模式
+#endif
+#endif
+
+/**USB声卡，读卡器，一线通功能 **/
+#define CFG_FUNC_USB_DEVICE_DETECT
+#ifdef  CFG_APP_USB_AUDIO_MODE_EN
+	#define CFG_PARA_USB_MODE	AUDIO_MIC
+	#define CFG_RES_AUDIO_USB_IN_EN		//缺省 作为模式通路使能
+	#define CFG_PARA_AUDIO_USB_IN_SYNC	//时钟偏差引起的 采样点同步
+	#define CFG_PARA_AUDIO_USB_IN_SRC	//转采样准备
+
+	#define CFG_RES_AUDIO_USB_OUT_EN
+	#define CFG_PARA_AUDIO_USB_OUT_SYNC	//时钟偏差引起的 采样点同步
+	#define CFG_PARA_AUDIO_USB_OUT_SRC	//转采样准备
+	#define CFG_RES_AUDIO_USB_VOL_SET_EN
+	//#define USB_READER_EN
+#endif
+
+//IDLE模式(假待机),powerkey/deepsleep可以同时选中也可以单独配置
+//通过消息进入不同的模式
+//MSG_DEEPSLEEP/MSG_POWER/MSG_POWERDOWN --> 进入IDLE模式(假待机)
+//MSG_DEEPSLEEP --> 进入IDLE模式以后如果CFG_IDLE_MODE_DEEP_SLEEP打开进入deepsleep
+//MSG_POWERDOWN --> 进入IDLE模式以后如果CFG_IDLE_MODE_POWER_KEY打开进入powerdown
+#ifdef  CFG_APP_IDLE_MODE_EN
+//	#define CFG_IDLE_MODE_POWER_KEY	//power key
+	#define CFG_IDLE_MODE_DEEP_SLEEP //deepsleep
+	#ifdef CFG_IDLE_MODE_POWER_KEY
+		#define BAKEUP_FIRST_ENTER_POWERDOWN		//第一次上电需要按下PowerKey
+		#define POWERKEY_MODE		POWERKEY_MODE_SLIDE_SWITCH_LPD//POWERKEY_MODE_PUSH_BUTTON
+		#if (POWERKEY_MODE == POWERKEY_MODE_SLIDE_SWITCH_LPD) || (POWERKEY_MODE == POWERKEY_MODE_SLIDE_SWITCH_HPD)
+			#define POWERKEY_CNT					20
+		#else
+			#define POWERKEY_CNT					2000
+		#endif
+
+		#if (POWERKEY_MODE == POWERKEY_MODE_PUSH_BUTTON)
+			//powerkey复用短按键功能。
+			#define USE_POWERKEY_PUSH_BUTTON_MSG_SP		MSG_PLAY_PAUSE
+		#endif	
+	#endif
+	#ifdef CFG_IDLE_MODE_DEEP_SLEEP
+		/*红外按键唤醒,注意CFG_PARA_WAKEUP_GPIO_IR和 唤醒键IR_KEY_POWER设置*/
+		#define CFG_PARA_WAKEUP_SOURCE_IR		SYSWAKEUP_SOURCE11_IR//固定source11
+		/*ADCKey唤醒 配合CFG_PARA_WAKEUP_GPIO_ADCKEY 唤醒键ADCKEYWAKEUP设置及其电平*/
+		#define CFG_PARA_WAKEUP_SOURCE_ADCKEY	SYSWAKEUP_SOURCE1_GPIO//如使用ADC唤醒，必须打开CFG_RES_ADC_KEY_SCAN 和CFG_RES_ADC_KEY_USE
+		#define CFG_PARA_WAKEUP_SOURCE_POWERKEY SYSWAKEUP_SOURCE6_POWERKEY
+		#define CFG_PARA_WAKEUP_SOURCE_IOKEY1	SYSWAKEUP_SOURCE3_GPIO
+		#define CFG_PARA_WAKEUP_SOURCE_IOKEY2	SYSWAKEUP_SOURCE4_GPIO
+	#endif
+#endif
+
+#define CFG_RES_MIC_SELECT      (1)//0=NO MIC, 1= MIC
+
+
+//****************************************************************************************
+//                 音频输出通道相关配置
+//说明:
+//    如下输出源可同时输出；
+//****************************************************************************************
+/**DAC通道配置选择**/
+#define CFG_RES_AUDIO_DAC0_EN
+
+/**I2S音频输出通道配置选择**/
+//#define CFG_RES_AUDIO_I2SOUT_EN
+
+
+//****************************************************************************************
+//     I2S相关配置选择
+//说明:
+//    1.I2S输出也使能时端口选择和模式需要注意保持一致;
+//	  2、缺省配置为Master，I2S外设音频使用Master的MCLK,否则对方不微调时钟就会有pop音。
+//    3.谨慎开启I2S slave，I2S外设必须提供稳定时钟，如果外设连线工作不稳定，请设置AudioIOSet.Sync = FALSE；自行增加DetectLock调整Sync
+//****************************************************************************************
+#if defined(CFG_APP_I2SIN_MODE_EN) || defined(CFG_RES_AUDIO_I2SOUT_EN)
+#include"i2s.h"
+//i2s gpio配置，必须都配置成i2s1或者i2s0
+#define I2S_MCLK_GPIO					I2S1_MCLK_OUT_A6 //选择MCLK_OUT/MCLK_IN脚，I2S自动配置成master/slave
+#define I2S_LRCLK_GPIO					I2S1_LRCLK_A7
+#define I2S_BCLK_GPIO					I2S1_BCLK_A9
+#ifdef CFG_RES_AUDIO_I2SOUT_EN
+	#define I2S_DOUT_GPIO				I2S1_DOUT_A30
+#endif
+#ifdef CFG_APP_I2SIN_MODE_EN
+	#define I2S_DIN_GPIO				I2S1_DIN_A10
+#endif
+#define CFG_RES_I2S_MODE				GET_I2S_MODE(I2S_MCLK_GPIO)		//根据I2S_MCLK_GPIO自动配置master/slave
+#define	CFG_RES_I2S_MODULE				GET_I2S_I2S_PORT(I2S_MCLK_GPIO)	//根据I2S_MCLK_GPIO自动配置i2s1/i2s0
+#define CFG_PARA_I2S_SAMPLERATE			44100
+#define CFG_FUNC_I2S_IN_SYNC_EN			//缺省为SRA
+#define CFG_FUNC_I2S_OUT_SYNC_EN
+#endif
+
+//****************************************************************************************
+//                 解码器类型选择
+//说明:
+//    如下解码器类型选择会影响code size;
+//****************************************************************************************
+#define USE_MP3_DECODER
+#define USE_WMA_DECODER
+#define USE_SBC_DECODER
+#define USE_WAV_DECODER
+//#define USE_DTS_DECODER
+#define USE_FLAC_DECODER	//24bit 1.5Mbps高码率时，需要扩大DECODER_FIFO_SIZE_FOR_PLAYER 输出fifo，或扩大输入：FLAC_INPUT_BUFFER_CAPACITY
+//#define USE_AAC_DECODER
+//#define USE_AIF_DECODER
+//#define USE_AMR_DECODER
+#define USE_APE_DECODER
+
+//****************************************************************************************
+//                 总音效功能配置
+//****************************************************************************************
+//高低音调节功能配置说明:
+//    1.此功能是基于MIC OUT EQ进行手动设置的，需要在调音参数中使能此EQ；
+//    2.默认f5对应bass gain,f6对应treb gain,若调音界面上修改此EQ filter数目，需要对应修改BassTrebAjust()中对应序号；
+//EQ模式功能配置说明:
+//    1.此功能是基于MUSIC EQ进行手动设置的，需要在调音参数中使能此EQ；
+//    2.可在flat/classic/pop/jazz/pop/vocal boost之间通过KEY来切换   
+#if CFG_RES_MIC_SELECT
+//#define	CFG_FUNC_MIC_KARAOKE_EN      //MIC karaoke功能选择
+#endif
+
+#define CFG_FUNC_AUDIO_EFFECT_EN //总音效使能开关
+#ifdef CFG_FUNC_AUDIO_EFFECT_EN
+
+    //#define CFG_FUNC_ECHO_DENOISE          //消除快速调节delay时的杂音，
+ 	//#define CFG_FUNC_MUSIC_EQ_MODE_EN     //Music EQ模式功能配置
+
+#ifdef CFG_FUNC_MIC_KARAOKE_EN
+	#define CFG_FUNC_MIC_TREB_BASS_EN    	//Mic高低音调节功能配置
+	#define CFG_FUNC_MUSIC_TREB_BASS_EN    //Music高低音调节功能配置
+	//闪避功能选择设置
+	//注:若需要完善移频开启后的啾啾干扰声问题，需要开启此功能(利用MIC信号检测接口处理)
+//	#define  CFG_FUNC_SHUNNING_EN
+		#define SHNNIN_VALID_DATA                          	 500  ////MIC音量阈值
+		#define SHNNIN_STEP                                  256  /////单次调节的步数
+		#define SHNNIN_THRESHOLD                             SHNNIN_STEP*2  ////threshold
+		#define SHNNIN_VOL_RECOVER_TIME                      50////伴奏音量恢复时长：100*20ms = 2s
+		#define SHNNIN_UP_DLY                                3/////音量上升时间
+		#define SHNNIN_DOWN_DLY                              1/////音量下降时间
+#endif
+    //#define CFG_FUNC_SILENCE_AUTO_POWER_OFF_EN     //无信号自动关机功能，
+    #ifdef CFG_FUNC_SILENCE_AUTO_POWER_OFF_EN      
+		#define  SILENCE_THRESHOLD                 120        //设置信号检测门限，小于这个值认为无信号
+		#define  SILENCE_POWER_OFF_DELAY_TIME      10*60*100     //无信号关机延时时间，单位：ms
+    #endif
+
+	#define CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN//在线调音
+	#ifdef CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN
+	
+		/**在线调音硬件接口有USB HID接口，或者UART接口*/
+		/**建议使用USB HID接口，收发buf共512Byte*/
+		/**UART接口占用2路DMA，收发Buf共2k Byte*/
+		/**使用USB HID作为调音接口，DMA资源紧张*/
+		#define  CFG_COMMUNICATION_BY_USB		// usb or uart
+
+//		#define	 CFG_UART_COMMUNICATION_TX_PIN					GPIOA10
+//		#define  CFG_UART_COMMUNICATION_TX_PIN_MUX_SEL			(3)
+//		#define  CFG_UART_COMMUNICATION_RX_PIN					GPIOA9
+//		#define  CFG_UART_COMMUNICATION_RX_PIN_MUX_SEL			(1)
+
+		#define  CFG_COMMUNICATION_CRYPTO						(0)////调音通讯加密=1 调音通讯不加密=0
+		#define  CFG_COMMUNICATION_PASSWORD                     0x11223344//////四字节的长度密码
+	#endif
+
+	//使用flash存好的调音参数
+	//音效参数存储于flash固定区域中
+	//#define CFG_EFFECT_PARAM_IN_FLASH_EN
+	#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
+		#define CFG_EFFECT_PARAM_IN_FLASH_MAX_NUM				(10)//支持flash参数最大组数，flash空间紧张时建议按需配置
+		#define	CFG_EFFECT_PARAM_IN_FLASH_ACTIVCE_NUM			(6)
+		#ifdef CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN
+			#define CFG_EFFECT_PARAM_UPDATA_BY_ACPWORKBENCH			//打开该宏可以通过ACPWorkBench，多消耗4156 Byte RAM，量产时如果RAM紧张可以关闭这个宏
+		#endif
+	#endif
+
+#endif
+
+//#define CFG_FUNC_PCM_FIND_ZERO_EN
+
+//****************************************************************************************
+//     音频相关配置参数
+//****************************************************************************************
+#define	CFG_PARA_SAMPLE_RATE				(44100)
+#define CFG_BTHF_PARA_SAMPLE_RATE			(16000)//蓝牙HFP模式下统一采样率为16K
+#define	CFG_PARA_SAMPLES_PER_FRAME          (256)//(512)	//系统默认的帧数大小 //注:关闭总音效开关时,必须配置为256,和通话sample配置参数保持一致
+#define	CFG_BTHF_PARA_SAMPLES_PER_FRAME     (256)			//蓝牙通话模式下帧数大小
+#define CFG_PARA_MIN_SAMPLES_PER_FRAME		(256)//         //系统帧最小值，保证mic delay最小,注意:改为128时 tws带音效播U盘mips余量不足。
+#define CFG_PARA_MAX_SAMPLES_PER_FRAME		(512)//(512)
+
+#if (BT_AVRCP_VOLUME_SYNC == ENABLE) && defined(CFG_APP_BT_MODE_EN)
+#define CFG_PARA_MAX_VOLUME_NUM		        (16)	//SDK 16 级音量,针对iphone手机蓝牙音量同步功能定制，音量表16级能一一对应手机端音量级别
+#define CFG_PARA_SYS_VOLUME_DEFAULT			(12)	//SDK默认音量
+#else
+#define CFG_PARA_MAX_VOLUME_NUM		        (32)	//SDK 32 级音量
+#define CFG_PARA_SYS_VOLUME_DEFAULT			(25)	//SDK默认音量
+#endif
+
+//****************************************************************************************
+//     转采样功能选择
+//说明:
+//    1.使能该宏表示系统会将会以统一的采样率输出，默认使用44.1KHz;
+//    2.此版本默认打开，请勿关闭!!!!!!!!!!
+//****************************************************************************************	
+#define	CFG_FUNC_MIXER_SRC_EN
+
+//     采样率硬件微调功能选择
+//说明:
+//	     硬件微调同一时刻只可使能开启一个微调。使系统AUPLL时钟跟随音源
+//****************************************************************************************	
+//#define	CFG_FUNC_FREQ_ADJUST
+#ifdef CFG_FUNC_FREQ_ADJUST
+	#define CFG_PARA_BT_FREQ_ADJUST		//Btplay 模式续存期间 硬件微调，与CFG_PARA_BT_SYNC宏配合
+ 	#define CFG_PARA_HFP_FREQ_ADJUST	//通话模式 续存期间 硬件微调  使用上行微调，下行跟随。 与CFG_PARA_HFP_SYNC配合
+#endif
+
+//****************************************************************************************
+//                 录音功能配置
+//****************************************************************************************
+//#define CFG_FUNC_RECORDER_EN
+#ifdef CFG_FUNC_RECORDER_EN
+	#define CFG_FUNC_RECORD_SD_UDISK	//录音到SD卡或者U盘
+	//#define CFG_FUNC_RECORD_FLASHFS 	//不可同时开启 CFG_FUNC_RECORD_SD_UDISK
+//暂不支持flash
+//#ifdef CFG_APP_FLASH_FATFS_PLAY_MODE_EN
+//	//#define CFG_FUNC_RECORD_FLASHFATFS	//rec to extern fatfs
+//#endif
+
+	#ifdef CFG_FUNC_RECORD_SD_UDISK
+		#define CFG_FUNC_RECORD_UDISK_FIRST				//U盘和卡同时存在时，录音设备优先选择U盘，否则优先选择录音到SD卡。
+		#define CFG_PARA_RECORDS_FOLDER 		"REC"	//录卡录U盘时根目录文件夹。注意ffpresearch_init 使用回调函数过滤字符串。
+		#define CFG_FUNC_RECORDS_MIN_TIME		1000	//单位ms，开启此宏后，小于这个长度的自动删除。
+		#define CFG_PARA_REC_MAX_FILE_NUM       256     //录音文件最大数目
+
+		#define MEDIAPLAYER_SUPPORT_REC_FILE            // U盘或TF卡模式下，打开此功能，则支持播放录音文件；否则，只能在录音回放模式下播放录音文件
+        //#define AUTO_DEL_REC_FILE_FUNCTION            //录音文件达到最大数后，自动删除全部录音文件的功能选项
+	#endif
+
+	#define CFG_PARA_REC_GAIN		        (8191)	    //输入录音增益   8191:+6db;7284:+5db;6492:+4db;5786:+3db;5157:+2db;4596:+1db;4095:0db;
+
+	#define DEL_REC_FILE_EN
+
+
+	/*注意flash空间，避免冲突   middleware/flashfs/file.h FLASH_BASE*/
+	#ifdef CFG_FUNC_RECORD_FLASHFS
+		#define CFG_PARA_FLASHFS_FILE_NAME		"REC.MP3"//RECORDER_FILE_NAME
+	#endif
+
+	//N >= 2 ；考虑128系统帧以及加音效MIPS较高，优先级为3的编码进程处理数据较慢，推荐值为 6。提高系统帧，mips低时可以调小N,节约ram。
+	#define MEDIA_RECORDER_FIFO_N				6
+	#define MEDIA_RECORDER_FIFO_LEN				(CFG_PARA_MAX_SAMPLES_PER_FRAME * MEDIA_RECORDER_CHANNEL * MEDIA_RECORDER_FIFO_N)
+	//调整下列参数后，录音介质可能需要重做兼容性测试 适配FILE_WRITE_FIFO_LEN。
+	#define MEDIA_RECORDER_CHANNEL				2
+	#define MEDIA_RECORDER_BITRATE				96 //Kbps
+	#define MEDIA_RECODER_IO_BLOCK_TIME			1000//ms
+	//FIFO_Len=(码率(96) / 8 * 缓冲时间ms(1000) （码率单位Kbps,等效毫秒）
+	//根据SDIO协议，写卡阻塞存在250*2ms阻塞 可能，实测部分U盘存在785ms周期性写入阻塞，要求编码数据fifo空间 确保超过这个长度的两倍(含同步)。
+	#define FILE_WRITE_FIFO_LEN					((((MEDIA_RECORDER_BITRATE / 8) * MEDIA_RECODER_IO_BLOCK_TIME ) / 512) * 512)//(依据U盘/Card兼容性需求和RAM资源可选400~1500ms。按扇区512对齐
+#endif //CFG_FUNC_RECORDER_EN
+//****************************************************************************************
+//                 U盘或SD卡模式相关功能配置
+//    
+//****************************************************************************************
+#if(defined(CFG_APP_USB_PLAY_MODE_EN) || defined(CFG_APP_CARD_PLAY_MODE_EN) || BT_AVRCP_SONG_TRACK_INFOR)
+/**LRC歌词功能 **/
+//#define CFG_FUNC_LRC_EN			 	// LRC歌词文件解析
+
+/**字符编码类型转换 **/
+/**目前支持Unicode     ==> Simplified Chinese (DBCS)**/
+/**字符转换库由fatfs提供，故需要包含文件系统**/
+/**如果支持转换其他语言，需要修改fatfs配置表**/
+#define CFG_FUNC_STRING_CONVERT_EN	// 支持字符编码转换
+
+/**取消AA55判断**/
+/*fatfs内磁盘系统MBR和DBR扇区结尾有此标记检测，为提高非标类型盘兼容性，可开启此项, 为有效鉴定无效盘，此项默认关闭*/
+//#define	CANCEL_COMMON_SIGNATURE_JUDGMENT
+//#define FUNC_UPDATE_CONTROL   //升级交互过程控制(通过按键确认升级)
+#endif
+
+/**USB Host检测功能**/
+#if(defined(CFG_APP_USB_PLAY_MODE_EN))
+#define CFG_RES_UDISK_USE
+#define CFG_FUNC_UDISK_DETECT
+#endif
+
+/**USB Device检测功能**/
+#if (defined (CFG_APP_USB_AUDIO_MODE_EN)) || (defined(CFG_COMMUNICATION_BY_USB))
+	#define CFG_FUNC_USB_DEVICE_EN
+#endif
+
+
+//****************************************************************************************
+//****************************************************************************************
+/**OS操作系统进入IDLE时经core进入休眠状态，以达到降低功耗目的**/
+/*注意，这是OS调度的IDLE，并非应用层APPMODE，应用层无需关心*/
+#define CFG_FUNC_IDLE_TASK_LOW_POWER
+#ifdef	CFG_FUNC_IDLE_TASK_LOW_POWER
+	#define	CFG_GOTO_SLEEP_USE
+#endif
+
+//****************************************************************************************
+//                 SHELL功能配置
+//说明:
+//    1.shell功能启用以及配置请到shell.c中配置;
+//    2.shell功能默认关闭，默认使用UART1;
+//****************************************************************************************
+//#define CFG_FUNC_SHELL_EN
+
+//****************************************************************************************
+//                 UART DEBUG功能配置
+//注意：DEBUG打开后，会增大mic通路的delay，不需要DEBUG调试代码时，建议关闭掉！
+//****************************************************************************************
+#include "debug.h"
+//#define CFG_FUNC_DEBUG_EN
+#define CFG_FUNC_USBDEBUG_EN
+#ifdef CFG_FUNC_DEBUG_EN
+	#define CFG_UART_TX_PORT 				DEBUG_TX_A31
+	#define CFG_UART_BANDRATE   			DEBUG_BAUDRATE_2000000//DEBUG_BAUDRATE_115200
+	#define CFG_FLASHBOOT_DEBUG_EN          ENABLE//ENABLE			
+#endif
+
+//****************************************************************************************
+//                 提示音功能配置
+//说明:
+//    1.烧录工具参见MVs26_SDK\tools\script；
+//    2.提示音功能开启，注意flash中const data提示音数据需要预先烧录，否则不会播放;
+//    3.const data数据开机检查，影响开机速度，主要用于验证。
+//****************************************************************************************
+#define CFG_FUNC_REMIND_SOUND_EN
+#ifdef CFG_FUNC_REMIND_SOUND_EN
+	#define CFG_PARAM_FIXED_REMIND_VOL   	10		//固定提示音音量值,0表示受music vol同步控制
+#endif
+
+//****************************************************************************************
+//                 断点记忆功能配置        
+//****************************************************************************************
+#define CFG_FUNC_BREAKPOINT_EN
+#ifdef CFG_FUNC_BREAKPOINT_EN
+	#define BP_PART_SAVE_TO_NVM			// 断点信息保存到NVM
+	#define BP_SAVE_TO_FLASH			// 断电信息保存到Flash
+	#define FUNC_MATCH_PLAYER_BP		// 获取FS扫描后与播放模式断点信息匹配的文件。文件夹和ID号
+#endif
+
+//****************************************************************************************
+//                            Key 按键相关配置
+//****************************************************************************************
+/**按键beep音功能**/
+//#define  CFG_FUNC_BEEP_EN
+#define CFG_PARA_BEEP_DEFAULT_VOLUME    15//注意:若蓝牙音量同步功能开启后，此值最大为16
+
+/**按键双击功能**/
+#define  CFG_FUNC_DBCLICK_MSG_EN
+
+/**ADC按键**/
+#define CFG_RES_ADC_KEY_SCAN				//在device service 中启用Key扫描ADCKEY
+#if defined(CFG_RES_ADC_KEY_SCAN) || defined(CFG_PARA_WAKEUP_SOURCE_ADCKEY)
+	#define CFG_RES_ADC_KEY_USE				//ADC按键功能 启用
+#endif
+
+/**IR按键**/
+#define CFG_RES_IR_KEY_SCAN				//启用device service Key扫描IRKey
+
+/**编码旋钮按键**/
+//#define	CFG_RES_CODE_KEY_USE
+
+/**GPIO按键**/
+//#define CFG_RES_IO_KEY_SCAN
+
+/**电位器功能选择**/
+//#define CFG_ADC_LEVEL_KEY_EN
+
+
+//****************************************************************************************
+//                            Display 显示配置
+//****************************************************************************************
+//#define  CFG_FUNC_DISPLAY_EN
+#ifdef CFG_FUNC_DISPLAY_EN
+//  #define  DISP_DEV_SLED
+  #define  DISP_DEV_7_LED
+/**8段LED显示操作**/
+/*LED显存刷新需要在Timer1ms中断进行，读写flash操作时会关闭中断*/
+/*所以需要做特殊处理，请关注该宏包含的代码段*/
+/*注意timer中断服务函数和调用到的API必须进入TCM，含调用的所有api，库函数请咨询支持*/
+/*开启此宏，要关注所有使用NVIC_SetPriority 设置为0的代码，避免对应中断调用非TCM代码引起死机复位*/
+#ifdef DISP_DEV_7_LED
+  #define	CFG_FUNC_LED_REFRESH
+#endif
+
+#if defined(DISP_DEV_SLED) && defined(DISP_DEV_7_LED) && defined(LED_IO_TOGGLE)
+   #error Conflict: display setting error //不能同时选择两种显示模式
+#endif
+#endif
+
+//****************************************************************************************
+//				   耳机插拔检测功能选择设置
+//****************************************************************************************
+//#define  CFG_FUNC_DETECT_PHONE_EN                            
+
+//****************************************************************************************
+//				   3线，4线耳机类型检测功能选择设置
+//****************************************************************************************
+//#define  CFG_FUNC_DETECT_MIC_SEG_EN  
+
+//****************************************************************************************
+//                            配置冲突 编译警告
+//****************************************************************************************
+
+#if defined(CFG_FUNC_SHELL_EN) && defined(CFG_USE_SW_UART)
+#error	Conflict: shell  X  SW UART No RX!
+#endif
+
+// 使能自动化测试
+//#define AUTO_TEST_ENABLE
+
+// 使能蓝牙OTA
+// OTA打开自动开启蓝牙SPP
+//#define  CFG_FUNC_BT_OTA_EN
+
+//redmine 任务13199 麦克风产品
+//基于标准SDK更新，暂时不做分支处理
+//#define  VD51_REDMINE_13199
+
+#include "sys_gpio.h"
+
+//************************************************************************************************************
+//dump工具,可以将数据发送到dump工具,用于分析
+//************************************************************************************************************
+//#define CFG_DUMP_DEBUG_EN
+#ifdef CFG_DUMP_DEBUG_EN
+	//UART配置,需要和串口日志打印为不同的UART组
+	#define CFG_DUMP_UART_TX_PORT 				DEBUG_TX_A31
+	#define CFG_DUMP_UART_BANDRATE 				(2000000)
+	#define CFG_DUMP_UART_TX_DMA_CHANNEL		(PERIPHERAL_ID_UART0_TX + 2*GET_DEBUG_GPIO_UARTPORT(CFG_DUMP_UART_TX_PORT))
+#endif
+
+#endif /* APP_CONFIG_H_ */
