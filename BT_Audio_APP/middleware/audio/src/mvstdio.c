@@ -456,7 +456,12 @@ typedef struct _MvFileArray
  * @brief File Array , for fopen using
  */
 static MvFileArray files;
+static mv_fread_callback_t mv_fread_callback = 0;
 
+void mv_fread_call_back_set(mv_fread_callback_t callback)
+{
+	mv_fread_callback = callback;
+}
 /**
  * @brief  Get file handle ID
  * @return  -1 failure, >=0 file id
@@ -542,6 +547,10 @@ uint32_t mv_fread(void *buffer, uint32_t size, uint32_t count, void *fp)
     
     if(FR_OK == f_read((MvFile*)fp,buffer,size*count,&rt_value))
     {
+    	if(mv_fread_callback)
+		{
+			mv_fread_callback((uint8_t *)buffer, count * size);
+		}
         return rt_value/size;
     }
 

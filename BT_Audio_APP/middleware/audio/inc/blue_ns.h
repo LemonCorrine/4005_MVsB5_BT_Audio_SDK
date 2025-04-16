@@ -4,7 +4,7 @@
  * @brief	Noise Suppression for Mono Signals
  *
  * @author	ZHAO Ying (Alfred)
- * @version	v2.1.1
+ * @version	v2.1.2
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************

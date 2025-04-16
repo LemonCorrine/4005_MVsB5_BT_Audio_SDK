@@ -426,7 +426,7 @@ void AudioDAC_SCFMute(DAC_MODULE DACModule, bool MuteL, bool MuteR);
 
 /*
  * @brief  Audio DAC mdac EXT path enable
- * @param  EXTMODE:     DMIXMODE0 = 0,//direct path data sel asdm data
+ * @param  DMIXMODE:    DMIXMODE0 = 0,//direct path data sel asdm data
  *						DMIXMODE3 = 3,//direct path data sel asdm data
  *  					DMIXMODE1 = 1,//direct path data sel i2s0 data
  *  					DMIXMODE2 = 2,//direct path data sel i2s1 data

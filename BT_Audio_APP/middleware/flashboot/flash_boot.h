@@ -1,8 +1,8 @@
 #ifndef __FLASH_BOOT_H__
 #define __FLASH_BOOT_H__
 /*
-版本说明：当前为V5.1.0版本
-日期：2024年5月11日
+版本说明：当前为V5.2.0版本
+日期：2024年7月29日
 */
 #ifdef CFG_APP_CONFIG
 	#include "upgrade.h"
@@ -10,7 +10,15 @@
 	#include "flash_table.h"
 #endif
 
-#define FLASH_BOOT_EN      				1
+#define FLASH_BOOT_NONE			0 //无flashboot
+#define FLASH_BOOT_BASIC		1 //基础版flashboot
+#define FLASH_BOOT_OTA_PRO		2 //Pro版 flashboot
+
+#ifdef CFG_FUNC_BT_OTA_EN
+	#define FLASH_BOOT_EN     	FLASH_BOOT_OTA_PRO		//带OTA功能
+#else
+	#define FLASH_BOOT_EN    	FLASH_BOOT_BASIC
+#endif
 
 //需要和debug.h中定义的GPIO一一对应
 typedef enum __UART_TX
@@ -78,7 +86,11 @@ typedef enum __UART_BAUDRATE
 #define SD_PORT				CHN_MASK_SDCARD1
 #endif
 
-#define UP_PORT				(CHN_MASK_USBCDC + CHN_MASK_UDISK + SD_PORT) //根据应用情况决定打开那些升级接口
+#ifdef CFG_FUNC_BT_OTA_EN
+	#define UP_PORT				(CHN_MASK_USBCDC + CHN_MASK_UDISK + SD_PORT + CHN_MASK_BLE) //根据应用情况决定打开那些升级接口
+#else
+	#define UP_PORT				(CHN_MASK_USBCDC + CHN_MASK_UDISK + SD_PORT) //根据应用情况决定打开那些升级接口
+#endif
 
 typedef enum __UART_UP
 {

@@ -261,10 +261,9 @@ void IdleModeRun(uint16_t msgId)
 		{
 			vTaskDelay(50);
 			//bb reset
-			BtResetAndKill();
+			BtResetAndKill(TRUE);
 		}
-#endif		
-
+#endif
 		vTaskPrioritySet(NULL, MAIN_APP_TASK_SLEEP_PRIO);//设定最高优先级
 		
  		NVIC_DisableIRQ(Timer2_IRQn);
@@ -277,8 +276,9 @@ void IdleModeRun(uint16_t msgId)
 		if(sys_parameter.bt_BackgroundType != BT_BACKGROUND_DISABLE)
 		{
 			WDG_Feed();
-			BtStackServiceStart();
-			WDG_Feed();
+			// BtStackServiceStart();
+            BtPowerOn();
+            WDG_Feed();
 		}
 #endif
 #ifdef CFG_RES_IR_KEY_SCAN

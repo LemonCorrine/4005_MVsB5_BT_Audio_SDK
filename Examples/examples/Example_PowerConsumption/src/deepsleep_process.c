@@ -33,13 +33,15 @@
 #include "fft.h"
 #include "ir.h"
 #include "pwc.h"
-#include "pwm.h"
 #include "can.h"
 #include "reset.h"
 #include "efuse.h"
 #include "spdif.h"
 #include "otg_detect.h"
 #include "spi_flash.h"
+#include "pmu.h"
+#include "adc.h"
+#include "sys.h"
 
 typedef enum
 {
@@ -54,7 +56,6 @@ typedef enum
     WAKEUP_TEST_TIMER5_PWC,
     WAKEUP_TEST_UART1RX,
     WAKEUP_TEST_CAN,
-    WAKEUP_TEST_ONLY_POWERTEST
 } WAKEUP_TEST_SOURCE;
 
 
@@ -115,25 +116,18 @@ void StartTimer5(uint32_t msec)
 void StartTimer5PWCTest()
 {
     TIMER_INDEX TimerIdx = TIMER5;
-    TIMER_INDEX PWMIdx = (TimerIdx == TIMER5 ? TIMER6 : TIMER5);
     uint8_t PolarIdx = PWC_POLARITY_RAISING;
     uint32_t PwcTimeScale = 12000;
-    uint32_t PWMFreqDiv = 12000000;
     PWC_StructInit PWCParam;
-    PWM_StructInit PWMParam;
 
     SetRegBit(0x4002103C, 6); // Timer5 使用RC Clk
     NVIC_SetPriority(Timer5_IRQn, 2);
     NVIC_EnableIRQ(Timer5_IRQn);
     Timer_InterruptFlagClear(TIMER5, UPDATE_INTERRUPT_SRC);
-
     
-    GPIO_RegOneBitSet(GPIO_A_IE, GPIO_INDEX3);
-    PWC_GpioConfig(TIMER5, 3);
-    DBG("PWC INPUT: A3\n");
-
-    PWM_GpioConfig(TIMER6_PWM_A1_A9_A10_A23_A24_A28_B0_B1, 1, PWM_IO_MODE_OUT);
-    DBG("PWM Init OUTPUT: A9\n");
+    GPIO_RegOneBitSet(GPIO_A_IE, GPIO_INDEX4);
+    PWC_GpioConfig(TIMER5, 4);
+    DBG("PWC INPUT: A4\n");
 
     // PWC参数配置
     PWCParam.Polarity = PolarIdx;
@@ -141,16 +135,6 @@ void StartTimer5PWCTest()
     PWCParam.DMAReqEnable = 0;
     PWCParam.TimeScale = PwcTimeScale; // PWC的捕获理论值 = PWMFreqDiv / PwcTimeScale
     PWCParam.FilterTime = 3;
-
-    // PWM参数配置
-    PWMParam.CounterMode = PWM_COUNTER_MODE_UP;
-    PWMParam.OutputType = PWM_OUTPUT_SINGLE_1;
-    PWMParam.DMAReqEnable = 0;
-    PWMParam.FreqDiv = PWMFreqDiv; // 1s
-    PWMParam.Duty = 50;
-
-    PWM_Config(PWMIdx, &PWMParam);
-    PWM_Enable(PWMIdx);
 
     PWC_Config(TimerIdx, &PWCParam);
     Timer_InterrputSrcEnable(TimerIdx, PWC1_CAP_DATA_INTERRUPT_SRC);
@@ -303,28 +287,12 @@ static void SystermGPIOWakeupConfig(PWR_SYSWAKEUP_SOURCE_SEL source,PWR_WAKEUP_G
     }
     else if (gpio == WAKEUP_GPIOC0)
     {
-        PMU_C0GPIOCtrlSet(1, 0, (edge == SYSWAKEUP_SOURCE_POSE_TRIG));
+        PMU_C0GPIOCtrlSet(1, 0, 0, (edge == SYSWAKEUP_SOURCE_POSE_TRIG));
     }
 
     Power_WakeupSourceClear();
 	Power_WakeupSourceSet(source, gpio, edge);
 	Power_WakeupEnable(source);
-
-	NVIC_EnableIRQ(Wakeup_IRQn);
-	NVIC_SetPriority(Wakeup_IRQn, 0);
-	GIE_ENABLE();
-}
-
-//设置单GPIO唤醒源
-static void SystermBT_GPIOWakeupConfig(PWR_SYSWAKEUP_SOURCE_SEL source,PWR_WAKEUP_GPIO_SEL gpio,PWR_SYSWAKEUP_SOURCE_EDGE_SEL edge)
-{
-	GPIO_RegOneBitSet(GPIO_A_IE,   (1 << gpio));
-	GPIO_RegOneBitClear(GPIO_A_OE, (1 << gpio));
-	GPIO_RegOneBitClear(GPIO_A_PU, (1 << gpio));
-	GPIO_RegOneBitSet(GPIO_A_PD, (1 << gpio));
-	Power_BTWakeupSourceClear();
-	Power_BTWakeupSourceSet(source, gpio, edge);
-	Power_BTWakeupEnable(source);
 
 	NVIC_EnableIRQ(Wakeup_IRQn);
 	NVIC_SetPriority(Wakeup_IRQn, 0);
@@ -642,69 +610,69 @@ void SleepMain(uint8_t wakeup_src)
 }
 
 
-// void DeepSleepIOConfig()
-// {
-//     GPIO_PortAModeSet(GPIOA0, 0x0000);
-//     GPIO_PortAModeSet(GPIOA1, 0x0000);
-//     GPIO_PortAModeSet(GPIOA2, 0x0000);
-//     GPIO_PortAModeSet(GPIOA3, 0x0000);
-//     GPIO_PortAModeSet(GPIOA4, 0x0000);
-//     GPIO_PortAModeSet(GPIOA5, 0x0000);
-//     GPIO_PortAModeSet(GPIOA6, 0x0000);
-//     GPIO_PortAModeSet(GPIOA7, 0x0000);
-//     // GPIO_PortAModeSet(GPIOA8, 0x0000);
-//     GPIO_PortAModeSet(GPIOA9, 0x0000);
-//     GPIO_PortAModeSet(GPIOA10, 0x0000);
-//     // GPIO_PortAModeSet(GPIOA11, 0x0000);
-//     // GPIO_PortAModeSet(GPIOA12, 0x0000);
-//     // GPIO_PortAModeSet(GPIOA13, 0x0000);
-//     // GPIO_PortAModeSet(GPIOA14, 0x0000);
-//     GPIO_PortAModeSet(GPIOA15, 0x0000);
-//     GPIO_PortAModeSet(GPIOA16, 0x0000);
-//     GPIO_PortAModeSet(GPIOA17, 0x0000);
-//     GPIO_PortAModeSet(GPIOA18, 0x0000);
-//     GPIO_PortAModeSet(GPIOA19, 0x0000);
-//     GPIO_PortAModeSet(GPIOA20, 0x0000);
-//     GPIO_PortAModeSet(GPIOA21, 0x0000);
-//     GPIO_PortAModeSet(GPIOA22, 0x0000);
-//     GPIO_PortAModeSet(GPIOA23, 0x0000); 
-//     GPIO_PortAModeSet(GPIOA24, 0x0000);
-//     //    GPIO_PortAModeSet(GPIOA25, 0x0000); //default 1:fshc_wp(io) for flash ctrl
-//     //    GPIO_PortAModeSet(GPIOA26, 0x0000); //default 1:fshc_hold(io) for flash ctrl
-//     GPIO_PortAModeSet(GPIOA28, 0x0000);
-//     GPIO_PortAModeSet(GPIOA29, 0x0000);
-//     GPIO_PortAModeSet(GPIOA30, 0x0000);
-//     GPIO_PortAModeSet(GPIOA31, 0x0000);
+void DeepSleepIOConfig()
+{
+    GPIO_PortAModeSet(GPIOA0, 0x0000);
+    GPIO_PortAModeSet(GPIOA1, 0x0000);
+    GPIO_PortAModeSet(GPIOA2, 0x0000);
+    GPIO_PortAModeSet(GPIOA3, 0x0000);
+    GPIO_PortAModeSet(GPIOA4, 0x0000);
+    GPIO_PortAModeSet(GPIOA5, 0x0000);
+    GPIO_PortAModeSet(GPIOA6, 0x0000);
+    GPIO_PortAModeSet(GPIOA7, 0x0000);
+    // GPIO_PortAModeSet(GPIOA8, 0x0000);
+    // GPIO_PortAModeSet(GPIOA9, 0x0000);
+    // GPIO_PortAModeSet(GPIOA10, 0x0000);
+    // GPIO_PortAModeSet(GPIOA11, 0x0000);
+    // GPIO_PortAModeSet(GPIOA12, 0x0000);
+    // GPIO_PortAModeSet(GPIOA13, 0x0000);
+    // GPIO_PortAModeSet(GPIOA14, 0x0000);
+    GPIO_PortAModeSet(GPIOA15, 0x0000);
+    GPIO_PortAModeSet(GPIOA16, 0x0000);
+    GPIO_PortAModeSet(GPIOA17, 0x0000);
+    GPIO_PortAModeSet(GPIOA18, 0x0000);
+    GPIO_PortAModeSet(GPIOA19, 0x0000);
+    GPIO_PortAModeSet(GPIOA20, 0x0000);
+    GPIO_PortAModeSet(GPIOA21, 0x0000);
+    GPIO_PortAModeSet(GPIOA22, 0x0000);
+    GPIO_PortAModeSet(GPIOA23, 0x0000); 
+    GPIO_PortAModeSet(GPIOA24, 0x0000);
+    //    GPIO_PortAModeSet(GPIOA25, 0x0000); //default 1:fshc_wp(io) for flash ctrl
+    //    GPIO_PortAModeSet(GPIOA26, 0x0000); //default 1:fshc_hold(io) for flash ctrl
+    GPIO_PortAModeSet(GPIOA28, 0x0000);
+    GPIO_PortAModeSet(GPIOA29, 0x0000);
+    GPIO_PortAModeSet(GPIOA30, 0x0000);
+    GPIO_PortAModeSet(GPIOA31, 0x0000);
 
-// //    GPIO_PortBModeSet(GPIOB0, 0x000); // B0、B1一般复用为SW下载调试口
-// //    GPIO_PortBModeSet(GPIOB1, 0x000);
-//     GPIO_PortBModeSet(GPIOB2, 0x000);
-//     GPIO_PortBModeSet(GPIOB3, 0x000);
-//     GPIO_PortBModeSet(GPIOB4, 0x000);
-//     GPIO_PortBModeSet(GPIOB5, 0x000);
-//     GPIO_PortBModeSet(GPIOB6, 0x000);
-//     GPIO_PortBModeSet(GPIOB7, 0x000);
-//     GPIO_PortBModeSet(GPIOB8, 0x000);
-//     GPIO_PortBModeSet(GPIOB9, 0x000);
+//    GPIO_PortBModeSet(GPIOB0, 0x000); // B0、B1一般复用为SW下载调试口
+//    GPIO_PortBModeSet(GPIOB1, 0x000);
+    GPIO_PortBModeSet(GPIOB2, 0x000);
+    GPIO_PortBModeSet(GPIOB3, 0x000);
+    GPIO_PortBModeSet(GPIOB4, 0x000);
+    GPIO_PortBModeSet(GPIOB5, 0x000);
+    GPIO_PortBModeSet(GPIOB6, 0x000);
+    GPIO_PortBModeSet(GPIOB7, 0x000);
+    GPIO_PortBModeSet(GPIOB8, 0x000);
+    GPIO_PortBModeSet(GPIOB9, 0x000);
 
-//     GPIO_RegSet(GPIO_A_IE, 0x00000000);
-//     GPIO_RegSet(GPIO_A_OE, 0x00000000);
-//     GPIO_RegSet(GPIO_A_OUTDS0, 0x00000000);
-//     GPIO_RegSet(GPIO_A_OUTDS1, 0x00000000);
-//     GPIO_RegSet(GPIO_A_PD, 0xffffffff); //
-//     GPIO_RegSet(GPIO_A_PU, 0x00000000); //
-//     GPIO_RegSet(GPIO_A_ANA_EN, 0x00000000);
-//     GPIO_RegSet(GPIO_A_PULLDOWN0, 0x00000000);
-//     GPIO_RegSet(GPIO_A_PULLDOWN1, 0x00000000);
+    GPIO_RegSet(GPIO_A_IE, 0x00000000);
+    GPIO_RegSet(GPIO_A_OE, 0x00000000);
+    GPIO_RegSet(GPIO_A_OUTDS0, 0x00000000);
+    GPIO_RegSet(GPIO_A_OUTDS1, 0x00000000);
+    GPIO_RegSet(GPIO_A_PD, 0xffffffff); //
+    GPIO_RegSet(GPIO_A_PU, 0x00000000); //
+    GPIO_RegSet(GPIO_A_ANA_EN, 0x00000000);
+    GPIO_RegSet(GPIO_A_PULLDOWN0, 0x00000000);
+    GPIO_RegSet(GPIO_A_PULLDOWN1, 0x00000000);
 
-//     GPIO_RegSet(GPIO_B_IE, 0x000);
-//     GPIO_RegSet(GPIO_B_OE, 0x000);
-//     GPIO_RegSet(GPIO_B_OUTDS, 0x000);
-//     GPIO_RegSet(GPIO_B_PD, 0x3ff); // B2、B3下拉，B4,B5高阻
-//     GPIO_RegSet(GPIO_B_PU, 0x00); // B0、B1上拉
-//     GPIO_RegSet(GPIO_B_ANA_EN, 0x000);
-//     GPIO_RegSet(GPIO_B_PULLDOWN0, 0x000);
-// }
+    GPIO_RegSet(GPIO_B_IE, 0x000);
+    GPIO_RegSet(GPIO_B_OE, 0x000);
+    GPIO_RegSet(GPIO_B_OUTDS, 0x000);
+    GPIO_RegSet(GPIO_B_PD, 0x3ff); // B2、B3下拉，B4,B5高阻
+    GPIO_RegSet(GPIO_B_PU, 0x00); // B0、B1上拉
+    GPIO_RegSet(GPIO_B_ANA_EN, 0x000);
+    GPIO_RegSet(GPIO_B_PULLDOWN0, 0x000);
+}
 
 extern void SystemClockInit(void);
 
@@ -736,22 +704,18 @@ void Power_GotoDeepsleeping(uint8_t wakeup_src)
     WakeupMain();
 }
 
-//////////测试under-drive下，VDD12电压，与deepsleep的功耗、IO唤醒延迟时间的关系曲线（VDD12需要低到无法唤醒）
 void DeepSleep_Wakeup_Test(uint8_t WakeupSourceSel)
 {
-
+    DeepSleepIOConfig();
     switch(WakeupSourceSel)
 	{
     case WAKEUP_TEST_GPIO:
-		DBG("\n        Wait for %d sec,then Enter DeepSleep_GPIOWakeup_Test                   \n", ENTER_DEEPSLEEP_TEST_SECS);
+		DBG("\n        Wait for %d sec,then Enter DeepSleep_GPIOWakeup_Test                   \n"
+				"A3/B9 NEGETRIG, A4/C0 POSE TRIG\n", ENTER_DEEPSLEEP_TEST_SECS);
         SystermGPIOWakeupConfig(SYSWAKEUP_SOURCE2_GPIO, WAKEUP_GPIOA3, SYSWAKEUP_SOURCE_NEGE_TRIG); // 此处配置GPIO唤醒源GPIOA3,下降沿唤醒，
         SystermGPIOWakeupConfig(SYSWAKEUP_SOURCE3_GPIO, WAKEUP_GPIOA4, SYSWAKEUP_SOURCE_POSE_TRIG); // 此处配置GPIO唤醒源GPIOA4,上升沿唤醒，
         SystermGPIOWakeupConfig(SYSWAKEUP_SOURCE4_GPIO, WAKEUP_GPIOB9, SYSWAKEUP_SOURCE_NEGE_TRIG); // 此处配置GPIO唤醒源GPIOB9,下降沿唤醒，
         SystermGPIOWakeupConfig(SYSWAKEUP_SOURCE5_GPIO, WAKEUP_GPIOC0, SYSWAKEUP_SOURCE_POSE_TRIG); // 此处配置GPIO唤醒源GPIOA3,上升沿唤醒，
-        break;
-
-    case WAKEUP_TEST_ONLY_POWERTEST:
-        DBG("\n Enter power test!\n ");
         break;
 
     case WAKEUP_TEST_ONKEY:
@@ -839,9 +803,10 @@ void DeepSleep_Wakeup_Test(uint8_t WakeupSourceSel)
 }
 
 
-void DeepSleepTest()
+void DeepSleepProc()
 {
 	uint8_t recvBuf = 0;
+    uint8_t WakeupSourceSel = 0;
 
     DBG("\n----------------- DeepSleepTest ------------------\n");
     DBG("Input '1' to enter DeepSleep_GOIOWakeup_Test\n");
@@ -852,64 +817,25 @@ void DeepSleepTest()
     DBG("Input '6' to enter DeepSleep_RTCWakeup_Test\n");
     DBG("Input '7' to enter DeepSleep_IRCmdWakeup_Test\n");
     DBG("Input '8' to enter DeepSleep_Timer5Wakeup_Test\n");
-    DBG("Input '9' to enter DeepSleep_UART1RXWakeup_Test\n");
-    DBG("Input 'A' to enter DeepSleep_CanWakeup_Test\n");
-    DBG("Input 'B' to enter DeepSleep_Timer5 PWC Wakeup_Test\n");
-    DBG("Input 'C' to enter Simple only deepsleep power test\n");
+    DBG("Input '9' to enter DeepSleep_Timer5 PWC Wakeup_Test\n");
+    DBG("Input 'A' to enter DeepSleep_UART1RXWakeup_Test\n");
+    DBG("Input 'B' to enter DeepSleep_CanWakeup_Test\n");
     DBG("----------------- DeepSleepTest ------------------\n");
     while(1)
     {
         UARTS_Recv(UartPort, &recvBuf, 1, 10);
 
-        switch (recvBuf)
+        if(recvBuf >= '1' && recvBuf <= '9')
         {
-        case '1':
-            DeepSleep_Wakeup_Test(WAKEUP_TEST_GPIO);
+            WakeupSourceSel = WAKEUP_TEST_GPIO + (recvBuf - '1');
+            DeepSleep_Wakeup_Test(WakeupSourceSel);
             WakeupSourceGet();
-            break;
-        case '2':
-            DeepSleep_Wakeup_Test(WAKEUP_TEST_ONKEY);
+        }
+        else if(recvBuf >= 'A' && recvBuf <= 'B')
+        {
+            WakeupSourceSel = WAKEUP_TEST_UART1RX + (recvBuf - 'A');
+            DeepSleep_Wakeup_Test(WakeupSourceSel);
             WakeupSourceGet();
-            break;
-        case '3':
-            DeepSleep_Wakeup_Test(WAKEUP_TEST_CHARGEON);
-            WakeupSourceGet();
-            break;
-        case '4':
-            DeepSleep_Wakeup_Test(WAKEUP_TEST_LVD);
-            WakeupSourceGet();
-            break;
-        case '5':
-            DeepSleep_Wakeup_Test(WAKEUP_TEST_UART0RX);
-            WakeupSourceGet();
-            break;
-        case '6':
-            DeepSleep_Wakeup_Test(WAKEUP_TEST_RTC);
-            WakeupSourceGet();
-            break;
-        case '7':
-            DeepSleep_Wakeup_Test(WAKEUP_TEST_IR_CMD);
-            WakeupSourceGet();
-            break;
-        case '8':
-            DeepSleep_Wakeup_Test(WAKEUP_TEST_TIMER5);
-            WakeupSourceGet();
-            break;
-        case '9':
-            DeepSleep_Wakeup_Test(WAKEUP_TEST_UART1RX);
-            WakeupSourceGet();
-            break;
-        case 'A':
-            DeepSleep_Wakeup_Test(WAKEUP_TEST_CAN);
-            WakeupSourceGet();
-            break;
-        case 'B':
-            DeepSleep_Wakeup_Test(WAKEUP_TEST_TIMER5_PWC);
-            WakeupSourceGet();
-            break;
-        case 'C':
-            DeepSleep_Wakeup_Test(WAKEUP_TEST_ONLY_POWERTEST);
-            break;
         }
     }
 }

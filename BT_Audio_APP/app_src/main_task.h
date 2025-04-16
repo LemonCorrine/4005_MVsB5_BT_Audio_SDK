@@ -125,6 +125,9 @@ typedef struct _MainAppContext
 #endif
 
 	uint32_t SoftwareFlag;	// soft flag register
+#ifdef CFG_ADC_LEVEL_KEY_EN
+	int16_t MicVolumeBak;
+#endif
 }MainAppContext;
 
 extern MainAppContext	mainAppCt;

@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_hfp.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.10.1                 
+ * @author  ACPWorkbench: 3.10.10                 
  * @version V1.2.0                                  
- * @Created 2024-07-10T09:59:58                                      
+ * @Created 2024-08-28T15:39:36                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define HFP_ROBOEFFECT_LIB_VER "2.21.1"
+#define HFP_ROBOEFFECT_LIB_VER "2.23.3"
 
 typedef enum _HFP_roboeffect_io_enum
 {
@@ -34,12 +34,14 @@ typedef enum _HFP_roboeffect_io_enum
 
 
 typedef enum _HFP_roboeffect_effect_list_enum{
+
     HFP_silence_detector_mic_ADDR = 0x81,
     HFP_aec0_ADDR,
     HFP_noise_suppressor_blue0_ADDR,
     HFP_mic_EQ_ADDR,
     HFP_mic_drc_ADDR,
     HFP_mic_gain_ADDR,
+    HFP_preGain_ADDR,
     HFP_silence_detector_music_ADDR,
     HFP_music_preEQ_ADDR,
     HFP_music_drc_ADDR,

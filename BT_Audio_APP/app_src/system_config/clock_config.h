@@ -24,7 +24,9 @@
 	#else
 		//usb声卡免晶体模式/需要开启USB声卡功能并且声卡在线
 		#define USB_CRYSTA_FREE_EN
-
+		//如果需要超频，需要配置为48M的整数倍（USB时钟频率为48M）
+		//USB默认5分频，Clock_USBClkDivSet(5);
+		//配置DPLL_FREQ为288M，需要对应配置USB频率：Clock_USBClkDivSet(6);
 		#define	SYS_CORE_DPLL_FREQ			240*1000		//kHZ
 
 		#define SYS_CORE_CLK_SELECT			PLL_CLK_MODE
@@ -47,7 +49,7 @@
 	#define SYS_CORE_CLK_SELECT			APLL_CLK_MODE
 	//Note: USB和UART时钟配置DPLL和APLL必须是同一个时钟,但是UART可以单独选择RC
 	#define SYS_UART_CLK_SELECT			APLL_CLK_MODE
-	#define SYS_USB_CLK_SELECT			//APLL_CLK_MODE
+	#define SYS_USB_CLK_SELECT			APLL_CLK_MODE
 	#define SYS_SPDIF_CLK_SELECT		APLL_CLK_MODE
 
 	//flash 时钟配置，频率必须为APLL_FREQ/DPLL_FREQ整数分频（不大于96M）
@@ -97,6 +99,11 @@
 
 	//音频时钟
 	#define	SYS_AUDIO_CLK_SELECT		APLL_CLK_MODE
+#endif
+
+#if (SYS_FLASH_FREQ_SELECT > 96*1000*1000)
+	//flash时钟频率不能大于96M
+	#error	flash frequency error!!!
 #endif
 
 #endif

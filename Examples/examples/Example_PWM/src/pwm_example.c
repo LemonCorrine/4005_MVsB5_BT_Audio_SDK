@@ -46,7 +46,7 @@ static char GetChar(void)
     uint8_t     ret=0;
     while(ret == 0)
     {
-    	if(UART_Recv(0,&ch, 1,1000) > 0)
+    	if(UART_Recv(1,&ch, 1,1000) > 0)
         {
             ret=1;
         }

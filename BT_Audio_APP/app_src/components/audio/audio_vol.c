@@ -62,6 +62,39 @@ uint8_t gBtAbsVolSetTable[17]={
 	0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38, 0x40, 0x48,
 	0x50, 0x58, 0x60, 0x68, 0x70, 0x78, 0x7f};
 
+
+const int16_t AudioModeDigitalGianTable[][2]=
+{
+	{ModeBtAudioPlay,		0/*dB*/},
+	{ModeUDiskAudioPlay,	0/*dB*/},
+	{ModeUsbDevicePlay,		0/*dB*/},
+	{ModeCardAudioPlay,		0/*dB*/},
+	{ModeLineAudioPlay,		0/*dB*/},
+	{ModeI2SInAudioPlay,	0/*dB*/},
+	{ModeOpticalAudioPlay,	0/*dB*/},
+	{ModeCoaxialAudioPlay,	0/*dB*/},
+};
+//app通路数字预增益处理
+void AudioAPPDigitalGianProcess(SysModeNumber AppMode)
+{
+	uint32_t i;
+	int16_t preGain = 0;
+	extern uint8_t GetEffectControlIndex(AUDIOEFFECT_EFFECT_CONTROL type);
+	uint8_t refresh_addr = GetEffectControlIndex(APPMODE_PREGAIN);
+
+	for(i = 0; i < sizeof(AudioModeDigitalGianTable)/(sizeof(int16_t)*2); i++)
+	{
+		if(AppMode == AudioModeDigitalGianTable[i][0])
+		{
+			preGain = AudioModeDigitalGianTable[i][1] * 100;
+			DBG("CurMode preGain = %d dB\n", AudioModeDigitalGianTable[i][1]);
+		}
+	}
+
+	if(refresh_addr)
+		roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 1, (int16_t *)&preGain);
+}
+
 uint8_t BtAbsVolume2VolLevel(uint8_t absValue)
 {
 	uint8_t i;

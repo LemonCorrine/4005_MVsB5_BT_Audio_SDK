@@ -495,6 +495,12 @@ void SysModeChangeTimeoutProcess(void)
 	{
 		if(gChangeModeTimeOutTimer == 0)
 		{
+			if(SoftFlagGet(SoftFlagMediaModeRead))
+			{
+				APP_DBG("====SoftFlagMediaModeRead === \n");
+				gChangeModeTimeOutTimer = CHANGE_MODE_TIMEOUT_COUNT;
+				return;
+			}
 			osMutexLock(SysModeMutex);
 			SysModeTaskKill();			
 			APP_DBG("create mode task again\n");

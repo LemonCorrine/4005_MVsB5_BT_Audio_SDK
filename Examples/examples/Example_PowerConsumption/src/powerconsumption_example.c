@@ -41,7 +41,7 @@
 extern void __c_init_rom(void);
 uint8_t UartPort = 1;
 
-extern void DeepSleepTest();
+extern void DeepSleepProc();
 
 void UARTLogIOConfig(void)
 {
@@ -51,9 +51,9 @@ void UARTLogIOConfig(void)
     DbgUartInit(UartPort, 2000000, 8, 0, 1);
 }
 
-void DeepsleepPowerConsumptionTest()
+void DeepsleepPowerConsumptionProc()
 {
-    DeepSleepTest();
+    DeepSleepProc();
 }
 
 void SleepPowerConsumptionTest()
@@ -100,24 +100,7 @@ int main(void)
     DBG("|       Build Time: %s %s              |\n", __DATE__, __TIME__);
     DBG("\\-----------------------------------------------------/\n"); 
     DBG("\n");
-    DBG("1. DeepSleep power consumption test\n");
-    // DBG("2. Sleep power consumption test\n");
-    while(1)
-    {
-        if(UARTS_Recv(UartPort, &Key, 1, 100) > 0)
-        {
-            switch (Key)
-            {
-            case '1':
-                DeepsleepPowerConsumptionTest();
-                break;
-            // case '2':
-            //     SleepPowerConsumptionTest();
-            //     break;
-            default:
-                break;
-            }
-        }
-    }
+    DeepsleepPowerConsumptionProc();
+    
     while(1);
 }

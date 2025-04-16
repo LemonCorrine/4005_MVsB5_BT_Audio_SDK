@@ -13,7 +13,7 @@
 #define __ROBOEFFECT_API_H__
 
 /*Roboeffect Library version*/
-#define ROBOEFFECT_LIB_VER "2.22.1"
+#define ROBOEFFECT_LIB_VER "2.23.2"
 
 #include <stdio.h>
 #include <nds32_intrinsic.h>
@@ -112,6 +112,7 @@ typedef enum _roboeffect_effect_type_enum
 	ROBOEFFECT_DYNAMIC_EQ,
 	ROBOEFFECT_VAD,
 	ROBOEFFECT_LR_BALANCER,
+	ROBOEFFECT_HOWLING_SUPPRESSOR_SPECIFIED,
 
 	/*node type below*/
 	ROBOEFFECT_FADER,//
@@ -339,11 +340,23 @@ typedef struct _roboeffect_flashbin_header
 	uint8_t robo_version[4];
 	uint16_t flow_cnt;
 	uint16_t flow_name_len;
+#if 1	
 	uint16_t current_flow_index;
 	uint16_t current_mode_index;
 	uint32_t reverse;
 	char flow_name_ptr[];
+#else
+	uint16_t current_flow_cnt;
+	uint16_t reverse;
+	char flow_name_ptr[];
+#endif
 } roboeffect_flashbin_header;
+
+typedef struct _roboeffect_flashbin_flow_pair
+{
+	uint16_t flow_index;
+	uint16_t param_mode_index;
+} roboeffect_flashbin_flow_pair;
 
 typedef struct _roboeffect_flashbin_param_header
 {

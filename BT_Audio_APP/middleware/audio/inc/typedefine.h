@@ -100,6 +100,8 @@ typedef enum _BufferType
 //    DATA_MODE_STEREO_S          /**< Stereo-S  : two channels, the pcm data save as "S", both low 16bits and high 16bits have data  */
 //}PCM_DATA_MODE;
 
+typedef uint32_t (*mv_mread_callback_t)(void *buffer, uint32_t length);
+
 /**
  * @brief Memory Handle Struct
  */
@@ -109,6 +111,7 @@ typedef struct _MemHandle
     uint32_t   mem_capacity;    /**< memory capacity in bytes       */
     uint32_t   mem_len;         /**< actual memory length in bytes  */    
     uint32_t   p;               /**< current pointer in bytes       */
+    mv_mread_callback_t cb;     /**< read callback      */
 }MemHandle;
 
 /**

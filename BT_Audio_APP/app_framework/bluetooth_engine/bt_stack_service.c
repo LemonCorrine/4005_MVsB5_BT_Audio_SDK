@@ -1162,13 +1162,25 @@ void BT_IntDisable(void)
 /***********************************************************************************
  * BB ƒ£øÈπÿ±’
  **********************************************************************************/
-void BT_ModuleClose(void)
+void BT_ModuleClose(bool power_flag)
 {
 #include "reset.h"
 	Reset_FunctionReset(BTDM_FUNC_SEPA|MDM_FUNC_SEPA);
-//	Clock_Module2Disable(MDM_APLL_CLK_EN|BT32K_CLK_EN|BT_OR_PMU_32K_CLK_EN|PMU_32K_CLK_EN|MDM_DPLL_CLK_EN); //close clock
-//	Clock_Module1Disable(BTDM_HCLK_EN|BTDM_24M_CLK_EN|MDM_PLL_CLK_EN);
-//	Clock_Module3Disable(BTDM_LP_CLK_EN|MDM_12M_CLK_EN|MDM_24M_CLK_EN|MDM_48M_CLK_EN);
+
+	if(!power_flag)
+		return;
+
+	Clock_Module2Disable(MDM_APLL_CLK_EN|BT32K_CLK_EN|BT_OR_PMU_32K_CLK_EN|PMU_32K_CLK_EN|MDM_DPLL_CLK_EN); //close clock
+	Clock_Module1Disable(BTDM_HCLK_EN|BTDM_24M_CLK_EN|MDM_PLL_CLK_EN);
+	Clock_Module3Disable(BTDM_LP_CLK_EN|MDM_12M_CLK_EN|MDM_24M_CLK_EN|MDM_48M_CLK_EN);
+
+#ifdef CFG_IDLE_MODE_DEEP_SLEEP	//”–≈‰÷√deepsleepªΩ–—
+	Clock_Module2Enable(BT_OR_PMU_32K_CLK_EN|PMU_32K_CLK_EN);
+#ifdef CFG_PARA_WAKEUP_SOURCE_IR //”–≈‰÷√IRªΩ–—(IR ±÷”∫ÕBTDM_LP∏¥”√)
+	Clock_Module2Enable(BT32K_CLK_EN);
+	Clock_Module3Enable(BTDM_LP_CLK_EN);
+#endif
+#endif
 }
 
 
@@ -1245,20 +1257,24 @@ static void BtRstStateCheck(void)
 	}
 }
 
-void BtResetAndKill(void)
+extern void BT_RC_CLOSE();
+void BtResetAndKill(bool power_flag)
 {
 	//bb reset
-	RF_PowerDownBySw();
-	WDG_Feed();
-//	rwip_reset();
+	if(power_flag)
+	{
+		RF_PowerDownBySw();
+		BT_RC_CLOSE();
+	}
+    WDG_Feed();
 	BT_IntDisable();
 	WDG_Feed();
 	//Kill bt stack service
 	BtStackServiceKill();
 	WDG_Feed();
 	vTaskDelay(10);
-	RF_PowerDownByHw();
-	BT_ModuleClose();
+	// RF_PowerDownByHw();
+	BT_ModuleClose(power_flag);
 }
 
 /***********************************************************************************
@@ -1287,7 +1303,7 @@ void BtPowerOff(void)
 		//vTaskDelay(500);
 		vTaskDelay(50);
 	}
-	
+
 	if(GetBtDeviceConnState() == BT_DEVICE_CONNECTION_MODE_NONE)
 	{
 		BtDisconnectCtrl(TRUE);
@@ -1306,13 +1322,14 @@ void BtPowerOff(void)
 			break;
 	}
 	
-	BtResetAndKill();
+	BtResetAndKill(FALSE);
 }
 
 void BtPowerOn(void)
 {
 	APP_DBG("[Func]:Bt on\n");
-	vTaskDelay(50);
+    RF_PowerUpBySw();
+    vTaskDelay(50);
 	Clock_Module2Enable(ALL_MODULE2_CLK_SWITCH);
 	vTaskDelay(50);
 

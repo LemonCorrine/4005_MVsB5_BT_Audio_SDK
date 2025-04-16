@@ -84,15 +84,15 @@ void SilenceDectorProcess(void)
 	//根据实际情况进行修改和配置（MIC + MUSIC）
 	int32_t mic_level = -1;
 	int32_t music_level = -1;
-	SilenceDetectorUnit *Param = NULL;
+	param_silence_detector *Param = NULL;
 
 	Param = AudioEffectGetAllParameter(MUSIC_SILENCE_DETECTOR_PARAM);
 	if(Param)
-		music_level = Param->level;
+		music_level = Param->pcm_amplitude;
 
 	Param = AudioEffectGetAllParameter(MIC_SILENCE_DETECTOR_PARAM);
 	if(Param)
-		mic_level = Param->level;
+		mic_level = Param->pcm_amplitude;
 
 	if(mic_level < 0)	//没有检测到MIC通道信号，不做关机处理
 		mic_level = SILENCE_THRESHOLD + 1;
@@ -405,19 +405,19 @@ void MicVolSmoothProcess(void)
 {
 #ifdef CFG_ADC_LEVEL_KEY_EN//def CFG_ADC_LEVEL_KEY_EN
 	//---------mic vol 电位器渐变调节-------------------//
-	if(mainAppCt.MicVolume!= mainAppCt.MicVolumeBak)
+	if(MicVolume!= mainAppCt.MicVolumeBak)
 	{
-		if(mainAppCt.MicVolume > mainAppCt.MicVolumeBak)
+		if(MicVolume > mainAppCt.MicVolumeBak)
 		{
-			mainAppCt.MicVolume--;
+			MicVolume--;
 		}
-		else if(mainAppCt.MicVolume < mainAppCt.MicVolumeBak)
+		else if(MicVolume < mainAppCt.MicVolumeBak)
 		{
-			mainAppCt.MicVolume++;
+			MicVolume++;
 		}
-		mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM] = mainAppCt.MicVolume;
+		mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM] = MicVolume;
 		AudioEffect_SourceGain_Update(MIC_SOURCE_NUM);
-		APP_DBG("MicVolume = %d\n",mainAppCt.MicVolume);
+		APP_DBG("MicVolume = %d\n",MicVolume);
 	}
 //    //-------------bass 电位器渐变调节-----------------------------------------//
 //	if(mainAppCt.MicBassStep !=  mainAppCt.MicBassStepBak)

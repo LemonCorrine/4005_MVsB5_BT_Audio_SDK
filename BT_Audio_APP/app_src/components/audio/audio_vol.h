@@ -19,7 +19,9 @@ extern "C" {
 #endif//__cplusplus
 
 #include "app_config.h"
+#include "mode_task.h"
 
+void AudioAPPDigitalGianProcess(SysModeNumber AppMode);
 bool IsAudioPlayerMute(void);
 void AudioPlayerMenu(void);
 void AudioPlayerMenuCheck(void);

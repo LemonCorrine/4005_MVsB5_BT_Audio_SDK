@@ -702,7 +702,9 @@ void BreakPointSave(uint16_t device_msgId)
 #ifdef CFG_FUNC_MUSIC_EQ_MODE_EN
 			pBpSysInfo->EqMode		 = EqMode;
 #endif	
+#ifdef CFG_FUNC_AUDIOEFFECT_AUTO_GEN_MSG_PROC
 			pBpSysInfo->ReverbStep   = ReverbStep;
+#endif
 #ifdef CFG_FUNC_MIC_TREB_BASS_EN
 			pBpSysInfo->MicBassStep     = MicBassStep;
 			pBpSysInfo->MicTrebStep     = MicTrebStep;

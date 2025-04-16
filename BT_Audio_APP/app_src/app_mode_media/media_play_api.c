@@ -104,6 +104,45 @@ bool FolderExclude_callback(FILINFO *finfo)
 #endif
 	return FALSE;
 }
+
+#ifdef CFG_FUNC_DECRYPT_EN
+#define DECRY_KEY 0xAA //解密秘钥必须和工具使用的秘钥相匹配
+
+void DeCRYPT_CRYPT(uint8_t *buffer, uint32_t len)
+{
+    int i;
+
+	for(i = 0; i < len; i++)
+	{
+		*(uint8_t *)buffer = *(uint8_t *)buffer ^ DECRY_KEY;
+		buffer++;
+	}
+}
+
+void DeCRYPT_Init(int32_t *SongFileType)
+{
+	mv_fread_call_back_set(DeCRYPT_CRYPT);
+	switch(*SongFileType)
+	{
+	case FILE_TYPE_MVB:
+		*SongFileType = MP3_DECODER;
+		break;
+	case FILE_TYPE_MVC:
+		*SongFileType = WAV_DECODER;
+		break;
+	case FILE_TYPE_MVD:
+		*SongFileType = WMA_DECODER;
+		break;
+	case FILE_TYPE_MVF:
+		*SongFileType = FLAC_DECODER;
+		break;
+	default:
+		mv_fread_call_back_set(NULL);
+	}
+}
+
+#endif
+
 void UAndSDDiskUpgradeJudge(void)
 {
 
@@ -839,6 +878,9 @@ bool MediaPlayerDecoderInit(void)
 #endif
 #endif
 	{
+#ifdef CFG_FUNC_DECRYPT_EN
+		DeCRYPT_Init((int32_t*)&SongFileType);
+#endif
 		if(DecoderInit(&gMediaPlayer->PlayerFile,DECODER_MODE_CHANNEL,(int32_t)IO_TYPE_FILE, (int32_t)SongFileType) != RT_SUCCESS)
 		{
 			return FALSE;

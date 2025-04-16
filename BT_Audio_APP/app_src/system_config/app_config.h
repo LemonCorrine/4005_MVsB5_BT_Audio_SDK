@@ -41,7 +41,7 @@
  * 前者是burner烧录时版本，后者是mva版本需关注*/
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(0)
-#define  CFG_SDK_MINOR_VERSION		(6)
+#define  CFG_SDK_MINOR_VERSION		(7)
 #define  CFG_SDK_PATCH_VERSION	    (0)
 
 
@@ -446,6 +446,7 @@
 /**如果支持转换其他语言，需要修改fatfs配置表**/
 #define CFG_FUNC_STRING_CONVERT_EN	// 支持字符编码转换
 
+//#define CFG_FUNC_DECRYPT_EN     //支持加密文件播放功能(加密文件由MVAssistant上位机工具生成)
 /**取消AA55判断**/
 /*fatfs内磁盘系统MBR和DBR扇区结尾有此标记检测，为提高非标类型盘兼容性，可开启此项, 为有效鉴定无效盘，此项默认关闭*/
 //#define	CANCEL_COMMON_SIGNATURE_JUDGMENT
@@ -617,8 +618,11 @@
 	#error 开启CFG_AI_DENOISE_EN 需要同时开启 CFG_DOUBLE_KEY_EN //开启CFG_AI_DENOISE_EN，需要同时开启 CFG_DOUBLE_KEY_EN
 #endif
 
+//开启flashboot，BT_OTA功能
+//#define CFG_FUNC_BT_OTA_EN
+
 #include "sys_gpio.h"
-#include "power_config.h"
+#include "clock_config.h"
 
 //************************************************************************************************************
 //dump工具,可以将数据发送到dump工具,用于分析

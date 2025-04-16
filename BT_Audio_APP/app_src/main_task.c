@@ -174,14 +174,14 @@ static void SysVarInit(void)
 	#endif
 	APP_DBG("EqMode:%d,%d\n", EqMode, pBpSysInfo->EqMode);
 #endif
-
+#ifdef CFG_FUNC_AUDIOEFFECT_AUTO_GEN_MSG_PROC
 	ReverbStep = pBpSysInfo->ReverbStep;
     if((ReverbStep > MAX_MIC_DIG_STEP) || (ReverbStep <= 0))
 	{
     	ReverbStep = MAX_MIC_DIG_STEP;
 	}
 	APP_DBG("ReverbStep:%d,%d\n", ReverbStep, pBpSysInfo->ReverbStep);
-
+#endif
 #ifdef CFG_FUNC_MIC_TREB_BASS_EN
     MicBassStep = pBpSysInfo->MicBassStep;
     if((MicBassStep > MAX_MUSIC_DIG_STEP) || (MicBassStep <= 0))
@@ -603,7 +603,7 @@ static void PublicMsgPross(MessageContext msg)
 
 		case MSG_BTSTACK_BB_ERROR:
 			APP_DBG("bb and bt stack reset\n");
-			BtResetAndKill();
+			BtResetAndKill(FALSE);
 			//reset bb and bt stack
 			BtStackServiceStart();
 
@@ -614,7 +614,6 @@ static void PublicMsgPross(MessageContext msg)
 #ifdef CFG_FUNC_BT_OTA_EN
 		case MSG_BT_START_OTA:
 			APP_DBG("\nMSG_BT_START_OTA\n");
-			BtResetAndKill();
 			start_up_grate(SysResourceBtOTA);
 			break;
 #endif

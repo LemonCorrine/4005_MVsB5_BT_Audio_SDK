@@ -26,7 +26,6 @@
 
 #if BT_SOURCE_SUPPORT
 
-extern void BtPowerOff(void);
 extern uint8_t A2dpSourceDisconnect(void);
 volatile uint32_t gSwitchSourceAndSink = A2DP_SET_SOURCE;
 
