@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_MICUSBAI.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.13.0                 
+ * @author  ACPWorkbench: 3.13.1                 
  * @version V1.2.0                                  
- * @Created 2024-10-28T17:14:31                                      
+ * @Created 2024-11-04T15:13:54                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define MICUSBAI_ROBOEFFECT_LIB_VER "2.25.4"
+#define MICUSBAI_ROBOEFFECT_LIB_VER "2.25.5"
 
 typedef enum _MICUSBAI_roboeffect_io_enum
 {

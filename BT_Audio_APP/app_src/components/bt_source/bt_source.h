@@ -20,7 +20,7 @@ extern uint16_t SbcSourceEncode(void* InBuf, uint16_t InLen);
 extern void SbcSourceSendData(void);
 extern uint16_t GetBtSourceFifoSpaceLength(void);
 
-
+extern void BtSourceReInquiryChack(void);
 extern void BtSourceNameGetChack(void);
 extern uint8_t SetBtSourceDefaultAccessMode(void);
 void BtSourceBtModeInit(void);

@@ -59,14 +59,22 @@ typedef struct _UsbAudio
 extern UsbAudio UsbAudioSpeaker;
 extern UsbAudio UsbAudioMic;
 
-bool OTG_DeviceAudioSendPcCmd(uint8_t Cmd);
+#define AUDIO_VOL_UP      BIT(0)
+#define AUDIO_VOL_DN      BIT(1)
+#define AUDIO_PP          BIT(2)
+#define AUDIO_NEXT        BIT(3)
+#define AUDIO_PREV        BIT(4)
+#define AUDIO_STOP        BIT(5)
+#define AUDIO_FF          BIT(6)
+#define AUDIO_FD          BIT(7)
 
-void PCAudioPP(void);
-void PCAudioNext(void);
-void PCAudioPrev(void);
-void PCAudioStop(void);
-void PCAudioVolUp(void);
-void PCAudioVolDn(void);
+#define AUDIO_REDIAL 	  BIT(8)
+#define AUDIO_HOOK_SWITCH BIT(9)
+#define AUDIO_PHONE_MUTE  BIT(10)
+
+bool OTG_DeviceAudioSendPcCmd(uint16_t Cmd);
+bool OTG_DeviceAudioSendHidKeyDown(uint16_t Cmd);
+bool OTG_DeviceAudioSendHidKeyUp(void);
 
 //pc->chip 从缓存区获取数据
 uint16_t UsbAudioSpeakerDataGet(void *Buffer,uint16_t Len);

@@ -319,29 +319,49 @@ void UsbDevicePlayRun(uint16_t msgId)
 {
 	switch(msgId)
 	{
+		case MSG_HID_KEY1_DOWN:
+			APP_DBG("KEY1_DOWN\n");
+			OTG_DeviceAudioSendHidKeyDown(AUDIO_VOL_UP);
+			break;
+
+		case MSG_HID_KEY2_DOWN:
+			APP_DBG("KEY2_DOWN\n");
+			OTG_DeviceAudioSendHidKeyDown(AUDIO_VOL_DN);
+			break;
+
+		case MSG_HID_KEY3_DOWN:
+			APP_DBG("KEY3_DOWN\n");
+			OTG_DeviceAudioSendHidKeyDown(AUDIO_PP);
+			break;
+
+		case MSG_HID_KEY_UP:
+			APP_DBG("KEY_UP\n");
+			OTG_DeviceAudioSendHidKeyUp();
+			break;
+
 		case MSG_PLAY_PAUSE:
 			APP_DBG("Play Pause\n");
-			PCAudioPP();
+			OTG_DeviceAudioSendPcCmd(AUDIO_PP);
 			break;
 
 		case MSG_PRE:
 			APP_DBG("PRE Song\n");
-			PCAudioPrev();
+			OTG_DeviceAudioSendPcCmd(AUDIO_PREV);
 			break;
 
 		case MSG_NEXT:
 			APP_DBG("next Song\n");
-			PCAudioNext();
+			OTG_DeviceAudioSendPcCmd(AUDIO_NEXT);
 			break;
 
 		case MSG_MUSIC_VOLUP:
 			APP_DBG("VOLUP\n");
-			PCAudioVolUp();
+			OTG_DeviceAudioSendPcCmd(AUDIO_VOL_UP);
 			break;
 
 		case MSG_MUSIC_VOLDOWN:
 			APP_DBG("VOLDOWN\n");
-			PCAudioVolDn();
+			OTG_DeviceAudioSendPcCmd(AUDIO_VOL_DN);
 			break;
 
 		default:

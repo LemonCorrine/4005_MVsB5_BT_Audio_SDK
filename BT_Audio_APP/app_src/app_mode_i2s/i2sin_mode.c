@@ -46,7 +46,7 @@
 
 #define I2SIN_SOURCE_NUM				APP_SOURCE_NUM
 
-#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
+#if (CFG_RES_I2S_MODE == 1)
 volatile uint32_t CurrentSampleRate = 0;
 #endif
 
@@ -218,10 +218,15 @@ bool I2SInPlayResInit(void)
 	}
 #else
 	{//slave
-		if(CFG_PARA_I2S_SAMPLERATE == sampleRate)
-			AudioIOSet.Adapt = STD;//SRA_ONLY;//CLK_ADJUST_ONLY;//
-		else
-			AudioIOSet.Adapt = SRC_SRA;//SRC_ADJUST;//
+//		if(CFG_PARA_I2S_SAMPLERATE == sampleRate)
+//			AudioIOSet.Adapt = STD;//SRA_ONLY;//CLK_ADJUST_ONLY;//
+//		else
+//			AudioIOSet.Adapt = SRC_SRA;//SRC_ADJUST;//
+#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
+		AudioIOSet.Adapt = STD;
+#else
+		AudioIOSet.Adapt = SRC_ADJUST;//SRC_ADJUST for slave in samplerate change
+#endif
 	}
 #endif
 
@@ -329,26 +334,37 @@ bool  I2SInPlayInit(void)
  */
 void I2SInPlayRun(uint16_t msgId)
 {
-#if defined (CFG_RES_AUDIO_SPDIFOUT_EN) && (CFG_RES_I2S_MODE == 1)
-#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
+#if (CFG_RES_I2S_MODE == 1)
 	extern void AudioSpdifOut_SampleRateChange(uint32_t SampleRate);
 	if (I2S_SampleRateCheckInterruptGet(CFG_RES_I2S_MODULE))
 	{
+#if defined (CFG_RES_AUDIO_SPDIFOUT_EN) && defined (CFG_I2S_SLAVE_TO_SPDIFOUT_EN)
 		{
 			Clock_PllLock(225792);
 		}//Add the above actions to make I2S_SampleRateGet right
+#endif
 		CurrentSampleRate = I2S_SampleRateGet(CFG_RES_I2S_MODULE);
-		I2S_SampleRateSet(CFG_RES_I2S_MODULE, CurrentSampleRate);
+//		AudioI2S_SampleRateChange(CFG_RES_I2S_MODULE, CurrentSampleRate);
 		APP_DBG("I2SIn samplerate change to:%ld\n", CurrentSampleRate);
+#if defined (CFG_RES_AUDIO_SPDIFOUT_EN) && defined (CFG_I2S_SLAVE_TO_SPDIFOUT_EN)
 		AudioSpdifOut_SampleRateChange(CurrentSampleRate);
 		SyncModule_Reset();
 
 		extern bool AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel);
 		AudioEffectModeSel(mainAppCt.EffectMode, 1);
+#elif defined (CFG_AUDIO_OUT_AUTO_SAMPLE_RATE_44100_48000)
+		AudioOutSampleRateSet(CurrentSampleRate);
+#endif
+		AudioI2S_SampleRateChange(CFG_RES_I2S_MODULE, CurrentSampleRate);
+		DelayMs(1);
+
+		AudioCoreSourceChange(I2SIN_SOURCE_NUM, 0, CurrentSampleRate);
+#ifdef CFG_RES_AUDIO_I2SOUT_EN
+		AudioCoreSinkChange(AUDIO_I2SOUT_SINK_NUM, 0, CurrentSampleRate);
+#endif
 
 		I2S_SampleRateCheckInterruptClr(CFG_RES_I2S_MODULE);
 	}
-#endif
 #endif
 
 	switch(msgId)//警告：在此段代码，禁止新增提示音插播位置。

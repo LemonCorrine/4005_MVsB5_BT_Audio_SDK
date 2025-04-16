@@ -137,7 +137,7 @@ void BtStack_BtAvrcpConProcess(void)
 	static uint32_t btAvrcpConCnt = 0;
 
 	btAvrcpConCnt++;
-	if(btAvrcpConCnt>=200) //200ms
+	if(btAvrcpConCnt>=1500) //1500ms//时间太短,会导致部分手机音量同步功能不生效
 	{
 		btAvrcpConCnt=0;
 		if((btManager.btLinked_env[btAvrcpConIndex].a2dpState >= BT_A2DP_STATE_CONNECTED)
@@ -450,6 +450,11 @@ static void CheckBtEventTimer(void)
 
 #if	BT_SOURCE_SUPPORT
 	BtSourceNameGetChack();
+
+#ifdef SOURCE_AUTO_INQUIRY_AND_CONNECT
+	BtSourceReInquiryChack();
+#endif
+
 #endif
 
 }
@@ -836,7 +841,13 @@ static void BtStackServiceEntrance(void * param)
 	BTStackMemAlloc(BT_STACK_MEM_SIZE, gBtHostStackMemHeap, 0);
 
 	APP_DBG("BtStackServiceEntrance.\n");
-	
+
+#if BT_SOURCE_SUPPORT
+#ifdef SOURCE_AUTO_INQUIRY_AND_CONNECT
+	QuiryDelayTimerSet(5000);
+#endif
+#endif
+
 #if (BT_SUPPORT)
 	//BR/EDR init
 	if(!BtStackInit())
@@ -862,6 +873,14 @@ static void BtStackServiceEntrance(void * param)
 	//BtMidMessageSend(MSG_BT_MID_STATE_FAST_ENABLE, 0);
 	if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_DISABLE)
 		BtStackServiceMsgSend(MSG_BTSTACK_RUN_START);
+
+#if BT_SOURCE_SUPPORT
+	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
+	{
+		BtConnectCtrl();//sink->source时，增加一次回连
+	}
+#endif
+
 	while(1)
 	{
 		MessageRecv(btStackServiceCt->msgHandle, &msgRecv, 1);

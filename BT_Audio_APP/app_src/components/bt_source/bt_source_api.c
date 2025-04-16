@@ -33,13 +33,16 @@ static uint8_t BtSourceGetNameCnt = 0;
 
 void SetBtSinkSourceRole(uint32_t role)
 {
-	BTHciDisconnectCmd(btManager.btDdbLastAddr);
+	BTHciDisconnectCmd(&btManager.btDdbLastAddr);
 	vTaskDelay(50);
-	gSwitchSourceAndSink=role;
+	//gSwitchSourceAndSink=role;
+	BtSourceInquiryStop();
 	BtPowerOff();
 	vTaskDelay(10);
 	Clock_Module2Enable(ALL_MODULE2_CLK_SWITCH);
 	vTaskDelay(50);
+
+	gSwitchSourceAndSink=role;
 	BtStackServiceStart();
 }
 
@@ -212,15 +215,23 @@ void BtSourcePublicMsgPross(uint32_t msgID)
 			A2dpSourceDisconnect();
 		}
 		break;
-	case MSG_BT_SOURFE_CONNECT:
+	case MSG_BT_SOURCE_CONNECT:
 		{
-			APP_DBG("MSG_BT_SOURFE_CONNECT\n");
+			APP_DBG("MSG_BT_SOURCE_CONNECT\n");
 		}
 		break;
 
 	case MSG_BT_SOURCE_SINK_SWITCH:
 		{
 			APP_DBG("MSG_BT_SOURCE_SINK_SWITCH\n");
+			if(gSwitchSourceAndSink == A2DP_SET_SINK)
+			{
+				SetBtSinkSourceRole(A2DP_SET_SOURCE);
+			}
+			else
+			{
+				SetBtSinkSourceRole(A2DP_SET_SINK);
+			}
 		}
 		break;
 
@@ -242,5 +253,36 @@ void BtSourcePublicMsgPross(uint32_t msgID)
 #endif
 	}
 }
+
+#ifdef SOURCE_AUTO_INQUIRY_AND_CONNECT
+TIMER QuiryDelayTimer;
+
+void QuiryDelayTimerSet(uint32_t timeout)
+{
+	TimeOutSet(&QuiryDelayTimer,timeout);
+}
+
+void BtSourceReInquiryChack(void)
+{
+	extern uint8_t gBtSourceInquiryStart;
+	if(!gBtSourceInquiryStart && btManager.btReconnectTimer.timerFlag == TIMER_UNUSED)
+	{
+		if(IsTimeOut(&QuiryDelayTimer))
+		{
+			TimeOutSet(&QuiryDelayTimer,3000);
+			if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
+			{
+				APP_DBG("BtSourceReInquiryChack Inquiry\n");
+				SendQuiryCommand();
+			}
+		}
+	}
+	else
+	{
+		TimeOutSet(&QuiryDelayTimer,3000);
+	}
+}
+#endif
+
 
 #endif

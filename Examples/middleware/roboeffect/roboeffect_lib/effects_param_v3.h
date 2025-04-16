@@ -5,8 +5,8 @@
 #include "type.h"
 
 /*
-	Roboeffect Version: 2.25.4
-	Audio Effect Lib Version: 2.45.4
+	Roboeffect Version: 2.25.5
+	Audio Effect Lib Version: 2.45.5
 	Protocol Version: 0.4.0
 */
 typedef struct _param_auto_tune
@@ -15,10 +15,6 @@ typedef struct _param_auto_tune
 	int16_t snap;
 	int16_t pitch_accuracy;
 }param_auto_tune;
-
-typedef struct _param_dc_blocker
-{
-}param_dc_blocker;
 
 typedef struct _param_drc
 {
@@ -540,10 +536,6 @@ typedef struct _param_beamforming
 	int16_t signal_or_noise;
 }param_beamforming;
 
-typedef struct _param_virtual_surround_2ch
-{
-}param_virtual_surround_2ch;
-
 typedef struct _param_robot_tone
 {
 	int16_t step_size;
@@ -651,18 +643,6 @@ typedef struct _param_fader
 	int16_t status;
 }param_fader;
 
-typedef struct _param_downmix_2to1
-{
-}param_downmix_2to1;
-
-typedef struct _param_upmix_1to2
-{
-}param_upmix_1to2;
-
-typedef struct _param_channel_combiner
-{
-}param_channel_combiner;
-
 typedef struct _param_channel_selector
 {
 	int16_t selected_channel;
@@ -681,10 +661,6 @@ typedef enum _AUTO_TUNE_PARAMS_ENUM
 	INDEX_AUTO_TUNE_SNAP = 1,
 	INDEX_AUTO_TUNE_PITCH_ACCURACY = 2,
 }AUTO_TUNE_PARAMS_ENUM;
-
-//typedef enum _DC_BLOCKER_PARAMS_ENUM
-//{
-//}DC_BLOCKER_PARAMS_ENUM;
 
 typedef enum _DRC_PARAMS_ENUM
 {
@@ -1206,10 +1182,6 @@ typedef enum _BEAMFORMING_PARAMS_ENUM
 	INDEX_BEAMFORMING_SIGNAL_OR_NOISE = 9,
 }BEAMFORMING_PARAMS_ENUM;
 
-//typedef enum _VIRTUAL_SURROUND_2CH_PARAMS_ENUM
-//{
-//}VIRTUAL_SURROUND_2CH_PARAMS_ENUM;
-
 typedef enum _ROBOT_TONE_PARAMS_ENUM
 {
 	INDEX_ROBOT_TONE_STEP_SIZE = 0,
@@ -1316,18 +1288,6 @@ typedef enum _FADER_PARAMS_ENUM
 	INDEX_FADER_TRIGGER = 1,
 	INDEX_FADER_STATUS = 2,
 }FADER_PARAMS_ENUM;
-
-//typedef enum _DOWNMIX_2TO1_PARAMS_ENUM
-//{
-//}DOWNMIX_2TO1_PARAMS_ENUM;
-
-//typedef enum _UPMIX_1TO2_PARAMS_ENUM
-//{
-//}UPMIX_1TO2_PARAMS_ENUM;
-
-//typedef enum _CHANNEL_COMBINER_PARAMS_ENUM
-//{
-//}CHANNEL_COMBINER_PARAMS_ENUM;
 
 typedef enum _CHANNEL_SELECTOR_PARAMS_ENUM
 {

@@ -69,6 +69,6 @@ void BtPowerOn(void);
 
 
 void SetBtSinkSourceRole(uint32_t role);
-
+void QuiryDelayTimerSet(uint32_t timeout);
 #endif //__BT_STACK_SERVICE_H__
 

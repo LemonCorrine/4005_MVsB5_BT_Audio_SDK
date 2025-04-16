@@ -13,7 +13,7 @@
 #define __ROBOEFFECT_API_H__
 
 /*Roboeffect Library version*/
-#define ROBOEFFECT_LIB_VER "2.25.4"
+#define ROBOEFFECT_LIB_VER "2.25.5"
 
 #include <stdio.h>
 #include <nds32_intrinsic.h>
@@ -265,6 +265,7 @@ typedef struct _roboeffect_effect_steps_table
 	const roboeffect_io_unit *src_unit;
 	const roboeffect_io_unit *des_unit;
 	const uint32_t *step;
+	const char *io_name_table;
 } roboeffect_effect_steps_table;
 
 typedef struct _roboeffect_exec_effect_info
@@ -304,21 +305,21 @@ typedef bool (*roboeffect_effect_init_func)(void *node);
 typedef bool (*roboeffect_effect_config_func)(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);//can be all param(param_num=0xff) or only ONE param(param_num=1)
 typedef int32_t (*roboeffect_effect_memory_size_func)(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
 
-/*********************************************flashbin start*********************************************************/
-#define FLASHBIN_LEN_WIDTH (4)
-#define FLASHBIN_SUBTYPE_WIDTH (4)
-#define FLASHBIN_NAME_WIDTH (32)
+/*********************************************rodata start*********************************************************/
+#define RODATA_LEN_WIDTH (4)
+#define RODATA_SUBTYPE_WIDTH (4)
+#define RODATA_NAME_WIDTH (32)
 
 #define PARAM_SUB_TYPE(index) ((0x01 << 8) | (index))
 #define PRESET_SUB_TYPE(index) ((0x02 << 8) | (index))
 
-#define FLASHBIN_MAGIC_NUM (0xA55AB44B)
+#define RODATA_MAGIC_NUM (0xA55AB44B)
 
-#define FLASHBIN_VER_H 0
-#define FLASHBIN_VER_M 3
-#define FLASHBIN_VER_L 0
+#define RODATA_VER_H 0
+#define RODATA_VER_M 3
+#define RODATA_VER_L 0
 
-typedef enum _roboeffect_flashbin_sub_type
+typedef enum _roboeffect_rodata_sub_type
 {
 	ROBO_FB_SUBTYPE_SCRIPT = 0x00,
 	ROBO_FB_SUBTYPE_EFFECTS_LIST,
@@ -329,11 +330,12 @@ typedef enum _roboeffect_flashbin_sub_type
 	ROBO_FB_SUBTYPE_FLOW_INFO,
 	ROBO_FB_SUBTYPE_PARAMS_MODE_INFO,
 	ROBO_FB_SUBTYPE_PRESET_INFO,
+	ROBO_FB_SUBTYPE_IO_NAME,
 
-} roboeffect_flashbin_sub_type;
+} roboeffect_rodata_sub_type;
 
 #pragma pack(1)
-typedef struct _roboeffect_flashbin_header
+typedef struct _roboeffect_rodata_header
 {
 	char id_char[4];
 	uint32_t total_length;
@@ -351,33 +353,33 @@ typedef struct _roboeffect_flashbin_header
 	uint16_t reverse;
 	char flow_name_ptr[];
 #endif
-} roboeffect_flashbin_header;
+} roboeffect_rodata_header;
 
-typedef struct _roboeffect_flashbin_flow_pair
+typedef struct _roboeffect_rodata_flow_pair
 {
 	uint16_t flow_index;
 	uint16_t param_mode_index;
-} roboeffect_flashbin_flow_pair;
+} roboeffect_rodata_flow_pair;
 
-typedef struct _roboeffect_flashbin_param_header
+typedef struct _roboeffect_rodata_param_header
 {
 	uint32_t effect_param_len;
 	uint32_t codec_param_len;
 	uint32_t name_len;
 
 	char name[];
-} roboeffect_flashbin_param_header;
+} roboeffect_rodata_param_header;
 
 #pragma pack()
 
 #define GET_EFFECT_PARAM_RAW(v) \
-	((uint8_t*)v + sizeof(roboeffect_flashbin_param_header) + (v->name_len))
+	((uint8_t*)v + sizeof(roboeffect_rodata_param_header) + (v->name_len))
 
 #define GET_CODEC_PARAM_RAW(v) \
-	((uint8_t*)v + sizeof(roboeffect_flashbin_param_header) + (v->name_len) + (v->effect_param_len))
+	((uint8_t*)v + sizeof(roboeffect_rodata_param_header) + (v->name_len) + (v->effect_param_len))
 
 
-/*********************************************flashbin end*********************************************************/
+/*********************************************rodata end*********************************************************/
 
 typedef struct _roboeffect_effect_property_struct
 {
@@ -649,6 +651,7 @@ void* roboeffect_user_defined_malloc(void *node, uint32_t size);
  * @return ROBOEFFECT_ERROR_CODE.
  */
 ROBOEFFECT_ERROR_CODE roboeffect_user_defined_get_info(void *node, roboeffect_user_defined_effect_info *info);
+
 
 #endif/*__ROBOEFFECT_API_H__*/
 

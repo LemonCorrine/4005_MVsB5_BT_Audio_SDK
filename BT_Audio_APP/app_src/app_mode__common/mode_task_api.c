@@ -194,7 +194,7 @@ void AudioOutSampleRateSet(uint32_t SampleRate)
 	gCtrlVars.HwCt.DAC0Ct.dac_mclk_source = Clock_AudioMclkGet(AUDIO_DAC0);
 #endif
 
-#ifdef CFG_RES_AUDIO_I2SOUT_EN
+#if defined CFG_RES_AUDIO_I2SOUT_EN && (CFG_RES_I2S_MODE == 0)
 	AudioI2S_SampleRateChange(CFG_RES_I2S_MODULE,SampleRate);
 	if(CFG_RES_I2S_MODULE == I2S0_MODULE)
 		gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source = Clock_AudioMclkGet(AUDIO_I2S0);
@@ -416,7 +416,9 @@ bool AudioEffectInit()
 	//After effect init done, AudioCore know what frame size should be set.
 	AudioCoreFrameSizeSet(DefaultNet, roboeffect_estimate_frame_size(AudioEffect.cur_effect_para->user_effect_list, AudioEffect.user_effect_parameters));
 
+#ifdef  CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN
 	roboeffect_prot_init();
+#endif
 	return TRUE;
 }
 
@@ -664,9 +666,9 @@ bool ModeCommonInit(void)
 		else
 			AudioIOSet.Adapt = SRC_ONLY;
 #else//slave
-		if(CFG_PARA_I2S_SAMPLERATE == sampleRate)
-			AudioIOSet.Adapt = STD;//SRA_ONLY;//CLK_ADJUST_ONLY;
-		else
+//		if(CFG_PARA_I2S_SAMPLERATE == sampleRate)
+//			AudioIOSet.Adapt = STD;//SRA_ONLY;//CLK_ADJUST_ONLY;
+//		else
 			AudioIOSet.Adapt = SRC_ONLY;//SRC_SRA;//SRC_ADJUST;
 #endif
 		AudioIOSet.Sync = TRUE;//I2S slave 时候如果master没有接，有可能会导致DAC也不出声音。
@@ -1260,8 +1262,11 @@ bool AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 		}
 #endif
 #if CFG_RES_MIC_SELECT
+		AudioADC_Disable(ADC1_MODULE);
 		DMA_ChannelDisable(PERIPHERAL_ID_AUDIO_ADC1_RX);
 		DMA_CircularFIFOClear(PERIPHERAL_ID_AUDIO_ADC1_RX);
+		AudioADC_Enable(ADC1_MODULE);
+		AudioADC_LREnable(ADC1_MODULE, 1, 1);
 		DMA_ChannelEnable(PERIPHERAL_ID_AUDIO_ADC1_RX);
 #endif
 

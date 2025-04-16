@@ -4,7 +4,7 @@
  * @brief	LC3+ codec
  *
  * @author	
- * @version	v1.4.1
+ * @version	v1.4.2
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************

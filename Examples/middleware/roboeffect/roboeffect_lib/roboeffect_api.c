@@ -577,8 +577,8 @@ char *effect_lib_version_return(void)
 __attribute__((section(".robo_property")))
 const uint8_t effect_property_for_display[] = {
 0x00, 0x04, 0x00, //protocol@0.4.0
-0x02, 0x19, 0x04, //roboeffect_library@2.25.4
-0x02, 0x2D, 0x04, //audio_effect_library@2.45.4
+0x02, 0x19, 0x05, //roboeffect_library@2.25.5
+0x02, 0x2D, 0x05, //audio_effect_library@2.45.5
 ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN, //number of total inner effects
 (ROBOEFFECT_TOTAL_MAX-ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN), //number of total 3rd party effects
 /*****auto_tune*****/
@@ -2424,7 +2424,7 @@ ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN, //number of total inner effects
 /*****virtual_bass end*****/
 /*****voice_changer*****/
 0x4B, 0x00, //item len=75
-0x01, 0x06, 0x03, //voice_changer@1.6.3
+0x01, 0x07, 0x00, //voice_changer@1.7.0
 0x0D, //effect name length
 0x76, 0x6F, 0x69, 0x63, 0x65, 0x5F, 0x63, 0x68, 0x61, 0x6E, 0x67, 0x65, 0x72, 
 0x00, //effect category

@@ -135,6 +135,29 @@ void BtAvrcpCallback(BT_AVRCP_CALLBACK_EVENT event, BT_AVRCP_CALLBACK_PARAMS * p
 
 #if (BT_AVRCP_VOLUME_SYNC  | (BT_SOURCE_SUPPORT))
 			case BT_STACK_EVENT_AVRCP_PANEL_RELEASE:
+
+#if BT_SOURCE_SUPPORT
+				switch(param->params.panelKey)
+				{
+					case AVRCP_REV_PLAY:
+						APP_DBG("AVRCP_STATE: AVRCP_REV_PLAY \n");
+						extern void BtSourcePlay(void);
+						BtSourcePlay();
+						break;
+					case AVRCP_REV_PAUSE:
+						APP_DBG("AVRCP_STATE: AVRCP_REV_PAUSE \n");
+						extern void BtSourceStop(void);
+						BtSourceStop();
+						break;
+					case AVRCP_REV_PRE:
+						APP_DBG("AVRCP_STATE: AVRCP_REV_PRE \n");
+						break;
+					case AVRCP_REV_NEXT:
+						APP_DBG("AVRCP_STATE: AVRCP_REV_NEXT \n");
+						break;
+				}
+#endif
+
 				BtMidMessageSend(MSG_BT_MID_AVRCP_PANEL_KEY, (uint8_t)param->params.panelKey);
 			break;
 #endif		

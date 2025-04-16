@@ -363,33 +363,75 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 	}
 	else if (buf[0] == V3_PACKAGE_TYPE_EFFECT_NAME)
 	{
-		uint8_t index,len = 0;
-		AUDIOEFFECT_EFFECT_PARA *para;
-		for (index = 0; index < GetEffectModeParaCount(); index++)
-		{
-			para = GetCurSameEffectModeAudioPara(index);
-			memcpy(&tx_buf[7 + len + 1], para->user_effect_name, strlen((char *)para->user_effect_name));
-			len += strlen((char *)para->user_effect_name);
-//			APP_DBG("effect_name:%s, len:%d\n", para->user_effect_name, len);
-			tx_buf[7 + len + 1] = 0x3b;//';'
-			len += 1;//';'
-		}
-		len -= 1;
-
 		temp[0] = 0xA5;
 		temp[1] = 0x5A;
 		temp[2] = 0x80;
-		temp[3] = len + 5;//len including EOM
-		temp[4] = 0x00;//package id
-		temp[5] = 0xFF;
-		temp[6] = 0x00;
-		temp[7] = V3_PACKAGE_TYPE_EFFECT_NAME;//type
+		//len later
+		temp[4] = package_id;
 
-		temp[7 + len + 1] = 0x01;//EOM
-		temp[7 + len + 2] = 0x16;
-		Communication_Effect_Send(temp, 7 + len + 3);
+		if(package_id == 0)//first package
+		{
 
-		package_id = 0;
+			uint16_t len;
+			total_len = GetEffectNameTotalLen() + GetEffectModeParaCount() - 1;
+
+			remain_len = total_len;//init remain_len
+			if(remain_len >= STREAM_CLIPS_LEN)
+				len = STREAM_CLIPS_LEN;
+			else
+				len = remain_len;
+
+			temp[3] = len + 5;
+			temp[5] = 0xFF;
+			temp[6] = 0x00;
+			temp[7] = V3_PACKAGE_TYPE_EFFECT_NAME;//type
+
+			GetEffectNameCurPackageforCommunication(0 , &temp[8]);
+
+			remain_len -= len;
+
+			if(remain_len > 0)
+			{
+				temp[8 + len] = 0x00;//EOM
+				package_id ++;
+			}
+			else
+			{
+				temp[8 + len] = 0x01;//EOM
+				package_id = 0;
+			}
+			temp[8 + len + 1] = 0x16;
+
+			Communication_Effect_Send(temp, temp[3] + 5);
+		}
+		else
+		{
+			uint16_t len;
+			total_len = GetEffectNameTotalLen() + GetEffectModeParaCount() - 1;
+			if(remain_len >= STREAM_CLIPS_LEN)
+				len = STREAM_CLIPS_LEN;
+			else
+				len = remain_len;
+
+			temp[3] = len + 3;
+			GetEffectNameCurPackageforCommunication(total_len - remain_len , &temp[6]);
+
+			remain_len -= len;
+
+			if(remain_len > 0)
+			{
+				temp[6 + len] = 0x00;//EOM
+				package_id ++;
+			}
+			else
+			{
+				temp[6 + len] = 0x01;//EOM
+				package_id = 0;
+			}
+			temp[6 + len + 1] = 0x16;
+
+			Communication_Effect_Send(temp, temp[3] + 5);
+		}
 	}
 	else if (buf[0] == V3_PACKAGE_TYPE_EFFECT_ID)
 	{
@@ -656,6 +698,7 @@ void Comm_ADC0_0x04(uint8_t * buf)
 		case 8://adc0 mclk src
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 			memcpy(&gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source, &buf[1], 2);
+	        gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source = gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source;
 	        Clock_AudioMclkSel(AUDIO_ADC0, gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source);
 #endif
 		    break;
@@ -838,6 +881,7 @@ void Comm_ADC1_0x07(uint8_t * buf)
 		case 8://adc1 mclk src
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 			memcpy(&gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source, &buf[1], 2);
+	        gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source = gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source;
 	        Clock_AudioMclkSel(AUDIO_ADC1, gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source);
 #endif
 		    break;
@@ -1101,6 +1145,7 @@ void Comm_DAC0_0x09(uint8_t * buf)
         case 13:///dac0 mclk source
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 			memcpy(&gCtrlVars.HwCt.DAC0Ct.dac_mclk_source, &buf[1], 2);
+	        gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source = gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source;
 	        Clock_AudioMclkSel(DAC0, gCtrlVars.HwCt.DAC0Ct.dac_mclk_source);
 #endif
 		default:
@@ -1165,6 +1210,7 @@ void Comm_I2S0_0x0B(uint8_t * buf)
 		case 3:///I2S0 mclk source
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 			memcpy(&gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source, &buf[1], 2);
+	        gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source = gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source;
 			Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
 #endif
 			break;
@@ -1237,6 +1283,7 @@ void Comm_I2S1_0x0C(uint8_t * buf)
 		case 3:///I2S1 mclk source
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 			memcpy(&gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source, &buf[1], 2);
+	        gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source = gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source;
 			Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
 #endif
 			break;

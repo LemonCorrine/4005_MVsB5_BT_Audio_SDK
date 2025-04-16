@@ -9,6 +9,7 @@
 #include "bt_config.h"
 #include "breakpoint.h"
 #include "auto_gen_msg_process.h"
+#include "communication.h"
 
 typedef enum
 {
@@ -320,4 +321,75 @@ uint8_t GetEffectControlIndex(AUDIOEFFECT_EFFECT_CONTROL type)
 	}
 
 	return 0;
+}
+
+uint32_t GetEffectNameTotalLen()
+{
+	uint8_t  index = 0;
+	uint32_t len   = 0;
+	AUDIOEFFECT_EFFECT_PARA *para;
+	for (index = 0; index < GetEffectModeParaCount(); index++)
+	{
+		para = GetCurSameEffectModeAudioPara(index);
+		len += strlen((char *)para->user_effect_name);
+	}
+	return len;
+}
+
+void GetEffectNameCurPackageforCommunication(uint32_t done_len, uint8_t *p)
+{
+	uint8_t index, name_len = 0;
+	uint32_t data_len = 0;
+	AUDIOEFFECT_EFFECT_PARA *para;
+	for (index = 0; index < GetEffectModeParaCount(); index++)
+	{
+		para = GetCurSameEffectModeAudioPara(index);
+		data_len += strlen((char *)para->user_effect_name);
+		if(data_len >= done_len)
+		{
+			//Get the ParaIndex and len which no send in previous package
+			name_len = (data_len - done_len);
+			data_len = 0;
+			break;
+		}
+		data_len += 1;
+	}
+	for (; index < GetEffectModeParaCount(); index++)
+	{
+		para = GetCurSameEffectModeAudioPara(index);
+		name_len = name_len ? name_len:strlen((char *)para->user_effect_name);
+		if(index == (GetEffectModeParaCount() - 1))
+		{
+			//final name no need ';'
+			if((data_len + name_len) <= STREAM_CLIPS_LEN)
+			{
+				memcpy(p + data_len, (char *)(para->user_effect_name) + (strlen((char *)para->user_effect_name) - name_len), name_len);
+				data_len += name_len;
+			}
+			else
+			{
+				memcpy(p + data_len, (char *)(para->user_effect_name), (STREAM_CLIPS_LEN - data_len));
+				data_len += (STREAM_CLIPS_LEN - data_len);
+				return;
+			}
+		}
+		else
+		{
+			if((data_len + name_len) <= STREAM_CLIPS_LEN)
+			{
+				memcpy(p + data_len, (char *)(para->user_effect_name) + (strlen((char *)para->user_effect_name) - name_len), name_len);
+				data_len += name_len;
+				memset(p + data_len, ';', 1);
+				data_len += 1;
+			}
+			else
+			{
+				memcpy(p + data_len, (char *)(para->user_effect_name), (STREAM_CLIPS_LEN - data_len));
+				data_len += (STREAM_CLIPS_LEN - data_len);
+				return;
+			}
+		}
+		name_len = 0;
+	}
+	return;
 }

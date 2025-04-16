@@ -15,26 +15,21 @@ static uint8_t I2s0_MasterMode = 0;
 static uint8_t I2s1_MasterMode = 0;
 static I2S_DATA_LENGTH I2s0_WordLength = 0;
 static I2S_DATA_LENGTH I2s1_WordLength = 0;
+extern uint8_t mclkFreqNum;
 
 void AudioI2S_Init(I2S_MODULE Module, I2SParamCt *ct)
 {
-	uint8_t mclkFreqNum = ct->SampleRate > 48000 ? 4:1;
 #ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
-	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ * 4);
-	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ * 4);
+	mclkFreqNum = 4;
+	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ * mclkFreqNum);
+	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ * mclkFreqNum);
 
-	if(AUDIO_PLL_CLK1_FREQ * 4 > 12288000) //audio clk设置了高频率，分频 N=1
-		I2S_MclkFreqSet(Module, AUDIO_PLL_CLK1_FREQ * 4, AUDIO_PLL_CLK2_FREQ * 4, 1); //mclk_frequency/(N+1)
-	else
-		I2S_MclkFreqSet(Module, AUDIO_PLL_CLK1_FREQ * 4, AUDIO_PLL_CLK2_FREQ * 4, 0);
+	I2S_MclkFreqSet(Module,AUDIO_PLL_CLK1_FREQ * mclkFreqNum,AUDIO_PLL_CLK2_FREQ * mclkFreqNum, mclkFreqNum - 1);
 #else
 	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ * mclkFreqNum);
 	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ * mclkFreqNum);
 
-	if(AUDIO_PLL_CLK1_FREQ > 12288000) //audio clk设置了高频率，分频 N=1
-		I2S_MclkFreqSet(Module,AUDIO_PLL_CLK1_FREQ * mclkFreqNum,AUDIO_PLL_CLK2_FREQ * mclkFreqNum, mclkFreqNum - 1); //mclk_frequency/(N+1)
-	else
-		I2S_MclkFreqSet(Module,AUDIO_PLL_CLK1_FREQ * mclkFreqNum,AUDIO_PLL_CLK2_FREQ * mclkFreqNum, mclkFreqNum - 1);
+	I2S_MclkFreqSet(Module,AUDIO_PLL_CLK1_FREQ * mclkFreqNum,AUDIO_PLL_CLK2_FREQ * mclkFreqNum, mclkFreqNum - 1);
 #endif
 
 	//tx
@@ -328,13 +323,10 @@ uint16_t AudioI2S1_TX_DataLenGet(void)
 
 void AudioI2S_SampleRateChange(I2S_MODULE Module,uint32_t SampleRate)
 {
-	uint8_t mclkFreqNum = SampleRate > 48000 ? 4:1;
 	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ * mclkFreqNum);
 	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ * mclkFreqNum);
-	if(AUDIO_PLL_CLK1_FREQ > 12288000) //audio clk设置了高频率，分频 N=1
-		I2S_MclkFreqSet(Module,AUDIO_PLL_CLK1_FREQ * mclkFreqNum,AUDIO_PLL_CLK2_FREQ * mclkFreqNum, mclkFreqNum - 1); //mclk_frequency/(N+1)
-	else
-		I2S_MclkFreqSet(Module,AUDIO_PLL_CLK1_FREQ * mclkFreqNum,AUDIO_PLL_CLK2_FREQ * mclkFreqNum, mclkFreqNum - 1);
+
+	I2S_MclkFreqSet(Module,AUDIO_PLL_CLK1_FREQ * mclkFreqNum,AUDIO_PLL_CLK2_FREQ * mclkFreqNum, mclkFreqNum - 1);
 
 	if(Module == I2S0_MODULE)
     {

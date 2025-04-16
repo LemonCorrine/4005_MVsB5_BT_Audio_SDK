@@ -1,12 +1,12 @@
 /***************************************************
  * @file    user_effect_flow_hfp.c                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.13.0                  
+ * @author  ACPWorkbench: 3.13.1                  
  * @version V1.2.0                                 
  * @graphics: hfp   
- * @Effect Version: 2.45.4
- * @RoboEffect Version: 2.25.4
- * @Created 2024-10-24T10:34:27                                      
+ * @Effect Version: 2.45.5
+ * @RoboEffect Version: 2.25.5
+ * @Created 2024-11-04T15:13:28                                      
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
 
@@ -84,7 +84,7 @@ static const roboeffect_exec_effect_info user_effects_hfp[] = {
 roboeffect_effect_list_info user_effect_list_hfp = {
     HFP_COUNT_ADDR - 0x81, //count      
     16000, //sample rate
-    256, //framse size
+    256, //frame size
     user_effects_hfp,
 };
 static const roboeffect_io_unit source_unit_hfp[] = {
@@ -127,19 +127,13 @@ uint32_t get_user_effects_script_len_hfp(void)
 char *parameter_group_name_hfp[1] = { "Hfp" };
 
 const unsigned char user_effect_parameters_hfp_Hfp[] = {
-0xa6, 0x01, /*total data length*/
-0x02, 0x2d, 0x04, /*Effect Version*/
+0x89, 0x01, /*total data length*/
+0x02, 0x2d, 0x05, /*Effect Version*/
 
-0x02, 0x19, 0x04, /* Roboeffect Version*/
+0x02, 0x19, 0x05, /* Roboeffect Version*/
 
-0x1e, 0x00, /*3rd part data total length  */
-0x02, /*number of 3rd part items*/
-0x0a, /* ai_denoise name length*/
-0x01, 0x02, 0x00, /* effect version*/
-0x61, 0x69, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x69, 0x73, 0x65, /* ai_denoise*/
-0x0b, /* simple_gain name length*/
-0x01, 0x00, 0x00, /* effect version*/
-0x73, 0x69, 0x6d, 0x70, 0x6c, 0x65, 0x5f, 0x67, 0x61, 0x69, 0x6e, /* simple_gain*/
+0x01, 0x00, /*3rd part data total length  */
+0x00, /*number of 3rd part items*/
 0x81, /*silence_detector_mic*/
 0x03,/*length*/
 0x01, /*enable*/
@@ -400,7 +394,7 @@ const unsigned char user_module_parameters_hfp_Hfp[] = {
 0x00, 0x00, /*pga_mic_show*/
 0x00, 0x00, /*pga_mic_mode*/
 0x01, 0x00, /*pga_mic_enable*/
-0x09, 0x00, /*pga_mic_gain*/
+0x12, 0x00, /*pga_mic_gain*/
 
 0x07, /*ADC1_DIGITAL_CONTROL*/
 0x14, /*length*/

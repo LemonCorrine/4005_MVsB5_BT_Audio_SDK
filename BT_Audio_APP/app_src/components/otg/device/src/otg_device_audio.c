@@ -40,57 +40,36 @@ UsbAudio UsbAudioSpeaker;
 UsbAudio UsbAudioMic;
 
 uint8_t iso_buf[PCM_LEN_MAX*4/3];
-
+uint8_t AudioCmd[3] = {1,0,0};
 /////////////////////////////////////////
 /**
  * @brief  USB声卡模式下，发送反向控制命令
  * @param  Cmd 反向控制命令
  * @return 1-成功，0-失败
  */
-#define AUDIO_STOP        BIT(7) 
-#define AUDIO_PP          BIT(6) 
-
-#define AUDIO_MUTE        BIT(4)
-
-#define AUDIO_NEXT        BIT(2) 
-#define AUDIO_PREV        BIT(3) 
-
-#define AUDIO_VOL_UP      BIT(0) 
-#define AUDIO_VOL_DN      BIT(1)
-
 /////////////////////////
-void PCAudioStop(void)
+bool OTG_DeviceAudioSendPcCmd(uint16_t Cmd)
 {
-	OTG_DeviceAudioSendPcCmd(AUDIO_STOP);
+	AudioCmd[1] = Cmd;
+	AudioCmd[2] = Cmd >> 8;
+	OTG_DeviceInterruptSend(0x01,AudioCmd, 3,1000);
+	AudioCmd[1] = 0;
+	AudioCmd[2] = 0;
+	OTG_DeviceInterruptSend(0x01,AudioCmd, 3,1000);
+	return TRUE;
 }
-void PCAudioPP(void)
+bool OTG_DeviceAudioSendHidKeyDown(uint16_t Cmd)
 {
-	OTG_DeviceAudioSendPcCmd(AUDIO_PP);
+	AudioCmd[1] = Cmd;
+	AudioCmd[2] = Cmd >> 8;
+	OTG_DeviceInterruptSend(0x01,AudioCmd, 3,1000);
+	return TRUE;
 }
-void PCAudioNext(void)
+bool OTG_DeviceAudioSendHidKeyUp(void)
 {
-	OTG_DeviceAudioSendPcCmd(AUDIO_NEXT);
-}
-void PCAudioPrev(void)
-{
-	OTG_DeviceAudioSendPcCmd(AUDIO_PREV);
-}
-
-void PCAudioVolUp(void)
-{
-	OTG_DeviceAudioSendPcCmd(AUDIO_VOL_UP);
-}
-
-void PCAudioVolDn(void)
-{
-	OTG_DeviceAudioSendPcCmd(AUDIO_VOL_DN);
-}
-
-bool OTG_DeviceAudioSendPcCmd(uint8_t Cmd)
-{
-	OTG_DeviceInterruptSend(0x01,&Cmd, 1,1000);
-	Cmd = 0;
-	OTG_DeviceInterruptSend(0x01,&Cmd, 1,1000);
+	AudioCmd[1] = 0;
+	AudioCmd[2] = 0;
+	OTG_DeviceInterruptSend(0x01,AudioCmd, 3,1000);
 	return TRUE;
 }
 //////////////////////////////////////////////////audio core api/////////////////////////////////////////////////////
