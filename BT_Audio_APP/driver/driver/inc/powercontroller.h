@@ -147,12 +147,14 @@ typedef enum _PWR_LDO11_LVL_SEL
     PWD_LDO11_LVL_1V15,     // 1.15V
     PWD_LDO11_LVL_1V18,     // 1.18V
     PWD_LDO11_LVL_1V20,     // 1.20V
-    PWD_LDO11_LVL_MAX       // 请不要用这个值配置！！！仅用来做有效性判断，实际配置请用PWD_LDO11_LVL_0V95~PWD_LDO11_LVL_1V20
+    PWD_LDO11_LVL_1V22,     // 1.22V
+    PWD_LDO11_LVL_1V25,     // 1.25V
+    PWD_LDO11_LVL_MAX       // 请不要用这个值配置！！！仅用来做有效性判断，实际配置请用PWD_LDO11_LVL_0V95~PWD_LDO11_LVL_1V25
 } PWR_LDO11_LVL_SEL;
 
 /**
  * @brief  Config LDO11D voltage
- * @param  uint8_t value: 0-0.95V 1-1.00V 2-1.05V 3-1.10V 4-1.15V 5-1.18V 6-1.20V >6:1.20V
+ * @param  uint8_t value: 0-0.95V 1-1.00V 2-1.05V 3-1.10V 4-1.15V 5-1.18V 6-1.20V, 7-1.22V, 8-1.25V >8:1.25V
  * @return void
  * @note   none
  */
@@ -363,25 +365,15 @@ void Power_LDO33AConfigHighCurrentLimit(uint8_t OCSel_val);
  * @brief  ldo_switch_to_dcdc, 切换到DCDC模式，配置电压
  * @param  trim_cfg: 0-1.9V;1-1.8;2-1.7V;3-1.6V;4-1.5V;5-1.4V;6-1.3V
  * @return void
- * @note   默认是一类电感，若需配置二类电感，调用ldo_switch_to_dcdc_ext接口
+ * @note
+ *          DCDC电感选型： 负载最大电流150mA选择一类电感，负载最大电流100mA选择一类或二类电感
+ *          一类电感： 4.7uH，Isat>360mA，DCR<0.3Ω，Irms>220mA，S.R.F>10MHz
+ *          二类电感： 4.7uH,360mA>Isat>200mA，L0>2uH @ 400mA ,DCR<0.3Ω，Irms>220mA，S.R.F>15MHz
  *          注意：
  *           1.不支持DCDC的芯片型号请勿调用该接口，否则会导致芯片因无法正常供电而无法工作！
  *           2.切换到DCDC需要每次开机都调用该接口，芯片将从LDO切换到DCDC工作模式，若后续需要调整DCDC电压，请调用Power_DCDCConfig()接口。
  */
 void ldo_switch_to_dcdc(uint8_t trim_cfg);
-
-/**
- * @brief  ldo_switch_to_dcdc_ext，切换到DCDC模式，配置电压和电感类型
- * @param  trim_cfg: 0-1.9V;1-1.8;2-1.7V;3-1.6V;4-1.5V;5-1.4V;6-1.3V
- * @param  inductor_type: 0-一类电感;1-二类电感 >1:默认为一类电感
- *          一类电感： 4.7uH，Isat>360mA，DCR<0.3Ω，Irms>220mA，S.R.F>10MHz
- *          二类电感： 4.7uH,360mA>Isat>200mA，L0>2uH @ 400mA ,DCR<0.3Ω，Irms>220mA，S.R.F>15MHz
- * @return void
- * @note   注意：
- *           1.不支持DCDC的芯片型号请勿调用该接口，否则会导致芯片因无法正常供电而无法工作！
- *           2.切换到DCDC需要每次开机都调用该接口，芯片将从LDO切换到DCDC工作模式，若后续需要调整DCDC电压，请调用Power_DCDCConfig()接口。
- */
-void ldo_switch_to_dcdc_ext(uint8_t trim_cfg, uint8_t inductor_type);
 
 /**
  * @brief  Config LDO16D voltage

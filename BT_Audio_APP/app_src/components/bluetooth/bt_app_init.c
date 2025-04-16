@@ -591,6 +591,13 @@ bool BtStackInit(void)
 
 	//stackParams.btDeviceFlag = ( BT_LINK_DEV_NUM | (BT_TWS_SUPPORT<<2) );
 	stackParams.btDeviceFlag = BT_LINK_DEV_NUM;
+
+#ifdef BT_PROFILE_BQB_ENABLE
+	stackParams.BQBTestFlag = 1;
+#else
+	stackParams.BQBTestFlag = 0;
+#endif
+
 	retInit = BTStackRunInit(&stackParams);
 	if(retInit != 0)
 	{

@@ -532,6 +532,8 @@ typedef struct _BtStackParams
 #endif
 	
 	uint8_t				btDeviceFlag;//蓝牙当前应用场景：bit0:单手机		bit1:双手机		bit2:TWS
+
+	uint8_t				BQBTestFlag;//bqb认证标志
 }BtStackParams;
 
 
@@ -683,6 +685,11 @@ void BTStatckSetPageTimeOutValue(uint16_t TimeOutValueInMs);
 #define BT_DISCON_REASON_LOCAL_DIS		2
 #define BT_DISCON_REASON_LINKLOSS		3
 uint32_t GetBtDisconReason(void);
+
+
+
+void BTBqbAvdtpSmgSet(unsigned char value);
+void BTBqbAvdtpSmgBI38CSet(unsigned char value);
 
 #endif
 

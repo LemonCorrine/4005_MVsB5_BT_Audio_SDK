@@ -16,7 +16,7 @@
 #include "type.h"
 #include "chip_config.h"
 #include "spi_flash.h"
-
+#include "debug.h"
 //************************************************************************************************************
 //    本系统默认开启2个系统全局宏，在IDE工程配置(Build Settings-Compiler-Symbols)，此处用于提醒
 //*CFG_APP_CONFIG 和 FUNC_OS_EN*/
@@ -42,7 +42,7 @@
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(0)
 #define  CFG_SDK_MINOR_VERSION		(8)
-#define  CFG_SDK_PATCH_VERSION	    (0)
+#define  CFG_SDK_PATCH_VERSION	    (1)
 
 
 //****************************************************************************************
@@ -311,6 +311,14 @@
 	#define CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN//在线调音
 	#ifdef CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN
 		#define  CFG_COMMUNICATION_BY_USB			//在线调音硬件接口USB HID
+//		#define  CFG_COMMUNICATION_BY_UART   		//UART 在线调音，注意DMA资源是否足够
+		#ifdef CFG_COMMUNICATION_BY_UART
+			#define CFG_FUNC_COMMUNICATION_RX_PORT 			DEBUG_RX_A0		//需要和打印配置成不同的UART
+			#define CFG_FUNC_COMMUNICATION_TX_PORT 			DEBUG_TX_A1
+			#define CFG_FUNC_COMMUNICATION_UART_BAUDRATE 	DEBUG_BAUDRATE_115200
+			#define	CFG_FUNC_COMMUNICATION_RX_DMA_PORT		PERIPHERAL_ID_UART0_RX
+			#define	CFG_FUNC_COMMUNICATION_TX_DMA_PORT		PERIPHERAL_ID_UART0_TX
+		#endif
 		#define  CFG_COMMUNICATION_CRYPTO						(0)////调音通讯加密=1 调音通讯不加密=0
 		#define  CFG_COMMUNICATION_PASSWORD                     0x11223344//////四字节的长度密码
 	#endif
@@ -489,7 +497,6 @@
 //注意： DEBUG打开后，会增大mic通路的delay，不需要DEBUG调试代码时，建议关闭掉！
 //		SHELL功能需要开启 UART DEBUG功能
 //****************************************************************************************
-#include "debug.h"
 #define CFG_FUNC_DEBUG_EN
 //#define CFG_FUNC_USBDEBUG_EN
 #ifdef CFG_FUNC_DEBUG_EN

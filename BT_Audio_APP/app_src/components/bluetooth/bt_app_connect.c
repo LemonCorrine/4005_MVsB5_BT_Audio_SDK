@@ -71,6 +71,10 @@ void BtDisconnectCtrl(bool OnlyDisconnect)
 {
 	uint8_t i;
 
+#ifdef BT_PROFILE_BQB_ENABLE
+	BTDisconnect(0);
+#endif
+
 	if(OnlyDisconnect)
 	{
 		//直接断开，不判断条件,不终止回连行为

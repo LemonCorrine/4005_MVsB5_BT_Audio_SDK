@@ -233,7 +233,9 @@ void BtLinkStateConnect(uint8_t flag, uint8_t index)
 		BtDdb_UpLastPorfile(btManager.btLinked_env[index].btLinkedProfile);
 		return ;
 	}
-
+#ifdef BT_PROFILE_BQB_ENABLE
+	if(!btManager.btLinked_env[index].btLinkState
+#else
 	if(((!btManager.btLinked_env[index].btLinkState)
 		&&((btManager.btLinked_env[index].a2dpState >= BT_A2DP_STATE_CONNECTED)
 #if	BT_SOURCE_SUPPORT		
@@ -245,6 +247,7 @@ void BtLinkStateConnect(uint8_t flag, uint8_t index)
 		/*&& (btManager.btLinked_env[index].hfpState >= BT_HFP_STATE_CONNECTED)*/
 #endif
 		|| (flag)
+#endif//BT_PROFILE_BQB_ENABLE
 		)
 	{
 		btManager.btLinkState = 1;

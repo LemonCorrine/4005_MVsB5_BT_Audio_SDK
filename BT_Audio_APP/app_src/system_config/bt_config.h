@@ -50,6 +50,8 @@
  *****************************************************************/
 //#define BT_SNIFF_ENABLE			//sniff功能开关
 
+//#define BT_PROFILE_BQB_ENABLE		//BQB认证开关
+
 /*****************************************************************
  * 蓝牙名称注意事项:
  * 1.蓝牙名称支持中文,需要使用URL编码,开启bt_name.h,屏蔽此文件下的BT_NAME定义
@@ -171,6 +173,13 @@ enum
 //#define BT_AUDIO_AAC_ENABLE		//AAC解码开关
 //Note1:开启AAC,需要同步开启解码器类型USE_AAC_DECODER(app_config.h)
 //Note2:目前双手机配置跟AAC解码不能同时打开
+#if defined(BT_PROFILE_BQB_ENABLE) && !defined(BT_AUDIO_AAC_ENABLE)
+	#define BT_AUDIO_AAC_ENABLE
+#endif
+
+#if defined(BT_AUDIO_AAC_ENABLE) && !defined(USE_AAC_DECODER)
+	#define USE_AAC_DECODER
+#endif
 #if (defined(BT_AUDIO_AAC_ENABLE) && defined(BT_MULTI_LINK_SUPPORT))
 #error Conflict: BT_AUDIO_AAC_ENABLE and BT_MULTI_LINK_SUPPORT setting error
 #endif

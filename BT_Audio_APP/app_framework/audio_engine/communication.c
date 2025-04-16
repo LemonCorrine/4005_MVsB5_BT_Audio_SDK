@@ -25,6 +25,9 @@
 #include "ctrlvars.h"
 #include "main_task.h"
 #include "user_effect_parameter.h"
+#ifdef BT_PROFILE_BQB_ENABLE
+#include "bt_bqb_test.h"
+#endif
 
 #ifdef CFG_FUNC_USBDEBUG_EN
 bool hid_tx_buf_is_used = 0;
@@ -80,6 +83,9 @@ static int32_t comm_ret_sample_rate_enum(uint32_t samplerate)
 
 void HIDUsb_Rx(uint8_t *buf,uint16_t len)
 {
+#ifdef BT_PROFILE_BQB_ENABLE
+	UsbLoadBQBCmd(len, buf);
+#endif
 	roboeffect_prot_parse_big_block(buf, len);
 }
 
@@ -90,6 +96,9 @@ void Communication_Effect_Send(uint8_t *buf, uint32_t len)
 	hid_tx_buf_is_used = 1;
 #endif
 	memcpy(hid_tx_buf, buf, 256);
+#endif
+#ifdef CFG_COMMUNICATION_BY_UART
+	DMA_CircularDataPut(CFG_FUNC_COMMUNICATION_TX_DMA_PORT, buf, len);
 #endif
 }
 
@@ -1469,6 +1478,64 @@ void Communication_Effect_0xff(uint8_t *buf, uint32_t len)
 	tx_buf[7] = 0x16;
 	Communication_Effect_Send(tx_buf, 8);
 }
+
+#ifdef CFG_COMMUNICATION_BY_UART
+#define ROBO_UART_BUF_MAX_LEN 512
+uint8_t robo_uart_recv_buf[ROBO_UART_BUF_MAX_LEN] = {0};
+MemHandle uart_recv_handle;
+
+static uint8_t uart_tx_buf[512];
+static uint8_t uart_rx_buf[512];
+static uint8_t s_rx_buf[512];
+static uint8_t uart_buf[4096];
+void uart_data_init(void)
+{
+
+	if(GET_DEBUG_GPIO_PORT(CFG_FUNC_COMMUNICATION_RX_PORT) == DEBUG_GPIO_PORT_A)
+		GPIO_PortAModeSet(GET_DEBUG_GPIO_PIN(CFG_FUNC_COMMUNICATION_RX_PORT), GET_DEBUG_GPIO_MODE(CFG_FUNC_COMMUNICATION_RX_PORT));
+	else
+		GPIO_PortBModeSet(GET_DEBUG_GPIO_PIN(CFG_FUNC_COMMUNICATION_RX_PORT), GET_DEBUG_GPIO_MODE(CFG_FUNC_COMMUNICATION_RX_PORT));
+
+	if(GET_DEBUG_GPIO_PORT(CFG_FUNC_COMMUNICATION_TX_PORT) == DEBUG_GPIO_PORT_A)
+		GPIO_PortAModeSet(GET_DEBUG_GPIO_PIN(CFG_FUNC_COMMUNICATION_TX_PORT), GET_DEBUG_GPIO_MODE(CFG_FUNC_COMMUNICATION_TX_PORT));
+	else
+		GPIO_PortBModeSet(GET_DEBUG_GPIO_PIN(CFG_FUNC_COMMUNICATION_TX_PORT), GET_DEBUG_GPIO_MODE(CFG_FUNC_COMMUNICATION_TX_PORT));
+
+	UARTS_Init(GET_DEBUG_GPIO_UARTPORT(CFG_FUNC_COMMUNICATION_TX_PORT), CFG_FUNC_COMMUNICATION_UART_BAUDRATE, 8, 0, 1);
+
+	UART_IOCtl(GET_DEBUG_GPIO_UARTPORT(CFG_FUNC_COMMUNICATION_TX_PORT), UART_IOCTL_DMA_TX_EN, 1);
+	UART_IOCtl(GET_DEBUG_GPIO_UARTPORT(CFG_FUNC_COMMUNICATION_TX_PORT), UART_IOCTL_DMA_RX_EN, 1);
+
+	DMA_CircularConfig(CFG_FUNC_COMMUNICATION_RX_DMA_PORT, sizeof(uart_tx_buf)/2, uart_rx_buf, sizeof(uart_tx_buf));
+	DMA_CircularConfig(CFG_FUNC_COMMUNICATION_TX_DMA_PORT, sizeof(uart_tx_buf)/2, uart_tx_buf, sizeof(uart_tx_buf));
+	DMA_ChannelEnable(CFG_FUNC_COMMUNICATION_RX_DMA_PORT);
+	DMA_ChannelEnable(CFG_FUNC_COMMUNICATION_TX_DMA_PORT);
+
+	mv_mopen(&uart_recv_handle, robo_uart_recv_buf, ROBO_UART_BUF_MAX_LEN - 1, NULL);
+}
+
+void uart_data_entry(void)
+{
+	uint32_t len;
+	uint8_t rxdata;
+
+	if(DMA_CircularDataLenGet(CFG_FUNC_COMMUNICATION_RX_DMA_PORT) > 0)
+	{
+		memset(uart_buf, 0x00, sizeof(uart_buf));
+		DMA_CircularDataGet(CFG_FUNC_COMMUNICATION_RX_DMA_PORT, uart_buf, 1);
+		rxdata = uart_buf[0];
+		mv_mwrite(&rxdata, 1, 1, &uart_recv_handle);
+	}
+
+	len = mv_msize(&uart_recv_handle);
+	if(len > 0)
+	{
+//		DBG("read: %d\n", len);
+		mv_mread(s_rx_buf, 1, len, &uart_recv_handle);
+		roboeffect_prot_parse_big_block(s_rx_buf, len);
+	}
+}
+#endif
 
 void Communication_Effect_Config(uint8_t Control, uint8_t *buf, uint32_t len)
 {
