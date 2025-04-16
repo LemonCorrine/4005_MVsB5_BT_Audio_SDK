@@ -36,7 +36,14 @@ void AudioDAC_Init(DACParamCt *ct, uint32_t SampleRate, uint16_t BitWidth, void 
     AudioDAC_ScrambleEnable(DAC0);
     AudioDAC_ScrambleModeSet(DAC0, POS_NEG);
     AudioDAC_DsmOutdisModeSet(DAC0, 1);
-    AudioDAC_DsmOptimizeSet();
+	if(SampleRate<= 48000)
+	{
+		AudioDAC_DsmOriginSet();
+	}
+	else
+	{
+		AudioDAC_DsmOptimizeSet();
+	}
 	AudioDAC_ZeroNumSet(DAC0, 7);
     if(BitWidth == 16)
     {
@@ -96,6 +103,14 @@ void AudioDAC0_SampleRateChange(uint32_t SampleRate)
 		Clock_AudioMclkSel(DAC0, PLL_CLOCK2);
 	}
 	AudioDAC_SampleRateSet(DAC0, SampleRate);
+	if(SampleRate<= 48000)
+	{
+		AudioDAC_DsmOriginSet();
+	}
+	else
+	{
+		AudioDAC_DsmOptimizeSet();
+	}
 }
 
 uint16_t AudioDAC0_DataSpaceLenGet(void)

@@ -398,7 +398,7 @@ void ConfigBtBbParams(BtBbParams *params)
 	
 	//params->bbSniffNotify = NULL;
 
-	SetRfTxPwrMaxLevel(sys_parameter.bt_TxPowerLevel, sys_parameter.bt_PagePowerLevel);
+//	SetRfTxPwrMaxLevel(sys_parameter.bt_TxPowerLevel, sys_parameter.bt_PagePowerLevel);
 
 	BtSetLinkSupervisionTimeout(BT_LSTO_DFT);
 }
@@ -589,6 +589,8 @@ bool BtStackInit(void)
 
 	ConfigBtStackParams(&stackParams);
 
+	//stackParams.btDeviceFlag = ( BT_LINK_DEV_NUM | (BT_TWS_SUPPORT<<2) );
+	stackParams.btDeviceFlag = BT_LINK_DEV_NUM;
 	retInit = BTStackRunInit(&stackParams);
 	if(retInit != 0)
 	{

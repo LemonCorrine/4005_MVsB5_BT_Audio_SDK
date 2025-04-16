@@ -226,6 +226,12 @@ void AudioDAC_ZeroNumSet(DAC_MODULE DACModule,uint8_t sel);
 void AudioDAC_DsmOptimizeSet(void);
 
 /**
+ * @brief  Use original DSM
+ * @return NONE
+ */
+void AudioDAC_DsmOriginSet(void);
+
+/**
  * @brief  Audio DAC dither pow set
  * @param  DACModule which AudioDAC you will use
  * @param  DitherPow you will set this value to dither pow

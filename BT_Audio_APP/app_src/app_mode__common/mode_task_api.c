@@ -35,11 +35,11 @@
 #endif
 
 #ifdef CFG_FUNC_I2S_MIX_MODE
-extern bool I2S_MixInit(void);
+extern bool I2S_MixInit(bool hf_mode_flag);
 extern bool I2S_MixDeinit(void);
 #endif
 #ifdef CFG_FUNC_I2S_MIX2_MODE
-extern bool I2S_Mix2Init(void);
+extern bool I2S_Mix2Init(bool hf_mode_flag);
 extern bool I2S_Mix2Deinit(void);
 #endif
 #ifdef CFG_FUNC_LINEIN_MIX_MODE
@@ -776,13 +776,13 @@ bool ModeCommonInit(void)
 #endif
 
 #ifdef CFG_FUNC_I2S_MIX_MODE
-	if(!I2S_MixInit())
+	if(!I2S_MixInit(FALSE))
 	{
 		return FALSE;
 	}
 #endif
 #ifdef CFG_FUNC_I2S_MIX2_MODE
-	if(!I2S_Mix2Init())
+	if(!I2S_Mix2Init(FALSE))
 	{
 		return FALSE;
 	}
@@ -1114,6 +1114,21 @@ bool AudioIoCommonForHfp(uint16_t gain)
 #endif
 	}
 	AudioCoreSinkEnable(AUDIO_DAC0_SINK_NUM);
+#endif
+
+#ifdef CFG_FUNC_I2S_MIX_MODE
+	if(!I2S_MixInit(TRUE))
+	{
+		return FALSE;
+	}
+#endif
+
+
+#ifdef CFG_FUNC_I2S_MIX2_MODE
+	if(!I2S_Mix2Init(TRUE))
+	{
+		return FALSE;
+	}
 #endif
 
 #ifdef CFG_RES_AUDIO_I2SOUT_EN
