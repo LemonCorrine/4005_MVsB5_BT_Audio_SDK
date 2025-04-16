@@ -26,6 +26,27 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 --------------------------------------------------------------------------------------
 版本历史：（采用倒序排列，最新版置顶）
 
+
+2024-6-25【0.1.30  build @ Jun 25 2024 19:12:11】
+size:379,158  bytes
+更新内容：
+	1、根据定义，Read_ModuleSwitch_Status（）返回值有调整
+	2、添加void Clock_HOSCMosCapSet(uint32_t XICap, uint32_t XOCap) API
+
+------------------------------
+2024-6-11【0.1.29  build @ Jun 11 2024 14:11:38】
+size:378,922  bytes
+更新内容：
+	1、优化Chip_Init驱动电流的参数,修改默认频偏组合
+
+------------------------------
+2024-5-31【0.1.28  build @ May 31 2024 10:48:23】
+size:379,098  bytes
+更新内容：
+	1、增加clock_Timer5ClkSelect() API
+	2、APLL配置API函数根据配置频率，自动适配MDM分频比
+
+------------------------------
 2024-5-30【0.1.27  build @ May 30 2024 15:21:13】
 size:379,010  bytes
 更新内容：
