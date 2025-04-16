@@ -13,10 +13,11 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactExtension="a" artifactName="${ProjName}" buildArtefactType="nds.buildArtefactType.staticLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=nds.buildArtefactType.staticLib" description="" id="config.nds32le-elf-mculib-v3s.lib.debug.682071819" name="Debug" parent="config.nds32le-elf-mculib-v3s.lib.debug" postbuildStep="../LibMerge.bat">
+				<configuration artifactExtension="a" artifactName="${ProjName}" buildArtefactType="nds.buildArtefactType.staticLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=nds.buildArtefactType.staticLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" description="" id="config.nds32le-elf-mculib-v3s.lib.debug.682071819" name="Debug" parent="config.nds32le-elf-mculib-v3s.lib.debug" postbuildStep="../LibMerge.bat">
 					<folderInfo id="config.nds32le-elf-mculib-v3s.lib.debug.682071819." name="/" resourcePath="">
 						<toolChain id="nds.nds32le-elf-mculib-v3s.lib.debug.1824475809" name="nds32le-elf-mculib-v3s" superClass="nds.nds32le-elf-mculib-v3s.lib.debug">
 							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_CONNECT.1005422189" name="RSE_CONNECT" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_CONNECT" value="SID" valueType="string"/>
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET.1485780673" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET" value="rse://LOCALHOST/~target/ADP-AG101P-4GB-D1088-SPU-32I" valueType="string"/>
 							<targetPlatform id="target.nds32le-elf-mculib-v3s.platform.lib.debug.532422546" name="Debug Platform" superClass="target.nds32le-elf-mculib-v3s.platform.lib.debug"/>
 							<builder buildPath="${workspace_loc:/nn_alg}/Debug" enableAutoBuild="false" id="target.nds32le-elf-mculib-v3s.builder.lib.debug.1164208998" incrementalBuildTarget="clean all" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Andes Make Builder" superClass="target.nds32le-elf-mculib-v3s.builder.lib.debug"/>
 							<tool id="tool.nds32le-elf-mculib-v3s.archiver.lib.debug.1517639825" name="Andes Archiver" superClass="tool.nds32le-elf-mculib-v3s.archiver.lib.debug"/>
@@ -67,9 +68,10 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactExtension="a" artifactName="${ProjName}" buildArtefactType="nds.buildArtefactType.staticLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=nds.buildArtefactType.staticLib" description="" id="config.nds32le-elf-mculib-v3s.lib.release.709075366" name="Release" parent="config.nds32le-elf-mculib-v3s.lib.release">
+				<configuration artifactExtension="a" artifactName="${ProjName}" buildArtefactType="nds.buildArtefactType.staticLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=nds.buildArtefactType.staticLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" description="" id="config.nds32le-elf-mculib-v3s.lib.release.709075366" name="Release" parent="config.nds32le-elf-mculib-v3s.lib.release">
 					<folderInfo id="config.nds32le-elf-mculib-v3s.lib.release.709075366." name="/" resourcePath="">
 						<toolChain id="nds.nds32le-elf-mculib-v3s.lib.release.1821786187" name="nds32le-elf-mculib-v3s" superClass="nds.nds32le-elf-mculib-v3s.lib.release">
+							<option id="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET.1529409951" superClass="nds32le-elf-mculib-v3s.managedbuild.option.toolchain.RSE_TARGET" value="rse://LOCALHOST/~target/ADP-AG101P-4GB-D1088-SPU-32I" valueType="string"/>
 							<targetPlatform id="target.nds32le-elf-mculib-v3s.platform.lib.release.1415102497" name="Debug Platform" superClass="target.nds32le-elf-mculib-v3s.platform.lib.release"/>
 							<builder buildPath="${workspace_loc:/nn_alg}/Release" id="target.nds32le-elf-mculib-v3s.builder.lib.release.943197011" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Andes Make Builder" superClass="target.nds32le-elf-mculib-v3s.builder.lib.release"/>
 							<tool id="tool.nds32le-elf-mculib-v3s.archiver.lib.release.110927456" name="Andes Archiver" superClass="tool.nds32le-elf-mculib-v3s.archiver.lib.release"/>
