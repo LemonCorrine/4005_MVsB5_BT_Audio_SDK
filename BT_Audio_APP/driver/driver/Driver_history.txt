@@ -26,6 +26,37 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 --------------------------------------------------------------------------------------
 版本历史：（采用倒序排列，最新版置顶）
 ------------------------------
+2025-1-6【0.2.15  build @ Jan  6 2025 14:07:12】
+size:386,840 bytes
+更新内容：
+	1、优化dac powerdown逻辑
+	2、优化个别usb3.0的u盘检测
+------------------------------
+
+2024-12-30【0.2.14  build @ Dec 30 2024 11:21:50】
+size:386,956 bytes
+更新内容：
+	1、完善UART代码，UART_IOCtl新增OVERTIME等功能
+------------------------------
+2024-12-26【0.2.13  build @ Dec 26 2024 13:50:24】
+size:385,908  bytes
+更新内容：
+	1、新增Clock_Bt32kTrimFreqGet/Clock_Bt32kFreqTrimming API
+	2、更新HOSC的TRIMMING值配置 
+------------------------------
+2024-12-6【0.2.12  build @ Dec  6 2024 13:10:58】
+size:385,302  bytes
+更新内容：
+	1、增加OTG_DeviceControlSendPart、OTG_DeviceControlReceivePart接口，部分手机兼容性规避阻塞，需上层管理完整性
+
+------------------------------
+2024-12-4【0.2.11  build @ Dec  4 2024 10:48:28】
+size:384,506  bytes
+更新内容：
+	1、添加 FshcClkSwitch_local() ，FshcClkFreqGet() 2个API，防止flash 时钟为小数分配比的时候出现超过最高flash限定频率的问题。
+		应用层在配置SpiFlashInit() 之前调用FshcClkSwitchCallBackSet(FshcClkSwitch_local); 以生效
+
+------------------------------
 2024-11-05【0.2.10  build @ Nov  5 2024 13:57:51】
 size:381,688  bytes
 更新内容：
