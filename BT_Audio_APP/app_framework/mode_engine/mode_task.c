@@ -711,6 +711,9 @@ static void SysModeEntrance(void * param)
 			}
 #endif
 		}
+#ifdef CFG_COMMUNICATION_BY_UART
+		uart_data_entry();
+#endif
 #endif
 #ifdef CFG_FUNC_RECORDER_EN
 		RecServierMsg(&msg.msgId);

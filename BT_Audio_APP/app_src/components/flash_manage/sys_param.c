@@ -134,6 +134,12 @@ void sys_parameter_init(void)
 			sys_parameter.bt_PagePowerLevel = default_parameter.bt_PagePowerLevel;
 	}
 
+#ifdef BT_PROFILE_BQB_ENABLE
+	sys_parameter.bt_ReconnectionTryCounts = 0;
+	sys_parameter.bt_ReconnectionInternalTime = 1;
+	sys_parameter.bt_BBLostTryCounts = 3;
+#endif
+
 	if(buf)
 		osPortFree(buf);
 }

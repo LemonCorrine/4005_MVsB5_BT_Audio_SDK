@@ -560,6 +560,16 @@ typedef enum
 	MSG_BT_SOURCE_A2DP_DISCONNECT,
 
 
+	//BQB
+	MSG_A2DP_CONNECT,
+	MSG_AVRCP_CONNECT,
+	MSG_BT_BQB_AVDTP_SMG_BI38C,
+	MSG_BT_BQB_AVDTP_SMG,
+	MSG_HFP_CONNECT,
+	MSG_SCO_CONNECT,
+	MSG_BT_BQB_VRR_BV_01_C,
+	MSG_AVRCP_STOP,
+
 /******************adc level ,Sliding resistance msg, Reservations***************/
     MSG_ADC_LEVEL_MSG_START       = 0x9000,
     MSG_ADC_LEVEL_CH1             = 0x9100,

@@ -54,6 +54,10 @@ static const uint8_t DmaChannelMap[6] = {
 	#else
 		PERIPHERAL_ID_SDIO_RX,
 	#endif
+#ifdef CFG_COMMUNICATION_BY_UART
+	CFG_FUNC_COMMUNICATION_TX_DMA_PORT,
+	CFG_FUNC_COMMUNICATION_RX_DMA_PORT,
+#else
 	#ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
 		PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX_I2S_MODULE,
 	#else
@@ -68,6 +72,7 @@ static const uint8_t DmaChannelMap[6] = {
 			255,
 		#endif
 	#endif
+#endif
 };
 
 static BtPlayContext	*BtPlayCt;

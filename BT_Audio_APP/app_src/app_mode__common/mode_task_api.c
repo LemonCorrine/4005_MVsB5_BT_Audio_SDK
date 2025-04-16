@@ -821,6 +821,9 @@ bool ModeCommonInit(void)
 	}
 #endif
 	AudioDAC_Enable(DAC0);
+#ifdef CFG_COMMUNICATION_BY_UART
+	uart_data_init();
+#endif
 	return TRUE;
 }
 
@@ -1204,6 +1207,9 @@ bool AudioIoCommonForHfp(uint16_t gain)
 #endif
 
 	AudioDAC_Enable(DAC0);
+#ifdef CFG_COMMUNICATION_BY_UART
+	uart_data_init();
+#endif
 	return TRUE;
 }
 
@@ -1663,7 +1669,62 @@ void CommonMsgProccess(uint16_t Msg)
 				#endif
 			}
 			break;
+
+		case MSG_BT_CLEAR_PAIRED_LIST:
+			memset(btManager.btLinkDeviceInfo,0,sizeof(btManager.btLinkDeviceInfo));
+			BtDdb_EraseBtLinkInforMsg();
+			break;
 #endif
+
+#ifdef BT_PROFILE_BQB_ENABLE
+		case MSG_A2DP_CONNECT:
+			APP_DBG("MSG_A2DP_CONNECT\n");
+			A2dpConnect(0,btManager.btDdbLastAddr);
+		break;
+
+
+		case MSG_AVRCP_CONNECT:
+			APP_DBG("MSG_AVRCP_CONNECT\n");
+			AvrcpConnect(0,btManager.btDdbLastAddr);
+		break;
+
+		case MSG_AVRCP_STOP:
+			APP_DBG("MSG_AVRCP_STOP\n");
+			AvrcpCtrlStop(0);
+			break;
+
+		case MSG_HFP_CONNECT:
+			APP_DBG("MSG_HFP_CONNECT\n");
+			HfpConnect(0,btManager.btDdbLastAddr);
+		break;
+
+		case MSG_SCO_CONNECT:
+			APP_DBG("MSG_SCO_CONNECT\n");
+			HfpAudioConnect(0);
+		break;
+
+		case MSG_BT_BQB_AVDTP_SMG:
+		{
+			BTBqbAvdtpSmgSet(1);
+			APP_DBG("enable AVDTP/SNK/ACP/SIG/SMG/BI-05-C BI-33-C test\n");
+		}
+		break;
+
+		case MSG_BT_BQB_AVDTP_SMG_BI38C:
+		{
+			BTBqbAvdtpSmgBI38CSet(1);
+			APP_DBG("enable AVDTP/SNK/ACP/SIG/SMG/BI-38-C test\n");
+		}
+		break;
+
+		case MSG_BT_BQB_VRR_BV_01_C:
+			if(GetHfpState(0) == BT_HFP_STATE_CONNECTED)
+			{
+				APP_DBG("MSG_BT_BQB_VRR_BV_01_C\n");
+				HfpVoiceRecognition(0, '2');
+			}
+			break;
+#endif//BT_PROFILE_BQB_ENABLE
 
 		default:
 			#ifdef CFG_FUNC_DISPLAY_EN
