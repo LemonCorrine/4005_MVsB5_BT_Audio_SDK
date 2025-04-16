@@ -94,7 +94,6 @@ ISR_TABLE:
 	.long DMA_T_Interrupt  //30//stream 0-5 tint interrupt
 	.long DMA_E_Interrupt  //31//stream 0-5 error interrupt
 
-
 /*
  * exception handlers
  */
@@ -177,9 +176,15 @@ OS_Trap_Interrupt_HW4:
 	j	OS_Trap_Int_Comm
 
 OS_Trap_Interrupt_HW5:
+#ifdef FUNC_OS_DEMO_EN
+	pushm	$r0, $r1
+	ENABLE_IT_DT
+	j	OS_Trap_Interrupt_SWI
+#else
 	push	$r0
 	li	$r0, 0x05
 	j	OS_Trap_Int_Comm
+#endif
 
 OS_Trap_Interrupt_HW6:
 	push	$r0

@@ -14,7 +14,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactExtension="adx" artifactName="${ProjName}" buildArtefactType="nds.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=nds.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" description="" id="config.nds32le-elf-mculib-v3s.exe.debug.825604417" name="Debug" parent="config.nds32le-elf-mculib-v3s.exe.debug" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactExtension="adx" artifactName="${ProjName}" buildArtefactType="nds.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=nds.buildArtefactType.exe" description="" id="config.nds32le-elf-mculib-v3s.exe.debug.825604417" name="Debug" parent="config.nds32le-elf-mculib-v3s.exe.debug" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="config.nds32le-elf-mculib-v3s.exe.debug.825604417." name="/" resourcePath="">
 						<toolChain id="nds.nds32le-elf-mculib-v3s.exe.debug.588279773" name="nds32le-elf-mculib-v3s" superClass="nds.nds32le-elf-mculib-v3s.exe.debug">
 							<targetPlatform id="target.nds32le-elf-mculib-v3s.platform.exe.debug.1758018585" name="Debug Platform" superClass="target.nds32le-elf-mculib-v3s.platform.exe.debug"/>
@@ -40,6 +40,9 @@
 								<option id="nds.c.compiler.option.optimization.removesections.data.1028050324" name="Remove unused data sections (-fdata-sections)" superClass="nds.c.compiler.option.optimization.removesections.data" value="true" valueType="boolean"/>
 								<option id="nds.c.compiler.option.misc.other.1794424714" name="Other flags" superClass="nds.c.compiler.option.misc.other" value="-c -fmessage-length=0 -ldsp -mext-dsp" valueType="string"/>
 								<option id="nds.c.compiler.option.single_precision_constant.25722677" name="Single Precision Constant" superClass="nds.c.compiler.option.single_precision_constant" value="true" valueType="boolean"/>
+								<option id="nds.c.compiler.option.preprocessor.def.symbols.2076508597" name="Defined symbols (-D)" superClass="nds.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="FUNC_OS_DEMO_EN"/>
+								</option>
 								<inputType id="tool.nds.c.compiler.input.1542637197" superClass="tool.nds.c.compiler.input"/>
 							</tool>
 							<tool id="tool.nds32le-elf-mculib-v3s.c.linker.exe.debug.469963357" name="Andes C Linker" superClass="tool.nds32le-elf-mculib-v3s.c.linker.exe.debug">
@@ -79,12 +82,12 @@
 							<tool id="tool.nds32le-elf-mculib-v3s.ldsag.exe.debug.136977677" name="LdSaG Tool" superClass="tool.nds32le-elf-mculib-v3s.ldsag.exe.debug"/>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="config.nds32le-elf-mculib-v3s.exe.debug.825604417.1933445211" name="shell.h" rcbsApplicability="disable" resourcePath="FreeRTOS/inc/shell.h" toolsToInvoke=""/>
 					<fileInfo id="config.nds32le-elf-mculib-v3s.exe.debug.825604417.1711991918" name="os_cpu_a.S" rcbsApplicability="disable" resourcePath="FreeRTOS/src/os_cpu_a.S" toolsToInvoke="tool.nds32le-elf-mculib-v3s.c.compiler.exe.debug.976516436.952495379">
 						<tool id="tool.nds32le-elf-mculib-v3s.c.compiler.exe.debug.976516436.952495379" name="Andes C Compiler" superClass="tool.nds32le-elf-mculib-v3s.c.compiler.exe.debug.976516436">
 							<inputType id="tool.nds.c.compiler.input.205520089" superClass="tool.nds.c.compiler.input"/>
 						</tool>
 					</fileInfo>
-					<fileInfo id="config.nds32le-elf-mculib-v3s.exe.debug.825604417.1933445211" name="shell.h" rcbsApplicability="disable" resourcePath="FreeRTOS/inc/shell.h" toolsToInvoke=""/>
 					<fileInfo id="config.nds32le-elf-mculib-v3s.exe.debug.825604417.1953379310" name="crt0.S" rcbsApplicability="disable" resourcePath="startup/crt0.S" toolsToInvoke="tool.nds32le-elf-mculib-v3s.c.compiler.exe.debug.976516436.2091538098">
 						<tool id="tool.nds32le-elf-mculib-v3s.c.compiler.exe.debug.976516436.2091538098" name="Andes C Compiler" superClass="tool.nds32le-elf-mculib-v3s.c.compiler.exe.debug.976516436">
 							<inputType id="tool.nds.c.compiler.input.1152472169" superClass="tool.nds.c.compiler.input"/>
@@ -110,7 +113,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactExtension="adx" artifactName="${ProjName}" buildArtefactType="nds.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=nds.buildArtefactType.exe,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" description="" id="config.nds32le-elf-mculib-v3s.exe.release.540219724" name="Release" parent="config.nds32le-elf-mculib-v3s.exe.release" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactExtension="adx" artifactName="${ProjName}" buildArtefactType="nds.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=nds.buildArtefactType.exe" description="" id="config.nds32le-elf-mculib-v3s.exe.release.540219724" name="Release" parent="config.nds32le-elf-mculib-v3s.exe.release" postannouncebuildStep="" postbuildStep="" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="config.nds32le-elf-mculib-v3s.exe.release.540219724." name="/" resourcePath="">
 						<toolChain id="nds.nds32le-elf-mculib-v3s.exe.release.392347779" name="nds32le-elf-mculib-v3s" superClass="nds.nds32le-elf-mculib-v3s.exe.release">
 							<targetPlatform id="target.nds32le-elf-mculib-v3s.platform.exe.release.382257282" name="Debug Platform" superClass="target.nds32le-elf-mculib-v3s.platform.exe.release"/>
