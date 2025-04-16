@@ -14,10 +14,11 @@
 #endif
 
 static uint8_t DAC_BitWidth = 24;
+uint8_t mclkFreqNum = 1;
 
 void AudioDAC_Init(DACParamCt *ct, uint32_t SampleRate, uint16_t BitWidth, void *Buf, uint16_t Len,  void *BufEXT, uint16_t LenEXT)
 {
-	uint8_t mclkFreqNum = SampleRate > 48000 ? 4:1;
+	mclkFreqNum = SampleRate > 48000 ? 4:1;
 	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ * mclkFreqNum);
 	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ * mclkFreqNum);
 
@@ -90,7 +91,7 @@ void AudioDAC_Init(DACParamCt *ct, uint32_t SampleRate, uint16_t BitWidth, void 
 
 void AudioDAC0_SampleRateChange(uint32_t SampleRate)
 {
-	uint8_t mclkFreqNum = SampleRate > 48000 ? 4:1;
+	mclkFreqNum = SampleRate > 48000 ? 4:1;
 	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ * mclkFreqNum);
 	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ * mclkFreqNum);
 
@@ -111,6 +112,7 @@ void AudioDAC0_SampleRateChange(uint32_t SampleRate)
 	{
 		AudioDAC_DsmOptimizeSet();
 	}
+	AudioDAC_FuncReset(DAC0);
 }
 
 uint16_t AudioDAC0_DataSpaceLenGet(void)

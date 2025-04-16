@@ -118,6 +118,12 @@ uint8_t BtLocalVolLevel2AbsVolme(uint8_t localValue)
 void HardWareMuteOrUnMute(void)
 {
 	mainAppCt.gSysVol.MuteFlag = !mainAppCt.gSysVol.MuteFlag;
+#ifdef CFG_RES_AUDIO_DAC0_EN
+	if(AudioCoreSinkIsEnable(AUDIO_DAC0_SINK_NUM))
+	{
+		AudioDAC_SoftMute(DAC0, mainAppCt.gSysVol.MuteFlag, mainAppCt.gSysVol.MuteFlag);
+	}
+#endif
 }
 
 bool IsAudioPlayerMute(void)

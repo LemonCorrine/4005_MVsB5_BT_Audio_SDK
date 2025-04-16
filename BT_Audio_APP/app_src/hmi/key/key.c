@@ -53,9 +53,9 @@ static const uint16_t ADKEY_TAB[][5] =
 #else
 	{MSG_NONE,						MSG_PLAY_PAUSE,					MSG_NONE,  					MSG_NONE,					MSG_NONE},
 #endif
-	{MSG_NONE,						MSG_NONE,						MSG_NONE,					MSG_NONE,					MSG_NONE},
-	{MSG_NONE,						MSG_NONE,						MSG_NONE,					MSG_NONE,					MSG_NONE},
-	{MSG_NONE,						MSG_NONE,						MSG_NONE,					MSG_NONE,					MSG_NONE},
+	{MSG_HID_KEY1_DOWN,				MSG_HID_KEY_UP,					MSG_NONE,					MSG_NONE,					MSG_HID_KEY_UP},
+	{MSG_HID_KEY2_DOWN,				MSG_HID_KEY_UP,					MSG_NONE,					MSG_NONE,					MSG_HID_KEY_UP},
+	{MSG_HID_KEY3_DOWN,				MSG_HID_KEY_UP,					MSG_NONE,					MSG_NONE,					MSG_HID_KEY_UP},
 	{MSG_NONE,						MSG_NONE,						MSG_NONE,					MSG_NONE,					MSG_NONE},
 	{MSG_NONE,						MSG_PRE,						MSG_FB_START,				MSG_FB_START,				MSG_FF_FB_END},
 	{MSG_NONE,						MSG_NEXT,						MSG_FF_START,				MSG_FF_START,				MSG_FF_FB_END},

@@ -1,12 +1,12 @@
 /***************************************************
  * @file    user_effect_flow_Karaoke.c                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.13.0                  
+ * @author  ACPWorkbench: 3.13.1                  
  * @version V1.2.0                                 
  * @graphics: Karaoke   
- * @Effect Version: 2.45.4
- * @RoboEffect Version: 2.25.4
- * @Created 2024-10-24T10:34:29                                      
+ * @Effect Version: 2.45.5
+ * @RoboEffect Version: 2.25.5
+ * @Created 2024-11-04T15:13:29                                      
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
 
@@ -224,7 +224,7 @@ static const roboeffect_exec_effect_info user_effects_Karaoke[] = {
 roboeffect_effect_list_info user_effect_list_Karaoke = {
     KARAOKE_COUNT_ADDR - 0x81, //count      
     44100, //sample rate
-    256, //framse size
+    256, //frame size
     user_effects_Karaoke,
 };
 static const roboeffect_io_unit source_unit_Karaoke[] = {
@@ -279,19 +279,13 @@ uint32_t get_user_effects_script_len_Karaoke(void)
 char *parameter_group_name_Karaoke[7] = { "HunXiang", "DianYin", "MoYin", "HanMai", "NanBianNv", "NvBianNan", "WaWaYin" };
 
 const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
-0xe7, 0x04, /*total data length*/
-0x02, 0x2d, 0x04, /*Effect Version*/
+0xca, 0x04, /*total data length*/
+0x02, 0x2d, 0x05, /*Effect Version*/
 
-0x02, 0x19, 0x04, /* Roboeffect Version*/
+0x02, 0x19, 0x05, /* Roboeffect Version*/
 
-0x1e, 0x00, /*3rd part data total length  */
-0x02, /*number of 3rd part items*/
-0x0a, /* ai_denoise name length*/
-0x01, 0x02, 0x00, /* effect version*/
-0x61, 0x69, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x69, 0x73, 0x65, /* ai_denoise*/
-0x0b, /* simple_gain name length*/
-0x01, 0x00, 0x00, /* effect version*/
-0x73, 0x69, 0x6d, 0x70, 0x6c, 0x65, 0x5f, 0x67, 0x61, 0x69, 0x6e, /* simple_gain*/
+0x01, 0x00, /*3rd part data total length  */
+0x00, /*number of 3rd part items*/
 0x81, /*preGain*/
 0x05,/*length*/
 0x01, /*enable*/
@@ -1152,19 +1146,13 @@ const unsigned char user_module_parameters_Karaoke_HunXiang[] = {
 };
 
 const unsigned char user_effect_parameters_Karaoke_DianYin[] = {
-0xe7, 0x04, /*total data length*/
-0x02, 0x2d, 0x04, /*Effect Version*/
+0xca, 0x04, /*total data length*/
+0x02, 0x2d, 0x05, /*Effect Version*/
 
-0x02, 0x19, 0x04, /* Roboeffect Version*/
+0x02, 0x19, 0x05, /* Roboeffect Version*/
 
-0x1e, 0x00, /*3rd part data total length  */
-0x02, /*number of 3rd part items*/
-0x0a, /* ai_denoise name length*/
-0x01, 0x02, 0x00, /* effect version*/
-0x61, 0x69, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x69, 0x73, 0x65, /* ai_denoise*/
-0x0b, /* simple_gain name length*/
-0x01, 0x00, 0x00, /* effect version*/
-0x73, 0x69, 0x6d, 0x70, 0x6c, 0x65, 0x5f, 0x67, 0x61, 0x69, 0x6e, /* simple_gain*/
+0x01, 0x00, /*3rd part data total length  */
+0x00, /*number of 3rd part items*/
 0x81, /*preGain*/
 0x05,/*length*/
 0x01, /*enable*/
@@ -2025,19 +2013,13 @@ const unsigned char user_module_parameters_Karaoke_DianYin[] = {
 };
 
 const unsigned char user_effect_parameters_Karaoke_MoYin[] = {
-0xe7, 0x04, /*total data length*/
-0x02, 0x2d, 0x04, /*Effect Version*/
+0xca, 0x04, /*total data length*/
+0x02, 0x2d, 0x05, /*Effect Version*/
 
-0x02, 0x19, 0x04, /* Roboeffect Version*/
+0x02, 0x19, 0x05, /* Roboeffect Version*/
 
-0x1e, 0x00, /*3rd part data total length  */
-0x02, /*number of 3rd part items*/
-0x0a, /* ai_denoise name length*/
-0x01, 0x02, 0x00, /* effect version*/
-0x61, 0x69, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x69, 0x73, 0x65, /* ai_denoise*/
-0x0b, /* simple_gain name length*/
-0x01, 0x00, 0x00, /* effect version*/
-0x73, 0x69, 0x6d, 0x70, 0x6c, 0x65, 0x5f, 0x67, 0x61, 0x69, 0x6e, /* simple_gain*/
+0x01, 0x00, /*3rd part data total length  */
+0x00, /*number of 3rd part items*/
 0x81, /*preGain*/
 0x05,/*length*/
 0x01, /*enable*/
@@ -2898,19 +2880,13 @@ const unsigned char user_module_parameters_Karaoke_MoYin[] = {
 };
 
 const unsigned char user_effect_parameters_Karaoke_HanMai[] = {
-0xe7, 0x04, /*total data length*/
-0x02, 0x2d, 0x04, /*Effect Version*/
+0xca, 0x04, /*total data length*/
+0x02, 0x2d, 0x05, /*Effect Version*/
 
-0x02, 0x19, 0x04, /* Roboeffect Version*/
+0x02, 0x19, 0x05, /* Roboeffect Version*/
 
-0x1e, 0x00, /*3rd part data total length  */
-0x02, /*number of 3rd part items*/
-0x0a, /* ai_denoise name length*/
-0x01, 0x02, 0x00, /* effect version*/
-0x61, 0x69, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x69, 0x73, 0x65, /* ai_denoise*/
-0x0b, /* simple_gain name length*/
-0x01, 0x00, 0x00, /* effect version*/
-0x73, 0x69, 0x6d, 0x70, 0x6c, 0x65, 0x5f, 0x67, 0x61, 0x69, 0x6e, /* simple_gain*/
+0x01, 0x00, /*3rd part data total length  */
+0x00, /*number of 3rd part items*/
 0x81, /*preGain*/
 0x05,/*length*/
 0x01, /*enable*/
@@ -3771,19 +3747,13 @@ const unsigned char user_module_parameters_Karaoke_HanMai[] = {
 };
 
 const unsigned char user_effect_parameters_Karaoke_NanBianNv[] = {
-0xe7, 0x04, /*total data length*/
-0x02, 0x2d, 0x04, /*Effect Version*/
+0xca, 0x04, /*total data length*/
+0x02, 0x2d, 0x05, /*Effect Version*/
 
-0x02, 0x19, 0x04, /* Roboeffect Version*/
+0x02, 0x19, 0x05, /* Roboeffect Version*/
 
-0x1e, 0x00, /*3rd part data total length  */
-0x02, /*number of 3rd part items*/
-0x0a, /* ai_denoise name length*/
-0x01, 0x02, 0x00, /* effect version*/
-0x61, 0x69, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x69, 0x73, 0x65, /* ai_denoise*/
-0x0b, /* simple_gain name length*/
-0x01, 0x00, 0x00, /* effect version*/
-0x73, 0x69, 0x6d, 0x70, 0x6c, 0x65, 0x5f, 0x67, 0x61, 0x69, 0x6e, /* simple_gain*/
+0x01, 0x00, /*3rd part data total length  */
+0x00, /*number of 3rd part items*/
 0x81, /*preGain*/
 0x05,/*length*/
 0x01, /*enable*/
@@ -4644,19 +4614,13 @@ const unsigned char user_module_parameters_Karaoke_NanBianNv[] = {
 };
 
 const unsigned char user_effect_parameters_Karaoke_NvBianNan[] = {
-0xe7, 0x04, /*total data length*/
-0x02, 0x2d, 0x04, /*Effect Version*/
+0xca, 0x04, /*total data length*/
+0x02, 0x2d, 0x05, /*Effect Version*/
 
-0x02, 0x19, 0x04, /* Roboeffect Version*/
+0x02, 0x19, 0x05, /* Roboeffect Version*/
 
-0x1e, 0x00, /*3rd part data total length  */
-0x02, /*number of 3rd part items*/
-0x0a, /* ai_denoise name length*/
-0x01, 0x02, 0x00, /* effect version*/
-0x61, 0x69, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x69, 0x73, 0x65, /* ai_denoise*/
-0x0b, /* simple_gain name length*/
-0x01, 0x00, 0x00, /* effect version*/
-0x73, 0x69, 0x6d, 0x70, 0x6c, 0x65, 0x5f, 0x67, 0x61, 0x69, 0x6e, /* simple_gain*/
+0x01, 0x00, /*3rd part data total length  */
+0x00, /*number of 3rd part items*/
 0x81, /*preGain*/
 0x05,/*length*/
 0x01, /*enable*/
@@ -5517,19 +5481,13 @@ const unsigned char user_module_parameters_Karaoke_NvBianNan[] = {
 };
 
 const unsigned char user_effect_parameters_Karaoke_WaWaYin[] = {
-0xe7, 0x04, /*total data length*/
-0x02, 0x2d, 0x04, /*Effect Version*/
+0xca, 0x04, /*total data length*/
+0x02, 0x2d, 0x05, /*Effect Version*/
 
-0x02, 0x19, 0x04, /* Roboeffect Version*/
+0x02, 0x19, 0x05, /* Roboeffect Version*/
 
-0x1e, 0x00, /*3rd part data total length  */
-0x02, /*number of 3rd part items*/
-0x0a, /* ai_denoise name length*/
-0x01, 0x02, 0x00, /* effect version*/
-0x61, 0x69, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x69, 0x73, 0x65, /* ai_denoise*/
-0x0b, /* simple_gain name length*/
-0x01, 0x00, 0x00, /* effect version*/
-0x73, 0x69, 0x6d, 0x70, 0x6c, 0x65, 0x5f, 0x67, 0x61, 0x69, 0x6e, /* simple_gain*/
+0x01, 0x00, /*3rd part data total length  */
+0x00, /*number of 3rd part items*/
 0x81, /*preGain*/
 0x05,/*length*/
 0x01, /*enable*/

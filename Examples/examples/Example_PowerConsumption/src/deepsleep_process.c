@@ -369,6 +369,8 @@ static void IR_WakeupTestConfig()
 {
     GPIO_RegOneBitSet(GPIO_B_IE, GPIO_INDEX6);
     GPIO_RegOneBitClear(GPIO_B_OE, GPIO_INDEX6);
+    GPIO_RegOneBitClear(GPIO_B_PU, GPIO_INDEX6);
+    GPIO_RegOneBitClear(GPIO_B_PD, GPIO_INDEX6);
 
     IR_Config(IR_MODE_NEC, IR_GPIOB6, IR_NEC_16BITS);
     IR_Enable();
@@ -706,7 +708,7 @@ void Power_GotoDeepsleeping(uint8_t wakeup_src)
 
 void DeepSleep_Wakeup_Test(uint8_t WakeupSourceSel)
 {
-    DeepSleepIOConfig();
+//    DeepSleepIOConfig();
     switch(WakeupSourceSel)
 	{
     case WAKEUP_TEST_GPIO:

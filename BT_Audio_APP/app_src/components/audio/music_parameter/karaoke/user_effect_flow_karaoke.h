@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_Karaoke.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.13.0                 
+ * @author  ACPWorkbench: 3.13.1                 
  * @version V1.2.0                                  
- * @Created 2024-10-24T10:34:30                                      
+ * @Created 2024-11-04T15:13:30                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define KARAOKE_ROBOEFFECT_LIB_VER "2.25.4"
+#define KARAOKE_ROBOEFFECT_LIB_VER "2.25.5"
 
 typedef enum _KARAOKE_roboeffect_io_enum
 {

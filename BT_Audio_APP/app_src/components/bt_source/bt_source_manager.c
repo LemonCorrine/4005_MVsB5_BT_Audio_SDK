@@ -19,7 +19,7 @@
 #include "bt_stack_service.h"
 
 #if BT_SOURCE_SUPPORT
-static uint8_t gBtSourceInquiryStart = 0;
+uint8_t gBtSourceInquiryStart = 0;
 static uint8_t gBtSourceNameRequestCnt = 0;
 
 
@@ -314,6 +314,11 @@ void BtSourceNameMatch(void)
 {
 	uint8_t i;
 
+#ifdef SOURCE_AUTO_INQUIRY_AND_CONNECT
+	int8_t rssi_temp = -120;
+	uint8_t dev_index = 0xff;
+#endif
+
 	//通过过滤条件,主动发起连接
 	for(i=0;i<A2DP_SCAN_NUMBER;i++)
 	{
@@ -327,7 +332,6 @@ void BtSourceNameMatch(void)
 					//||(memcmp(btManager.SourceInqResultList[i].name, "BP15", strlen("BP15"))==0)   //增加多个名称匹配连接，在此增加
 				)
 				)
-#endif
 			{
 				APP_DBG("connect :  [%02x:%02x:%02x:%02x:%02x:%02x]\n",
 					btManager.SourceInqResultList[i].addr[0],
@@ -343,9 +347,43 @@ void BtSourceNameMatch(void)
 				BtSourceStartConnect();
 				return;
 			}
+#else
+
+#ifdef SOURCE_AUTO_INQUIRY_AND_CONNECT_RSSI
+			if((btManager.SourceInqResultList[i].flag))
+			{
+				if(btManager.SourceInqResultList[i].rssi >= rssi_temp)
+				{
+					rssi_temp = btManager.SourceInqResultList[i].rssi;
+					dev_index = i;
+				}
+			}
+#else//SOURCE_AUTO_INQUIRY_AND_CONNECT_RSSI
+			dev_index = 0;//连接搜到的第一个设备
+#endif
+
+
+#endif//SOURCE_AUTO_INQUIRY_AND_CONNECT
 		}
 	}
+
 #ifdef SOURCE_AUTO_INQUIRY_AND_CONNECT
+	if(dev_index < A2DP_SCAN_NUMBER)
+	{
+		APP_DBG("connect :  [%02x:%02x:%02x:%02x:%02x:%02x]\n",
+			btManager.SourceInqResultList[dev_index].addr[0],
+			btManager.SourceInqResultList[dev_index].addr[1],
+			btManager.SourceInqResultList[dev_index].addr[2],
+			btManager.SourceInqResultList[dev_index].addr[3],
+			btManager.SourceInqResultList[dev_index].addr[4],
+			btManager.SourceInqResultList[dev_index].addr[5]
+			);
+		gBtSourceInquiryStart = 0;
+		memcpy(btManager.conRemoteAddr, btManager.SourceInqResultList[dev_index].addr, 6);
+		memcpy(btManager.remoteAddr, btManager.conRemoteAddr, 6);
+		BtSourceStartConnect();
+	}
+
 	gBtSourceInquiryStart = 0;
 #endif
 }

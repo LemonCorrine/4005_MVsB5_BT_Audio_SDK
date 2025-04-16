@@ -4,7 +4,7 @@
  * @brief	Voice changer for 32/44.1/48kHz mono signals
  *
  * @author	ZHAO Ying (Alfred)
- * @version	v1.6.3
+ * @version	v1.7.0
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************
@@ -57,8 +57,8 @@ typedef struct _VoiceChangerContext
 	int32_t hit_count;
 	int32_t hit_count_th;
 	const int16_t *pitch_lag_table;	
-	int16_t *old_unit;
-	int16_t *new_unit;
+	int32_t old_unit_idx;
+	int32_t new_unit_idx;
 	int32_t old_unit_len;
 	int32_t new_unit_len;
 	int32_t pitch_trend[5];	
@@ -73,9 +73,7 @@ typedef struct _VoiceChangerContext
 	int16_t unit1[MAX_LAG_AT_MAX_FS*2];
 	int16_t syn_unit_r[MAX_LAG_AT_MAX_FS*2+MAX_LAG_AT_MAX_FS]; // formant scale should to be >= 2/3
 	int16_t syn_unit[MAX_LAG_AT_MAX_FS*2];
-
-	uint32_t old_unit_offset;
-	uint32_t new_unit_offset;
+	
 } VoiceChangerContext;
 
 

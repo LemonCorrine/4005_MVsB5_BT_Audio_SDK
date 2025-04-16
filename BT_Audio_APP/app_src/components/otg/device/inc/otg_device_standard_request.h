@@ -39,7 +39,7 @@ extern "C"{
 #define HID_DATA_INTERFACE_NUM			5
 #define AUDIO_SRM_OUT1_INTERFACE_NUM	6
 
-#define USB_VID				0x1237
+#define USB_VID				0x1238
 #define USB_PID_BASE		0x17B5//具体PID叠加下列功能值作为Offset
 
 #define HID					0
@@ -88,6 +88,7 @@ extern "C"{
 	#ifdef MIC_ALT2_EN
 		#define	MIC_ALT2_BITS							PCM24BIT	//PCM16BIT or PCM24BIT
 	#endif
+	#define MIC_TYPE									0x0402		//Headset
 #endif
 
 #ifdef CFG_OTG_MODE_AUDIO_EN
@@ -106,6 +107,7 @@ extern "C"{
 	#ifdef SPEAKER_ALT2_EN
 		#define	SPEAKER_ALT2_BITS						PCM24BIT	//PCM16BIT or PCM24BIT
 	#endif
+	#define SPEAKER_TYPE								0x0402		//Headset
 #endif
 
 
@@ -123,6 +125,7 @@ extern "C"{
 #define	USBD_AUDIO_MIC_FREQ5						0
 #define MIC_CHANNELS_NUM							0
 #define	MIC_ALT1_BITS								0
+#define MIC_TYPE									0x0402		//Headset
 #endif
 
 #ifdef CFG_OTG_MODE_AUDIO_EN
@@ -138,6 +141,7 @@ extern "C"{
 #define	USBD_AUDIO_FREQ5							0
 #define PACKET_CHANNELS_NUM							0
 #define	SPEAKER_ALT1_BITS							0
+#define SPEAKER_TYPE								0x0402		//Headset
 #endif
 
 #ifdef MIC_ALT2_EN
@@ -270,6 +274,7 @@ extern "C"{
 #define AUDIO_EP_MAX_SZE(frq,chn,bytes) (uint8_t)(((FRQ_MAX_SZE(frq) * chn * bytes)) & 0xFF), \
                                         (uint8_t)((((FRQ_MAX_SZE(frq) * chn * bytes)) >> 8) & 0xFF)
 
+#define DEVICE_TYPE(type)             	(uint8_t)(type), (uint8_t)((type) >> 8)
 #define W_TOTAL_LENGTH(num)             (uint8_t)(num), (uint8_t)((num) >> 8)
 #define SAMPLE_FREQ_NUM(num)            (uint8_t)(num), (uint8_t)((num >> 8))
 #define SAMPLE_FREQ(frq)                (uint8_t)(frq), (uint8_t)((frq >> 8)), (uint8_t)((frq >> 16))

@@ -278,12 +278,14 @@ bool SpdifPlayInit(void)
 	if(GetSystemMode() == ModeOpticalAudioPlay)
 	{
 		//spdif config
-		GPIO_RegBitsSet(GPIO_A_ANA_EN,SPDIF0_OPTICAL_INDEX);
+#ifdef CFG_APP_OPTICAL_MODE_EN
 		GPIO_PortAModeSet(SPDIF0_OPTICAL_INDEX, SPDIF0_OPTICAL_PORT_MODE);
-#ifdef CFG_APP_COAXIAL_MODE_EN
-		GPIO_PortAModeSet(SPDIF0_COAXIAL_INDEX, 0);
 #endif
+#ifdef CFG_APP_COAXIAL_MODE_EN
+		GPIO_RegBitsSet(GPIO_A_ANA_EN,SPDIF0_OPTICAL_INDEX);
+		GPIO_PortAModeSet(SPDIF0_COAXIAL_INDEX, 0);
 		SPDIF0_AnalogModuleEnable(SPDIF0_OPTICAL_PORT_ANA_INPUT, SPDIF_ANA_LEVEL_300mVpp);
+#endif
 	}
 #endif
 

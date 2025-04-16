@@ -617,13 +617,15 @@ void SyncModule_Init(void)
 void SyncModule_Reset(void)
 {
 	uint32_t SampleRate = I2S_SampleRateGet(CFG_RES_I2S_MODULE);
+	extern uint8_t mclkFreqNum;
+
 	if(IsSelectMclkClk1(SampleRate))
 	{
-		gSyncModule.clkRatio = (AUDIO_PLL_CLK1_FREQ * 4 / I2S_SampleRateGet(CFG_RES_I2S_MODULE)) / 64;
+		gSyncModule.clkRatio = (AUDIO_PLL_CLK1_FREQ * mclkFreqNum / I2S_SampleRateGet(CFG_RES_I2S_MODULE)) / 64;
 	}
 	else
 	{
-		gSyncModule.clkRatio = (AUDIO_PLL_CLK2_FREQ * 4 / I2S_SampleRateGet(CFG_RES_I2S_MODULE)) / 64;
+		gSyncModule.clkRatio = (AUDIO_PLL_CLK2_FREQ * mclkFreqNum / I2S_SampleRateGet(CFG_RES_I2S_MODULE)) / 64;
 	}
 	DBG("BCLK_MCLK_RATIO = %d\n", gSyncModule.clkRatio);
 	Clock_SyncCtrl_Set(I2S_BCLK_SEL, 0);

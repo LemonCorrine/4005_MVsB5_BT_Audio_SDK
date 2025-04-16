@@ -31,6 +31,14 @@
 #include "type.h"
 
 
+//bt source avrcp cmd
+#define AVRCP_REV_PLAY				0x0044
+#define AVRCP_REV_PAUSE				0x0046
+
+#define AVRCP_REV_PRE				0x004C
+#define AVRCP_REV_NEXT				0x004B
+
+
 typedef enum{
 	BT_STACK_EVENT_AVRCP_NONE = 0,
 	BT_STACK_EVENT_AVRCP_CONNECTED,

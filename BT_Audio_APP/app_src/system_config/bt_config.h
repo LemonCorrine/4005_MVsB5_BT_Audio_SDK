@@ -40,6 +40,10 @@
 //#define SOURCE_ACCESS_MODE_ENABLE		// 在蓝牙发射模式下,允许被搜索被连接
 //#define SOURCE_AUTO_INQUIRY_AND_CONNECT	// source模式下自动INQUIRY,然后连接设备
 
+#ifdef SOURCE_AUTO_INQUIRY_AND_CONNECT
+#define SOURCE_AUTO_INQUIRY_AND_CONNECT_RSSI	//自动INQUIRY，连接信号最好的设备
+#endif
+
 #define A2DP_SCAN_NUMBER			10 //扫描设备最大保存个数
 #define A2DP_INQUIRY_TIMEOUT		10 //unit:s   default:10s
 

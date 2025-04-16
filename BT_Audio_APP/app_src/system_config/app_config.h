@@ -41,8 +41,8 @@
  * 前者是burner烧录时版本，后者是mva版本需关注*/
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(0)
-#define  CFG_SDK_MINOR_VERSION		(8)
-#define  CFG_SDK_PATCH_VERSION	    (1)
+#define  CFG_SDK_MINOR_VERSION		(9)
+#define  CFG_SDK_PATCH_VERSION	    (0)
 
 
 //****************************************************************************************
