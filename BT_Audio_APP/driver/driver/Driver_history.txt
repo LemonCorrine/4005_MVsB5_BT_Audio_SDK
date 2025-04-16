@@ -26,7 +26,37 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 --------------------------------------------------------------------------------------
 版本历史：（采用倒序排列，最新版置顶）
 
+2024-8-26【0.2.3  build @ Aug 26 2024 09:26:24】
+size:381,328  bytes
+更新内容：
+	1、增加I2S lrclk毛刺检测相关接口
+	2、优化I2S_SampleRateGet中samplerate的计算
 
+------------------------------
+2024-8-21【0.2.2  build @ Aug 21 2024 16:34:16】
+size:379,866  bytes
+更新内容：
+	1、优化切换DCDC流程，调整ldo_switch_to_dcdc;
+	2、新增ldo_switch_to_dcdc_ext，可配置电感类型;
+
+------------------------------
+2024-8-1【0.2.1  build @ Aug  1 2024 16:51:07】
+size:379,502  bytes
+更新内容：
+	1、优化Read_ModuleSwitch_Status;
+
+------------------------------
+2024-7-26【0.2.0  build @ Jul 26 2024 19:30:54】
+size:378,854  bytes
+更新内容：
+	1、优化dac的PowerDown，移除时钟操作;
+	2、移除OTG_DeviceISOSend中的发送长度限制;
+	3、优化LDO33D/LDO33A/LDO16D电压配置算法;
+	4、优化LDO切换到DCDC流程，更新对应API；
+	5、增加Power_DCDCConfig配置DCDC电压API用来在DCDC模式时配置；
+	6、优化LDO16电压采样；
+
+------------------------------
 2024-6-25【0.1.30  build @ Jun 25 2024 19:12:11】
 size:379,158  bytes
 更新内容：
