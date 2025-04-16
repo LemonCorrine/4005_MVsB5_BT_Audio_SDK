@@ -60,7 +60,9 @@ typedef enum{
 	BT_STACK_EVENT_HFP_MANUFACTORY_INFO,
 	BT_STACK_EVENT_HFP_DEVICE_TYPE,
 	BT_STACK_EVENT_HFP_UNSOLICITED_DATA,
-	BT_STACK_EVENT_HFP_INDICATE_INFO
+	BT_STACK_EVENT_HFP_INDICATE_INFO,
+	BT_STACK_EVENT_HFP_DEVICE_TIME,
+	BT_STACK_EVENT_HFP_SERVICE,		/*service avaliability*/
 }BT_HFP_CALLBACK_EVENT;
 
 /**
@@ -124,17 +126,19 @@ typedef struct _BT_HFP_CALLBACK_PARAMS
 		uint8_t					hfpVolGain;
 		uint8_t					hfpBattery;
 		uint8_t					hfpSignal;
-		bool					hfpRoam;
+		bool					hfpRoam;				/*roaming indicator*/
 		bool					hfpVoiceRec;
 		bool					hfpInBandRing;
 		uint8_t 				*hfpUnsolicitedData;
 		const char				*hfpRemoteManufactory;
 		const char				*hfpRemoteDeviceType;
+		const char				*hfpRemoteDeviceTime;
 		uint8_t 				*scoReceivedData;
 		uint8_t 				*scoSentData;
 		HfpAudioDataFormat		scoCodecType;
-
 		cbCallListParms			callListParms;
+		cbCallIndicateParms		indicateParms;
+		uint8_t					hfpService;				/*service avaliability*/
 	}params;
 }BT_HFP_CALLBACK_PARAMS;
 
@@ -398,6 +402,23 @@ uint8_t GetHfpCallState(void);
  * @Note
  *******************************************************************/
 bool HfpAppInit(HfpAppFeatures *params);
+
+/********************************************************************
+ * @brief  hfp get indicator status
+ * @param  index
+ * @return 
+ * @Note
+ *******************************************************************/
+bool HfpGetIndicatorStatus(uint8_t index);
+
+/********************************************************************
+ * @brief  hfp get remote device time
+ * @param  index
+ * @return 
+ * @Note
+ *******************************************************************/
+bool HfpGetRemoteDevTime(uint8_t index);
+
 
 #endif
 

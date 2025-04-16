@@ -203,6 +203,15 @@ void BtHfpCallback(BT_HFP_CALLBACK_EVENT event, BT_HFP_CALLBACK_PARAMS * param)
 			}
 			break;
 
+		case BT_STACK_EVENT_HFP_SERVICE:
+			{
+				if(param->params.hfpService)
+					APP_DBG("Home/Roam network avaliable\n");
+				else
+					APP_DBG("No Home/Roam network avaliable\n");
+			}
+			break;
+
 		case BT_STACK_EVENT_HFP_SIGNAL:
 			{
 				BtHfpSignalLevel(param);
@@ -228,6 +237,15 @@ void BtHfpCallback(BT_HFP_CALLBACK_EVENT event, BT_HFP_CALLBACK_PARAMS * param)
 			}
 			break;
 		
+		case BT_STACK_EVENT_HFP_ROAM:
+			{
+				if(param->params.hfpRoam)
+					APP_DBG("Hfp roam TRUE\n");
+				else
+					APP_DBG("Hfp roam FALSE\n");
+			}
+			break;
+		
 		case BT_STACK_EVENT_HFP_MANUFACTORY_INFO:
 			BtHfpManufactoryInfo(param);
 			break;
@@ -238,7 +256,7 @@ void BtHfpCallback(BT_HFP_CALLBACK_EVENT event, BT_HFP_CALLBACK_PARAMS * param)
 			
 		case BT_STACK_EVENT_HFP_INDICATE_INFO:  //手机端的通话信息
 			{
-				//APP_DBG("HF indicate value: %d  %d\n", param->params.indicateParms.indicator, param->params.indicateParms.value);
+//				APP_DBG("HF indicate value: %d  %d\n", param->params.indicateParms.indicator, param->params.indicateParms.value);
 				/*switch(param->params.indicateParms.indicator)
 				{
 					case 7:
@@ -263,6 +281,12 @@ void BtHfpCallback(BT_HFP_CALLBACK_EVENT event, BT_HFP_CALLBACK_PARAMS * param)
 					default:
 						break;
 				}*/
+			}
+			break;
+
+		case BT_STACK_EVENT_HFP_DEVICE_TIME:
+			{
+				APP_DBG("%s\n", param->params.hfpRemoteDeviceTime);
 			}
 			break;
 

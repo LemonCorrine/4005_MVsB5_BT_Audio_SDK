@@ -55,6 +55,15 @@ unsigned short GetRemoteCompanyID(void);
 /***************************************************
  * set rf tx power max level(max: 23 -- 8dbm)
  * set rf page tx power level(max: 23 -- 8dbm)
+ * Compatible with B1X to adjust power
+ * 23 - txgain:1: maxinum: 8dbm based on dcdc output voltage
+  * 22 - txgain:2:  6dbm
+  * 21 - txgain:3:  5dbm
+  * 20 - txgain:4:  4dbm
+  * 19 - txgain:5:  3dbm
+  * 18 - txgain:6:  2dbm
+  * 17 - txgain:7:  1dbm
+  * 16 - txgain:8:  0dbm
  **************************************************/
 void SetRfTxPwrMaxLevel(unsigned char level, unsigned char pageLevel);
 

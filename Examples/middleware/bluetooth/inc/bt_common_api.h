@@ -531,6 +531,7 @@ typedef struct _BtStackParams
 	HfgAppFeatures		hfgFeatures;
 #endif
 	
+	uint8_t				btDeviceFlag;//蓝牙当前应用场景：bit0:单手机		bit1:双手机		bit2:TWS
 }BtStackParams;
 
 
