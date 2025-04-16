@@ -44,7 +44,7 @@ typedef struct _LineInPlayContext
 //	AudioCoreContext 	*AudioCoreLineIn;
 
 	//play
-//	uint32_t 			SampleRate; //带提示音时，如果不重采样，要避免采样率配置冲突
+	uint32_t 			SampleRate; //带提示音时，如果不重采样，要避免采样率配置冲突
 }LineInPlayContext;
 
 /**根据appconfig缺省配置:DMA 8个通道配置**/
@@ -144,7 +144,7 @@ void LineinADCDigitalInit(void)
 		BitWidth = ADC_WIDTH_24BITS;
 #endif
 
-	AudioADC_DigitalInit(ADC0_MODULE, AudioCoreMixSampleRateGet(DefaultNet),BitWidth, (void*)sLineInPlayCt->ADCFIFO, sLineInPlayCt->ADCFIFO_len);
+	AudioADC_DigitalInit(ADC0_MODULE, sLineInPlayCt->SampleRate,BitWidth, (void*)sLineInPlayCt->ADCFIFO, sLineInPlayCt->ADCFIFO_len);
 
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 	Clock_AudioMclkSel(AUDIO_ADC0, gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source);
@@ -158,7 +158,24 @@ void LineInPlayResInit(void)
 	AudioCoreIO	AudioIOSet;
 	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
 
-	AudioIOSet.Adapt = STD;
+	sLineInPlayCt->SampleRate = AudioCoreMixSampleRateGet(DefaultNet);
+	if((sLineInPlayCt->SampleRate == 88200) || (sLineInPlayCt->SampleRate == 176400))
+	{
+		sLineInPlayCt->SampleRate = 44100;
+	}
+	else if((sLineInPlayCt->SampleRate == 96000) || (sLineInPlayCt->SampleRate == 192000))
+	{
+		sLineInPlayCt->SampleRate = 48000;
+	}
+
+	if(sLineInPlayCt->SampleRate != AudioCoreMixSampleRateGet(DefaultNet))
+	{
+		AudioIOSet.Adapt = SRC_ONLY;
+	}
+	else
+	{
+		AudioIOSet.Adapt = STD;
+	}
 	AudioIOSet.Sync = TRUE;
 	AudioIOSet.Channels = 2;
 	AudioIOSet.Net = DefaultNet;
@@ -170,6 +187,7 @@ void LineInPlayResInit(void)
 	AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
 	AudioIOSet.IOBitWidthConvFlag = 0;//需要数据进行位宽扩展
 #endif
+	AudioIOSet.SampleRate = sLineInPlayCt->SampleRate;
 	//AudioIOSet.
 	if(!AudioCoreSourceInit(&AudioIOSet, LINEIN_SOURCE_NUM))
 	{

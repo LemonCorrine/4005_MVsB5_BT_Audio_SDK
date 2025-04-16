@@ -17,7 +17,7 @@
 #define BLE_INFO(fmt, args...) printf("[BLE_INFO]:" fmt, ##args)
 #define BLE_GATT_UUID_128_LEN (16)
 #define BLE_DFLT_DEVICE_MAX_NAME_LEN (18)
-// #define DUOBLE_ROLE //主从一体开关
+
 /*****************************************************************************************/
 typedef struct set_adv_data
 {

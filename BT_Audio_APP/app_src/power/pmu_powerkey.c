@@ -8,6 +8,8 @@ void PMU_PowerKey8SResetSet(void)
 	DBG("PK INIT\r\n");
 	PMU_PowerKeyEnable();
 
+	PMU_PowerKeyModeSet(HARD_MODE);
+
 	PMU_PowerKeyActiveLevelSet(HIGH_INDICATE_POWERON);
 	PMU_PowerKeyShortPressTrigMaxCntSet(25);  //8ms*powerkey_trg_s_max_cnt[5:0]+ 4ms*powerkey_noise_filter_max_cnt[4:0]
 												//25*8 + 16*4 = 264ms

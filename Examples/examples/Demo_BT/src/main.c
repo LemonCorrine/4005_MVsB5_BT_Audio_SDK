@@ -67,7 +67,9 @@ uint8_t  hfp_msbcBuf[20*1024];
 
 static uint8_t dac0_dma_buffer[5120 * 4] = {0};
 
-AudioDecoderContext audio_decoder = {0};
+AudioDecoderContext *audio_decoder = NULL;
+uint8_t  audio_decoder_buf[6*1024];
+
 MemHandle SBC_MemHandle;
 
 AudioDecoderContext msbc_audio_decoder = {0};
@@ -262,6 +264,7 @@ void A2dp_DecoderInit(void)
     ct.PVDDModel = PVDD33;
     ct.DACEnergyModel = DACCommonEnergy;
 
+	audio_decoder = audio_decoder_buf;
     //≥ı ºªØDAC
     AudioDAC_Init(&ct, SYSTEM_SAMPLE_RATE, 16, dac0_dma_buffer, sizeof(dac0_dma_buffer), NULL, 0);
 }
@@ -298,7 +301,7 @@ void A2dp_ReceiveData(uint8_t * data, uint16_t dataLen)
 
 		if( !DecoderInitialized )
 		{
-			int32_t ret = audio_decoder_initialize(&audio_decoder, &SBC_MemHandle, (int32_t)IO_TYPE_MEMORY, SBC_DECODER);
+			int32_t ret = audio_decoder_initialize(audio_decoder, &SBC_MemHandle, (int32_t)IO_TYPE_MEMORY, SBC_DECODER);
 			if( ret != RT_SUCCESS )
 			{
 				printf(" error audio_decoder_initialize %x\n", ret);
@@ -316,13 +319,13 @@ void A2dp_Decode(void)
 {
 	static uint32_t SampleRateCC = 44100;
 
-	if(DecoderInitialized && RT_SUCCESS == audio_decoder_can_continue(&audio_decoder) )
+	if(DecoderInitialized && RT_SUCCESS == audio_decoder_can_continue(audio_decoder) )
 	{
 		if(mv_msize(&SBC_MemHandle) <= SBC_DECODER_FIFO_MIN)
 		{
 			return;
 		}
-		if(audio_decoder_decode(&audio_decoder) == RT_SUCCESS)
+		if(audio_decoder_decode(audio_decoder) == RT_SUCCESS)
 		{
 			/*if( SYSTEM_SAMPLE_RATE != audio_decoder.song_info.sampling_rate)
 			{
@@ -331,11 +334,11 @@ void A2dp_Decode(void)
 				AudioDAC0_SampleRateChange(44100);//ª÷∏¥
 			}*/
 
-            AudioDAC0_DataSet(audio_decoder.song_info.pcm_addr, audio_decoder.song_info.pcm_data_length);
+            AudioDAC0_DataSet(audio_decoder->song_info.pcm_addr, audio_decoder->song_info.pcm_data_length);
 		}
 		else
 		{
-			printf("[INFO]: ERROR%d\n", (int)audio_decoder.error_code);
+			printf("[INFO]: ERROR%d\n", (int)audio_decoder->error_code);
 		}
 	}
 }

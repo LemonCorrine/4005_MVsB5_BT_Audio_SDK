@@ -349,6 +349,10 @@ static void SystemInit(void)
  	BP_LoadInfo();
 #endif
 
+#ifdef CFG_EFFECT_PARAM_UPDATA_BY_ACPWORKBENCH
+ 	AudioEffect_CheckFlashEffectParam();
+#endif
+
 	SysVarInit();
 	
 #ifdef CFG_FUNC_BT_OTA_EN
@@ -424,62 +428,6 @@ static void PublicDetect(void)
 			PowerOffMessage();
         }
 #endif
-
-#if FLASH_BOOT_EN
-		//设备经过播放，预搜索mva包登记，可升级。拔出时取消登记。
-		#ifndef FUNC_UPDATE_CONTROL
-		if(SoftFlagGet(SoftFlagMvaInCard) && GetSystemMode() == ModeCardAudioPlay && (!SoftFlagGet(SoftFlagUpgradeOK)))
-		{
-			APP_DBG("MainApp:updata file exist in Card\n");
-			#ifdef FUNC_OS_EN
-			if(SDIOMutex != NULL)
-			{
-				osMutexLock(SDIOMutex);
-			}
-			#endif
-			start_up_grate(SysResourceCard);
-			#ifdef FUNC_OS_EN
-			if(SDIOMutex != NULL)
-			{
-				osMutexUnlock(SDIOMutex);
-			}
-			#endif
-		}
-		else if(SoftFlagGet(SoftFlagMvaInUDisk) && GetSystemMode() == ModeUDiskAudioPlay&& (!SoftFlagGet(SoftFlagUpgradeOK)))
-		{
-			APP_DBG("MainApp:updata file exist in Udisk\n");
-			#ifdef FUNC_OS_EN
-			if(UDiskMutex != NULL)
-			{
-				//osMutexLock(UDiskMutex);
-				while(osMutexLock_1000ms(UDiskMutex) != 1)
-				{
-					WDG_Feed();
-				}
-			}
-			#endif
-			start_up_grate(SysResourceUDisk);
-			#ifdef FUNC_OS_EN
-			if(UDiskMutex != NULL)
-			{
-				osMutexUnlock(UDiskMutex);
-			}
-			#endif
-		}
-		#endif
-
-
-		/*uint8_t cmd = 0;
-		if(UART0_RecvByte(&cmd))
-		{
-			if(cmd == 'y')
-			{
-				start_up_grate(0xFFFFFFFF);
-			}
-		}
-		*/
-#endif
-
 }
 
 static void PublicMsgPross(MessageContext msg)
@@ -504,16 +452,6 @@ static void PublicMsgPross(MessageContext msg)
 			mainAppCt.state = TaskStateRunning;
 			break;
 #if FLASH_BOOT_EN
-		case MSG_DEVICE_SERVICE_CARD_OUT:
-//			SoftFlagDeregister(SoftFlagUpgradeOK);
-			SoftFlagDeregister(SoftFlagMvaInCard);//清理mva包标记
-			break;
-		
-		case MSG_DEVICE_SERVICE_U_DISK_OUT:
-//			SoftFlagDeregister(SoftFlagUpgradeOK);
-			SoftFlagDeregister(SoftFlagMvaInUDisk);
-			break;
-		
 		case MSG_UPDATE:
 			//if(SoftFlagGet(SoftFlagUpgradeOK))break;
 			#ifdef FUNC_UPDATE_CONTROL

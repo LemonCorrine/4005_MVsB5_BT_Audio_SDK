@@ -93,6 +93,7 @@ typedef struct _SpdifPlayContext
 	bool 				SpdifDpllLockFlag;
 	uint32_t 			dpll_lock_cnt;
 #endif
+	SPDIF_TYPE_STR  	 AudioInfo;
 }SpdifPlayContext;
 
 static  SpdifPlayContext*		SpdifPlayCt = NULL;
@@ -141,30 +142,30 @@ void SpdifDataCarry(void)
 
 	while(cnt--)
 	{
+		pcm_len = DMA_CircularDataGet(CFG_SPDIF_RX_DMA_CHANNEL, pcmBuf, MAX_FRAME_SAMPLES * (sizeof(PCM_DATA_TYPE) * 4));
 #ifdef CFG_AUDIO_WIDTH_24BIT
-		DMA_CircularDataGet(CFG_SPDIF_RX_DMA_CHANNEL, pcmBuf, MAX_FRAME_SAMPLES * 16);
-
-		pcm_len = SPDIF_SPDIFDataToPCMData(CFG_SPDIF_MODULE,(int32_t *)pcmBuf, MAX_FRAME_SAMPLES * 16, (int32_t *)SpdifPlayCt->SpdifCarry24, SPDIF_WORDLTH_24BIT);
-		if(pcm_len > 0)
+//		pcm_len = SPDIF_SPDIFDataToPCMData(CFG_SPDIF_MODULE,(int32_t *)pcmBuf, pcm_len, (int32_t *)SpdifPlayCt->SpdifCarry24, SPDIF_WORDLTH_24BIT);
+		SPDIF_SPDIFDatatoAudioData((int32_t *)pcmBuf, pcm_len, (int32_t *)SpdifPlayCt->SpdifCarry24, SPDIF_WORDLTH_24BIT, &SpdifPlayCt->AudioInfo);
+		pcm_len = SpdifPlayCt->AudioInfo.output_length;
+		//printf("pcm_len = %d\n",pcm_len);
+		if(SpdifPlayCt->AudioInfo.audio_type != SPDIF_AUDIO_PCM_DATA_TYPE)
 		{
-			int32_t *pcmBuf32  =  (int32_t *)SpdifPlayCt->SpdifCarry24;
-			uint16_t i;
-			//高8位无符号位，需要移位产生
-			for(i=0;i<pcm_len/4;i++)
-			{
-				pcmBuf32[i] <<= 8;
-				pcmBuf32[i] >>= 8;
-			}
-			MCUCircular_PutData(&SpdifPlayCt->SpdifPcmCircularBuf, SpdifPlayCt->SpdifCarry24, pcm_len);
+			return;
 		}
 		if(pcm_len < 0)
 		{
 			return;
 		}
+		MCUCircular_PutData(&SpdifPlayCt->SpdifPcmCircularBuf, SpdifPlayCt->SpdifCarry24, pcm_len);
 #else
-		DMA_CircularDataGet(CFG_SPDIF_RX_DMA_CHANNEL, pcmBuf, MAX_FRAME_SAMPLES * 8);
 		//由于从32bit转换为16bit，buf可以使用同一个，否则要独立申请。
-		pcm_len = SPDIF_SPDIFDataToPCMData(CFG_SPDIF_MODULE,(int32_t *)pcmBuf, MAX_FRAME_SAMPLES * 8, (int32_t *)pcmBuf, SPDIF_WORDLTH_16BIT);
+		SPDIF_SPDIFDatatoAudioData((int32_t *)pcmBuf, pcm_len, (int32_t *)pcmBuf, SPDIF_WORDLTH_16BIT, &SpdifPlayCt->AudioInfo);
+		pcm_len = SpdifPlayCt->AudioInfo.output_length;
+		//printf("pcm_len = %d\n",pcm_len);
+		if(SpdifPlayCt->AudioInfo.audio_type != SPDIF_AUDIO_PCM_DATA_TYPE)
+		{
+			return;
+		}
 		if(pcm_len < 0)
 		{
 			return;
@@ -278,14 +279,7 @@ bool SpdifPlayInit(void)
 	if(GetSystemMode() == ModeOpticalAudioPlay)
 	{
 		//spdif config
-#ifdef CFG_APP_OPTICAL_MODE_EN
 		GPIO_PortAModeSet(SPDIF0_OPTICAL_INDEX, SPDIF0_OPTICAL_PORT_MODE);
-#endif
-#ifdef CFG_APP_COAXIAL_MODE_EN
-		GPIO_RegBitsSet(GPIO_A_ANA_EN,SPDIF0_OPTICAL_INDEX);
-		GPIO_PortAModeSet(SPDIF0_COAXIAL_INDEX, 0);
-		SPDIF0_AnalogModuleEnable(SPDIF0_OPTICAL_PORT_ANA_INPUT, SPDIF_ANA_LEVEL_300mVpp);
-#endif
 	}
 #endif
 
@@ -294,12 +288,12 @@ bool SpdifPlayInit(void)
 	{	
 		GPIO_RegBitsSet(GPIO_A_ANA_EN,SPDIF0_COAXIAL_INDEX);
 		GPIO_PortAModeSet(SPDIF0_COAXIAL_INDEX, SPDIF0_COAXIAL_PORT_MODE);
-#ifdef CFG_APP_OPTICAL_MODE_EN
-		GPIO_PortAModeSet(SPDIF0_OPTICAL_INDEX, 0);
-#endif
 		SPDIF0_AnalogModuleEnable(SPDIF0_COAXIAL_PORT_ANA_INPUT, SPDIF_ANA_LEVEL_300mVpp);
 	}
 #endif
+
+	memset(&SpdifPlayCt->AudioInfo, 0, sizeof(SPDIF_TYPE_STR));
+	SpdifPlayCt->AudioInfo.audio_type = SPDIF_AUDIO_PCM_DATA_TYPE;
 
 	SPDIF_ModuleRst(CFG_SPDIF_MODULE);
 	SPDIF_ModuleDisable(CFG_SPDIF_MODULE);

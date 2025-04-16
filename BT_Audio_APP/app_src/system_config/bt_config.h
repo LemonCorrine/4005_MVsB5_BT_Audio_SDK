@@ -27,6 +27,14 @@
 #define BT_SUPPORT			        ENABLE
 
 /*****************************************************************
+ * BLE Central And Peripheral (主从一体)
+ * 扫描+广播 分时复用
+ *****************************************************************/
+#if (BLE_SUPPORT == ENABLE)
+#define BLE_DUAL_ROLE 				DISABLE //BLE主从一体开关
+#endif
+
+/*****************************************************************
  * 蓝牙发射功能配置
  *****************************************************************/
 #define BT_SOURCE_SUPPORT			DISABLE
@@ -96,6 +104,8 @@ enum
 #else
 #define SYS_BT_BACKGROUND_TYPE		BT_BACKGROUND_FAST_POWER_ON_OFF		//0 -> BT后台不能连接手机
 #endif
+
+//#define FLASH_SAVE_REMOTE_BT_NAME		//是否需要记忆已连设备的蓝牙名称
 
 //蓝牙简易配对功能
 #define BT_SIMPLEPAIRING_FLAG		TRUE 	//0:use pin code; 1:simple pairing

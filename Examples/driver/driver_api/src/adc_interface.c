@@ -12,6 +12,7 @@
 
 static AUDIO_BitWidth ADC0_BitWidth = ADC_WIDTH_24BITS;
 static AUDIO_BitWidth ADC1_BitWidth = ADC_WIDTH_24BITS;
+extern uint8_t mclkFreqNum;
 
 void AudioADC_DigitalInit(ADC_MODULE Module, uint32_t SampleRate, AUDIO_BitWidth BitWidth, void* Buf, uint16_t Len)
 {
@@ -19,6 +20,7 @@ void AudioADC_DigitalInit(ADC_MODULE Module, uint32_t SampleRate, AUDIO_BitWidth
 	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ);
 	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ);
 
+	AudioADC_MclkFreqSet(Module, mclkFreqNum);
 
 	if(Module == ADC0_MODULE)
     {
@@ -178,10 +180,11 @@ void AudioADC_AnaInit(ADC_MODULE ADCMODULE, ADC_CHANNEL ChannelSel, AUDIO_ADC_IN
                 else
                 {
                     AudioADC_BufferIBiasSet(ADC1_MODULE, 1, 1);
-                    AudioADC_ComparatorIBiasSet(ADC1_MODULE, 1, 1);
-                    AudioADC_OTA1IBiasSet(ADC1_MODULE, 0, 0);
+                    AudioADC_ComparatorIBiasSet(ADC1_MODULE, 2, 2);
+                    AudioADC_OTA1IBiasSet(ADC1_MODULE, 1, 1);
                     AudioADC_OTA2IBiasSet(ADC1_MODULE, 2, 2);
                     AudioADC_PGAIBiasSet(ADC1_MODULE, 2, 2);
+					AudioADC_LatchDelayIBiasSet(ADC1_MODULE, 4, 4);
                 }
 
                 AudioADC_PGAPowerUp(ADC1_MODULE, 1, 1);
@@ -346,6 +349,8 @@ uint16_t AudioADC1_DataGet(void* Buf, uint16_t Len)
 
 void AudioADC_SampleRateChange(ADC_MODULE Module,uint32_t SampleRate)
 {
+	AudioADC_MclkFreqSet(Module, mclkFreqNum);
+
 	if(Module == ADC0_MODULE)
     {
     	if(IsSelectMclkClk1(SampleRate))
@@ -370,4 +375,16 @@ void AudioADC_SampleRateChange(ADC_MODULE Module,uint32_t SampleRate)
     	}
     	AudioADC_SampleRateSet(ADC1_MODULE, SampleRate);
     }
+}
+
+void AudioADC_MclkFreqSet(ADC_MODULE Module,uint32_t Div)
+{
+	if(Module == ADC0_MODULE)
+    {
+		Clock_ADC0ClkDivSet(Div - 1);
+    }
+	else if(Module == ADC1_MODULE)
+	{
+		Clock_ADC1ClkDivSet(Div - 1);
+	}
 }

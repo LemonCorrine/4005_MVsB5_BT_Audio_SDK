@@ -137,6 +137,7 @@ void AudioOutSampleRateSet(uint32_t SampleRate)
 	bool	HighSampleRateFlag;
 	AUDIOEFFECT_EFFECT_PARA *mpara;
 	uint32_t SampleRateTemp;
+	uint32_t adc_sampleRate = SampleRate;
     MessageContext msgSend;
 
 	extern uint32_t IsBtHfMode(void);
@@ -203,8 +204,17 @@ void AudioOutSampleRateSet(uint32_t SampleRate)
 #endif
 
 #if CFG_RES_MIC_SELECT
-	AudioADC_SampleRateChange(ADC1_MODULE,SampleRate);
+	if((adc_sampleRate == 88200) || (adc_sampleRate == 176400))
+	{
+		adc_sampleRate = 44100;
+	}
+	else if((adc_sampleRate == 96000) || (adc_sampleRate == 192000))
+	{
+		adc_sampleRate = 48000;
+	}
+	AudioADC_SampleRateChange(ADC1_MODULE, adc_sampleRate);
 	gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source = Clock_AudioMclkGet(AUDIO_ADC1);
+	AudioCoreSourceChange(MIC_SOURCE_NUM, 0, adc_sampleRate);
 #endif
 
     msgSend.msgId = MSG_EFFECTREINIT;
@@ -470,6 +480,7 @@ bool ModeCommonInit(void)
 	AudioCoreIO AudioIOSet;
 	uint16_t FifoLenStereo;
 	uint32_t sampleRate;
+	uint32_t adc_sampleRate;
 
 	if(!AudioEffectInit())
 	{
@@ -479,6 +490,15 @@ bool ModeCommonInit(void)
 	AudioOutSampleRecover();
 #endif
 	sampleRate  = AudioCoreMixSampleRateGet(DefaultNet);
+	adc_sampleRate = sampleRate;
+	if((adc_sampleRate == 88200) || (adc_sampleRate == 176400))
+	{
+		adc_sampleRate = 44100;
+	}
+	else if((adc_sampleRate == 96000) || (adc_sampleRate == 192000))
+	{
+		adc_sampleRate = 48000;
+	}
 	APP_DBG("Systerm SampleRate: %ld\n", sampleRate);
 
 	AudioEffectParamSync();
@@ -573,9 +593,9 @@ bool ModeCommonInit(void)
 
 		//Mic1   digital
 	#ifdef CFG_AUDIO_WIDTH_24BIT
-		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_24BITS,(void*)mainAppCt.ADCFIFO, FifoLenStereo);
+		AudioADC_DigitalInit(ADC1_MODULE, adc_sampleRate,ADC_WIDTH_24BITS,(void*)mainAppCt.ADCFIFO, FifoLenStereo);
 	#else
-		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_16BITS,(void*)mainAppCt.ADCFIFO, FifoLenStereo);
+		AudioADC_DigitalInit(ADC1_MODULE, adc_sampleRate,ADC_WIDTH_16BITS,(void*)mainAppCt.ADCFIFO, FifoLenStereo);
 	#endif
 
 	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
@@ -585,7 +605,7 @@ bool ModeCommonInit(void)
 	#endif
 		//Soure0.
 		memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
-		AudioIOSet.Adapt = STD;
+		AudioIOSet.Adapt = SRC_ONLY;
 		AudioIOSet.Sync = TRUE;
 		AudioIOSet.Channels = 1;
 		AudioIOSet.Net = DefaultNet;
@@ -595,6 +615,7 @@ bool ModeCommonInit(void)
 		AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
 		AudioIOSet.IOBitWidthConvFlag = 0;//需要数据进行位宽扩展
 	#endif
+		AudioIOSet.SampleRate = adc_sampleRate;
 		if(!AudioCoreSourceInit(&AudioIOSet, MIC_SOURCE_NUM))
 		{
 			DBG("mic Source error");

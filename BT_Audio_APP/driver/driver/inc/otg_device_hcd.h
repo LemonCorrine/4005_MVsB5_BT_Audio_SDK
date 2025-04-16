@@ -164,6 +164,14 @@ OTG_DEVICE_ERR_CODE OTG_DeviceControlSend(uint8_t* Buf, uint32_t Len, uint32_t T
 
 
 /**
+ * @brief  从控制端点发送数据子帧，警告：不完备时，禁止其他命令，交互排他性状态上层管理
+ * @param  Buf 数据缓冲区指针
+ * @param  MaxLen 数据长度
+ * @return 实际发送长度,等于MaxLen时通信完备
+ */
+uint32_t OTG_DeviceControlSendPart(uint8_t* Buf, uint32_t MaxLen);
+
+/**
  * @brief  从控制端点接收OUT数据
  * @param  Buf 数据缓冲区指针
  * @param  MaxLen 最大数据长度
@@ -172,6 +180,15 @@ OTG_DEVICE_ERR_CODE OTG_DeviceControlSend(uint8_t* Buf, uint32_t Len, uint32_t T
  * @return OTG_DEVICE_ERR_CODE
  */
 OTG_DEVICE_ERR_CODE OTG_DeviceControlReceive(uint8_t* Buf, uint32_t MaxLen, uint32_t *pTransferLen, uint32_t TimeOut);
+
+
+/**
+ * @brief  从控制端点硬件FIFO接收OUT数据子帧，警告：不完备时，禁止其他命令，交互排他性状态上层管理
+ * @param  Buf 数据缓冲区指针
+ * @param  MaxLen 最大长度
+ * @return 实际接收长度，等于MaxLen时通信完备
+ */
+uint32_t OTG_DeviceControlReceivePart(uint8_t* Buf, uint32_t MaxLen);
 
 
 /**

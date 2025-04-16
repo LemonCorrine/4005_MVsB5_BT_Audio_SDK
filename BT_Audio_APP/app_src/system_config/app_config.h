@@ -42,7 +42,7 @@
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(0)
 #define  CFG_SDK_MINOR_VERSION		(9)
-#define  CFG_SDK_PATCH_VERSION	    (0)
+#define  CFG_SDK_PATCH_VERSION	    (1)
 
 
 //****************************************************************************************
@@ -66,6 +66,8 @@
 
 #define CFG_FUNC_OPEN_SLOW_DEVICE_TASK
 
+/**USB/CARD模式相关设备未插入时，可进入/不退出模式**/
+//#define CFG_FUNC_APP_USB_CARD_IDLE
 
 #ifdef CFG_APP_RADIOIN_MODE_EN
     #define FUNC_RADIO_RDA5807_EN

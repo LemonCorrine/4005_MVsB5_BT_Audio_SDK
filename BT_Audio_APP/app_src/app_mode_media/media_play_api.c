@@ -395,8 +395,26 @@ bool MediaPlayerInitialize(DEV_ID DeviceIndex, int32_t FileIndex, uint32_t Folde
 			return FALSE;
 		}
 
+#if FLASH_BOOT_EN
 		UAndSDDiskUpgradeJudge();
-		
+#ifndef FUNC_UPDATE_CONTROL
+		if(!SoftFlagGet(SoftFlagUpgradeOK)&&(SoftFlagGet(SoftFlagMvaInUDisk)||SoftFlagGet(SoftFlagMvaInCard)))
+		{
+			APP_DBG("MediaPlayerInitialize return,because MVA upgrade \n");
+			if(SoftFlagGet(SoftFlagMvaInCard))
+			{
+				APP_DBG("MainApp:updata file exist in Card\n");
+				start_up_grate(SysResourceCard);
+			}
+			else if(SoftFlagGet(SoftFlagMvaInUDisk))
+			{
+				APP_DBG("MainApp:updata file exist in Udisk\n");
+				start_up_grate(SysResourceUDisk);
+			}
+			return TRUE;
+		}
+#endif
+#endif
 		APP_DBG("Hardware initialize success.\n");
 
 		//默认使用全盘播放第一个文件
@@ -415,13 +433,7 @@ bool MediaPlayerInitialize(DEV_ID DeviceIndex, int32_t FileIndex, uint32_t Folde
 
 		gMediaPlayer->TotalFileSumInDisk = f_file_real_quantity();
 		gMediaPlayer->ValidFolderSumInDisk = f_dir_with_song_real_quantity();//f_dir_real_quantity();
-#if FLASH_BOOT_EN
-		if(!SoftFlagGet(SoftFlagUpgradeOK)&&(SoftFlagGet(SoftFlagMvaInUDisk)||SoftFlagGet(SoftFlagMvaInCard)))
-		{
-			APP_DBG("MediaPlayerInitialize return,because MVA upgrade \n");
-			return TRUE;
-		}
-#endif
+
 		if(!gMediaPlayer->TotalFileSumInDisk)
 		{
 			return FALSE;
@@ -466,6 +478,10 @@ bool MediaPlayerInitialize(DEV_ID DeviceIndex, int32_t FileIndex, uint32_t Folde
 		{
 			break;
 		}
+#ifdef CFG_FUNC_APP_USB_CARD_IDLE
+		if(IsMediaPlugOut())
+			return FALSE;
+#endif
 		gMediaPlayer->CurFileIndex = (gMediaPlayer->CurFileIndex % gMediaPlayer->TotalFileSumInDisk) + 1;
 	}
 	if(i == gMediaPlayer->TotalFileSumInDisk)

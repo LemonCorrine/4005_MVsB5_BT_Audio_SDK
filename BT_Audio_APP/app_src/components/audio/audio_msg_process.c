@@ -25,12 +25,19 @@ int16_t EqMode;
 int16_t MicVolume = CFG_PARA_SYS_VOLUME_DEFAULT;
 int16_t MusicVolume = CFG_PARA_SYS_VOLUME_DEFAULT;
 
+#if (CFG_PARA_MAX_VOLUME_NUM == 32)
 static const int16_t VolumeTable[CFG_PARA_MAX_VOLUME_NUM + 1] = {
 	-7200, -6300, -5600, -4900, -4400, -4000, -3600, -3200, -2900, -2600,
 	-2400, -2200, -2000, -1900, -1800, -1700, -1600, -1500, -1400, -1300,
 	-1200, -1100, -1000, -900, -800, -700, -600, -500, -400, -300,
 	-200,  -100, 0
 };
+#elif (CFG_PARA_MAX_VOLUME_NUM == 16)
+static const int16_t VolumeTable[CFG_PARA_MAX_VOLUME_NUM + 1] = {
+	-7200, -5600, -4400, -3600, -2900, -2400, -2000, -1600, -1300, -1000,
+	-800, -600, -400, -200, -100, 0
+};
+#endif
 
 
 uint8_t AudioMusicVolSync(void)

@@ -146,6 +146,7 @@ typedef enum LINEIN_MODULE
  * @param  IsLeftEn     TRUE,左通道能使; FALSE,左通道关闭
  * @param  IsRightEn    TRUE,右通道能使; FALSE,右通道关闭
  * @return 无
+ * @Note 如果完全使能ADC还需要调用AudioADC_Enable API
  */
 void AudioADC_LREnable(ADC_MODULE ADCModule, bool IsLeftEn, bool IsRightEn);
 
@@ -153,6 +154,7 @@ void AudioADC_LREnable(ADC_MODULE ADCModule, bool IsLeftEn, bool IsRightEn);
  * @brief  ADC 模块使能（总开关）
  * @param  ADCModule    0,ADC0模块; 1,ADC1模块
  * @return 无
+ * @Note 如果完全使能ADC还需要调用AudioADC_LREnable API
  */
 void AudioADC_Enable(ADC_MODULE ADCModule);
 

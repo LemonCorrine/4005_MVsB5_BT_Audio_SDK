@@ -41,9 +41,15 @@
 //#endif
 #ifdef CFG_FUNC_CARD_DETECT
 volatile DETECT_STATE CardState = DETECT_STATE_IDLE;
+#if FLASH_BOOT_EN
+volatile DETECT_STATE CardStateback = DETECT_STATE_IDLE;
+#endif
 #endif
 #ifdef CFG_FUNC_UDISK_DETECT
 volatile DETECT_STATE UsbHostState = DETECT_STATE_IDLE;
+#if FLASH_BOOT_EN
+volatile DETECT_STATE UdiskStateback = DETECT_STATE_IDLE;
+#endif
 uint8_t UsbHostPortFlag = 0;
 #endif
 #ifdef CFG_FUNC_USB_DEVICE_DETECT
@@ -537,6 +543,9 @@ static void DevicePlugEventCheck(void)
 #ifdef CFG_FUNC_CARD_DETECT	//card msg
 	if(Plug & CARD_IN_EVENT_BIT)
 	{
+#if FLASH_BOOT_EN
+		CardStateback = DETECT_STATE_IN;
+#endif
 		if(GetSysModeState(ModeCardAudioPlay) == ModeStateSusend)
 		{
 			SetSysModeState(ModeCardAudioPlay,ModeStateReady);
@@ -546,10 +555,20 @@ static void DevicePlugEventCheck(void)
 	}
 	else if(Plug & CARD_OUT_EVENT_BIT)
 	{
+#if FLASH_BOOT_EN
+		if(CardStateback == DETECT_STATE_IN)
+		{
+			SoftFlagDeregister(SoftFlagUpgradeOK);
+		}
+		CardStateback = DETECT_STATE_OUT;
+		SoftFlagDeregister(SoftFlagMvaInCard);//清理mva包标记
+#endif
+#ifndef CFG_FUNC_APP_USB_CARD_IDLE
 		if(GetSysModeState(ModeCardAudioPlay) == ModeStateReady)
 		{
 			SetSysModeState(ModeCardAudioPlay,ModeStateSusend);
 		}
+#endif
 		msgSend.msgId	= MSG_DEVICE_SERVICE_CARD_OUT;
 		MessageSend(GetMainMessageHandle(), &msgSend);
 	}
@@ -557,6 +576,9 @@ static void DevicePlugEventCheck(void)
 #ifdef CFG_FUNC_UDISK_DETECT	//usb host msg	
 	if(Plug & UDISK_IN_EVENT_BIT)
 	{
+#if FLASH_BOOT_EN
+		UdiskStateback = DETECT_STATE_IN;
+#endif
 		if(GetSysModeState(ModeUDiskAudioPlay) == ModeStateSusend)
 		{
 			SetSysModeState(ModeUDiskAudioPlay,ModeStateReady);
@@ -566,10 +588,20 @@ static void DevicePlugEventCheck(void)
 	}
 	else if(Plug & UDISK_OUT_EVENT_BIT)
 	{
+#if FLASH_BOOT_EN
+		if(UdiskStateback == DETECT_STATE_IN)
+		{
+			SoftFlagDeregister(SoftFlagUpgradeOK);
+		}
+		UdiskStateback = DETECT_STATE_OUT;
+		SoftFlagDeregister(SoftFlagMvaInUDisk);//清理mva包标记
+#endif
+#ifndef CFG_FUNC_APP_USB_CARD_IDLE
 		if(GetSysModeState(ModeUDiskAudioPlay) == ModeStateReady)
 		{
 			SetSysModeState(ModeUDiskAudioPlay,ModeStateSusend);
 		}
+#endif
 		msgSend.msgId	= MSG_DEVICE_SERVICE_U_DISK_OUT;
 		MessageSend(GetMainMessageHandle(), &msgSend);
 	}

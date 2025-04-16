@@ -224,6 +224,9 @@ typedef struct _BT_DB_RECORD
 	uint8_t			linkKey[16];
 	uint8_t			keyType;
 	uint8_t			pinLen;
+#ifdef FLASH_SAVE_REMOTE_BT_NAME
+	uint8_t			bdName[BT_NAME_SIZE];
+#endif
 }BT_DB_RECORD;
 
 typedef struct _BT_LINK_DEVICE_INFO
