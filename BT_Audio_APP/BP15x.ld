@@ -63,6 +63,62 @@ SECTIONS
 	".sdata2_*flash_boot.o" 	: { KEEP(*flash_boot.o(.sdata2 .sdata2.* .gnu.linkonce.s2.* )) }
 	".sbss2_*flash_boot.o" 	: { KEEP(*flash_boot.o(.sbss2 .sbss2.* .gnu.linkonce.sb2.* )) }
 	".eh_frame_hdr_*flash_boot.o" 	: { KEEP(*flash_boot.o(.eh_frame_hdr )) }
+	".nds32_init_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.nds32_init )) }
+	".interp_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.interp )) }
+	".hash_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.hash )) }
+	".dynsym_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.dynsym )) }
+	".dynstr_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.dynstr )) }
+	".gnu.version_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.gnu.version )) }
+	".gnu.version_d_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.gnu.version_d )) }
+	".gnu.version_r_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.gnu.version_r )) }
+	".rel.init_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rel.init )) }
+	".rela.init_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rela.init )) }
+	".rel.text_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rel.text .rel.text.* .rel.gnu.linkonce.t.* )) }
+	".rela.text_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rela.text .rela.text.* .rela.gnu.linkonce.t.* )) }
+	".rel.fini_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rel.fini )) }
+	".rela.fini_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rela.fini )) }
+	".rel.rodata_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rel.rodata .rel.rodata.* .rel.gnu.linkonce.r.* )) }
+	".rela.rodata_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.* )) }
+	".rel.data.rel.ro_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rel.data.rel.ro* )) }
+	".rela.data.rel.ro_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rel.data.rel.ro* )) }
+	".rel.data_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rel.data .rel.data.* .rel.gnu.linkonce.d.* )) }
+	".rela.data_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rela.data .rela.data.* .rela.gnu.linkonce.d.* )) }
+	".rel.tdata_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.* )) }
+	".rela.tdata_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.* )) }
+	".rel.tbss_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.* )) }
+	".rela.tbss_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.* )) }
+	".rel.ctors_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rel.ctors )) }
+	".rela.ctors_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rela.ctors )) }
+	".rel.dtors_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rel.dtors )) }
+	".rela.dtors_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rela.dtors )) }
+	".rela.dyn_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(rela.dyn )) KEEP(*flash_boot_ota.o(.rela__libc_subfreeres )) KEEP(*flash_boot_ota.o(.rela__libc_atexit )) KEEP(*flash_boot_ota.o(.rela__libc_thread_subfreeres )) KEEP(*flash_boot_ota.o(.rela.init_array )) KEEP(*flash_boot_ota.o(.rela.fini_array )) }
+	".rel.got_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rel.got )) }
+	".rela.got_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rela.got )) }
+	".rel.sdata_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rel.sdata .rel.sdata.* .rel.gnu.linkonce.s.* )) }
+	".rela.sdata_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rela.sdata .rela.sdata.* .rela.gnu.linkonce.s.* )) }
+	".rel.sbss_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rel.sbss .rel.sbss.* .rel.gnu.linkonce.sb.* )) }
+	".rela.sbss_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rela.sbss .rela.sbss.* .rela.gnu.linkonce.sb.* )) }
+	".rel.sdata2_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rel.sdata2 .rel.sdata2.* .rel.gnu.linkonce.s2.* )) }
+	".rela.sdata2_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rela.sdata2 .rela.sdata2.* .rela.gnu.linkonce.s2.* )) }
+	".rel.sbss2_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rel.sbss2 .rel.sbss2.* .rel.gnu.linkonce.sb2.* )) }
+	".rela.sbss2_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rela.sbss2 .rela.sbss2.* .rela.gnu.linkonce.sb2.* )) }
+	".rel.bss_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rel.bss .rel.bss.* .rel.gnu.linkonce.b.* )) }
+	".rela.bss_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.* )) }
+	".rel.plt_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rel.plt )) }
+	".rela.plt_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rela.plt )) }
+	".init_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.init )) }
+	".plt_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.plt )) }
+	".text_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.text .stub .text.* .gnu.linkonce.t.* )) KEEP(*flash_boot_ota.o(.text.*personality* )) KEEP(*flash_boot_ota.o(.gnu.warning )) . = ALIGN(4); }
+	".fini_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.fini )) }
+	".ex9.itable_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.ex9.itable )) }
+	PROVIDE (__etext = .);
+	PROVIDE (_etext = .);
+	PROVIDE (etext = .);
+	".rodata_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rodata .rodata.* .gnu.linkonce.r.* )) }
+	".rodata1_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.rodata1 )) }
+	".sdata2_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.sdata2 .sdata2.* .gnu.linkonce.s2.* )) }
+	".sbss2_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.sbss2 .sbss2.* .gnu.linkonce.sb2.* )) }
+	".eh_frame_hdr_*flash_boot_ota.o" 	: { KEEP(*flash_boot_ota.o(.eh_frame_hdr )) }
 	__sdk_code_start =  LOADADDR (.vector);
 	.vector 	: { KEEP(*(.vector )) }
 	.stub_section 	: { KEEP(*(.stub_section )) }

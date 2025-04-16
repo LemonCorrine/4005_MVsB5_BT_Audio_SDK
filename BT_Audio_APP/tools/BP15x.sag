@@ -9,6 +9,7 @@ EILM 0x00000 0x00900000
 	EXEC_CODE 0x00000
 	{
 		*flash_boot.o KEEP(+RO LMA_FORCE_ALIGN) 
+		*flash_boot_ota.o KEEP(+RO LMA_FORCE_ALIGN) 
 		LOADADDR NEXT __sdk_code_start
 		* KEEP(.vector LMA_FORCE_ALIGN)	
 		* KEEP(.stub_section LMA_FORCE_ALIGN)
