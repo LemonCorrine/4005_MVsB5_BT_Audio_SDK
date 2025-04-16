@@ -26,6 +26,35 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 --------------------------------------------------------------------------------------
 版本历史：（采用倒序排列，最新版置顶）
 
+
+------------------------------
+2024-10-22【0.2.8  build @ Oct 22 2024 16:47:11】
+size:381,466  bytes
+更新内容：
+	1、Power_LDO11DConfig() 电压调整增加2个档位，最高到1.2V
+
+------------------------------
+2024-10-17【0.2.7  build @ Oct 17 2024 10:58:46】
+size:381,462  bytes
+更新内容：
+	1、DCDC切换时，不临时关闭SW IO功能
+
+------------------------------
+2024-9-29【0.2.6  build @ Sep 29 2024 16:27:26】
+size:381,650  bytes
+更新内容：
+	1、dac powerdown API更新
+	2、优化 AudioDAC_AllPowerDown_Fast API
+	3、更新DMA_CircularFIFOClear
+	4、更新Read_ModuleSwitch_Status
+
+------------------------------
+2024-9-9【0.2.5  build @ Sep  9 2024 16:02:53】
+size:381,582  bytes
+更新内容：
+	1、优化DAC驱动，减少powerdown后立即poweron的pop声
+
+------------------------------
 2024-8-30【0.2.4  build @ Aug 30 2024 14:00:36】
 size:381,558  bytes
 更新内容：
