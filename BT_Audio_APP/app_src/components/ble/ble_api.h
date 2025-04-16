@@ -17,7 +17,7 @@
 #define BLE_INFO(fmt, args...) printf("[BLE_INFO]:" fmt, ##args)
 #define BLE_GATT_UUID_128_LEN (16)
 #define BLE_DFLT_DEVICE_MAX_NAME_LEN (18)
-//#define DUOBLE_ROLE //主从一体开关
+// #define DUOBLE_ROLE //主从一体开关
 /*****************************************************************************************/
 typedef struct set_adv_data
 {
@@ -31,6 +31,12 @@ typedef struct set_rsp_adv_data
     uint16_t adv_rsp_len;
 } set_rsp_adv_data_t;
 
+typedef enum
+{
+    UUID_TYPE_16 = 0,
+    UUID_TYPE_128,
+
+} uuid_type_t;
 // 标准16位uuid模型
 typedef struct ble_gatt_att16_desc
 {
@@ -61,6 +67,22 @@ typedef struct ble_gatt_att128_desc
     uint16_t ext_info;
 } ble_gatt_att128_desc_t;
 
+typedef struct ble_profile_add
+{
+    uuid_type_t type;
+
+    uint16_t size;
+
+    uint16_t att16_service;
+
+    ble_gatt_att16_desc_t *att_desc16;
+
+    uint8_t *att128_service;
+
+    ble_gatt_att128_desc_t *att_desc128;
+
+} ble_profile_add_t;
+
 typedef struct set_adv_interval
 {
     uint32_t adv_intv_min;
@@ -74,20 +96,17 @@ typedef struct le_init_parameter
     set_rsp_adv_data_t rsp_data;
     set_adv_data_t adv_data;
     uint16_t att_default_mtu;
-    uint16_t ble_uuid16_service;
-    uint16_t *ble_uuid128_service;
-    uint16_t ble_service_idxnb;
-    ble_gatt_att128_desc_t *profile_uuid128;
-    ble_gatt_att16_desc_t *profile_uuid16;
     uint8_t ble_device_name_len;
     uint8_t ble_device_name[BLE_DFLT_DEVICE_MAX_NAME_LEN];
+    ble_profile_add_t *mv_profile_add;
+    uint16_t mv_profile_data_size;
 } le_init_parameter_t;
 
 le_init_parameter_t le_user_config;
 /***********************************************************************************************/
 /**
  * @brief LE相关回调事件枚举
-*/
+ */
 typedef enum
 {
     LE_INIT_STATUS = 0,
@@ -106,10 +125,9 @@ typedef struct le_addr
     uint8_t addr[6];
 } le_addr_t;
 
-
 typedef struct ble_app_read_data
 {
-	uint16_t connect_handle;
+    uint16_t connect_handle;
     uint8_t *data;
     /// value handle
     uint16_t handle;
@@ -121,7 +139,7 @@ typedef struct ble_app_read_data
 
 /**
  * @brief service 接收数据结构体
- * 
+ *
  */
 typedef struct ble_rcv_data
 {
@@ -137,7 +155,7 @@ typedef struct ble_rcv_data
 
 /**
  * @brief LE 断开连接事件参数
- * 
+ *
  */
 typedef struct le_disconnect_params
 {
@@ -151,7 +169,7 @@ typedef struct le_disconnect_params
 
 /**
  * @brief LE连接完成事件参数
- * 
+ *
  */
 typedef struct _le_connected_complete
 {
@@ -192,7 +210,7 @@ typedef struct le_connection_param
 } le_connection_param_t;
 /**
  * @brief LE连接参数更新事件
- * 
+ *
  */
 typedef struct _le_con_update_params
 {
@@ -211,13 +229,13 @@ typedef struct _le_con_update_params
 } le_con_update_params;
 /**
  * @brief GAP设备地址结构体
- * 
+ *
  */
 typedef struct gap_bdaddr
 {
     /// BD Address of device
     uint8_t addr[6];
-    /// Address type of the device 0=public/1=private random 
+    /// Address type of the device 0=public/1=private random
     uint8_t addr_type;
 } gap_bdaddr_t;
 enum le_phy_prop
@@ -375,8 +393,8 @@ typedef struct _LE_CB_PARAMS
     le_con_update_params con_update_param;
     uint16_t le_init_status;
     uint16_t mtu_size;
-    ble_rcv_data_t rcv_data;      //LE_RCV_DATA_EVENT
-    ble_app_read_data_t read_data;//LE_APP_READ_DATA_EVENT
+    ble_rcv_data_t rcv_data;       // LE_RCV_DATA_EVENT
+    ble_app_read_data_t read_data; // LE_APP_READ_DATA_EVENT
 } LE_CB_PARAMS;
 
 typedef void (*LeParamCB)(LE_CB_EVENT event, LE_CB_PARAMS *param);
@@ -443,26 +461,26 @@ uint16_t gatt_client_read_data(uint8_t conidx, uint16_t hdl, uint16_t metainfo, 
 /*********************FOR CENTRAL ROlE START****************/
 /**
  * @brief 解析广播数据
-*/
+ */
 int prase_adv_data(const char *name, uint8_t *adv_data, uint16_t adv_len);
 /**
  * @brief 开始扫描
- * 
- * @param p_param 
- * @return uint16_t 
+ *
+ * @param p_param
+ * @return uint16_t
  */
-uint16_t le_scan_start(le_scan_param_t* p_param);
+uint16_t le_scan_start(le_scan_param_t *p_param);
 /**
  * @brief 停止扫描
- * 
- * @return uint16_t 
+ *
+ * @return uint16_t
  */
 uint16_t le_scan_stop(void);
 /**
  * @brief 连接设备
- * 
- * @param param 
- * @return uint16_t 
+ *
+ * @param param
+ * @return uint16_t
  */
 uint16_t le_create_connection(le_connect_param_t *param);
 

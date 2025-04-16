@@ -289,7 +289,7 @@ static void SysVarInit(void)
 			#if CFG_PARAM_FIXED_REMIND_VOL
 			mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM] = CFG_PARAM_FIXED_REMIND_VOL;
 			#else
-			mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM] = mainAppCt.MusicVolume;
+			mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM] = MusicVolume;
 			#endif
 		}
 #endif

@@ -37,7 +37,7 @@
 #ifdef CFG_APP_IDLE_MODE_EN
 #include "idle_mode.h"
 #endif
-
+#include "pmu_powerkey.h"
 /*************************************************
 * ADC KEY按键属性对应消息列表
 *
@@ -48,7 +48,11 @@ static const uint16_t ADKEY_TAB[][5] =
 	//KEY_PRESSED					SHORT_RELEASE                 LONG_PRESS                  KEY_HOLD                    LONG_PRESS_RELEASE
 
 	//power adc key
-	{MSG_NONE,						MSG_PLAY_PAUSE,					MSG_DEEPSLEEP,  			MSG_NONE,					MSG_NONE},
+#if defined(CFG_IDLE_MODE_POWER_KEY) && (POWERKEY_MODE == POWERKEY_MODE_PUSH_BUTTON)
+	{MSG_NONE,						MSG_PLAY_PAUSE,					MSG_POWERDOWN,  			MSG_NONE,					MSG_NONE},
+#else
+	{MSG_NONE,						MSG_PLAY_PAUSE,					MSG_NONE,  					MSG_NONE,					MSG_NONE},
+#endif
 	{MSG_NONE,						MSG_NONE,						MSG_NONE,					MSG_NONE,					MSG_NONE},
 	{MSG_NONE,						MSG_NONE,						MSG_NONE,					MSG_NONE,					MSG_NONE},
 	{MSG_NONE,						MSG_NONE,						MSG_NONE,					MSG_NONE,					MSG_NONE},
@@ -326,6 +330,20 @@ MessageId KeyScan(void)
 				break;
 		}
 	}
+
+#ifdef CFG_IDLE_MODE_POWER_KEY
+#if (POWERKEY_MODE == POWERKEY_MODE_SLIDE_SWITCH_LPD) || (POWERKEY_MODE == POWERKEY_MODE_SLIDE_SWITCH_HPD)
+	{
+		extern uint16_t GetSystemPowerKeyMsg(void);
+		MessageId 	Msg = GetSystemPowerKeyMsg();
+
+		if(Msg != MSG_NONE)
+		{
+			KeyMsg = Msg;
+		}
+	}
+#endif
+#endif
 
 #ifdef CFG_FUNC_DBCLICK_MSG_EN
 	KeyMsg = DbclickProcess(KeyMsg);

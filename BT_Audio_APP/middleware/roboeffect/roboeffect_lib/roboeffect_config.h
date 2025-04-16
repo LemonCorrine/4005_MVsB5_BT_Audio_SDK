@@ -26,6 +26,7 @@ extern "C" {
 #define DC_BLOCKER_ENABLE                       (1)
 #define DISTORTION_DS1_ENABLE                   (1)
 #define DRC_ENABLE                              (1)
+#define DRC_LEGACY_ENABLE                       (1)
 #define DYNAMIC_EQ_ENABLE                       (1)
 #define ECHO_ENABLE                             (1)
 #define ENGINE_SOUND_ENABLE                     (0)
@@ -138,6 +139,7 @@ extern "C" {
 #define ROBOEFFECT_VAD_PARAM_LEN                      2
 #define ROBOEFFECT_LR_BALANCER_PARAM_LEN              1
 #define ROBOEFFECT_HOWLING_SUPPRESSOR_SPECIFIED_PARAM_LEN 24
+#define ROBOEFFECT_DRC_LEGACY_PARAM_LEN               18
 #define ROBOEFFECT_FADER_PARAM_LEN                    3
 #define ROBOEFFECT_DOWNMIX_2TO1_PARAM_LEN             0
 #define ROBOEFFECT_UPMIX_1TO2_PARAM_LEN               0
@@ -517,6 +519,12 @@ bool roboeffect_howling_suppressor_specified_init_if(void *node);
 bool roboeffect_howling_suppressor_specified_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
 bool roboeffect_howling_suppressor_specified_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
 int32_t roboeffect_howling_suppressor_specified_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
+
+//drc_legacy interface
+bool roboeffect_drc_legacy_init_if(void *node);
+bool roboeffect_drc_legacy_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
+bool roboeffect_drc_legacy_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
+int32_t roboeffect_drc_legacy_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
 
 //fader interface
 bool roboeffect_fader_init_if(void *node);

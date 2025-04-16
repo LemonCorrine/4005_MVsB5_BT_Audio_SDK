@@ -36,8 +36,8 @@ extern const AUDIOEFFECT_EFFECT_PARA HanMai_effect_para;
 extern const AUDIOEFFECT_EFFECT_PARA NanBianNv_effect_para;
 extern const AUDIOEFFECT_EFFECT_PARA NvBianNan_effect_para;
 extern const AUDIOEFFECT_EFFECT_PARA WaWaYin_effect_para;
-extern const AUDIOEFFECT_SOURCE_SINK_NUM karaoke_mode;
-extern const uint8_t karaoke_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX];
+extern const AUDIOEFFECT_SOURCE_SINK_NUM Karaoke_mode;
+extern const uint8_t Karaoke_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX];
 
 extern const AUDIOEFFECT_EFFECT_PARA mic_effect_para;
 extern const AUDIOEFFECT_SOURCE_SINK_NUM mic_mode;
@@ -55,7 +55,7 @@ extern const AUDIOEFFECT_SOURCE_SINK_NUM hfp_mode;
 extern const uint8_t hfp_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX];
 
 #ifndef CFG_FLOWCHART_KARAOKE_ENABLE
-uint8_t msg_process_karaoke(int msg)
+uint8_t msg_process_Karaoke(int msg)
 {
 	return 0;
 }
@@ -72,13 +72,13 @@ static const UserEffectModeValidConfig EffectModeToggleMap[] =
 	{EFFECT_MODE_BYPASS,	EffectModeStateReady,	&bypass_mode,	&bypass_effect_para,	NULL,	NULL},
 #else
 	#ifdef CFG_FUNC_MIC_KARAOKE_EN
-		{EFFECT_MODE_HunXiang,	EffectModeStateReady,	&karaoke_mode,	&HunXiang_effect_para,	karaoke_effect_ctrl,	msg_process_karaoke},
-		{EFFECT_MODE_DianYin,	EffectModeStateReady,	&karaoke_mode,	&DianYin_effect_para,	karaoke_effect_ctrl,	msg_process_karaoke},
-		{EFFECT_MODE_MoYin,		EffectModeStateReady,	&karaoke_mode,	&MoYin_effect_para,		karaoke_effect_ctrl,	msg_process_karaoke},
-		{EFFECT_MODE_HanMai,	EffectModeStateReady,	&karaoke_mode,	&HanMai_effect_para,	karaoke_effect_ctrl,	msg_process_karaoke},
-		{EFFECT_MODE_NanBianNv,	EffectModeStateReady,	&karaoke_mode,	&NanBianNv_effect_para,	karaoke_effect_ctrl,	msg_process_karaoke},
-		{EFFECT_MODE_NvBianNan,	EffectModeStateReady,	&karaoke_mode,	&NvBianNan_effect_para,	karaoke_effect_ctrl,	msg_process_karaoke},
-		{EFFECT_MODE_WaWaYin,	EffectModeStateReady,	&karaoke_mode,	&WaWaYin_effect_para,	karaoke_effect_ctrl,	msg_process_karaoke},
+		{EFFECT_MODE_HunXiang,	EffectModeStateReady,	&Karaoke_mode,	&HunXiang_effect_para,	Karaoke_effect_ctrl,	msg_process_Karaoke},
+		{EFFECT_MODE_DianYin,	EffectModeStateReady,	&Karaoke_mode,	&DianYin_effect_para,	Karaoke_effect_ctrl,	msg_process_Karaoke},
+		{EFFECT_MODE_MoYin,		EffectModeStateReady,	&Karaoke_mode,	&MoYin_effect_para,		Karaoke_effect_ctrl,	msg_process_Karaoke},
+		{EFFECT_MODE_HanMai,	EffectModeStateReady,	&Karaoke_mode,	&HanMai_effect_para,	Karaoke_effect_ctrl,	msg_process_Karaoke},
+		{EFFECT_MODE_NanBianNv,	EffectModeStateReady,	&Karaoke_mode,	&NanBianNv_effect_para,	Karaoke_effect_ctrl,	msg_process_Karaoke},
+		{EFFECT_MODE_NvBianNan,	EffectModeStateReady,	&Karaoke_mode,	&NvBianNan_effect_para,	Karaoke_effect_ctrl,	msg_process_Karaoke},
+		{EFFECT_MODE_WaWaYin,	EffectModeStateReady,	&Karaoke_mode,	&WaWaYin_effect_para,	Karaoke_effect_ctrl,	msg_process_Karaoke},
 	#else
 		{EFFECT_MODE_MIC,		EffectModeStateReady,	&mic_mode,		&mic_effect_para,		mic_effect_ctrl,	NULL	},
 		{EFFECT_MODE_MUSIC,		EffectModeStateReady,	&music_mode,	&music_effect_para,		music_effect_ctrl,	NULL	},

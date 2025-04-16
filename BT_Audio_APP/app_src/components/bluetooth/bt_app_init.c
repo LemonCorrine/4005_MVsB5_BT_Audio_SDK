@@ -398,7 +398,7 @@ void ConfigBtBbParams(BtBbParams *params)
 	
 	//params->bbSniffNotify = NULL;
 
-//	SetRfTxPwrMaxLevel(sys_parameter.bt_TxPowerLevel, sys_parameter.bt_PagePowerLevel);
+	SetRfTxPwrMaxLevel(sys_parameter.bt_TxPowerLevel, sys_parameter.bt_PagePowerLevel);
 
 	BtSetLinkSupervisionTimeout(BT_LSTO_DFT);
 }

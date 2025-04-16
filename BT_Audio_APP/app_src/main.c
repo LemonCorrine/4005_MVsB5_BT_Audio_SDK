@@ -71,10 +71,10 @@ extern const unsigned char *GetLibVersionFatfsACC(void);
 extern void UsbAudioTimer1msProcess(void);
 extern char *effect_lib_version_return(void);
 
-void _printf_float()
-{
-
-}
+//void _printf_float()
+//{
+//
+//}
 
 void OneMSTimer(void)
 {
@@ -122,6 +122,12 @@ void Timer2Interrupt(void)
 #ifdef VD51_REDMINE_13199
 	RgbLed1MsInterrupt();
 #endif
+#ifdef CFG_FUNC_DEBUG_USE_TIMER
+	{
+		extern void uart_log_out(void);
+		uart_log_out();
+	}
+#endif
 }
 
 #ifdef CFG_FUNC_LED_REFRESH
@@ -141,6 +147,16 @@ void Timer6Interrupt(void)
 
 void SystemClockInit(bool FristPoweron)
 {
+#if (SYS_CORE_APLL_FREQ >= (288*1000)) || (SYS_CORE_DPLL_FREQ >= (288*1000))
+#if (SYS_CORE_APLL_FREQ >= (360*1000)) || (SYS_CORE_DPLL_FREQ >= (360*1000))
+	//超频需要配置LDO11
+	Power_LDO11DConfig(PWD_LDO11_LVL_1V20);		//需要驱动0.2.8以后版本支持
+#else
+	//超频需要配置LDO11
+	Power_LDO11DConfig(PWD_LDO11_LVL_1V15);
+#endif
+#endif
+
 #ifndef USB_CRYSTA_FREE_EN
 	if(FristPoweron)
 		Clock_HOSCCurrentSet(15);
@@ -177,11 +193,6 @@ void SystemClockInit(bool FristPoweron)
 
 #if (SYS_CORE_SET_MODE == CORE_ONLY_APLL_MODE)
 	Clock_PllClose();
-#endif
-
-#if (SYS_CORE_APLL_FREQ >= (288*1000)) || (SYS_CORE_DPLL_FREQ >= (288*1000))
-	//超频需要配置LDO11
-	Power_LDO11DConfig(PWD_LDO11_LVL_1V15);
 #endif
 
 #ifdef CHIP_USE_DCDC
@@ -435,6 +446,19 @@ int main(void)
 	APP_DBG("****************************************************************\n");
 	APP_DBG("sys clk =%ld\n",Clock_SysClockFreqGet());
 
+	APP_DBG("CFG_CHIP_SEL:%d\n",CFG_CHIP_SEL);
+#ifdef	CHIP_USE_DCDC
+	APP_DBG("CHIP_USE_DCDC\n");
+#endif
+#ifdef CHIP_DAC_USE_DIFF
+	APP_DBG("DAC_Diff\n");
+#else
+	APP_DBG("DAC_Single\n");
+#endif
+#ifdef CHIP_DAC_USE_PVDD16
+	APP_DBG("PVDDModel: PVDD16\n");
+#endif
+
 #if defined(CFG_DOUBLE_KEY_EN) && !defined(CFG_AI_DENOISE_EN)
 	{
 		extern void AlgUserDemo(void);
@@ -492,7 +516,12 @@ int main(void)
 #ifdef VD51_REDMINE_13199
 	RgbLedInit();
 #endif
-
+#ifdef CFG_FUNC_DEBUG_USE_TIMER
+	{
+		extern uint8_t uart_switch ;
+		uart_switch = 1;
+	}
+#endif
 	MainAppTaskStart();
 	vTaskStartScheduler();
 

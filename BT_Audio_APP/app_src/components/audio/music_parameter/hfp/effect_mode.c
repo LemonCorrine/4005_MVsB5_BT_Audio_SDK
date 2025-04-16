@@ -35,6 +35,7 @@ const uint8_t hfp_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX] =
 {
 	[MUSIC_VOLUME_ADJUST] = HFP_music_gain_ADDR,
 	[MIC_VOLUME_ADJUST] = HFP_mic_gain_ADDR,
+	[REMIND_VOLUME_ADJUST] = HFP_remind_gain_control_ADDR,
 	[MIC_SILENCE_DETECTOR_PARAM] = HFP_silence_detector_mic_ADDR,
 	[MUSIC_SILENCE_DETECTOR_PARAM] = HFP_silence_detector_music_ADDR,
 	[APPMODE_PREGAIN] = HFP_preGain_ADDR,

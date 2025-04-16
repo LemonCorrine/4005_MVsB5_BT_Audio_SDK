@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_bypass.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.10.6                 
+ * @author  ACPWorkbench: 3.13.0                 
  * @version V1.2.0                                  
- * @Created 2024-08-09T14:21:22                                      
+ * @Created 2024-10-24T10:34:27                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define BYPASS_ROBOEFFECT_LIB_VER "2.23.3"
+#define BYPASS_ROBOEFFECT_LIB_VER "2.25.4"
 
 typedef enum _BYPASS_roboeffect_io_enum
 {

@@ -22,13 +22,17 @@
 #include "ctrlvars.h"
 #include "reset.h"
 
-#ifdef CFG_APP_LINEIN_MODE_EN
+#if  defined(CFG_APP_LINEIN_MODE_EN)||defined(CFG_FUNC_LINEIN_MIX_MODE)
 
 #define LINEIN_PLAY_TASK_STACK_SIZE		512//1024
 #define LINEIN_PLAY_TASK_PRIO			3
 #define LINEIN_NUM_MESSAGE_QUEUE		10
 
+#ifdef CFG_APP_LINEIN_MODE_EN
 #define LINEIN_SOURCE_NUM				APP_SOURCE_NUM
+#else
+#define LINEIN_SOURCE_NUM				LINEIN_MIX_SOURCE_NUM
+#endif
 
 typedef struct _LineInPlayContext
 {
@@ -80,8 +84,6 @@ static  LineInPlayContext*		sLineInPlayCt;
 
 void LineInPlayResFree(void)
 {
-	//注意：AudioCore父任务调整到mainApp下，此处只关闭AudioCore通道，不关闭任务
-	AudioCoreProcessConfig((void*)AudioNoAppProcess);
 	AudioCoreSourceDisable(LINEIN_SOURCE_NUM);
 
 	AudioAnaChannelSet(ANA_INPUT_CH_NONE);
@@ -97,33 +99,18 @@ void LineInPlayResFree(void)
 	}
 	AudioCoreSourceDeinit(LINEIN_SOURCE_NUM);
 	
+	osPortFree(sLineInPlayCt);
+	sLineInPlayCt = NULL;
+#if (LINEIN_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN2)
+	//aux 2 B0/B1 恢复SW口
+	GPIO_PortBModeSet(GPIOB0,1);
+	GPIO_PortBModeSet(GPIOB1,1);
+#endif
 	APP_DBG("Line:Kill Ct\n");
 }
 
 bool LineInPlayResMalloc(uint16_t SampleLen)
 {
-	AudioCoreIO	AudioIOSet;
-	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
-
-	AudioIOSet.Adapt = STD;
-	AudioIOSet.Sync = TRUE;
-	AudioIOSet.Channels = 2;
-	AudioIOSet.Net = DefaultNet;
-
-	AudioIOSet.DataIOFunc = AudioADC0_DataGet;
-	AudioIOSet.LenGetFunc = AudioADC0_DataLenGet;
-
-#ifdef	CFG_AUDIO_WIDTH_24BIT
-	AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
-	AudioIOSet.IOBitWidthConvFlag = 0;//需要数据进行位宽扩展
-#endif
-	//AudioIOSet.
-	if(!AudioCoreSourceInit(&AudioIOSet, LINEIN_SOURCE_NUM))
-	{
-		DBG("Line source error!\n");
-		return FALSE;
-	}
-
 	sLineInPlayCt = (LineInPlayContext*)osPortMalloc(sizeof(LineInPlayContext));
 	if(sLineInPlayCt == NULL)
 	{
@@ -163,27 +150,62 @@ void LineinADCDigitalInit(void)
 
 void LineInPlayResInit(void)
 {
-//	sLineInPlayCt->SampleRate = CFG_PARA_SAMPLE_RATE;
+	AudioCoreIO	AudioIOSet;
+	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
 
-	//Core Source1 para
-//	sLineInPlayCt->AudioCoreLineIn = (AudioCoreContext*)&AudioCore;
-	//Audio init
+	AudioIOSet.Adapt = STD;
+	AudioIOSet.Sync = TRUE;
+	AudioIOSet.Channels = 2;
+	AudioIOSet.Net = DefaultNet;
 
-	//Core Soure1.Para
-//	sLineInPlayCt->AudioCoreLineIn->AudioSource[LINEIN_SOURCE_NUM].Enable = 1;
-	AudioCoreSourceEnable(LINEIN_SOURCE_NUM);
-	//Core Process
-#ifdef CFG_FUNC_AUDIO_EFFECT_EN
-//	sLineInPlayCt->AudioCoreLineIn->AudioEffectProcess = (AudioCoreProcessFunc)AudioMusicProcess;
-	AudioCoreProcessConfig((void*)AudioMusicProcess);
-#else
-//	sLineInPlayCt->AudioCoreLineIn->AudioEffectProcess = (AudioCoreProcessFunc)AudioBypassProcess;
-	AudioCoreProcessConfig((void*)AudioBypassProcess);
+	AudioIOSet.DataIOFunc = AudioADC0_DataGet;
+	AudioIOSet.LenGetFunc = AudioADC0_DataLenGet;
+
+#ifdef	CFG_AUDIO_WIDTH_24BIT
+	AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
+	AudioIOSet.IOBitWidthConvFlag = 0;//需要数据进行位宽扩展
 #endif
+	//AudioIOSet.
+	if(!AudioCoreSourceInit(&AudioIOSet, LINEIN_SOURCE_NUM))
+	{
+		DBG("Line source error!\n");
+		return FALSE;
+	}
 
+	AudioCoreSourceEnable(LINEIN_SOURCE_NUM);
+
+}
+void LineInPlayHardwareInit(void)
+{
 	AudioAnaChannelSet(LINEIN_INPUT_CHANNEL);
 
 	LineinADCDigitalInit();
+
+#if (LINEIN_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN1)
+#ifdef CFG_ADCDAC_SEL_LOWPOWERMODE
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN1_LEFT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN1_RIGHT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
+#else
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN1_LEFT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN1_RIGHT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
+#endif // CFG_ADCDAC_SEL_LOWPOWERMODE
+#endif
+#if (LINEIN_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN2)
+	GPIO_PortBModeSet(GPIOB0,0);
+	GPIO_PortBModeSet(GPIOB1,0);
+	GPIO_RegBitsClear(GPIO_B_IE,GPIOB0);
+	GPIO_RegBitsClear(GPIO_B_OE,GPIOB0);
+	GPIO_RegBitsClear(GPIO_B_IE,GPIOB1);
+	GPIO_RegBitsClear(GPIO_B_OE,GPIOB1);
+
+#ifdef CFG_ADCDAC_SEL_LOWPOWERMODE
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN2_LEFT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN2_RIGHT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
+#else
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN2_LEFT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
+	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN2_RIGHT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
+#endif // CFG_ADCDAC_SEL_LOWPOWERMODE
+#endif
 }
 
 void LineInPlayRun(uint16_t msgId)
@@ -216,33 +238,16 @@ bool LineInPlayInit(void)
 		APP_DBG("LineInPlay Res Error!\n");
 		return FALSE;
 	}
+	//Core Process
+#ifdef CFG_FUNC_AUDIO_EFFECT_EN
+	AudioCoreProcessConfig((void*)AudioMusicProcess);
+#else
+	AudioCoreProcessConfig((void*)AudioBypassProcess);
+#endif
+
 	LineInPlayResInit();
 
-#if (LINEIN_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN1)
-#ifdef CFG_ADCDAC_SEL_LOWPOWERMODE
-	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN1_LEFT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
-	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN1_RIGHT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
-#else
-	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN1_LEFT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
-	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN1_RIGHT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
-#endif // CFG_ADCDAC_SEL_LOWPOWERMODE
-#endif
-#if (LINEIN_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN2)
-	GPIO_PortBModeSet(GPIOB0,0);
-	GPIO_PortBModeSet(GPIOB1,0);
-	GPIO_RegBitsClear(GPIO_B_IE,GPIOB0);
-	GPIO_RegBitsClear(GPIO_B_OE,GPIOB0);
-	GPIO_RegBitsClear(GPIO_B_IE,GPIOB1);
-	GPIO_RegBitsClear(GPIO_B_OE,GPIOB1);
-
-#ifdef CFG_ADCDAC_SEL_LOWPOWERMODE
-	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN2_LEFT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
-	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN2_RIGHT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
-#else
-	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN2_LEFT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
-	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN2_RIGHT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
-#endif // CFG_ADCDAC_SEL_LOWPOWERMODE
-#endif
+	LineInPlayHardwareInit();
 
 #if 0
 #if defined(CFG_FUNC_REMIND_SBC)
@@ -290,118 +295,32 @@ bool LineInPlayDeinit(void)
 	
 	PauseAuidoCore();
 	
-	LineInPlayResFree();
-	ModeCommonDeinit();//通路全部释放
+	//注意：AudioCore父任务调整到mainApp下，此处只关闭AudioCore通道，不关闭任务
+	AudioCoreProcessConfig((void*)AudioNoAppProcess);
 
-	osPortFree(sLineInPlayCt);
-	sLineInPlayCt = NULL;
-#if (LINEIN_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN2)
-	//aux 2 B0/B1 恢复SW口
-	GPIO_PortBModeSet(GPIOB0,1);
-	GPIO_PortBModeSet(GPIOB1,1);
-#endif
+	LineInPlayResFree();
+
+	ModeCommonDeinit();//通路全部释放
 	return TRUE;
 }
-#endif//#ifdef CFG_APP_LINEIN_MODE_EN
-
-
-
 
 #ifdef CFG_FUNC_LINEIN_MIX_MODE
-
-#define LINEIN_INPUT_CHANNEL			(CHIP_LINEIN_CHANNEL)
-#define LINEIN_PLAY_TASK_STACK_SIZE		512//1024
-#define LINEIN_PLAY_TASK_PRIO			3
-#define LINEIN_NUM_MESSAGE_QUEUE		10
-
-typedef struct _LineInPlayContext
-{
-	uint32_t			*ADCFIFO;			//ADC的DMA循环fifo
-	uint32_t			ADCFIFO_len;			//ADC的DMA循环fifo len
-}LineInPlayContext;
-
-static  LineInPlayContext*		sLineInPlayCt;
 
 bool LineInMixPlayInit(void)
 {
 	APP_DBG("LineIn Mix Play Init\n");
-	AudioCoreIO	AudioIOSet;
-	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
-
-	AudioIOSet.Adapt = STD;
-	AudioIOSet.Sync = TRUE;
-	AudioIOSet.Channels = 2;
-	AudioIOSet.Net = DefaultNet;
-
-	AudioIOSet.DataIOFunc = AudioADC0_DataGet;
-	AudioIOSet.LenGetFunc = AudioADC0_DataLenGet;
-
-#ifdef	CFG_AUDIO_WIDTH_24BIT
-	AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
-	AudioIOSet.IOBitWidthConvFlag = 0;//需要数据进行位宽扩展
-#endif
-	//AudioIOSet.
-	if(!AudioCoreSourceInit(&AudioIOSet, LINEIN_MIX_SOURCE_NUM))
+	if(!LineInPlayResMalloc(AudioCoreFrameSizeGet(DefaultNet)))
 	{
-		DBG("Line In Mix source error!\n");
+		APP_DBG("LineInPlay Res Error!\n");
 		return FALSE;
 	}
 
-	sLineInPlayCt = (LineInPlayContext*)osPortMalloc(sizeof(LineInPlayContext));
-	if(sLineInPlayCt == NULL)
-	{
-		return FALSE;
-	}
-	memset(sLineInPlayCt, 0, sizeof(LineInPlayContext));
+	LineInPlayResInit();
 
-	sLineInPlayCt->ADCFIFO_len = AudioCoreFrameSizeGet(DefaultNet) * sizeof(PCM_DATA_TYPE) * 2 * 2;
-	//LineIn5  digital (DMA)
-	sLineInPlayCt->ADCFIFO = (uint32_t*)osPortMalloc(sLineInPlayCt->ADCFIFO_len);
-	if(sLineInPlayCt->ADCFIFO == NULL)
-	{
-		return FALSE;
-	}
-	memset(sLineInPlayCt->ADCFIFO, 0, sLineInPlayCt->ADCFIFO_len);
+	LineInPlayHardwareInit();
 
-	AudioCoreSourceEnable(LINEIN_MIX_SOURCE_NUM);
-	AudioAnaChannelSet(LINEIN_INPUT_CHANNEL);
-
-	AudioADC_DigitalInit(ADC0_MODULE, AudioCoreMixSampleRateGet(DefaultNet), AudioIOSet.IOBitWidth,(void*)sLineInPlayCt->ADCFIFO, sLineInPlayCt->ADCFIFO_len);
-
-#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
-	Clock_AudioMclkSel(AUDIO_ADC0, gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source);
-#else
-	gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source = Clock_AudioMclkGet(AUDIO_ADC0);
-#endif
-
-#if (LINEIN_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN1)
-#ifdef CFG_ADCDAC_SEL_LOWPOWERMODE
-	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN1_LEFT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
-	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN1_RIGHT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
-#else
-	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN1_LEFT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
-	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN1_RIGHT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
-#endif // CFG_ADCDAC_SEL_LOWPOWERMODE
-#endif
-#if (LINEIN_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN2)
-	GPIO_PortBModeSet(GPIOB0,0);
-	GPIO_PortBModeSet(GPIOB1,0);
-	GPIO_RegBitsClear(GPIO_B_IE,GPIOB0);
-	GPIO_RegBitsClear(GPIO_B_OE,GPIOB0);
-	GPIO_RegBitsClear(GPIO_B_IE,GPIOB1);
-	GPIO_RegBitsClear(GPIO_B_OE,GPIOB1);
-
-#ifdef CFG_ADCDAC_SEL_LOWPOWERMODE
-	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN2_LEFT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
-	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN2_RIGHT,Single,ADCLowEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
-#else
-	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_LEFT,LINEIN2_LEFT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_l_gain);
-	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN2_RIGHT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
-#endif // CFG_ADCDAC_SEL_LOWPOWERMODE
-#endif
-
-	AudioCodecGainUpdata();//update hardware config
-	AudioCoreSourceUnmute(LINEIN_MIX_SOURCE_NUM,TRUE,TRUE);
+//	AudioCodecGainUpdata();//update hardware config
+	AudioCoreSourceUnmute(LINEIN_SOURCE_NUM,TRUE,TRUE);
 	return TRUE;
 }
 
@@ -412,37 +331,12 @@ bool LineInMixPlayDeinit(void)
 	{
 		return TRUE;
 	}
-
 	if(IsAudioPlayerMute() == FALSE)
 	{
 		HardWareMuteOrUnMute();
 	}
-
-	AudioCoreSourceDisable(LINEIN_MIX_SOURCE_NUM);
-
-	AudioAnaChannelSet(ANA_INPUT_CH_NONE);
-
-	AudioADC_Disable(ADC0_MODULE);
-	AudioADC_DeInit(ADC0_MODULE);
-
-	if(sLineInPlayCt->ADCFIFO != NULL)
-	{
-		APP_DBG("ADCFIFO\n");
-		osPortFree(sLineInPlayCt->ADCFIFO);
-		sLineInPlayCt->ADCFIFO = NULL;
-	}
-	AudioCoreSourceDeinit(LINEIN_MIX_SOURCE_NUM);
-
-	APP_DBG("Line:Kill Ct\n");
-
-	osPortFree(sLineInPlayCt);
-	sLineInPlayCt = NULL;
-#if (LINEIN_INPUT_CHANNEL == ANA_INPUT_CH_LINEIN2)
-	//aux 2 B0/B1 恢复SW口
-	GPIO_PortBModeSet(GPIOB0,1);
-	GPIO_PortBModeSet(GPIOB1,1);
-#endif
+	LineInPlayResFree();
 	return TRUE;
 }
-
-#endif//#ifdef CFG_FUNC_LINEIN_MIX_MODE
+#endif
+#endif//#ifdef CFG_APP_LINEIN_MODE_EN

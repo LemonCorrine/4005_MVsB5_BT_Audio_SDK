@@ -1,4 +1,4 @@
-#include "user_effect_flow_karaoke.h"
+#include "user_effect_flow_Karaoke.h"
 #include "user_effect_parameter.h"
 
 const AUDIOEFFECT_EFFECT_PARA HunXiang_effect_para =
@@ -78,7 +78,7 @@ const AUDIOEFFECT_EFFECT_PARA WaWaYin_effect_para =
 	.get_user_effects_script_len = get_user_effects_script_len_Karaoke
 };
 
-const AUDIOEFFECT_SOURCE_SINK_NUM karaoke_mode =
+const AUDIOEFFECT_SOURCE_SINK_NUM Karaoke_mode =
 {
 	//不要删除，source/sink默认值
 	AUDIOEFFECT_SOURCE_SINK_DEFAULT_INIT,
@@ -103,13 +103,14 @@ const AUDIOEFFECT_SOURCE_SINK_NUM karaoke_mode =
 	.spdif_sink = KARAOKE_SINK_SPDIF_SINK,
 };
 
-const uint8_t karaoke_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX] =
+const uint8_t Karaoke_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX] =
 {
 	[EQ_MODE_ADJUST] = KARAOKE_eq0_ADDR,
 	[_3D_ENABLE] = KARAOKE_3D_ADDR,
 	[ECHO_PARAM] = KARAOKE_echo0_ADDR,
 	[MUSIC_VOLUME_ADJUST] = KARAOKE_gain_control0_ADDR,
 	[MIC_VOLUME_ADJUST] = KARAOKE_gain_control1_ADDR,
+	[REMIND_VOLUME_ADJUST] = KARAOKE_gain_control13_ADDR,
 	[MIC_SILENCE_DETECTOR_PARAM] = KARAOKE_silence_detector0_ADDR,
 	[MUSIC_SILENCE_DETECTOR_PARAM] = KARAOKE_silence_detector_music_ADDR,
 	[APPMODE_PREGAIN] = KARAOKE_preGain_ADDR,

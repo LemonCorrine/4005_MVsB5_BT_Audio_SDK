@@ -4,7 +4,6 @@
 #include "debug.h"
 
 #include "ble_api.h"
-
 #ifdef CFG_APP_CONFIG
 #include "app_config.h"
 #include "bt_play_mode.h"
@@ -29,6 +28,7 @@ void LeAppRegCB(LeParamCB LeCBFunc)
 {
     LeCallBackAPP = LeCBFunc;
 }
+
 uint8_t test_buff[] = {0x01,0x02,0x66};
 void AppEventCallBack(LE_CB_EVENT event, LE_CB_PARAMS *param)
 {
@@ -120,6 +120,7 @@ void AppEventCallBack(LE_CB_EVENT event, LE_CB_PARAMS *param)
     break;
     case LE_RCV_DATA_EVENT:
     {
+
         uint8_t i;
         APP_DBG("\n*****LE_RCV_DATA_EVENT*****\n");
         BLE_INFO("connect handle: 0x%04x,att_handle: 0x%04x\n", param->rcv_data.conhdl, param->rcv_data.handle);
@@ -135,10 +136,13 @@ void AppEventCallBack(LE_CB_EVENT event, LE_CB_PARAMS *param)
     }
     case LE_APP_READ_DATA_EVENT:
     {
+		#include "ble_app_gatt.h"
         APP_DBG("\n*****LE_APP_READ_DATA_EVENT*****\n");
         switch (param->read_data.handle)
         {
-        case 0:
+        case UUID_2A00_DEVICE_NAME_HANDLE:
+            param->read_data.len = le_user_config.ble_device_name_len;
+            param->read_data.data = le_user_config.ble_device_name;
             break;
 
         default:

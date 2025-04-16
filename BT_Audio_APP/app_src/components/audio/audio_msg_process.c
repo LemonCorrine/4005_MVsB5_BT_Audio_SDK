@@ -61,6 +61,20 @@ uint8_t AudioMicVolSync(void)
 	return refresh_addr;
 }
 
+uint8_t AudioRemindVolSync(void)
+{
+	uint8_t 	refresh_addr = GetEffectControlIndex(REMIND_VOLUME_ADJUST);
+	uint8_t     vol = mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM];
+
+	if(vol > CFG_PARA_MAX_VOLUME_NUM)
+		vol = CFG_PARA_MAX_VOLUME_NUM;
+
+	if(refresh_addr != 0)
+		roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 1, (int16_t *)&VolumeTable[vol]);
+
+	return refresh_addr;
+}
+
 uint8_t AudioEqSync(void)
 {
 	uint8_t refresh_addr = GetEffectControlIndex(EQ_MODE_ADJUST);

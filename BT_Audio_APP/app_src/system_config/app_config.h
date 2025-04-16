@@ -41,8 +41,8 @@
  * 前者是burner烧录时版本，后者是mva版本需关注*/
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(0)
-#define  CFG_SDK_MINOR_VERSION		(7)
-#define  CFG_SDK_PATCH_VERSION	    (1)
+#define  CFG_SDK_MINOR_VERSION		(8)
+#define  CFG_SDK_PATCH_VERSION	    (0)
 
 
 //****************************************************************************************
@@ -66,9 +66,6 @@
 
 #define CFG_FUNC_OPEN_SLOW_DEVICE_TASK
 
-#ifdef CFG_APP_LINEIN_MODE_EN
-	#define LINEIN_INPUT_CHANNEL				(CHIP_LINEIN_CHANNEL)
-#endif
 
 #ifdef CFG_APP_RADIOIN_MODE_EN
     #define FUNC_RADIO_RDA5807_EN
@@ -273,6 +270,9 @@
 	#define CFG_FUNC_MIX2_I2S_IN_SYNC_EN		//缺省为SRA
 	#define CFG_FUNC_MIX2_I2S_OUT_SYNC_EN
 #endif
+#endif
+#if defined(CFG_APP_LINEIN_MODE_EN)|| defined(CFG_FUNC_LINEIN_MIX_MODE)
+	#define LINEIN_INPUT_CHANNEL				(CHIP_LINEIN_CHANNEL)
 #endif
 
 #define CFG_FUNC_AUDIO_EFFECT_EN //总音效使能开关
@@ -497,6 +497,7 @@
 	#define CFG_UART_BANDRATE   			DEBUG_BAUDRATE_2000000//DEBUG_BAUDRATE_115200
 	#define CFG_FLASHBOOT_DEBUG_EN          (1)
 
+//	#define CFG_FUNC_DEBUG_USE_TIMER		//使用定时器进行打印
 //	#define CFG_FUNC_SHELL_EN				//SHELL功能配置
 	#ifdef	CFG_FUNC_SHELL_EN
 		//UART RX配置,需要和串口日志打印为同一个UART组

@@ -258,11 +258,11 @@ void AudioMusicVolUp(void)
 	APP_DBG("APP_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
 	AudioEffect_SourceGain_Update(APP_SOURCE_NUM);
 
-#if 0//def CFG_FUNC_REMIND_SOUND_EN
+#ifdef CFG_FUNC_REMIND_SOUND_EN
 	#if CFG_PARAM_FIXED_REMIND_VOL
 	mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM] = CFG_PARAM_FIXED_REMIND_VOL;
 	#else
-	mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM] = mainAppCt.MusicVolume;
+	mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM] = MusicVolume;
 	#endif
 	APP_DBG("REMIND_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]);
 	AudioEffect_SourceGain_Update(REMIND_SOURCE_NUM);
@@ -338,11 +338,11 @@ void AudioMusicVolDown(void)
 	APP_DBG("APP_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
 	AudioEffect_SourceGain_Update(APP_SOURCE_NUM);
 
-#if 0//def CFG_FUNC_REMIND_SOUND_EN
+#ifdef CFG_FUNC_REMIND_SOUND_EN
 	#if CFG_PARAM_FIXED_REMIND_VOL
 	mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM] = CFG_PARAM_FIXED_REMIND_VOL;
 	#else
-	mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM] = mainAppCt.MusicVolume;
+	mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM] = MusicVolume;
 	#endif
 	APP_DBG("REMIND_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM]);
 	AudioEffect_SourceGain_Update(REMIND_SOURCE_NUM);
@@ -398,7 +398,7 @@ void AudioMusicVolSet(uint8_t musicVol)
 	#if CFG_PARAM_FIXED_REMIND_VOL
 	mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM] = CFG_PARAM_FIXED_REMIND_VOL;
 	#else
-	mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM] = mainAppCt.MusicVolume;
+	mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM] = MusicVolume;
 	#endif
 #endif
 //	APP_DBG("APP_SOURCE_NUM vol = %d\n", mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);

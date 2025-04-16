@@ -40,12 +40,15 @@
 #include "audio_vol.h"
 #include "main_task.h"
 #include "delay.h"
-#include "reset.h"
-#include "hdmi_in_api.h"
 #include "cec.h"
-#include "i2c_host.h"
-#include "audio_core_api.h"
+#include "reset.h"
+#include "bt_config.h"
+#include "hdmi_in_mode.h"
+
 #ifdef  CFG_APP_HDMIIN_MODE_EN
+
+#define HDMI_API_VERSION	"1.0.1"
+
 #ifdef DDC_USE_SW_I2C
 static void* DDCI2cHandler = NULL;
 #endif
@@ -76,6 +79,13 @@ const HDMI_TV_Info HDMITvInfo[HDMI_COMPATIBLE_TV_NUM] =
 		{TV_SONY_047C,          {'s', 'n', 'y', 0x04, 0x7c},  		 1,              HDMI_CEC_Default_Scan,      20, 16           },
 		{TV_HISENSE_3000,       {'h', 'e', 'c', 0x30, 0x00},  		 1,              HDMI_CEC_Default_Scan,      20, 16           },
 		{TV_XIAOMI_XMD,			{'x', 'm', 'd', 0x02, 0x00},         1,              HDMI_CEC_Default_Scan,      20, 16           },
+		{TV_SONY_04A2,          {'s', 'n', 'y', 0x04, 0xa2},  		 1,              HDMI_CEC_Default_Scan,      20, 16           },
+		{TV_SAMSUNG_170F,       {'s', 'a', 'm', 0x17, 0x0f},  		 1,              HDMI_CEC_Default_Scan,      20, 16           },
+		{TV_TCL_2009,		    {'t', 'c', 'l', 0x20, 0x09},		 1, 			 HDMI_CEC_Default_Scan, 	 20, 16 		  },
+		{TV_APX,       			{'a', 'p', 'x', 0x00, 0x70},  		 1,              HDMI_CEC_Default_Scan,      20, 16           },
+		{TV_SONY_0571,			{'s', 'n', 'y', 0x05, 0x71},         1,              HDMI_CEC_Default_Scan,      20, 16           },
+		{TV_SAMSUNG_0371,       {'s', 'a', 'm', 0x03, 0x71},  		 1,              HDMI_CEC_Default_Scan,      20, 16           },
+		{TV_SAMSUNG_5770,       {'s', 'a', 'm', 0x57, 0x70},  		 1,              HDMI_CEC_Default_Scan,      20, 16           },
 };
 
 uint8_t HDMI_DDC_GetInfo(void);
@@ -144,10 +154,12 @@ void HDMI_CEC_DDC_Init(void)
 	gCecInitDef->dma_tx_param.Dir  				=  DMA_CHANNEL_DIR_MEM2PERI;
 	gCecInitDef->dma_tx_param.Mode 				=  DMA_BLOCK_MODE;
 	gCecInitDef->dma_tx_param.ThresholdLen 		=  0;
-//	gCecInitDef->dma_tx_param.SrcDataWidth 		=  DMA_SRC_DWIDTH_HALF_WORD;
-//	gCecInitDef->dma_tx_param.DstDataWidth 		=  DMA_DST_DWIDTH_HALF_WORD;
+#if (CFG_SDK_VER_CHIPID == 0xB1)
+	gCecInitDef->dma_tx_param.SrcDataWidth 		=  DMA_SRC_DWIDTH_HALF_WORD;
+	gCecInitDef->dma_tx_param.DstDataWidth 		=  DMA_DST_DWIDTH_HALF_WORD;
+#elif (CFG_SDK_VER_CHIPID == 0xB5)
 	gCecInitDef->dma_tx_param.DataWidth			=  DMA_DWIDTH_HALF_WORD;
-
+#endif
 	gCecInitDef->dma_tx_param.SrcAddrIncremental=  DMA_SRC_AINCR_SRC_WIDTH;
 	gCecInitDef->dma_tx_param.DstAddrIncremental=  DMA_DST_AINCR_NO;
 	gCecInitDef->dma_tx_param.DstAddress        =  HDMI_CEC_SEND_DATA_ADDR;
@@ -162,7 +174,11 @@ void HDMI_CEC_DDC_Init(void)
 	}
 	else
 	{
+#if (CFG_SDK_VER_CHIPID == 0xB1)
+		gCecInitDef->pwm_param.FreqDiv 			= 14400;
+#elif (CFG_SDK_VER_CHIPID == 0xB5)
 		gCecInitDef->pwm_param.FreqDiv 			= 12000;
+#endif
 	}
 	gCecInitDef->pwm_param.Duty          		=  100;
 	gCecInitDef->pwm_param.DMAReqEnable			=  1;
@@ -174,9 +190,12 @@ void HDMI_CEC_DDC_Init(void)
 	gCecInitDef->dma_rx_param.Dir				=	DMA_CHANNEL_DIR_PERI2MEM;
 	gCecInitDef->dma_rx_param.Mode  			=   DMA_CIRCULAR_MODE;
 	gCecInitDef->dma_rx_param.ThresholdLen		=   2;//TaoWen; for rc clk
-//	gCecInitDef->dma_rx_param.SrcDataWidth   	=   DMA_SRC_DWIDTH_HALF_WORD;
-//	gCecInitDef->dma_rx_param.DstDataWidth   	=   DMA_SRC_DWIDTH_HALF_WORD;
+#if (CFG_SDK_VER_CHIPID == 0xB1)
+	gCecInitDef->dma_rx_param.SrcDataWidth   	=   DMA_SRC_DWIDTH_HALF_WORD;
+	gCecInitDef->dma_rx_param.DstDataWidth   	=   DMA_SRC_DWIDTH_HALF_WORD;
+#elif (CFG_SDK_VER_CHIPID == 0xB5)
 	gCecInitDef->dma_rx_param.DataWidth			= 	DMA_DWIDTH_HALF_WORD;
+#endif
 	gCecInitDef->dma_rx_param.SrcAddrIncremental=   DMA_SRC_AINCR_NO;
 	gCecInitDef->dma_rx_param.DstAddrIncremental=   DMA_DST_AINCR_DST_WIDTH;
 	gCecInitDef->dma_rx_param.SrcAddress		=	HDMI_CEC_RECV_DATA_ADDR;
@@ -194,7 +213,11 @@ void HDMI_CEC_DDC_Init(void)
 	}
 	else
 	{
+#if (CFG_SDK_VER_CHIPID == 0xB1)
+		gCecInitDef->pwc_param.TimeScale 		=  1440;//10us
+#elif (CFG_SDK_VER_CHIPID == 0xB5)
 		gCecInitDef->pwc_param.TimeScale 		=  1200;//10us
+#endif
 	}
 
 	gCecInitDef->pwc_param.FilterTime   		=   12;
@@ -376,6 +399,34 @@ uint8_t HDMI_DDC_GetInfo(void)
     	    {
     	        DBG("TV_SONY_047C\n");
     	    }
+    	    else if(gHdmiCt->hdmi_tv_inf.tv_type == TV_SONY_04A2)
+    	    {
+    	        DBG("TV_SONY_04A2\n");
+    	    }
+    	    else if(gHdmiCt->hdmi_tv_inf.tv_type == TV_SONY_0571)
+    	    {
+    	        DBG("TV_SONY_0571\n");
+    	    }
+    	    else if(gHdmiCt->hdmi_tv_inf.tv_type == TV_SAMSUNG_170F)
+    	    {
+    	        DBG("TV Samsung_170f\n");
+    	    }
+			else if(gHdmiCt->hdmi_tv_inf.tv_type == TV_TCL_2009)
+    	    {
+    	        DBG("TV TCL_2009\n");
+    	    }
+			else if(gHdmiCt->hdmi_tv_inf.tv_type == TV_APX)
+    	    {
+    	        DBG("TV APX\n");
+    	    }
+    	    else if(gHdmiCt->hdmi_tv_inf.tv_type == TV_SAMSUNG_0371)
+    	    {
+    	        DBG("TV_SAMSUNG_0371\n");
+    	    }
+    	    else if(gHdmiCt->hdmi_tv_inf.tv_type == TV_SAMSUNG_5770)
+    	    {
+    	        DBG("TV_SAMSUNG_5770\n");
+    	    }
     		break;
     	}
     }
@@ -450,7 +501,11 @@ void HDMI_CEC_StandbyStatus(void)
 #ifdef CFG_PARA_WAKEUP_SOURCE_CEC
 	SoftFlagRegister(SoftFlagDeepSleepMsgIsFromTV);
 	MessageContext		msgSend;
+#ifdef BT_SNIFF_ENABLE
+	msgSend.msgId		= MSG_BT_SNIFF;
+#else
 	msgSend.msgId		= MSG_DEEPSLEEP;
+#endif
 	MessageSend(mainAppCt.msgHandle, &msgSend);
 #endif
 
@@ -528,6 +583,11 @@ void HDMI_CEC_Scan(uint8_t isWorkStatus)
 					gHdmiCt->hdmiActiveReportMuteAfterInit = 1;
 					TimeOutSet(&gHdmiCt->time_reaction, gHdmiCt->hdmi_tv_inf.tv_reaction_time);
 					DBG("hdmiHPDCheck in\n");
+					if(gHdmiCt->hdmi_tv_inf.tv_type == TV_SAMSUNG_170F)
+			        {
+			            if(HDMI_HPD_StatusGet())
+						HDMI_CEC_SetSystemAudioModeOn();
+			        }
 				}
 			}
 	        else
@@ -546,6 +606,23 @@ void HDMI_CEC_Scan(uint8_t isWorkStatus)
 
 void HDMI_ARC_Init(uint16_t *DMAFifoAddr, uint32_t DMAFifoSize, MCU_CIRCULAR_CONTEXT *ct)
 {
+#if (CFG_SDK_VER_CHIPID == 0xB1)
+	SPDIF_ModuleDisable();
+
+	GPIO_RegOneBitClear(HDMI_ARC_RECV_IO_OE, HDMI_ARC_RECV_IO_PIN);
+	GPIO_RegOneBitClear(HDMI_ARC_RECV_IO_IE, HDMI_ARC_RECV_IO_PIN);
+	GPIO_RegOneBitSet(HDMI_ARC_RECV_IO_ANA,  HDMI_ARC_RECV_IO_PIN);
+	SPDIF_AnalogModuleEnable(HDMI_ARC_RECV_ANA_PIN, SPDIF_ANA_LEVEL_200mVpp);
+
+	SPDIF_RXInit(1, 1, 0);
+
+	DMA_ChannelDisable(PERIPHERAL_ID_SPDIF_RX);
+	//Reset_FunctionReset(DMAC_FUNC_SEPA);
+	DMA_CircularConfig(PERIPHERAL_ID_SPDIF_RX, DMAFifoSize/2, DMAFifoAddr, DMAFifoSize);
+	DMA_ChannelEnable(PERIPHERAL_ID_SPDIF_RX);
+
+	SPDIF_ModuleEnable();
+#elif (CFG_SDK_VER_CHIPID == 0xB5)
 	SPDIF_ModuleDisable(CFG_HDMI_SPDIF_NUM);
 
 	GPIO_RegOneBitClear(HDMI_ARC_RECV_IO_OE, HDMI_ARC_RECV_IO_PIN);
@@ -566,13 +643,17 @@ void HDMI_ARC_Init(uint16_t *DMAFifoAddr, uint32_t DMAFifoSize, MCU_CIRCULAR_CON
 	DMA_ChannelEnable(CFG_HDMI_DMA_CHANNEL);
 
 	SPDIF_ModuleEnable(CFG_HDMI_SPDIF_NUM);
-
+#endif
 	hdmiMCUCt = ct;
 }
 
 uint8_t HDMI_ARC_LockStatusGet(void)
 {
+#if (CFG_SDK_VER_CHIPID == 0xB1)
+	return SPDIF_FlagStatusGet(LOCK_FLAG_STATUS);
+#elif (CFG_SDK_VER_CHIPID == 0xB5)
 	return SPDIF_FlagStatusGet(CFG_HDMI_SPDIF_NUM,LOCK_FLAG_STATUS);
+#endif
 }
 
 //0: not ready, 1: ready
@@ -593,10 +674,14 @@ bool HDMI_ARC_IsReady(void)
 
 uint16_t HDMI_ARC_DataLenGet(void)
 {
-
+#ifdef	CFG_AUDIO_WIDTH_24BIT
+	uint8_t bitwidth = AudioCore.AudioSource[HDMI_IN_SOURCE_NUM].BitWidth ? sizeof(int32_t):sizeof(int16_t);
+#else
+	uint8_t bitwidth = sizeof(int16_t);
+#endif
 	if(hdmiMCUCt != NULL)
 	{
-		return (MCUCircular_GetDataLen(hdmiMCUCt) / (sizeof(PCM_DATA_TYPE) * 2));
+		return (MCUCircular_GetDataLen(hdmiMCUCt) / bitwidth * 2);
 	}
 	else
 	{
@@ -607,11 +692,16 @@ uint16_t HDMI_ARC_DataLenGet(void)
 uint16_t HDMI_ARC_DataGet(void *pcm_out, uint16_t MaxSize)
 {
 	uint16_t len;
+#ifdef	CFG_AUDIO_WIDTH_24BIT
+	uint8_t bitwidth = AudioCore.AudioSource[HDMI_IN_SOURCE_NUM].BitWidth ? sizeof(int32_t):sizeof(int16_t);
+#else
+	uint8_t bitwidth = sizeof(int16_t);
+#endif
 
 	if(hdmiMCUCt != NULL)
 	{
-		len = MCUCircular_GetData(hdmiMCUCt, pcm_out,MaxSize * (sizeof(PCM_DATA_TYPE) * 2));
-		len = (len / (sizeof(PCM_DATA_TYPE) * 2));
+		len = MCUCircular_GetData(hdmiMCUCt, pcm_out,MaxSize * bitwidth * 2);
+		len = (len / (bitwidth * 2));
 		return len;
 	}
 	else
@@ -622,12 +712,18 @@ uint16_t HDMI_ARC_DataGet(void *pcm_out, uint16_t MaxSize)
 
 void HDMI_ARC_DeInit(void)
 {
+#if (CFG_SDK_VER_CHIPID == 0xB1)
+	SPDIF_ModuleDisable();
+	DMA_ChannelDisable(PERIPHERAL_ID_SPDIF_RX);
+	SPDIF_AnalogModuleDisable();
+#elif (CFG_SDK_VER_CHIPID == 0xB5)
 	SPDIF_ModuleDisable(CFG_HDMI_SPDIF_NUM);
 	DMA_ChannelDisable(CFG_HDMI_DMA_CHANNEL);
 #if (CFG_HDMI_SPDIF_NUM == SPDIF0)
 	SPDIF0_AnalogModuleDisable();
 #else
 	SPDIF1_AnalogModuleDisable();
+#endif
 #endif
 	GPIO_PortAModeSet(HDMI_ARC_RECV_IO_PIN, 0);
 }
@@ -702,6 +798,15 @@ void HDMI_CEC_Default_Scan(uint8_t isWorkStatus)
 					break;
 				case 0x46:
 					HDMI_CEC_ReportOSDNameWithParam(hdmi_osd_name, HDMI_OSD_NAME_LEN);
+					if(gHdmiCt->hdmi_poweron_flag == 0)
+					 {
+						if((gHdmiCt->hdmi_tv_inf.tv_type == TV_SONY_0571))
+						   gHdmiCt->hdmiReportStatus = 0;
+						else
+						 {
+							gHdmiCt->hdmiReportStatus = 4;
+						 }
+					 }
 					flag = 1;
 					break;
 
@@ -735,20 +840,33 @@ void HDMI_CEC_Default_Scan(uint8_t isWorkStatus)
 					break;
 
 				case 0x70://system audio mode request
-					//if(operLen > 1)
+					if((gHdmiCt->hdmi_tv_inf.tv_type == TV_SAMSUNG_170F) || (gHdmiCt->hdmi_tv_inf.tv_type == TV_SONY_04A2))
 					{
-						HDMI_CEC_SetSystemAudioModeOn();
-						gHdmiCt->hdmi_poweron_flag = 1;
-						gHdmiCt->hdmiReportStatus  = 0;
-						if(gHdmiCt->hdmi_arc_flag == 0)
-							gHdmiCt->hdmiReportARCStatus = 1;
+						if(operLen > 1)
+						{
+							HDMI_CEC_SetSystemAudioModeOn();
+							gHdmiCt->hdmi_poweron_flag = 1;
+							gHdmiCt->hdmiReportStatus  = 0;
+							if(gHdmiCt->hdmi_arc_flag == 0)
+								gHdmiCt->hdmiReportARCStatus = 1;
+						}
+						else
+						{
+							HDMI_CEC_SetSystemAudioModeoff();
+							gHdmiCt->hdmi_poweron_flag = 1;
+							gHdmiCt->hdmiReportStatus  = 0;
+						}
 					}
-					/*else
+					else
 					{
-						HDMI_CEC_SetSystemAudioModeoff();
-						gHdmiCt->hdmi_poweron_flag = 1;
-						gHdmiCt->hdmiReportStatus  = 1;
-					}*/
+						{
+							HDMI_CEC_SetSystemAudioModeOn();
+							gHdmiCt->hdmi_poweron_flag = 1;
+							gHdmiCt->hdmiReportStatus  = 0;
+							if(gHdmiCt->hdmi_arc_flag == 0)
+								gHdmiCt->hdmiReportARCStatus = 1;
+						}
+					}
 					flag = 1;
 					break;
 
@@ -839,7 +957,7 @@ void HDMI_CEC_Default_Scan(uint8_t isWorkStatus)
 							HDMISourceMute();//消除unmute时的pop音
 							HDMI_CEC_SystemAudioModeStatus((mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM] * 100 / CFG_PARA_MAX_VOLUME_NUM) & 0x7f);
 							gHdmiCt->hdmi_audiomute_flag = 0;
-							printf("cec vol unmute key\n");
+							APP_DBG("cec vol unmute key\n");
 							HdmiSpdifLockFlag = 0;//消除unmute时的pop音
 						}
 						else//false-->true
@@ -852,7 +970,7 @@ void HDMI_CEC_Default_Scan(uint8_t isWorkStatus)
 								gHdmiCt->hdmiActiveReportMuteflag = 2;
 								gHdmiCt->hdmiActiveReportMuteStatus = 1;
 							}
-							printf("cec vol mute key\n");
+							APP_DBG("cec vol mute key\n");
 						}
 
 					}
@@ -870,17 +988,18 @@ void HDMI_CEC_Default_Scan(uint8_t isWorkStatus)
 
 				case 0xA4:
 #if 1
-					if((operValue[1] & 0xf) == 1)
-					{
-						HDMI_CEC_AudioFormatCode();
-					}
-					else
-					{
-						//uint8_t buf[3] = {0x16, 0x7F, 0x00};//第三个参数待定
-						//buf[0] = ((operValue[1] & 0xf)<<3) + 6;
-						//HDMI_CEC_UserDefined(0x50, 0xA3, buf, 3);
-						HDMI_CEC_AudioFormatCode();
-					}
+//					if((operValue[1] & 0xf) == 1)
+//					{
+//						HDMI_CEC_AudioFormatCode();
+//					}
+//					else
+//					{
+//						//uint8_t buf[3] = {0x16, 0x7F, 0x00};//第三个参数待定
+//						//buf[0] = ((operValue[1] & 0xf)<<3) + 6;
+//						//HDMI_CEC_UserDefined(0x50, 0xA3, buf, 3);
+//						HDMI_CEC_AudioFormatCode();
+//					}
+					HDMI_CEC_AudioFormatCode();
 #else
 					if((operValue[1] & 0xf) != 1)
 						HDMI_CEC_FeatureAbort(0xA4, 0x3);
@@ -897,7 +1016,6 @@ void HDMI_CEC_Default_Scan(uint8_t isWorkStatus)
 
 		if(flag == 0)
 		{
-			//APP_DBG("gHdmiCt->hdmiReportStatus %x\n", gHdmiCt->hdmiReportStatus);
 			if(gHdmiCt->hdmiReportStatus == 1)//两次allocate逻辑地址(1,2)
 			{
 				HDMI_CEC_AllocateLogicalAddress();
@@ -1178,14 +1296,14 @@ void HDMI_CEC_UserDefined_Scan(uint8_t isWorkStatus)
 						gHdmiCt->hdmi_audiomute_flag = 0;
 						AudioMusicVolUp();
 						HDMI_CEC_SystemAudioModeStatus(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM] * 100 / CFG_PARA_MAX_VOLUME_NUM);
-						printf("cec vol up key\n");
+						APP_DBG("cec vol up key\n");
 					}
 					else if(operValue[1] == 0x42)//vol DOWN
 					{
 						gHdmiCt->hdmi_audiomute_flag = 0;
 						AudioMusicVolDown();
 						HDMI_CEC_SystemAudioModeStatus(mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM] * 100 / CFG_PARA_MAX_VOLUME_NUM);
-						printf("cec vol down key\n");
+						APP_DBG("cec vol down key\n");
 					}
 					else if(operValue[1] == 0x43)//vol MUTE
 					{
@@ -1194,7 +1312,7 @@ void HDMI_CEC_UserDefined_Scan(uint8_t isWorkStatus)
 							HDMISourceMute();//消除unmute时的pop音
 							HDMI_CEC_SystemAudioModeStatus((mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM] * 100 / CFG_PARA_MAX_VOLUME_NUM) & 0x7f);
 							gHdmiCt->hdmi_audiomute_flag = 0;
-							printf("cec vol unmute key\n");
+							APP_DBG("cec vol unmute key\n");
 							HdmiSpdifLockFlag = 0;//消除unmute时的pop音
 						}
 						else//false-->true
@@ -1204,7 +1322,7 @@ void HDMI_CEC_UserDefined_Scan(uint8_t isWorkStatus)
 							gHdmiCt->hdmi_audiomute_flag = 1;
 							gHdmiCt->hdmiActiveReportMuteflag = 2;
 							gHdmiCt->hdmiActiveReportMuteStatus = 1;
-							printf("cec vol mute key\n");
+							APP_DBG("cec vol mute key\n");
 						}
 
 					}
@@ -1212,7 +1330,7 @@ void HDMI_CEC_UserDefined_Scan(uint8_t isWorkStatus)
 					break;
 				case 0x8f:
 					HDMI_CEC_SystemPowerOn();
-					printf("cec HDMI_CEC_SystemPowerOn\n");
+					APP_DBG("cec HDMI_CEC_SystemPowerOn\n");
 					flag = 1;
 					break;
 				case 0x9f:

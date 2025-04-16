@@ -99,6 +99,7 @@ enum
 #define	OTG_DBG(format, ...)		//printf(format, ##__VA_ARGS__)
 #define	BT_DBG(format, ...)		printf(format, ##__VA_ARGS__)
 
+
 int DbgUartInit(int Which, unsigned int BaudRate, unsigned char DatumBits, unsigned char Parity, unsigned char StopBits);
 
 

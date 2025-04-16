@@ -67,6 +67,7 @@ void start_up_grate(ResourceType UpdateResource)
 	{
 		SREG_BOOT_REGISTER.sState = STATE_UPGRADE_APPLY;
 		APP_DBG("start_up_grate0...................");
+		GPIO_RegisterResetMask();
 		Reset_McuSystem();		//≤‚ ‘
 		while(1);
 	}

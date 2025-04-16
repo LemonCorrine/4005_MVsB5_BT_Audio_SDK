@@ -17,7 +17,7 @@
 #include "user_effect_parameter.h"
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-#include "user_effect_flow_karaoke.h"
+#include "user_effect_flow_Karaoke.h"
 #endif
 
 #ifdef CFG_FUNC_AUDIOEFFECT_AUTO_GEN_MSG_PROC
@@ -42,7 +42,7 @@ int16_t ReverbStep = 0;
 
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_eq7_MicBassStep_none_msg_effect_sync_filter1_gain(void)
+static uint8_t Karaoke_eq7_MicBassStep_none_msg_effect_sync_filter1_gain(void)
 {
 	//param set type is STEPS
 	static const int16_t MicBassStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
@@ -52,7 +52,7 @@ static uint8_t karaoke_eq7_MicBassStep_none_msg_effect_sync_filter1_gain(void)
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_eq7_MicTrebStep_none_msg_effect_sync_filter2_gain(void)
+static uint8_t Karaoke_eq7_MicTrebStep_none_msg_effect_sync_filter2_gain(void)
 {
 	//param set type is STEPS
 	static const int16_t MicTrebStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
@@ -62,7 +62,7 @@ static uint8_t karaoke_eq7_MicTrebStep_none_msg_effect_sync_filter2_gain(void)
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_eq0_MusicBassStep_none_msg_effect_sync_filter1_gain(void)
+static uint8_t Karaoke_eq0_MusicBassStep_none_msg_effect_sync_filter1_gain(void)
 {
 	//param set type is STEPS
 	static const int16_t MusicBassStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
@@ -72,7 +72,7 @@ static uint8_t karaoke_eq0_MusicBassStep_none_msg_effect_sync_filter1_gain(void)
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_eq0_MusicTrebStep_none_msg_effect_sync_filter2_gain(void)
+static uint8_t Karaoke_eq0_MusicTrebStep_none_msg_effect_sync_filter2_gain(void)
 {
 	//param set type is STEPS
 	static const int16_t MusicTrebStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
@@ -82,7 +82,7 @@ static uint8_t karaoke_eq0_MusicTrebStep_none_msg_effect_sync_filter2_gain(void)
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_echo0_ReverbStep_none_msg_effect_sync_delay(void)
+static uint8_t Karaoke_echo0_ReverbStep_none_msg_effect_sync_delay(void)
 {
 	//param set type is STEPS
 	static const int16_t ReverbStep_table[32] = {0, 10, 19, 29, 39, 48, 58, 68, 77, 87, 97, 106, 116, 126, 135, 145, 155, 165, 174, 184, 194, 203, 213, 223, 232, 242, 252, 261, 271, 281, 290, 300, };
@@ -92,7 +92,7 @@ static uint8_t karaoke_echo0_ReverbStep_none_msg_effect_sync_delay(void)
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_echo0_ReverbStep_none_msg_effect_sync_attenuation(void)
+static uint8_t Karaoke_echo0_ReverbStep_none_msg_effect_sync_attenuation(void)
 {
 	//param set type is STEPS
 	static const int16_t ReverbStep_table[32] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
@@ -102,7 +102,7 @@ static uint8_t karaoke_echo0_ReverbStep_none_msg_effect_sync_attenuation(void)
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_reverb0_ReverbStep_none_msg_effect_sync_wet(void)
+static uint8_t Karaoke_reverb0_ReverbStep_none_msg_effect_sync_wet(void)
 {
 	//param set type is STEPS
 	static const int16_t ReverbStep_table[32] = {0, 2, 4, 6, 8, 10, 12, 14, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 50, 52, 54, 56, 58, 60, 62, 64, };
@@ -112,7 +112,7 @@ static uint8_t karaoke_reverb0_ReverbStep_none_msg_effect_sync_wet(void)
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_reverb0_ReverbStep_none_msg_effect_sync_room(void)
+static uint8_t Karaoke_reverb0_ReverbStep_none_msg_effect_sync_room(void)
 {
 	//param set type is STEPS
 	static const int16_t ReverbStep_table[32] = {0, 2, 4, 6, 8, 10, 12, 14, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 50, 52, 54, 56, 58, 60, 62, 64, };
@@ -122,7 +122,7 @@ static uint8_t karaoke_reverb0_ReverbStep_none_msg_effect_sync_room(void)
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_eq7_MicBassStep_down_stop_msg_mic_bass_dw_filter1_gain(void)
+static uint8_t Karaoke_eq7_MicBassStep_down_stop_msg_mic_bass_dw_filter1_gain(void)
 {
 	//param set type is STEPS
 	static const int16_t MicBassStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
@@ -133,7 +133,7 @@ static uint8_t karaoke_eq7_MicBassStep_down_stop_msg_mic_bass_dw_filter1_gain(vo
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_eq7_MicBassStep_up_stop_msg_mic_bass_up_filter1_gain(void)
+static uint8_t Karaoke_eq7_MicBassStep_up_stop_msg_mic_bass_up_filter1_gain(void)
 {
 	//param set type is STEPS
 	static const int16_t MicBassStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
@@ -144,7 +144,7 @@ static uint8_t karaoke_eq7_MicBassStep_up_stop_msg_mic_bass_up_filter1_gain(void
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_dw_delay(void)
+static uint8_t Karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_dw_delay(void)
 {
 	//param set type is STEPS
 	static const int16_t ReverbStep_table[32] = {0, 10, 19, 29, 39, 48, 58, 68, 77, 87, 97, 106, 116, 126, 135, 145, 155, 165, 174, 184, 194, 203, 213, 223, 232, 242, 252, 261, 271, 281, 290, 300, };
@@ -155,7 +155,7 @@ static uint8_t karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_dw_delay(void)
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_dw_attenuation(void)
+static uint8_t Karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_dw_attenuation(void)
 {
 	//param set type is STEPS
 	static const int16_t ReverbStep_table[32] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
@@ -166,7 +166,7 @@ static uint8_t karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_dw_attenuation(vo
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_dw_wet(void)
+static uint8_t Karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_dw_wet(void)
 {
 	//param set type is STEPS
 	static const int16_t ReverbStep_table[32] = {0, 2, 4, 6, 8, 10, 12, 14, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 50, 52, 54, 56, 58, 60, 62, 64, };
@@ -177,7 +177,7 @@ static uint8_t karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_dw_wet(void)
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_dw_room(void)
+static uint8_t Karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_dw_room(void)
 {
 	//param set type is STEPS
 	static const int16_t ReverbStep_table[32] = {0, 2, 4, 6, 8, 10, 12, 14, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 50, 52, 54, 56, 58, 60, 62, 64, };
@@ -188,7 +188,7 @@ static uint8_t karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_dw_room(void)
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_up_delay(void)
+static uint8_t Karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_up_delay(void)
 {
 	//param set type is STEPS
 	static const int16_t ReverbStep_table[32] = {0, 10, 19, 29, 39, 48, 58, 68, 77, 87, 97, 106, 116, 126, 135, 145, 155, 165, 174, 184, 194, 203, 213, 223, 232, 242, 252, 261, 271, 281, 290, 300, };
@@ -199,7 +199,7 @@ static uint8_t karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_up_delay(void)
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_up_attenuation(void)
+static uint8_t Karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_up_attenuation(void)
 {
 	//param set type is STEPS
 	static const int16_t ReverbStep_table[32] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
@@ -210,7 +210,7 @@ static uint8_t karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_up_attenuation(vo
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_up_wet(void)
+static uint8_t Karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_up_wet(void)
 {
 	//param set type is STEPS
 	static const int16_t ReverbStep_table[32] = {0, 2, 4, 6, 8, 10, 12, 14, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 50, 52, 54, 56, 58, 60, 62, 64, };
@@ -221,7 +221,7 @@ static uint8_t karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_up_wet(void)
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_up_room(void)
+static uint8_t Karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_up_room(void)
 {
 	//param set type is STEPS
 	static const int16_t ReverbStep_table[32] = {0, 2, 4, 6, 8, 10, 12, 14, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 50, 52, 54, 56, 58, 60, 62, 64, };
@@ -232,7 +232,7 @@ static uint8_t karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_up_room(void)
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_eq7_MicTrebStep_down_stop_msg_mic_treb_dw_filter2_gain(void)
+static uint8_t Karaoke_eq7_MicTrebStep_down_stop_msg_mic_treb_dw_filter2_gain(void)
 {
 	//param set type is STEPS
 	static const int16_t MicTrebStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
@@ -243,7 +243,7 @@ static uint8_t karaoke_eq7_MicTrebStep_down_stop_msg_mic_treb_dw_filter2_gain(vo
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_eq7_MicTrebStep_up_stop_msg_mic_treb_up_filter2_gain(void)
+static uint8_t Karaoke_eq7_MicTrebStep_up_stop_msg_mic_treb_up_filter2_gain(void)
 {
 	//param set type is STEPS
 	static const int16_t MicTrebStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
@@ -254,7 +254,7 @@ static uint8_t karaoke_eq7_MicTrebStep_up_stop_msg_mic_treb_up_filter2_gain(void
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_eq0_MusicBassStep_down_stop_msg_music_bass_dw_filter1_gain(void)
+static uint8_t Karaoke_eq0_MusicBassStep_down_stop_msg_music_bass_dw_filter1_gain(void)
 {
 	//param set type is STEPS
 	static const int16_t MusicBassStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
@@ -265,7 +265,7 @@ static uint8_t karaoke_eq0_MusicBassStep_down_stop_msg_music_bass_dw_filter1_gai
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_eq0_MusicBassStep_up_stop_msg_music_bass_up_filter1_gain(void)
+static uint8_t Karaoke_eq0_MusicBassStep_up_stop_msg_music_bass_up_filter1_gain(void)
 {
 	//param set type is STEPS
 	static const int16_t MusicBassStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
@@ -276,7 +276,7 @@ static uint8_t karaoke_eq0_MusicBassStep_up_stop_msg_music_bass_up_filter1_gain(
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_eq0_MusicTrebStep_down_stop_msg_music_treb_dw_filter2_gain(void)
+static uint8_t Karaoke_eq0_MusicTrebStep_down_stop_msg_music_treb_dw_filter2_gain(void)
 {
 	//param set type is STEPS
 	static const int16_t MusicTrebStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
@@ -287,7 +287,7 @@ static uint8_t karaoke_eq0_MusicTrebStep_down_stop_msg_music_treb_dw_filter2_gai
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-static uint8_t karaoke_eq0_MusicTrebStep_up_stop_msg_music_treb_up_filter2_gain(void)
+static uint8_t Karaoke_eq0_MusicTrebStep_up_stop_msg_music_treb_up_filter2_gain(void)
 {
 	//param set type is STEPS
 	static const int16_t MusicTrebStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
@@ -298,58 +298,58 @@ static uint8_t karaoke_eq0_MusicTrebStep_up_stop_msg_music_treb_up_filter2_gain(
 #endif /*CFG_FLOWCHART_KARAOKE_ENABLE*/
 
 #ifdef CFG_FLOWCHART_KARAOKE_ENABLE
-uint8_t msg_process_karaoke(int msg)
+uint8_t msg_process_Karaoke(int msg)
 {
 	uint8_t flush_address = 0;
 	switch (msg) {
 		case MSG_EFFECT_SYNC:
-			flush_address = karaoke_eq7_MicBassStep_none_msg_effect_sync_filter1_gain();
-			flush_address = karaoke_eq7_MicTrebStep_none_msg_effect_sync_filter2_gain();
-			flush_address = karaoke_eq0_MusicBassStep_none_msg_effect_sync_filter1_gain();
-			flush_address = karaoke_eq0_MusicTrebStep_none_msg_effect_sync_filter2_gain();
-			flush_address = karaoke_echo0_ReverbStep_none_msg_effect_sync_delay();
-			flush_address = karaoke_echo0_ReverbStep_none_msg_effect_sync_attenuation();
-			flush_address = karaoke_reverb0_ReverbStep_none_msg_effect_sync_wet();
-			flush_address = karaoke_reverb0_ReverbStep_none_msg_effect_sync_room();
+			flush_address = Karaoke_eq7_MicBassStep_none_msg_effect_sync_filter1_gain();
+			flush_address = Karaoke_eq7_MicTrebStep_none_msg_effect_sync_filter2_gain();
+			flush_address = Karaoke_eq0_MusicBassStep_none_msg_effect_sync_filter1_gain();
+			flush_address = Karaoke_eq0_MusicTrebStep_none_msg_effect_sync_filter2_gain();
+			flush_address = Karaoke_echo0_ReverbStep_none_msg_effect_sync_delay();
+			flush_address = Karaoke_echo0_ReverbStep_none_msg_effect_sync_attenuation();
+			flush_address = Karaoke_reverb0_ReverbStep_none_msg_effect_sync_wet();
+			flush_address = Karaoke_reverb0_ReverbStep_none_msg_effect_sync_room();
 			flush_address = 2;
 			break;
 		case MSG_MIC_BASS_DW:
-			flush_address = karaoke_eq7_MicBassStep_down_stop_msg_mic_bass_dw_filter1_gain();
+			flush_address = Karaoke_eq7_MicBassStep_down_stop_msg_mic_bass_dw_filter1_gain();
 			break;
 		case MSG_MIC_BASS_UP:
-			flush_address = karaoke_eq7_MicBassStep_up_stop_msg_mic_bass_up_filter1_gain();
+			flush_address = Karaoke_eq7_MicBassStep_up_stop_msg_mic_bass_up_filter1_gain();
 			break;
 		case MSG_MIC_EFFECT_DW:
-			flush_address = karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_dw_delay();
-			flush_address = karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_dw_attenuation();
-			flush_address = karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_dw_wet();
-			flush_address = karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_dw_room();
+			flush_address = Karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_dw_delay();
+			flush_address = Karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_dw_attenuation();
+			flush_address = Karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_dw_wet();
+			flush_address = Karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_dw_room();
 			flush_address = 2;
 			break;
 		case MSG_MIC_EFFECT_UP:
-			flush_address = karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_up_delay();
-			flush_address = karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_up_attenuation();
-			flush_address = karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_up_wet();
-			flush_address = karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_up_room();
+			flush_address = Karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_up_delay();
+			flush_address = Karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_up_attenuation();
+			flush_address = Karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_up_wet();
+			flush_address = Karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_up_room();
 			flush_address = 2;
 			break;
 		case MSG_MIC_TREB_DW:
-			flush_address = karaoke_eq7_MicTrebStep_down_stop_msg_mic_treb_dw_filter2_gain();
+			flush_address = Karaoke_eq7_MicTrebStep_down_stop_msg_mic_treb_dw_filter2_gain();
 			break;
 		case MSG_MIC_TREB_UP:
-			flush_address = karaoke_eq7_MicTrebStep_up_stop_msg_mic_treb_up_filter2_gain();
+			flush_address = Karaoke_eq7_MicTrebStep_up_stop_msg_mic_treb_up_filter2_gain();
 			break;
 		case MSG_MUSIC_BASS_DW:
-			flush_address = karaoke_eq0_MusicBassStep_down_stop_msg_music_bass_dw_filter1_gain();
+			flush_address = Karaoke_eq0_MusicBassStep_down_stop_msg_music_bass_dw_filter1_gain();
 			break;
 		case MSG_MUSIC_BASS_UP:
-			flush_address = karaoke_eq0_MusicBassStep_up_stop_msg_music_bass_up_filter1_gain();
+			flush_address = Karaoke_eq0_MusicBassStep_up_stop_msg_music_bass_up_filter1_gain();
 			break;
 		case MSG_MUSIC_TREB_DW:
-			flush_address = karaoke_eq0_MusicTrebStep_down_stop_msg_music_treb_dw_filter2_gain();
+			flush_address = Karaoke_eq0_MusicTrebStep_down_stop_msg_music_treb_dw_filter2_gain();
 			break;
 		case MSG_MUSIC_TREB_UP:
-			flush_address = karaoke_eq0_MusicTrebStep_up_stop_msg_music_treb_up_filter2_gain();
+			flush_address = Karaoke_eq0_MusicTrebStep_up_stop_msg_music_treb_up_filter2_gain();
 			break;
 		default:
 			break;

@@ -21,6 +21,7 @@ typedef struct
 	Alg_Test	Alg_TestFunc;
 }MY_FUNLIST;
 
-#define MY_FUNLIST_ADDR		*(unsigned int *)0x20
+//#define MY_FUNLIST_ADDR		*(unsigned int *)0x20		//未加密的情况下 可以直接访问
+#define MY_FUNLIST_ADDR			Read_adrress()				//加密的情况下需要用 SpiFlashRead
 
 #endif

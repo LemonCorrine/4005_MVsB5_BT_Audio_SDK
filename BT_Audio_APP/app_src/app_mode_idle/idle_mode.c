@@ -219,16 +219,9 @@ void IdleModeRun(uint16_t msgId)
 #endif
 	 )
 	{
+		extern bool GetPowerKeyVaildState(void);
 		SoftFlagDeregister(SoftFlagIdleModeEnterPowerDown);
-#if (POWERKEY_MODE == POWERKEY_MODE_PUSH_BUTTON)
-		if(1)
-#elif (POWERKEY_MODE == POWERKEY_MODE_SLIDE_SWITCH_LPD)
-		if(!PMU_PowerKeyPinStateGet())
-#elif (POWERKEY_MODE == POWERKEY_MODE_SLIDE_SWITCH_HPD)
-		if(PMU_PowerKeyPinStateGet())
-#else
-		if(0)
-#endif
+		if(GetPowerKeyVaildState())
 		{
 			SystemPowerDown();
 		}
@@ -267,10 +260,22 @@ void IdleModeRun(uint16_t msgId)
 		vTaskPrioritySet(NULL, MAIN_APP_TASK_SLEEP_PRIO);//设定最高优先级
 		
  		NVIC_DisableIRQ(Timer2_IRQn);
+
+#ifdef CFG_FUNC_DEBUG_USE_TIMER
+		extern void PrintfAllInBuffer(void);
+		PrintfAllInBuffer();
+#endif
 	
 		DeepSleeping();
 		
 		SystemTimerInit();
+
+#ifdef CFG_FUNC_DEBUG_USE_TIMER
+		{
+			extern uint8_t uart_switch ;
+			uart_switch = 1;
+		}
+#endif
 
 #if defined(CFG_APP_BT_MODE_EN)
 		if(sys_parameter.bt_BackgroundType != BT_BACKGROUND_DISABLE)

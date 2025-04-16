@@ -401,6 +401,9 @@ void SpdifPlayRun(uint16_t msgId)
 			HardWareMuteOrUnMute();
 		}
 		vTaskDelay(20);
+		DMA_ChannelDisable(CFG_SPDIF_RX_DMA_CHANNEL);
+		DMA_CircularFIFOClear(CFG_SPDIF_RX_DMA_CHANNEL);
+		DMA_ChannelEnable(CFG_SPDIF_RX_DMA_CHANNEL);
 		AudioCoreSourceEnable(SPDIF_SOURCE_NUM);
 
 #ifdef SPDIF_DPLL_LOCK_MODE

@@ -92,7 +92,7 @@ void AudioADC_DigitalInit(ADC_MODULE Module, uint32_t SampleRate, AUDIO_BitWidth
         AudioADC_VolSet(ADC1_MODULE, 0x1000, 0x1000);
         AudioADC_SoftMute(ADC1_MODULE, FALSE, FALSE);
         AudioADC_Clear(ADC1_MODULE);
-        AudioADC_WidthSet(ADC1_MODULE,BitWidth);
+        AudioADC_WidthSet(ADC1_MODULE, BitWidth);
         AudioADC_Enable(ADC1_MODULE);
 
         DMA_ChannelEnable(PERIPHERAL_ID_AUDIO_ADC1_RX);

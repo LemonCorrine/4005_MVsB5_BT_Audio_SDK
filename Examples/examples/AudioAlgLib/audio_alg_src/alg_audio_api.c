@@ -1,5 +1,18 @@
 #include "alg_api.h"
+#include "type.h"
 
+uint32_t Read_adrress(void)
+{
+	uint32_t startAddress;
+	if(SpiFlashRead(0x20, &startAddress,4,20) == 0)
+	{
+		return startAddress;
+	}
+	else
+	{
+		return 0;
+	}
+}
 
 void Alg_RamInit(void)
 {
