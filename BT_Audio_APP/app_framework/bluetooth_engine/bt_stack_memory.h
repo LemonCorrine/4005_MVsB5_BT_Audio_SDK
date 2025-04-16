@@ -62,6 +62,10 @@ typedef struct _BT_STACK_MEM_ALLOC_
 	uint8_t	BtOBEXMem[400];
 #endif
 
+#if (BT_PBAP_SUPPORT)
+	uint8_t	BtPbapMem[900];
+#endif
+
 }BT_STACK_MEM_ALLOC;
 
 

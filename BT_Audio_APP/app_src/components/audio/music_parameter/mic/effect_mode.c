@@ -36,6 +36,7 @@ const uint8_t mic_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX] =
 	[EQ_MODE_ADJUST] = MIC_mic_eq0_ADDR,
 	[MUSIC_VOLUME_ADJUST] = MIC_gain_control0_ADDR,
 	[MIC_VOLUME_ADJUST] = MIC_mic_gain_ADDR,
+	[REMIND_VOLUME_ADJUST] = MIC_remind_gain_control_ADDR,
 	[MIC_SILENCE_DETECTOR_PARAM] = MIC_silence_detector_mic_ADDR,
 	[MUSIC_SILENCE_DETECTOR_PARAM] = MIC_silence_detector_music_ADDR,
 	[APPMODE_PREGAIN] = MIC_preGain_ADDR,

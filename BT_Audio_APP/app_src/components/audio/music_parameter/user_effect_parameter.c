@@ -56,6 +56,7 @@ void AudioEffect_SourceGain_Update(uint8_t source)
 			break;
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 		case REMIND_SOURCE_NUM:
+			gCtrlVars.AutoRefresh = AudioRemindVolSync();
 			break;
 #endif
 		case MIC_SOURCE_NUM:

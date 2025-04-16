@@ -15,7 +15,7 @@
 #include "reverb.h"
 #include "reverb_plate.h"
 #include "reverb_pro.h"
-#include "effects_param.h"
+#include "effects_param_v3.h"
 
 #define AUDIOCORE_SOURCE_SINK_ERROR 0xFF
 
@@ -31,6 +31,7 @@ typedef enum _AUDIOEFFECT_EFFECT_CONTROL
 	MUSIC_TREB_ADJUST,
 	MIC_VOLUME_ADJUST,
 	MUSIC_VOLUME_ADJUST,
+	REMIND_VOLUME_ADJUST,
 	ECHO_PARAM,
 	MIC_SILENCE_DETECTOR_PARAM,
 	MUSIC_SILENCE_DETECTOR_PARAM,

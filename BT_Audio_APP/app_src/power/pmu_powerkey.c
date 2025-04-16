@@ -21,6 +21,64 @@ void PMU_PowerKey8SResetSet(void)
 }
 
 #ifdef CFG_IDLE_MODE_POWER_KEY
+bool GetPowerKeyVaildState(void)
+{
+	switch(POWERKEY_MODE)
+	{
+	case POWERKEY_MODE_BYPASS:
+		break;
+	case POWERKEY_MODE_PUSH_BUTTON:
+		return 1;
+		break;
+	case POWERKEY_MODE_SLIDE_SWITCH_LPD://硬开关高唤醒
+		return (!PMU_PowerKeyPinStateGet());
+		break;
+	case POWERKEY_MODE_SLIDE_SWITCH_HPD://硬开关低唤醒
+		return (PMU_PowerKeyPinStateGet());
+		break;
+	default:
+		break;
+	}
+	return 0;
+}
+
+#if (POWERKEY_MODE == POWERKEY_MODE_SLIDE_SWITCH_LPD) || (POWERKEY_MODE == POWERKEY_MODE_SLIDE_SWITCH_HPD)
+#include "app_message.h"
+#define POWER_KEY_JITTER_CNT		50
+#define POWER_KEY_WAIT_RELEASE		0xffff
+static uint32_t CntTimer = POWER_KEY_JITTER_CNT;
+uint16_t GetSystemPowerKeyMsg(void)
+{
+	switch(POWERKEY_MODE)
+	{
+	case POWERKEY_MODE_BYPASS:
+		break;
+	case POWERKEY_MODE_PUSH_BUTTON:
+		break;
+	case POWERKEY_MODE_SLIDE_SWITCH_LPD://硬开关高唤醒
+	case POWERKEY_MODE_SLIDE_SWITCH_HPD://硬开关低唤醒
+		if(GetPowerKeyVaildState())
+		{
+			if(CntTimer > 0 && CntTimer != POWER_KEY_WAIT_RELEASE)
+				CntTimer--;
+			if(CntTimer == 0)
+			{
+				CntTimer = POWER_KEY_WAIT_RELEASE;
+				return MSG_POWERDOWN;
+			}
+		}
+		else
+		{
+			CntTimer = POWER_KEY_JITTER_CNT;
+		}
+		break;
+	default:
+		break;
+	}
+	return MSG_NONE;
+}
+#endif
+
 void SystemPowerDown(void)
 {
 	switch(POWERKEY_MODE)
@@ -95,9 +153,11 @@ void SystemPowerKeyIdleModeInit(void)
 		#endif
 		PMU_PowerupEventClr();
 
+		cnt = 1000;	//按需求调整长按开机的时间
+
 		while(cnt--)
 		{
-			APP_DBG("%d",PMU_PowerKeyPinStateGet());
+//			APP_DBG("%d",PMU_PowerKeyPinStateGet());
 			if(PMU_PowerKeyPinStateGet())
 			{
 				SystemPowerDown();
@@ -107,10 +167,12 @@ void SystemPowerKeyIdleModeInit(void)
 		}
 		break;
 	case POWERKEY_MODE_SLIDE_SWITCH_LPD://硬开关高唤醒
-
-		break;
 	case POWERKEY_MODE_SLIDE_SWITCH_HPD://硬开关低唤醒
-
+//		APP_DBG("=========%d \n",PMU_PowerKeyPinStateGet());
+		if(GetPowerKeyVaildState())
+		{
+			SystemPowerDown();
+		}
 		break;
 	default:
 		break;

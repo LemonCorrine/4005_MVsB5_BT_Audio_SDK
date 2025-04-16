@@ -20,7 +20,7 @@
 extern "C" {
 #endif//__cplusplus
 
-uint8_t msg_process_karaoke(int msg);
+uint8_t msg_process_Karaoke(int msg);
 
 
 #ifdef __cplusplus

@@ -65,6 +65,10 @@ void ExceptionCommHandler(unsigned stack, unsigned exception_num)
 	unsigned int mask_itype,mask_ipc;
 	unsigned int *pstack;
 
+#ifdef CFG_FUNC_DEBUG_USE_TIMER
+	extern void PrintfAllInBuffer(void);
+	PrintfAllInBuffer();
+#endif
 	  pstack = (unsigned int *)stack;
 	  APP_DBG("Error exception happened\r\n");
 
@@ -151,6 +155,11 @@ void __cpu_init()
 	/* turn on BTB */
 //	tmp = 0x0;
 //	__nds32__mtsr(tmp, NDS32_SR_MISC_CTL);
+
+    /* turn off RTP */
+    tmp = __nds32__mfsr(NDS32_SR_MISC_CTL);
+    tmp |= 0x02;
+    __nds32__mtsr(tmp, NDS32_SR_MISC_CTL);
 
 	tmp = __nds32__mfsr(NDS32_SR_MMU_CTL);
 	tmp |= 0x800000;

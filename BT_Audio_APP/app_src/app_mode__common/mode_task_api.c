@@ -1253,6 +1253,11 @@ bool AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 			LineinADCDigitalInit();
 		}
 #endif
+#if CFG_RES_MIC_SELECT
+		DMA_ChannelDisable(PERIPHERAL_ID_AUDIO_ADC1_RX);
+		DMA_CircularFIFOClear(PERIPHERAL_ID_AUDIO_ADC1_RX);
+		DMA_ChannelEnable(PERIPHERAL_ID_AUDIO_ADC1_RX);
+#endif
 
 #ifndef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
 #ifdef CFG_RES_I2S_MODULE

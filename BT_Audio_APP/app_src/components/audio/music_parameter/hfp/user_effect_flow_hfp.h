@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_hfp.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.10.10                 
+ * @author  ACPWorkbench: 3.13.0                 
  * @version V1.2.0                                  
- * @Created 2024-08-28T15:39:36                                      
+ * @Created 2024-10-24T10:34:29                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define HFP_ROBOEFFECT_LIB_VER "2.23.3"
+#define HFP_ROBOEFFECT_LIB_VER "2.25.4"
 
 typedef enum _HFP_roboeffect_io_enum
 {
@@ -48,6 +48,7 @@ typedef enum _HFP_roboeffect_effect_list_enum{
     HFP_pcm_delay0_ADDR,
     HFP_music_gain_ADDR,
     HFP_upmix_1to2_0_ADDR,
+    HFP_remind_gain_control_ADDR,
     HFP_COUNT_ADDR,
 
 } HFP_roboeffect_effect_list_enum;

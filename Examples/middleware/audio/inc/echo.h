@@ -4,7 +4,7 @@
  * @brief	Echo effect
  *
  * @author	ZHAO Ying (Alfred)
- * @version	v2.2.0
+ * @version	v2.2.2
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************

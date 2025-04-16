@@ -28,6 +28,7 @@
 #include "distortion_ds1.h"
 #include "distortion_exp.h"
 #include "drc.h"
+#include "drc_legacy.h"
 #include "dynamic_eq.h"
 #include "echo.h"
 #include "engine_sound.h"
@@ -87,15 +88,15 @@
 #include "beamforming.h"
 
 // audio effect library version
-#define AUDIO_EFFECT_LIBRARY_VERSION "2.43.2"
+#define AUDIO_EFFECT_LIBRARY_VERSION "2.45.4"
 
-// audio effect versions (Info below is for convenience only. In case of any contradiction, the version info in the respective file header shall prevail.)
+// audio effect versions (Info below is for convenience only. In case of any inconsistency, the version info in the respective file header shall prevail.)
 #define EFFECT_VERSION_ADPCM_CODEC                  "2.0.1"
 #define EFFECT_VERSION_AUTO_TUNE                    "1.4.0"
 #define EFFECT_VERSION_AUTO_WAH                     "1.2.0"
 #define EFFECT_VERSION_BEAT_TRACKER                 "1.1.1"
 #define EFFECT_VERSION_BLUE_AEC                     "6.6.1"
-#define EFFECT_VERSION_BLUE_NS                      "2.1.2"
+#define EFFECT_VERSION_BLUE_NS                      "3.0.0"
 #define EFFECT_VERSION_BLUE_NS_DUAL                 "1.4.1"
 #define EFFECT_VERSION_CHORUS                       "1.2.1"
 #define EFFECT_VERSION_CHORUS2                      "2.1.0"
@@ -103,9 +104,10 @@
 #define EFFECT_VERSION_DC_BLOCKER                   "1.2.0"
 #define EFFECT_VERSION_DISTORTION_DS1               "1.2.0"
 #define EFFECT_VERSION_DISTORTION_EXP               "1.0.0"
+#define EFFECT_VERSION_DRC_LEGACY                   "3.1.1"
 #define EFFECT_VERSION_DYNAMIC_EQ                   "1.1.0"
 #define EFFECT_VERSION_DYNAMIC_RANGE_COMPRESSOR     "4.1.0"
-#define EFFECT_VERSION_ECHO                         "2.2.0"
+#define EFFECT_VERSION_ECHO                         "2.2.2"
 #define EFFECT_VERSION_ENGINE_SOUND                 "1.1.1"
 #define EFFECT_VERSION_EQ                           "8.3.1"
 #define EFFECT_VERSION_EQ_DRC                       "1.1.0"
@@ -133,7 +135,7 @@
 #define EFFECT_VERSION_PITCH_DETECTOR               "2.1.1"
 #define EFFECT_VERSION_PITCH_SHIFTER                "1.8.0"
 #define EFFECT_VERSION_PITCH_SHIFTER_PRO            "2.2.1"
-#define EFFECT_VERSION_REVERB                       "2.1.0"
+#define EFFECT_VERSION_REVERB                       "2.1.2"
 #define EFFECT_VERSION_REVERB_PLATE                 "2.3.1"
 #define EFFECT_VERSION_REVERB_PRO                   "1.4.0"
 #define EFFECT_VERSION_ROBOT_TONE                   "1.0.0"

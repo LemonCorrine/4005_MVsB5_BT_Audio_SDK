@@ -854,8 +854,6 @@ static void BtStackServiceEntrance(void * param)
 	}
 #endif
 
-	SetRfTxPwrMaxLevel(sys_parameter.bt_TxPowerLevel, sys_parameter.bt_PagePowerLevel);
-
 	SetBtStackState(BT_STACK_STATE_READY);
 #ifdef BT_ACCESS_MODE_SET_BY_POWER_ON_TIMEOUT
 	btManager.btvisibilityDelayOn = TRUE;

@@ -291,7 +291,9 @@ bool SystermWackupSourceCheck(void)
 
 #if defined(CFG_PARA_WAKEUP_SOURCE_ADCKEY)
 	SarADC_Init();
+#ifdef CFG_RES_ADC_KEY_SCAN
 	AdcKeyInit();
+#endif
 	Power_LDO11DConfig(PWD_LDO11_LVL_1V10);
 #endif
 
@@ -327,6 +329,7 @@ bool SystermWackupSourceCheck(void)
 	{
 		WDG_Feed();
 #ifdef CFG_PARA_WAKEUP_SOURCE_IR
+#ifdef CFG_RES_IR_KEY_SCAN
 		if(sources & CFG_PARA_WAKEUP_SOURCE_IR)
 		{
 			KeyVal = GetGlobalKeyMessageId(IRKeyScan());
@@ -336,6 +339,7 @@ bool SystermWackupSourceCheck(void)
 				return TRUE;
 			}
 		}
+#endif
 #endif
 #ifdef CFG_PARA_WAKEUP_SOURCE_POWERKEY
 		if(sources & SYSWAKEUP_SOURCE6_POWERKEY)

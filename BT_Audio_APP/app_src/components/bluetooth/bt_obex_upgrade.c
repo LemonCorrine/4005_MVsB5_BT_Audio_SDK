@@ -93,7 +93,7 @@ static uint16_t CRC16(uint8_t* Buf,uint32_t BufLen,uint16_t CRC)
 
 static void DualBankUpdateReboot(void)
 {
-    ROM_BankBUpgradeApply(1, FLASH_MVA_UPDATE_START_OFFSET); //write addr for update usage!!!
+    ROM_BankBUpgradeApply(0, FLASH_MVA_UPDATE_START_OFFSET); //write addr for update usage!!!
     //reboot
     ROM_SysReset();
 }

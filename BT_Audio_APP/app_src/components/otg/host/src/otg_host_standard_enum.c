@@ -128,6 +128,24 @@ bool OTG_HostSetInterface(uint8_t InterfaceNum)
 	return TRUE;
 }
 
+/**
+ * @brief  设置Ipod充电接口
+ * @param  Current 充电电流   0~500ma
+ * @return 1-成功，0-失败
+ */
+bool OTG_HostSetIpodChargeCurrent(int16_t Current)
+{
+	USB_CTRL_SETUP_REQUEST SetupPacket;
+	uint8_t CmdSetCurrent[8] = {0x40, 0x40, 0x00, 0x00, 0xf4, 0x01, 0x00, 0x00};
+	CmdSetCurrent[4] = (uint8_t)(Current);
+	CmdSetCurrent[5] = (uint8_t)(Current >> 8);
+	memcpy((uint8_t *)&SetupPacket,CmdSetCurrent,8);
+	if(OTG_HostControlWrite(SetupPacket, NULL, 0, 1000) != HOST_NONE_ERR)
+	{
+		return FALSE;
+	}
+	return TRUE;
+}
 
 /**
  * @brief  host枚举初始化
@@ -168,10 +186,6 @@ bool OTG_HostEnumDevice(void)
 	{
 		return FALSE;
 	}
-	if(OtgHostInfo.DeviceDesCriptor.bNumConfigurations != 1)
-	{
-		return FALSE;
-	}
 	
 	//设备描述符
 	OTG_DBG("Device DeviceDesCriptor:\n");
@@ -189,7 +203,12 @@ bool OTG_HostEnumDevice(void)
 	OTG_DBG("iProduct:\t%02X \n",OtgHostInfo.DeviceDesCriptor.iProduct);
 	OTG_DBG("iSerialNumber:\t%02X \n",OtgHostInfo.DeviceDesCriptor.iSerialNumber);
 	OTG_DBG("bNumConfigurations:\t%02X \n",OtgHostInfo.DeviceDesCriptor.bNumConfigurations);
-	
+
+	if(OtgHostInfo.DeviceDesCriptor.idVendor == 0x05AC)			//Apple
+	{
+		OTG_HostSetIpodChargeCurrent(500);
+	}
+
 	if(OtgHostInfo.DeviceDesCriptor.bNumConfigurations != 1)
 	{
 		return FALSE;

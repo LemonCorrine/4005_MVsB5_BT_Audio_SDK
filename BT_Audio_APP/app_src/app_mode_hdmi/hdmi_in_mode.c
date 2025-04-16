@@ -283,6 +283,19 @@ bool HdmiInPlayResMalloc(uint16_t SampleLen)
 
 		AudioCodecGainUpdata();//update hardware config
 
+    if ((gHdmiCt->hdmi_tv_inf.tv_type == TV_SAMSUNG_1670)
+    		|| (gHdmiCt->hdmi_tv_inf.tv_type == TV_POLARIOD_010B)
+			|| (gHdmiCt->hdmi_tv_inf.tv_type == TV_SAMSUNG_170F)
+			|| (gHdmiCt->hdmi_tv_inf.tv_type == TV_TCL_2009)
+			|| (gHdmiCt->hdmi_tv_inf.tv_type == TV_SONY_04A2)
+			|| (gHdmiCt->hdmi_tv_inf.tv_type == TV_SAMSUNG_0371)
+			|| (gHdmiCt->hdmi_tv_inf.tv_type == TV_SAMSUNG_5770)
+			|| (gHdmiCt->hdmi_tv_inf.tv_type == TV_SONY_0571)
+	   )
+    {
+        if(HDMI_HPD_StatusGet())
+            HDMI_CEC_SetSystemAudioModeOn();
+    }
 	//AudioCoreSourceEnable(HDMI_IN_SOURCE_NUM);
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 
@@ -539,6 +552,7 @@ static void HdmiARCScan(void)
 
 bool HdmiInPlayDeinit(void)
 {
+	uint16_t timeout_time = 200;
 	APP_DBG("HdmiIn Play Deinit\n");
 	if(hdmiInPlayCt == NULL)
 	{
@@ -552,6 +566,76 @@ bool HdmiInPlayDeinit(void)
 
 	PauseAuidoCore();
 
+
+	if(gHdmiCt->hdmi_tv_inf.tv_type != TV_SONY_047C)
+	{
+		if(gCecInitDef)
+		{
+			if((gHdmiCt->hdmi_tv_inf.tv_type != TV_POLARIOD_010B)
+					&&(gHdmiCt->hdmi_tv_inf.tv_type != TV_TCL_2009)
+					&& (gHdmiCt->hdmi_tv_inf.tv_type != TV_SAMSUNG_0371)
+					)
+			{
+				hdmiInPlayCt->hdmiRetransCnt = 3;//最大重传3次
+				if(gHdmiCt->hdmi_poweron_flag == -1)//休眠时，会强制将gHdmiCt->hdmi_arc_flag=0
+				{
+					gHdmiCt->hdmi_arc_flag = 1;//收到0xc2时，会把该标志改为0
+					timeout_time = 1000;
+				}
+				while(hdmiInPlayCt->hdmiRetransCnt)
+				{
+					if(HDMI_HPD_NOT_CONNECTED_STATUS == HDMI_HPD_StatusGet())
+					{
+						APP_DBG("HDMI line is inactive\n");
+						break;
+					}
+					while(HDMI_CEC_IsWorking() == CEC_IS_WORKING)
+					{
+						WDG_Feed();
+					}
+
+					HDMI_CEC_TerminationARC();
+					TimeOutSet(&hdmiInPlayCt->hdmiMaxRespondTime, timeout_time);
+					while(!IsTimeOut(&hdmiInPlayCt->hdmiMaxRespondTime))
+					{
+						HDMI_CEC_Scan(1);
+						if(gHdmiCt->hdmi_arc_flag == 0)
+						{
+							APP_DBG("Terminal arc ok, resend cnt: %d\n", 3-hdmiInPlayCt->hdmiRetransCnt);
+							break;
+						}
+						WDG_Feed();
+					}
+					if(gHdmiCt->hdmi_arc_flag == 0)
+					{
+						break;
+					}
+					hdmiInPlayCt->hdmiRetransCnt --;
+				}
+
+				gHdmiCt->hdmi_arc_flag = 0;
+			}
+			if(HDMI_HPD_NOT_CONNECTED_STATUS != HDMI_HPD_StatusGet())
+			{
+				while(HDMI_CEC_IsWorking() == CEC_IS_WORKING)
+				{
+					WDG_Feed();
+				}
+				HDMI_CEC_SetSystemAudioModeoff();
+				while(HDMI_CEC_IsWorking() == CEC_IS_WORKING)
+				{
+					WDG_Feed();
+				}
+				HDMI_CEC_SetSystemAudioModeoff();
+				while(HDMI_CEC_IsWorking() == CEC_IS_WORKING)
+				{
+					WDG_Feed();
+				}
+			}
+		}
+		gHdmiCt->hdmi_audiomute_flag = 0;
+		gHdmiCt->hdmi_poweron_flag = 0;
+	}
 
 	AudioCoreProcessConfig((void*)AudioNoAppProcess);
 	AudioCoreSourceDisable(HDMI_IN_SOURCE_NUM);
