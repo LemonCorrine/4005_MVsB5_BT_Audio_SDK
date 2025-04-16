@@ -48,7 +48,7 @@ extern "C" {
 #define MV_SEEK_END         2   /**< End of file              */
 
 typedef uint32_t (*mv_mread_callback_t)(void *buffer, uint32_t length);
-
+typedef uint32_t (*mv_fread_callback_t)(void *buffer, uint32_t length);
 /**
  * @brief  Copy the values of num bytes from the location pointed by source directly to the memory block pointed by destination
  * @param  dst   Pointer to the destination array where the content is to be copied, type-casted to a pointer of type void*.

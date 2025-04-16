@@ -66,7 +66,7 @@ static struct
 #endif
 
 
-#define MEDIA_RECORDER_TASK_STACK_SIZE		384// 1024
+#define MEDIA_RECORDER_TASK_STACK_SIZE		512// 1024
 #define MEDIA_RECORDER_TASK_PRIO			2
 #define MEDIA_RECORDER_RECV_MSG_TIMEOUT		1
 
@@ -548,6 +548,17 @@ void DelExFlashRecFile(uint8_t index)
 
 void ExFlashRecorderStartIndex(MessageHandle parentMsgHandle,uint8_t index)
 {
+#ifndef USE_EXTERN_FLASH_SPACE
+	extern char __data_lmastart;
+	extern bool flash_table_is_valid(void);
+
+	if(!flash_table_is_valid() ||		//flash中没有搜索到索引表
+		rec_addr_start < (uint32_t)&__data_lmastart) //起始地址在代码区
+	{
+		DBG("[HHH] rec_addr_start Error!  0x%lx\n",rec_addr_start);
+		return;
+	}
+#endif
 	if(index <= CFG_PARA_RECORDS_INDEX && index > 0)
 	{
 		DBG("[HHH]ExFlash Recorder the %d voice\n",index);

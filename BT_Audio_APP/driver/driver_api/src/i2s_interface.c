@@ -13,6 +13,8 @@
 
 static uint8_t I2s0_MasterMode = 0;
 static uint8_t I2s1_MasterMode = 0;
+static I2S_DATA_LENGTH I2s0_WordLength = 0;
+static I2S_DATA_LENGTH I2s1_WordLength = 0;
 
 void AudioI2S_Init(I2S_MODULE Module, I2SParamCt *ct)
 {
@@ -62,6 +64,7 @@ void AudioI2S_Init(I2S_MODULE Module, I2SParamCt *ct)
 		I2S_FadeTimeSet(I2S0_MODULE,90);
 		I2S_FadeEnable(I2S0_MODULE);// bkd add 2021.11.09
 		I2s0_MasterMode = ct->IsMasterMode;
+		I2s0_WordLength = ct->I2sBits;
     }
     else if(Module == I2S1_MODULE)
     {
@@ -76,6 +79,7 @@ void AudioI2S_Init(I2S_MODULE Module, I2SParamCt *ct)
 		I2S_FadeTimeSet(I2S1_MODULE,90);
 		I2S_FadeEnable(I2S1_MODULE);//  bkd add 2021.11.09
 		I2s1_MasterMode = ct->IsMasterMode;
+		I2s1_WordLength = ct->I2sBits;
     }
 
 	I2S_SampleRateSet(Module, ct->SampleRate);
@@ -154,13 +158,25 @@ uint8_t AudioI2S_MasterModeGet(I2S_MODULE Module)
     }
 }
 
+I2S_DATA_LENGTH AudioI2S_WordLengthGet(I2S_MODULE Module)
+{
+	if(Module == I2S0_MODULE)
+    {
+		return I2s0_WordLength;
+    }
+    else//if(Module == I2S1_MODULE)
+    {
+		return I2s1_WordLength;
+    }
+}
+
 //·µ»ØLength uint£ºsample
 //16bits:  NumSamples / 4;
 //>16bits: NumSamples / 8;
 uint16_t AudioI2S_DataLenGet(I2S_MODULE Module)
 {
 	uint16_t NumSamples = 0;
-	uint16_t databits   = I2S_WordlengthGet(Module);
+	uint16_t databits = AudioI2S_WordLengthGet(Module);
 
 	if(Module == I2S0_MODULE)
     {
@@ -178,7 +194,7 @@ uint16_t AudioI2S_DataLenGet(I2S_MODULE Module)
 uint16_t AudioI2S_DataGet(I2S_MODULE Module, void* Buf, uint16_t Len)
 {
 	uint16_t Length = 0;
-	uint16_t databits   = I2S_WordlengthGet(Module);
+	uint16_t databits = AudioI2S_WordLengthGet(Module);
 
     if(Module == I2S0_MODULE)
     {
@@ -224,7 +240,7 @@ uint16_t AudioI2S_DataGet(I2S_MODULE Module, void* Buf, uint16_t Len)
 
 uint16_t AudioI2S_DataSpaceLenGet(I2S_MODULE Module)
 {
-	uint16_t databits   = I2S_WordlengthGet(Module);
+	uint16_t databits = AudioI2S_WordLengthGet(Module);
 
 	if(Module == I2S0_MODULE)
 	{
@@ -239,7 +255,7 @@ uint16_t AudioI2S_DataSpaceLenGet(I2S_MODULE Module)
 void AudioI2S_DataSet(I2S_MODULE Module, void *Buf, uint32_t Len)
 {
 	uint16_t Length = 0;
-	uint16_t databits   = I2S_WordlengthGet(Module);
+	uint16_t databits = AudioI2S_WordLengthGet(Module);
 
 	Length = databits == I2S_LENGTH_16BITS? Len * 4 : Len * 8;//Byte
 

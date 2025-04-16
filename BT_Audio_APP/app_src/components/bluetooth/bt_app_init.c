@@ -613,7 +613,7 @@ bool BtStackInit(void)
 	
 #endif
 
-#if (BT_SPP_SUPPORT ||(defined(CFG_FUNC_BT_OTA_EN)))
+#if (BT_SPP_SUPPORT)
 	retInit = SppAppInit(BtSppCallback);
 	if(retInit == 0)
 	{

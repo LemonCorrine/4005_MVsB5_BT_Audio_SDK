@@ -87,6 +87,12 @@ FileType get_audio_type(TCHAR *string)
 	{
 		return FILE_TYPE_MP3;
 	}
+	#ifdef CFG_FUNC_DECRYPT_EN
+	if((string[len + 0] == 'M') && (string[len + 1] == 'V') && (string[len + 2] == 'B'))
+	{
+		return FILE_TYPE_MVB;
+	}
+	#endif
 #endif
 #ifdef USE_WMA_DECODER
 	if((string[len + 0] == 'W') && (string[len + 1] == 'M') && (string[len + 2] == 'A'))
@@ -105,12 +111,24 @@ FileType get_audio_type(TCHAR *string)
 	{
 		return FILE_TYPE_WMA;
 	}
+	#ifdef CFG_FUNC_DECRYPT_EN
+	if((string[len + 0] == 'M') && (string[len + 1] == 'V') && (string[len + 2] == 'D'))
+	{
+		return FILE_TYPE_MVD;
+	}
+	#endif
 #endif
 #ifdef USE_WAV_DECODER
 	if((string[len + 0] == 'W') && (string[len + 1] == 'A') && (string[len + 2] == 'V'))
 	{
 		return FILE_TYPE_WAV;
 	}
+	#ifdef CFG_FUNC_DECRYPT_EN
+	if((string[len + 0] == 'M') && (string[len + 1] == 'V') && (string[len + 2] == 'C'))
+	{
+		return FILE_TYPE_MVC;
+	}
+	#endif
 #endif
 #ifdef USE_SBC_DECODER
 	if((string[len + 0] == 'S') && (string[len + 1] == 'B') && (string[len + 2] == 'C'))
@@ -123,6 +141,12 @@ FileType get_audio_type(TCHAR *string)
 	{
 		return FILE_TYPE_FLAC;
 	}
+	#ifdef CFG_FUNC_DECRYPT_EN
+	if((string[len + 0] == 'M') && (string[len + 1] == 'V') && (string[len + 2] == 'F'))
+	{
+		return FILE_TYPE_MVF;
+	}
+	#endif
 #endif
 #ifdef USE_AAC_DECODER
 	if(((string[len + 0] == 'A') && (string[len + 1] == 'A') && string[len + 2] == 'C')

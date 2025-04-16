@@ -36,10 +36,10 @@ bool BtStackServiceStart(void);
  * @param	NONE
  * @return  
  */
-void BtResetAndKill(void);
+void BtResetAndKill(bool power_flag);
 void BtBbStart(void);
 void BT_IntDisable(void);
-void BT_ModuleClose(void);
+void BT_ModuleClose(bool power_flag);
 void BtStackServiceWaitResume(void);
 void BtStackServiceWaitClear(void);
 /***********************************************************************************

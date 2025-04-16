@@ -33,9 +33,6 @@
 #include "audio_vol.h"
 #include "user_effect_parameter.h"
 
-#ifdef CFG_APP_BT_MODE_EN
-uint32_t gACBtMonitor = 0; //audio core检测:蓝牙模式下数据播空计数器
-#endif
 /*******************************************************************************************************************************
  *
  *				 |***GetAdapter***|	  			 |***********CoreProcess***********|			  |***SetAdapter***|
@@ -201,31 +198,9 @@ void AudioCoreRun(void)
 		case AC_RUN_GET:
 			AudioCoreIOLenProcess();
 #ifdef CFG_APP_BT_MODE_EN
-			//每隔1ms查询一次,app_source 数据不足,进行登记
-			if(SOURCE_BIT_GET(AudioCore.FrameReady, APP_SOURCE_NUM) == 0)
-			{
-				extern uint32_t gBtPlaySbcDecoderInitFlag;
-				if((GetSystemMode() == ModeBtAudioPlay)//蓝牙模式
-					&&((GetA2dpState(0) == BT_A2DP_STATE_STREAMING)||(GetA2dpState(1) == BT_A2DP_STATE_STREAMING))//正在播放音乐
-					&&(gBtPlaySbcDecoderInitFlag)//decoder初始化已经完成
-					&&(AudioCoreSourceIsEnable(APP_SOURCE_NUM))//source通路已经开启
-					)
-				{
-					if(++gACBtMonitor>=80)//80ms播空,重置decoder
-					{
-						gACBtMonitor = 0;
-						a2dp_sbc_decoer_init();
-					}
-				}
-				else
-				{
-					gACBtMonitor = 0;
-				}
-			}
-			else//一旦收到数据就清寄存器
-			{
-				gACBtMonitor = 0;
-			}
+			//audio core检测:蓝牙模式下数据播空监控
+			extern void BtPlayACBtMonitor(uint16_t empty_flag);
+			BtPlayACBtMonitor(SOURCE_BIT_GET(AudioCore.FrameReady, APP_SOURCE_NUM));
 #endif
 			ret = AudioCoreSourceSync();
 			if(ret == FALSE)
@@ -354,6 +329,7 @@ void AudioCoreSourceMuteApply(void)
 										0, roboeffect_get_buffer_size(AudioEffect.context_memory));
 				}
 			}
+			AudioCore.AudioSource[j].MuteFlagbk = mute;
 			continue;
 		}
 
@@ -397,7 +373,7 @@ void AudioCoreSourceMuteApply(void)
 				for(i=0; i < SOURCEFRAME(j); i++)
 				{
 					PcmInBuf[2 * i + 0] = __nds32__clips((((int32_t)PcmInBuf[2 * i + 0]) * LeftVol + 2048) >> 12, (16)-1);
-					PcmInBuf[2 * i + 1] = __nds32__clips((((int32_t)PcmInBuf[2 * i + 1]) * LeftVol + 2048) >> 12, (16)-1);
+					PcmInBuf[2 * i + 1] = __nds32__clips((((int32_t)PcmInBuf[2 * i + 1]) * RightVol + 2048) >> 12, (16)-1);
 
 					MixerFadeVolume(LeftVol, TargetVol, LeftVolStep);
 					MixerFadeVolume(RightVol, TargetVol, RightVolStep);
@@ -438,6 +414,7 @@ void AudioCoreSinkMuteApply(void)
 										0, roboeffect_get_buffer_size(AudioEffect.context_memory));
 				}
 			}
+			AudioCore.AudioSink[j].MuteFlagbk = mute;
 			continue;
 		}
 
@@ -482,7 +459,7 @@ void AudioCoreSinkMuteApply(void)
 				for(i=0; i < SINKFRAME(j); i++)
 				{
 					PcmOutBuf[2 * i + 0] = __nds32__clips((((int32_t)PcmOutBuf[2 * i + 0]) * LeftVol + 2048) >> 12, (16)-1);
-					PcmOutBuf[2 * i + 1] = __nds32__clips((((int32_t)PcmOutBuf[2 * i + 1]) * LeftVol + 2048) >> 12, (16)-1);
+					PcmOutBuf[2 * i + 1] = __nds32__clips((((int32_t)PcmOutBuf[2 * i + 1]) * RightVol + 2048) >> 12, (16)-1);
 
 					MixerFadeVolume(LeftVol, TargetVol, LeftVolStep);
 					MixerFadeVolume(RightVol, TargetVol, RightVolStep);

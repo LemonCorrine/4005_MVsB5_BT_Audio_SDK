@@ -15,6 +15,7 @@
 #include "reverb.h"
 #include "reverb_plate.h"
 #include "reverb_pro.h"
+#include "effects_param.h"
 
 #define AUDIOCORE_SOURCE_SINK_ERROR 0xFF
 
@@ -34,6 +35,7 @@ typedef enum _AUDIOEFFECT_EFFECT_CONTROL
 	MIC_SILENCE_DETECTOR_PARAM,
 	MUSIC_SILENCE_DETECTOR_PARAM,
 	_3D_ENABLE,
+	APPMODE_PREGAIN,
 	AUDIOEFFECT_EFFECT_CONTROL_MAX
 }AUDIOEFFECT_EFFECT_CONTROL;
 
@@ -74,37 +76,6 @@ typedef struct _AUDIOEFFECT_SOURCE_SINK_NUM
 												.rec_sink = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.i2s_mix_sink = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.spdif_sink = AUDIOCORE_SOURCE_SINK_ERROR
-
-/**
- * @brief Echo unit
- */
-typedef struct __EchoUnit
-{
-	int16_t		fc;
-	int16_t		attenuation;
-	int16_t		delay;
-	int16_t		max_delay;
-	int16_t		quality_mode;//0,1=normal echo, 0,2=24bit echo
-	int16_t		dry;
-	int16_t		wet;
-} EchoUnit;
-
-/**
- * @brief SilenceDetector unit
- */
-typedef struct __SilenceDetectorUnit
-{
-	uint16_t	level;
-} SilenceDetectorUnit;
-
-/**
- * @brief GainControl unit
- */
-typedef struct __GainControlUnit
-{
-	uint16_t	mute;
-	uint16_t	gain;
-} GainControlUnit;
 
 /**
  * @brief  Get some default parameters

@@ -41,7 +41,8 @@ uint8_t AudioMusicVolSync(void)
 	if(vol > CFG_PARA_MAX_VOLUME_NUM)
 		vol = CFG_PARA_MAX_VOLUME_NUM;
 
-	roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 1, (int16_t *)&VolumeTable[vol]);
+	if(refresh_addr != 0)
+		roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 1, (int16_t *)&VolumeTable[vol]);
 
 	return refresh_addr;
 }
@@ -54,7 +55,8 @@ uint8_t AudioMicVolSync(void)
 	if(vol > CFG_PARA_MAX_VOLUME_NUM)
 		vol = CFG_PARA_MAX_VOLUME_NUM;
 
-	roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 1, (int16_t *)&VolumeTable[vol]);
+	if(refresh_addr != 0)
+		roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 1, (int16_t *)&VolumeTable[vol]);
 
 	return refresh_addr;
 }

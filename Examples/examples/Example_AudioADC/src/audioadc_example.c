@@ -81,6 +81,13 @@ static void AudioMicExample(void)
     ct.PVDDModel = PVDD33;
     ct.DACEnergyModel = DACCommonEnergy;
     ct.DACVcomModel = Disable;
+	
+	GPIO_PortBModeSet(GPIOB7,0);
+	GPIO_PortBModeSet(GPIOB8,0);
+	GPIO_RegBitsClear(GPIO_B_IE,GPIOB7);
+	GPIO_RegBitsClear(GPIO_B_OE,GPIOB7);
+	GPIO_RegBitsClear(GPIO_B_IE,GPIOB8);
+	GPIO_RegBitsClear(GPIO_B_OE,GPIOB8);
 
     //PGAGain设置为22是按照BP1564全功能demo板为平台来设置的(BP1564全功能demo板MIC端有放大器，放大20dB)。如果使用其他没有放大器的平台可以调大MIC PGAGain
     AudioADC_AnaInit(ADC1_MODULE, CHANNEL_LEFT, MIC_LEFT, Diff, ADCCommonEnergy, 22);  
@@ -120,6 +127,13 @@ static void AudioLineIn1Example()
     ct.PVDDModel = PVDD33;
     ct.DACEnergyModel = DACCommonEnergy;
     ct.DACVcomModel = Disable;
+
+	GPIO_PortBModeSet(GPIOB2,0);
+	GPIO_PortBModeSet(GPIOB3,0);
+	GPIO_RegBitsClear(GPIO_B_IE,GPIOB2);
+	GPIO_RegBitsClear(GPIO_B_OE,GPIOB2);
+	GPIO_RegBitsClear(GPIO_B_IE,GPIOB3);
+	GPIO_RegBitsClear(GPIO_B_OE,GPIOB3);
 
     AudioADC_AnaInit(ADC0_MODULE, CHANNEL_LEFT, LINEIN1_LEFT, Single, ADCCommonEnergy, 17);
     AudioADC_AnaInit(ADC0_MODULE, CHANNEL_RIGHT, LINEIN1_RIGHT, Single, ADCCommonEnergy, 17);

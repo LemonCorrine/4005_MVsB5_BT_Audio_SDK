@@ -51,6 +51,7 @@ typedef struct __I2SParamCt
 void 	 AudioI2S_Init(I2S_MODULE Module, I2SParamCt *ct);
 void 	 AudioI2S_DeInit(I2S_MODULE Module);
 uint8_t  AudioI2S_MasterModeGet(I2S_MODULE Module);
+I2S_DATA_LENGTH AudioI2S_WordLengthGet(I2S_MODULE Module);
 uint16_t AudioI2S_DataLenGet(I2S_MODULE Module);
 uint16_t AudioI2S_DataGet(I2S_MODULE Module, void* Buf, uint16_t Len);
 uint16_t AudioI2S_DataSpaceLenGet(I2S_MODULE Module);

@@ -41,7 +41,8 @@
 #include "pmu.h"
 
 #include "bt_em_config.h"
-
+#include "audio_adc.h"
+#include "adc.h"
 //-----------------globle timer----------------------//
 volatile uint32_t gInsertEventDelayActTimer = 2000; // ms
 volatile uint32_t gChangeModeTimeOutTimer = CHANGE_MODE_TIMEOUT_COUNT;
@@ -164,7 +165,9 @@ void SystemClockInit(bool FristPoweron)
 	Clock_Module1Enable(ALL_MODULE1_CLK_SWITCH);
 	Clock_Module2Enable(ALL_MODULE2_CLK_SWITCH);
 	Clock_Module3Enable(ALL_MODULE3_CLK_SWITCH);
-
+#ifdef USB_CRYSTA_FREE_EN
+	Clock_USBClkDivSet((SYS_CORE_DPLL_FREQ/1000)/48);
+#endif
 #ifndef USB_CRYSTA_FREE_EN
 	if(FristPoweron)
 		Clock_HOSCCurrentSet(5);
@@ -209,14 +212,100 @@ void LogUartConfig(bool InitBandRate)
 #endif
 }
 
+/*For deepsleep power save*/
+void closeADC()
+{
+    // disable HPF
+    AudioADC_HighPassFilterSet(ADC0_MODULE, FALSE); // SREG_ASDM0_CTRL.ASDM0_HPF_EN = 0;
+    AudioADC_HighPassFilterSet(ADC1_MODULE, FALSE); // SREG_ASDM1_CTRL.ASDM1_HPF_EN = 0;
+
+    // disable aux channel
+    AudioADC_LREnable(ADC0_MODULE, FALSE, FALSE);
+    AudioADC_PGASel(ADC0_MODULE, CHANNEL_LEFT, LINEIN_NONE);
+    AudioADC_PGASel(ADC0_MODULE, CHANNEL_RIGHT, LINEIN_NONE);
+
+    // disbale mic channel
+    AudioADC_LREnable(ADC1_MODULE, FALSE, FALSE);
+
+    // disable sarADC
+    ADC_Disable();
+}
+
+/**
+ * @brief  DeepSleep时IO临时配置成普通IO功能，并做下拉，尽可能的减少IO漏电
+ * @param  void
+ * @return void
+ * @note   具体根据实际IO外设使用情况来决定是否配置下拉IO来避免漏电
+ */
+void DeepSleepIOConfig()
+{
+    GPIO_PortAModeSet(GPIOA0, 0x0000);
+    GPIO_PortAModeSet(GPIOA1, 0x0000);
+    GPIO_PortAModeSet(GPIOA2, 0x0000);
+    GPIO_PortAModeSet(GPIOA3, 0x0000);
+    GPIO_PortAModeSet(GPIOA4, 0x0000);
+    GPIO_PortAModeSet(GPIOA5, 0x0000);
+    GPIO_PortAModeSet(GPIOA6, 0x0000);
+    GPIO_PortAModeSet(GPIOA7, 0x0000);
+    GPIO_PortAModeSet(GPIOA9, 0x0000);
+    GPIO_PortAModeSet(GPIOA10, 0x0000);
+    GPIO_PortAModeSet(GPIOA15, 0x0000);
+    GPIO_PortAModeSet(GPIOA16, 0x0000);
+    GPIO_PortAModeSet(GPIOA17, 0x0000);
+    GPIO_PortAModeSet(GPIOA18, 0x0000);
+    GPIO_PortAModeSet(GPIOA19, 0x0000);
+    GPIO_PortAModeSet(GPIOA20, 0x0000);
+    GPIO_PortAModeSet(GPIOA21, 0x0000);
+    GPIO_PortAModeSet(GPIOA22, 0x0000);
+    GPIO_PortAModeSet(GPIOA23, 0x0000);
+    GPIO_PortAModeSet(GPIOA24, 0x0000);
+    //    GPIO_PortAModeSet(GPIOA25, 0x0000); //default 1:fshc_wp(io) for flash ctrl
+    //    GPIO_PortAModeSet(GPIOA26, 0x0000); //default 1:fshc_hold(io) for flash ctrl
+    GPIO_PortAModeSet(GPIOA28, 0x0000);
+    GPIO_PortAModeSet(GPIOA29, 0x0000);
+    GPIO_PortAModeSet(GPIOA30, 0x0000);
+    GPIO_PortAModeSet(GPIOA31, 0x0000);
+
+    //    GPIO_PortBModeSet(GPIOB0, 0x000); // B0、B1一般复用为SW下载调试口
+    //    GPIO_PortBModeSet(GPIOB1, 0x000);
+    GPIO_PortBModeSet(GPIOB2, 0x000);
+    GPIO_PortBModeSet(GPIOB3, 0x000);
+    GPIO_PortBModeSet(GPIOB4, 0x000);
+    GPIO_PortBModeSet(GPIOB5, 0x000);
+    GPIO_PortBModeSet(GPIOB6, 0x000);
+    GPIO_PortBModeSet(GPIOB7, 0x000);
+    GPIO_PortBModeSet(GPIOB8, 0x000);
+    GPIO_PortBModeSet(GPIOB9, 0x000);
+
+    GPIO_RegSet(GPIO_A_IE, 0x00000000);
+    GPIO_RegSet(GPIO_A_OE, 0x00000000);
+    GPIO_RegSet(GPIO_A_OUTDS0, 0x00000000);
+    GPIO_RegSet(GPIO_A_OUTDS1, 0x00000000);
+    GPIO_RegSet(GPIO_A_PD, 0x3fffffff); //开发板上A30,A31硬件上做ADC-key,不配置下拉,否则会漏电
+    GPIO_RegSet(GPIO_A_PU, 0x00000000); 
+    GPIO_RegSet(GPIO_A_ANA_EN, 0x00000000);
+    GPIO_RegSet(GPIO_A_PULLDOWN0, 0x00000000);
+    GPIO_RegSet(GPIO_A_PULLDOWN1, 0x00000000);
+
+    GPIO_RegSet(GPIO_B_IE, 0x000);
+    GPIO_RegSet(GPIO_B_OE, 0x000);
+    GPIO_RegSet(GPIO_B_OUTDS, 0x000);
+    GPIO_RegSet(GPIO_B_PD, 0x1DF); // B5,B9可能作为外部32K晶振IO，不配置下拉，保持默认值
+    GPIO_RegSet(GPIO_B_PU, 0x00); 
+    GPIO_RegSet(GPIO_B_ANA_EN, 0x000);
+    GPIO_RegSet(GPIO_B_PULLDOWN0, 0x000);
+}
+
 #ifdef CFG_IDLE_MODE_DEEP_SLEEP
 extern void FshcClkSwitch(FSHC_CLK_MODE ClkSrc, uint32_t flash_clk);
 void SleepMain(void)
 {
 	WDG_Feed();
+    closeADC(); // 关闭ADC，降低功耗
+//    DeepSleepIOConfig();
 
 #ifdef CHIP_USE_DCDC
-	ldo_switch_to_dcdc(3); // 3-1.6V Default:1.6V
+    ldo_switch_to_dcdc(6); // DCDC 1.3V,降低功耗
 #else
 	Power_LDO16Config(0);
 #endif
@@ -233,13 +322,15 @@ void SleepMain(void)
 	Clock_HOSCDisable();//若有RTC应用并且RTC所用时钟是HOSC，则不关闭HOSC，即24M晶振
 #endif
 //	Clock_LOSCDisable(); //若有RTC应用并且RTC所用时钟是LOSC，则不关闭LOSC，即32K晶振
+    Power_LDO11DConfig(PWD_LDO11_LVL_0V95); // 降低到0.95V
 }
 
 void WakeupMain(void)
 {
 	WDG_Feed();
-
-	Chip_Init(1);
+    Power_LDO11DConfig(PWD_LDO11_LVL_1V10); // 升回1.1V
+    
+    Chip_Init(1);
 	SystemClockInit(TRUE);
 	LogUartConfig(TRUE);//调整时钟后，重配串口前不要打印。
 

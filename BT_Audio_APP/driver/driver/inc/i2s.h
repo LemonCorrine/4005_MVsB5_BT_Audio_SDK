@@ -292,6 +292,33 @@ bool I2S_SampleRateCheckInterruptGet(I2S_MODULE I2SModuleIndex);
  * @return I2S_ERROR_CODE
  */
 I2S_ERROR_CODE I2S_SampleRateCheckInterruptClr(I2S_MODULE I2SModuleIndex);
+/**
+ * @brief  使能I2S模块在Slave模式下lrclk毛刺实时检测中断
+ * @param  I2SModuleIndex : I2S_MODULE
+ * @return I2S_ERROR_CODE
+ */
+I2S_ERROR_CODE I2S_LRCKExceptionInterruptEnable(I2S_MODULE I2SModuleIndex);
+
+/**
+ * @brief  禁能I2S模块在Slave模式下lrclk毛刺实时检测中断
+ * @param  I2SModuleIndex : I2S_MODULE
+ * @return I2S_ERROR_CODE
+ */
+I2S_ERROR_CODE I2S_LRCKExceptionInterruptDisable(I2S_MODULE I2SModuleIndex);
+
+/**
+ * @brief  获取I2S lrclk毛刺实时检测中断标志
+ * @param  I2SModuleIndex I2S_MODULE
+ * @return 中断标志，1:检测完成 0:无效
+ */
+bool I2S_LRCKExceptionInterruptGet(I2S_MODULE I2SModuleIndex);
+
+/**
+ * @brief  清除I2S lrclk毛刺实时检测中断标志
+ * @param  I2SModuleIndex I2S_MODULE
+ * @return I2S_ERROR_CODE
+ */
+I2S_ERROR_CODE I2S_LRCKExceptionInterruptClr(I2S_MODULE I2SModuleIndex);
 
 /****************************************************************************/
 /*                       静音，淡入/淡出效果设置相关函数                     */

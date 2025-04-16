@@ -54,6 +54,12 @@ extern const AUDIOEFFECT_EFFECT_PARA hfp_effect_para;
 extern const AUDIOEFFECT_SOURCE_SINK_NUM hfp_mode;
 extern const uint8_t hfp_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX];
 
+#ifndef CFG_FLOWCHART_KARAOKE_ENABLE
+uint8_t msg_process_karaoke(int msg)
+{
+	return 0;
+}
+#endif
 
 //音效模式按键切换配置表，顺序切换
 //包含音效参数节点，MSG消息处理

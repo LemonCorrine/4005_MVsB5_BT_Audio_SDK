@@ -119,6 +119,13 @@ static void AudioMicExample(void)
     ct.PVDDModel = PVDD33;
     ct.DACEnergyModel = DACCommonEnergy;
     ct.DACVcomModel = Disable;
+	
+	GPIO_PortBModeSet(GPIOB7,0);
+	GPIO_PortBModeSet(GPIOB8,0);
+	GPIO_RegBitsClear(GPIO_B_IE,GPIOB7);
+	GPIO_RegBitsClear(GPIO_B_OE,GPIOB7);
+	GPIO_RegBitsClear(GPIO_B_IE,GPIOB8);
+	GPIO_RegBitsClear(GPIO_B_OE,GPIOB8);
 
     AudioADC_AnaInit(ADC1_MODULE, CHANNEL_LEFT, MIC_LEFT, Single, ADCCommonEnergy, 04);
     AudioADC_DigitalInit(ADC1_MODULE, SampleRate, ADCBitWidth, (void *)AudioADC1Buf, sizeof(AudioADC1Buf));
@@ -213,6 +220,13 @@ static void AudioLineIn1Example()
     ct.DACEnergyModel = DACCommonEnergy;
     ct.DACVcomModel = Disable;
 
+	GPIO_PortBModeSet(GPIOB2,0);
+	GPIO_PortBModeSet(GPIOB3,0);
+	GPIO_RegBitsClear(GPIO_B_IE,GPIOB2);
+	GPIO_RegBitsClear(GPIO_B_OE,GPIOB2);
+	GPIO_RegBitsClear(GPIO_B_IE,GPIOB3);
+	GPIO_RegBitsClear(GPIO_B_OE,GPIOB3);
+
     AudioADC_AnaInit(ADC0_MODULE, CHANNEL_LEFT, LINEIN1_LEFT, Single, ADCCommonEnergy, 17);
     AudioADC_AnaInit(ADC0_MODULE, CHANNEL_RIGHT, LINEIN1_RIGHT, Single, ADCCommonEnergy, 17);
     AudioADC_DigitalInit(ADC0_MODULE, SampleRate, ADCBitWidth, (void *)AudioADC2Buf, sizeof(AudioADC2Buf));
@@ -250,6 +264,13 @@ static void AudioLineIn2Example()
     ct.PVDDModel = PVDD33;
     ct.DACEnergyModel = DACCommonEnergy;
     ct.DACVcomModel = Disable;
+	
+	GPIO_PortBModeSet(GPIOB0,0);
+	GPIO_PortBModeSet(GPIOB1,0);
+	GPIO_RegBitsClear(GPIO_B_IE,GPIOB0);
+	GPIO_RegBitsClear(GPIO_B_OE,GPIOB0);
+	GPIO_RegBitsClear(GPIO_B_IE,GPIOB1);
+	GPIO_RegBitsClear(GPIO_B_OE,GPIOB1);
 
     AudioADC_AnaInit(ADC0_MODULE, CHANNEL_LEFT, LINEIN2_LEFT, Single, ADCCommonEnergy, 17);
     AudioADC_AnaInit(ADC0_MODULE, CHANNEL_RIGHT, LINEIN2_RIGHT, Single, ADCCommonEnergy, 17);

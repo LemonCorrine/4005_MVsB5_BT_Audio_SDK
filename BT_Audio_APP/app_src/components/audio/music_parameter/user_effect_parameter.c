@@ -30,15 +30,15 @@ int16_t * AudioEffectGetAllParameter(AUDIOEFFECT_EFFECT_CONTROL effect)
 void AudioEffect_GetAudioEffectValue(void)
 {
 #ifdef CFG_FUNC_MIC_KARAOKE_EN
-	EchoUnit *Echoparam = (EchoUnit *)AudioEffectGetAllParameter(ECHO_PARAM);
+	param_echo *Echoparam = (param_echo *)AudioEffectGetAllParameter(ECHO_PARAM);
 	if(Echoparam)
 	{
-		APP_DBG("echo fc:0x%x\n", Echoparam->fc);
+		APP_DBG("echo fc:0x%x\n", Echoparam->cutoff_frequency);
 		APP_DBG("echo delay:0x%x\n", Echoparam->delay);
 		APP_DBG("echo dry:0x%x\n", Echoparam->dry);
 		APP_DBG("echo attenuation:0x%x\n", Echoparam->attenuation);
 		APP_DBG("echo max_delay:0x%x\n", Echoparam->max_delay);
-		APP_DBG("echo quality_mode:0x%x\n", Echoparam->quality_mode);
+		APP_DBG("echo quality_mode:0x%x\n", Echoparam->high_quality_enable);
 		APP_DBG("echo wet:0x%x\n", Echoparam->wet);
 	}
 #endif

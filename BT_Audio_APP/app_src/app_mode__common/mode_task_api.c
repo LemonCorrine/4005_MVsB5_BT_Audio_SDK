@@ -409,6 +409,7 @@ bool AudioEffectInit()
 
 			////Audio Core & Audioeffect“Ù¡ø≈‰÷√
 			SystemVolSet();
+			AudioAPPDigitalGianProcess(mainAppCt.SysCurrentMode);
 		}
 	}
 

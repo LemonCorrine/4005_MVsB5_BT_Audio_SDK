@@ -56,6 +56,10 @@ typedef enum _FileType
 	FILE_TYPE_WMA,
 	FILE_TYPE_SBC,
 	FILE_TYPE_MSBC,
+	FILE_TYPE_MVB,
+	FILE_TYPE_MVC,
+	FILE_TYPE_MVD,
+	FILE_TYPE_MVF,
 } FileType;
 
 typedef enum _EntryType

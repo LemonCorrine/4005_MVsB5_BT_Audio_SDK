@@ -1,12 +1,12 @@
 /***************************************************
  * @file    user_effect_flow_bypass.c                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.9.1                  
- * @version V1.1.0                                 
+ * @author  ACPWorkbench: 3.10.6                  
+ * @version V1.2.0                                 
  * @graphics: bypass   
- * @Effect Version: 2.38.0
- * @RoboEffect Version: 2.16.1
- * @Created 2024-03-01T14:47:32                                      
+ * @Effect Version: 2.43.2
+ * @RoboEffect Version: 2.23.3
+ * @Created 2024-08-09T14:21:22                                      
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
 
@@ -97,10 +97,9 @@ char *parameter_group_name_bypass[1] = { "Bypass" };
 
 const unsigned char user_effect_parameters_bypass_Bypass[] = {
 0x1e, 0x00, /*total data length*/
+0x02, 0x2b, 0x02, /*Effect Version*/
 
-0x02, 0x2a, 0x00, /*Effect Version*/
-
-0x02, 0x16, 0x00, /* Roboeffect Version*/
+0x02, 0x17, 0x03, /* Roboeffect Version*/
 
 0x01, 0x00, /*3rd part data total length  */
 0x00, /*number of 3rd part items*/
@@ -125,7 +124,7 @@ const unsigned char user_effect_parameters_bypass_Bypass[] = {
 };
 
 const unsigned char user_module_parameters_bypass_Bypass[] = {
-0x03, /*ADC0 PGA CONTROL*/
+0x03, /*ADC0_PGA_CONTROL*/
 0x0c, /*length*/
 0x00, 0x00, /*pga_aux_left_show*/
 0x00, 0x00, /*pga_aux_right_show*/
@@ -134,7 +133,7 @@ const unsigned char user_module_parameters_bypass_Bypass[] = {
 0x0e, 0x00, /*pga_aux_left_gain*/
 0x0e, 0x00, /*pga_aux_right_gain*/
 
-0x04, /*ADC0 DIGITAL CONTROL*/
+0x04, /*ADC0_DIGITAL_CONTROL*/
 0x14, /*length*/
 0x03, 0x00, /*enable*/
 0x00, 0x00, /*mute*/
@@ -147,17 +146,17 @@ const unsigned char user_module_parameters_bypass_Bypass[] = {
 0x00, 0x00, /*mclk_source*/
 0x01, 0x00, /*dc_blocker*/
 
-0x05, /*ADC0 AGC CONTROL*/
+0x05, /*ADC0_AGC_CONTROL*/
 0x00, /*length*/
 
-0x06, /*ADC1 PGA CONTROL*/
+0x06, /*ADC1_PGA_CONTROL*/
 0x08, /*length*/
 0x00, 0x00, /*pga_mic_show*/
 0x00, 0x00, /*pga_mic_mode*/
 0x01, 0x00, /*pga_mic_enable*/
 0x09, 0x00, /*pga_mic_gain*/
 
-0x07, /*ADC1 DIGITAL CONTROL*/
+0x07, /*ADC1_DIGITAL_CONTROL*/
 0x14, /*length*/
 0x03, 0x00, /*enable*/
 0x00, 0x00, /*mute*/
@@ -170,7 +169,7 @@ const unsigned char user_module_parameters_bypass_Bypass[] = {
 0x00, 0x00, /*mclk_source*/
 0x01, 0x00, /*dc_blocker*/
 
-0x08, /*ADC1 AGC CONTROL*/
+0x08, /*ADC1_AGC_CONTROL*/
 0x1c, /*length*/
 0x00, 0x00, /*mode*/
 0x00, 0x00, /*max_level*/
@@ -187,7 +186,7 @@ const unsigned char user_module_parameters_bypass_Bypass[] = {
 0x00, 0x00, /*noise_gate_mode*/
 0x00, 0x00, /*noise_gate_hold_time*/
 
-0x09, /*DAC0 CONTROL*/
+0x09, /*DAC0_CONTROL*/
 0x1c, /*length*/
 0x03, 0x00, /*enable*/
 0x07, 0x00, /*sample_rate*/
@@ -204,10 +203,10 @@ const unsigned char user_module_parameters_bypass_Bypass[] = {
 0x00, 0x00, /*zero_num*/
 0x00, 0x00, /*mclk_source*/
 
-0x0a, /*DAC1 CONTROL*/
+0x0a, /*DAC1_CONTROL*/
 0x00, /*length*/
 
-0x0b, /*I2S0 CONTROL*/
+0x0b, /*I2S0_CONTROL*/
 0x16, /*length*/
 0x00, 0x00, /*tx_enable*/
 0x00, 0x00, /*rx_enable*/
@@ -221,7 +220,7 @@ const unsigned char user_module_parameters_bypass_Bypass[] = {
 0x00, 0x00, /*bclk_invert*/
 0x00, 0x00, /*lrclk_invert*/
 
-0x0c, /*I2S1 CONTROL*/
+0x0c, /*I2S1_CONTROL*/
 0x16, /*length*/
 0x00, 0x00, /*tx_enable*/
 0x00, 0x00, /*rx_enable*/
@@ -235,7 +234,7 @@ const unsigned char user_module_parameters_bypass_Bypass[] = {
 0x00, 0x00, /*bclk_invert*/
 0x00, 0x00, /*lrclk_invert*/
 
-0x0d, /*SPDIF CONTROL*/
+0x0d, /*SPDIF_CONTROL*/
 0x14, /*length*/
 0x00, 0x00, /*enable*/
 0x00, 0x00, /*sample_rate*/

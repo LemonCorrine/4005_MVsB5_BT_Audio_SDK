@@ -607,6 +607,7 @@ bool BtHfInit(void)
 
 	SetBtHfSyncVolume(mainAppCt.HfVolume);
 	AudioHfVolSet(mainAppCt.HfVolume);
+	gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
 	
 	BtHfModeRunningConfig();
 #ifdef CFG_FUNC_REMIND_SOUND_EN

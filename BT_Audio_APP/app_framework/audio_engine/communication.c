@@ -1362,9 +1362,11 @@ void Communication_Effect_0xfb(uint8_t *buf, uint32_t len)
 		if(t_size < 0) break;//not enough nodes to get
 		*ptr_size = t_size;
 		ptr_size++;
+		*ptr_size = roboeffect_recommend_frame_size_upon_effect_change(AudioEffect.context_memory, AudioEffect.audioeffect_frame_size, addr[i], 1);
+		ptr_size++;
 		out_num++;
 	}
-	tx_buf[3] = 1 + out_num * 4;
+	tx_buf[3] = 1 + out_num * 4 * 2;
 	tx_buf[4] = out_num;
 	tx_buf[tx_buf[3] + 4] = 0x16;
 

@@ -46,7 +46,7 @@ typedef struct _BT_STACK_MEM_ALLOC_
 	uint8_t	BtHfpMem[5800];
 #endif
 
-#if (BT_SPP_SUPPORT ||(defined(CFG_FUNC_BT_OTA_EN)))
+#if (BT_SPP_SUPPORT)
 	uint8_t	BtSppMem[700];
 #endif
 

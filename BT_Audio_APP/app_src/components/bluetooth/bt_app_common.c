@@ -404,7 +404,7 @@ uint32_t GetSupportProfiles(void)
 	profiles |= BT_PROFILE_SUPPORTED_AVRCP;
 #endif
 
-#if (BT_SPP_SUPPORT ||(defined(CFG_FUNC_BT_OTA_EN)))
+#if (BT_SPP_SUPPORT)
 	profiles |= BT_PROFILE_SUPPORTED_SPP;
 #endif
 	

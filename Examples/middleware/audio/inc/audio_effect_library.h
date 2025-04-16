@@ -43,6 +43,7 @@
 #include "howling_guard.h"
 #include "howling_suppressor.h"
 #include "howling_suppressor_fine.h"
+#include "howling_suppressor_specified.h"
 #include "low_level_compressor.h"
 #include "lr_balancer.h"
 #include "mixer.h"
@@ -86,7 +87,7 @@
 #include "beamforming.h"
 
 // audio effect library version
-#define AUDIO_EFFECT_LIBRARY_VERSION "2.42.0"
+#define AUDIO_EFFECT_LIBRARY_VERSION "2.43.2"
 
 // audio effect versions (Info below is for convenience only. In case of any contradiction, the version info in the respective file header shall prevail.)
 #define EFFECT_VERSION_ADPCM_CODEC                  "2.0.1"
@@ -94,7 +95,7 @@
 #define EFFECT_VERSION_AUTO_WAH                     "1.2.0"
 #define EFFECT_VERSION_BEAT_TRACKER                 "1.1.1"
 #define EFFECT_VERSION_BLUE_AEC                     "6.6.1"
-#define EFFECT_VERSION_BLUE_NS                      "2.1.1"
+#define EFFECT_VERSION_BLUE_NS                      "2.1.2"
 #define EFFECT_VERSION_BLUE_NS_DUAL                 "1.4.1"
 #define EFFECT_VERSION_CHORUS                       "1.2.1"
 #define EFFECT_VERSION_CHORUS2                      "2.1.0"
@@ -117,7 +118,8 @@
 #define EFFECT_VERSION_FREQUENCY_SHIFTER_FINE       "2.1.0"
 #define EFFECT_VERSION_HOWLING_GUARD                "1.1.0"
 #define EFFECT_VERSION_HOWLING_SUPPRESSOR           "2.0.1"
-#define EFFECT_VERSION_HOWLING_SUPPRESSOR_FINE      "3.1.0"
+#define EFFECT_VERSION_HOWLING_SUPPRESSOR_FINE      "3.1.2"
+#define EFFECT_VERSION_HOWLING_SUPPRESSOR_SPECIFIED "4.1.1"
 #define EFFECT_VERSION_LOW_LEVEL_COMPRESSOR         "1.0.0"
 #define EFFECT_VERSION_LR_BALANCER                  "1.0.0"
 #define EFFECT_VERSION_MIXER                        "1.0.0"

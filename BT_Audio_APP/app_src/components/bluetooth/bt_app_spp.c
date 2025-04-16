@@ -26,11 +26,7 @@
 #include "bt_spp_api.h"
 #include "mode_task.h"
 
-#if (BT_SPP_SUPPORT ||(defined(CFG_FUNC_BT_OTA_EN)))
-#ifdef CFG_FUNC_BT_OTA_EN
-extern const char cmd_chip_reset[];
-extern const char cmd_chip_spp_link[];
-#endif
+#if (BT_SPP_SUPPORT)
 void BtSppCallback(BT_SPP_CALLBACK_EVENT event, BT_SPP_CALLBACK_PARAMS * param)
 {
 	//DBG("boot_BtSppCallback %x\n",event);
@@ -38,9 +34,6 @@ void BtSppCallback(BT_SPP_CALLBACK_EVENT event, BT_SPP_CALLBACK_PARAMS * param)
 	{
 		case BT_STACK_EVENT_SPP_CONNECTED:
 			DBG("SPP EVENT:connected\n");
-#ifdef CFG_FUNC_BT_OTA_EN
-			SppSendData((uint8_t *)cmd_chip_spp_link,8);
-#endif
 			break;
 		
 		case BT_STACK_EVENT_SPP_DISCONNECTED:
@@ -48,19 +41,6 @@ void BtSppCallback(BT_SPP_CALLBACK_EVENT event, BT_SPP_CALLBACK_PARAMS * param)
 			break;
 		
 		case BT_STACK_EVENT_SPP_DATA_RECEIVED:
-#ifdef CFG_FUNC_BT_OTA_EN
-			//DBG("SPP EVENT:receive len:%d\n", param->paramsLen);
-			if(!SoftFlagGet(SoftFlagBtOtaUpgradeOK))
-			{
-				if(memcmp(param->params.sppReceivedData,cmd_chip_reset,10) == 0)
-				{
-					MessageContext		msgSend;
-
-					msgSend.msgId = MSG_BT_START_OTA;
-					MessageSend(GetMainMessageHandle(), &msgSend);
-				}
-			}
-#endif
 			{
 			#if 0
 				uint16_t i;
