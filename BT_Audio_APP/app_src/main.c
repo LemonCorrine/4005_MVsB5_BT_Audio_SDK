@@ -176,6 +176,11 @@ void SystemClockInit(bool FristPoweron)
 	Clock_PllClose();
 #endif
 
+#if (SYS_CORE_APLL_FREQ >= (288*1000)) || (SYS_CORE_DPLL_FREQ >= (288*1000))
+	//≥¨∆µ–Ë“™≈‰÷√LDO11
+	Power_LDO11DConfig(PWD_LDO11_LVL_1V15);
+#endif
+
 #ifdef CHIP_USE_DCDC
 	ldo_switch_to_dcdc(3); // 3-1.6V Default:1.6V
 #else

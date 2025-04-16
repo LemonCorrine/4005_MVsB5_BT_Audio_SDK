@@ -23,6 +23,7 @@
 #include "sys_param.h"
 #include "rtos_api.h"
 #include "app_message.h"
+#include "flash_param.h"
 
 #ifdef CFG_FUNC_OPEN_SLOW_DEVICE_TASK
 extern void SlowDevice_MsgSend(uint16_t msgId);
@@ -646,26 +647,30 @@ int32_t BtDeviceSaveNameToFlash(char* deviceName, uint8_t deviceLen,uint8_t name
 
 	if(addr > 0)
 	{
-		//2.erase
-		SpiFlashErase(SECTOR_ERASE, (addr/4096), 1);
+		extern void sys_parameter_update(SYS_PARAMETER_ID id,void *dest_para,uint8_t lenght);
 
-		/*if(name_type == 1)
+		if(name_type == 1)
 		{
-			if(deviceLen > BLE_NAME_SIZE)
-				deviceLen = BLE_NAME_SIZE;		
-			memset(sys_parameter.ble_LocalDeviceName,0,BLE_NAME_SIZE);
-			memcpy(sys_parameter.ble_LocalDeviceName,deviceName,deviceLen);
+			if(sys_parameter.ble_LocalDeviceName != deviceName)
+			{
+				if(deviceLen > BLE_NAME_SIZE)
+					deviceLen = BLE_NAME_SIZE;
+				memset(sys_parameter.ble_LocalDeviceName,0,BLE_NAME_SIZE);
+				memcpy(sys_parameter.ble_LocalDeviceName,deviceName,deviceLen);
+			}
+			sys_parameter_update(BT_PARA_BLE_NAME_ID,sys_parameter.ble_LocalDeviceName,BLE_NAME_SIZE);
 		}
 		else
 		{
-			if(deviceLen > BT_NAME_SIZE)
-				deviceLen = BT_NAME_SIZE;		
-			memset(sys_parameter.bt_LocalDeviceName,0,BT_NAME_SIZE);
-			memcpy(sys_parameter.bt_LocalDeviceName,deviceName,deviceLen);
-		}*/				
-
-		//3.write params
-		SpiFlashWrite(addr, (uint8_t*)&sys_parameter, sizeof(SYS_PARAMETER), 1);
+			if(sys_parameter.bt_LocalDeviceName != deviceName)
+			{
+				if(deviceLen > BT_NAME_SIZE)
+					deviceLen = BT_NAME_SIZE;
+				memset(sys_parameter.bt_LocalDeviceName,0,BT_NAME_SIZE);
+				memcpy(sys_parameter.bt_LocalDeviceName,deviceName,deviceLen);
+			}
+			sys_parameter_update(BT_PARA_BT_NAME_ID,sys_parameter.bt_LocalDeviceName,BT_NAME_SIZE);
+		}
 
 		return 0;
 	}

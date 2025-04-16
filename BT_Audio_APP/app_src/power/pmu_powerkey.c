@@ -97,7 +97,7 @@ void SystemPowerKeyIdleModeInit(void)
 
 		while(cnt--)
 		{
-			printf("%d",PMU_PowerKeyPinStateGet());
+			APP_DBG("%d",PMU_PowerKeyPinStateGet());
 			if(PMU_PowerKeyPinStateGet())
 			{
 				SystemPowerDown();

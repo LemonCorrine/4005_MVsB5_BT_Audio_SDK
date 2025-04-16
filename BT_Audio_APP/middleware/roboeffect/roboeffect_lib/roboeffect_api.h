@@ -13,7 +13,7 @@
 #define __ROBOEFFECT_API_H__
 
 /*Roboeffect Library version*/
-#define ROBOEFFECT_LIB_VER "2.17.10"
+#define ROBOEFFECT_LIB_VER "2.22.1"
 
 #include <stdio.h>
 #include <nds32_intrinsic.h>
@@ -28,7 +28,6 @@
 
 #define ROBOEFFECT_IO_TYPE_SRC 1
 #define ROBOEFFECT_IO_TYPE_DES 2
-#define IO_UNIT_MAX 8
 
 
 
@@ -37,6 +36,18 @@
 #define ROBOEFFECT_CH_MONO_STEREO   3
 
 #define ALIGN4(x) (((x) + 3) & ~3)
+
+#define IO_UNIT_ID(ptr) ((ptr)->io_id)
+#define IO_UNIT_MEM_ID(ptr) ((ptr)->mem_id)
+#define IO_UNIT_WIDTH(ptr) ((ptr)->width)
+#define IO_UNIT_CH(ptr) ((ptr)->ch)
+#define IO_UNIT_NAME(ptr) ((ptr)->name)
+#define IO_UNIT_VALID(ptr) \
+		((ptr)->width == BITS_16 || (ptr)->width == BITS_24 || (ptr)->width == BITS_32 ? TRUE : FALSE)
+#define IO_UNIT_WIDTH_BYTES(ptr) \
+    (((ptr)->width == BITS_16) ? 1 : (((ptr)->width == BITS_24) ? 2 : -1))
+
+
 
 typedef enum _roboeffect_effect_type_enum
 {
@@ -97,7 +108,10 @@ typedef enum _roboeffect_effect_type_enum
 	ROBOEFFECT_NOISE_GENERATOR,
 	ROBOEFFECT_NOISE_SUPPRESSOR_BLUE_DUAL,
 	ROBOEFFECT_PHASE_INVERTER,
-
+	ROBOEFFECT_FILTER_BUTTERWORTH,
+	ROBOEFFECT_DYNAMIC_EQ,
+	ROBOEFFECT_VAD,
+	ROBOEFFECT_LR_BALANCER,
 
 	/*node type below*/
 	ROBOEFFECT_FADER,//
@@ -110,7 +124,7 @@ typedef enum _roboeffect_effect_type_enum
 	ROBOEFFECT_ROUTE_SELECTOR,
 
 
-	ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN,//51
+	ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN,//
 } roboeffect_effect_type_enum;
 
 typedef enum _ROBOEFFECT_ERROR_CODE
@@ -129,6 +143,9 @@ typedef enum _ROBOEFFECT_ERROR_CODE
 	ROBOEFFECT_EFFECT_VER_NOT_MATCH_ERROR,//one effect version not match
 	ROBOEFFECT_LIB_VER_NOT_MATCH_ERROR,//roboeffect lib version in parameters not match
 	ROBOEFFECT_3RD_PARTY_LIB_NOT_MATCH_ERROR,//third party library not match
+
+	ROBOEFFECT_FLASH_BIN_ERROR,//Invalid format for flash bin
+	ROBOEFFECT_CONTEXT_MEMORY_ERROR,//roboeffect context memory error, maybe a NULL
 
 	// No Error
 	ROBOEFFECT_ERROR_OK = 0,					/**< no error */
@@ -285,7 +302,68 @@ typedef bool (*roboeffect_effect_init_func)(void *node);
 typedef bool (*roboeffect_effect_config_func)(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);//can be all param(param_num=0xff) or only ONE param(param_num=1)
 typedef int32_t (*roboeffect_effect_memory_size_func)(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
 
+/*********************************************flashbin start*********************************************************/
+#define FLASHBIN_LEN_WIDTH (4)
+#define FLASHBIN_SUBTYPE_WIDTH (4)
+#define FLASHBIN_NAME_WIDTH (32)
 
+#define PARAM_SUB_TYPE(index) ((0x01 << 8) | (index))
+#define PRESET_SUB_TYPE(index) ((0x02 << 8) | (index))
+
+#define FLASHBIN_MAGIC_NUM (0xA55AB44B)
+
+#define FLASHBIN_VER_H 0
+#define FLASHBIN_VER_M 2
+#define FLASHBIN_VER_L 0
+
+typedef enum _roboeffect_flashbin_sub_type
+{
+	ROBO_FB_SUBTYPE_SCRIPT = 0x00,
+	ROBO_FB_SUBTYPE_EFFECTS_LIST,
+	ROBO_FB_SUBTYPE_EFFECTS_INFO,
+	ROBO_FB_SUBTYPE_SOURCE,
+	ROBO_FB_SUBTYPE_SINK,
+	ROBO_FB_SUBTYPE_STEPS,
+	ROBO_FB_SUBTYPE_FLOW_INFO,
+	ROBO_FB_SUBTYPE_PARAMS_MODE_INFO,
+	ROBO_FB_SUBTYPE_PRESET_INFO,
+
+} roboeffect_flashbin_sub_type;
+
+#pragma pack(1)
+typedef struct _roboeffect_flashbin_header
+{
+	char id_char[4];
+	uint32_t total_length;
+	uint8_t version[4];
+	uint8_t robo_version[4];
+	uint16_t flow_cnt;
+	uint16_t flow_name_len;
+	uint16_t current_flow_index;
+	uint16_t current_mode_index;
+	uint32_t reverse;
+	char flow_name_ptr[];
+} roboeffect_flashbin_header;
+
+typedef struct _roboeffect_flashbin_param_header
+{
+	uint32_t effect_param_len;
+	uint32_t codec_param_len;
+	uint32_t name_len;
+
+	char name[];
+} roboeffect_flashbin_param_header;
+
+#pragma pack()
+
+#define GET_EFFECT_PARAM_RAW(v) \
+	((uint8_t*)v + sizeof(roboeffect_flashbin_param_header) + (v->name_len))
+
+#define GET_CODEC_PARAM_RAW(v) \
+	((uint8_t*)v + sizeof(roboeffect_flashbin_param_header) + (v->name_len) + (v->effect_param_len))
+
+
+/*********************************************flashbin end*********************************************************/
 
 typedef struct _roboeffect_effect_property_struct
 {
@@ -516,6 +594,15 @@ ROBOEFFECT_ERROR_CODE roboeffect_get_effect_version(void *main_context, uint8_t 
  * @return ROBOEFFECT_ERROR_CODE 
  */
 ROBOEFFECT_ERROR_CODE roboeffect_get_error_code(void *main_context);
+
+/**
+ * @brief Get effect context memory pointer
+ * 
+ * @param main_context : context memory allocated by user  
+ * @param address : effect node's address, start from 0x81  
+ * @return the pointer of context memory, NULL for error 
+ */
+void *roboeffect_get_effect_context(void *main_context, uint8_t addr);
 
 /**
  * @brief For user defined effect api, check parameters, should be called in interface named roboeffect_XXXX_config_if

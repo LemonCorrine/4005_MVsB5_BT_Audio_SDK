@@ -41,7 +41,7 @@
  * 前者是burner烧录时版本，后者是mva版本需关注*/
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(0)
-#define  CFG_SDK_MINOR_VERSION		(5)
+#define  CFG_SDK_MINOR_VERSION		(6)
 #define  CFG_SDK_PATCH_VERSION	    (0)
 
 
@@ -225,6 +225,8 @@
 // I2S mix mode for Karaoke
 //#define CFG_RES_AUDIO_I2S_MIX_OUT_EN
 //#define CFG_RES_AUDIO_I2S_MIX_IN_EN
+//#define CFG_RES_AUDIO_I2S_MIX2_OUT_EN
+//#define CFG_RES_AUDIO_I2S_MIX2_IN_EN
 //USB Audio mix for Karaoke
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
 //	#define CFG_FUNC_USB_AUDIO_MIX_MODE //USB Audio mix需要开启USB_AUDIO_MODE
@@ -249,11 +251,34 @@
 	#define CFG_FUNC_MIX_I2S_IN_SYNC_EN		//缺省为SRA
 	#define CFG_FUNC_MIX_I2S_OUT_SYNC_EN
 #endif
+
+#if defined(CFG_RES_AUDIO_I2S_MIX2_IN_EN) || defined(CFG_RES_AUDIO_I2S_MIX2_OUT_EN)
+	#undef 	CFG_RES_AUDIO_I2SOUT_EN
+	#define CFG_FUNC_I2S_MIX2_MODE
+	#include"i2s.h"
+	#define I2S_MIX2_MCLK_GPIO					I2S0_MCLK_OUT_A24 //选择MCLK_OUT/MCLK_IN脚，I2S自动配置成master/slave
+	#define I2S_MIX2_LRCLK_GPIO					I2S0_LRCLK_A20
+	#define I2S_MIX2_BCLK_GPIO					I2S0_BCLK_A21
+
+#ifdef CFG_RES_AUDIO_I2S_MIX2_IN_EN
+	#define I2S_MIX2_DIN_GPIO				I2S0_DIN_A22
+#endif
+#ifdef CFG_RES_AUDIO_I2S_MIX2_OUT_EN
+	#define I2S_MIX2_DOUT_GPIO				I2S0_DOUT_A23
+#endif
+
+	#define CFG_RES_MIX2_I2S_MODE				GET_I2S_MODE(I2S_MIX2_MCLK_GPIO)		//根据I2S_MCLK_GPIO自动配置master/slave
+	#define	CFG_RES_MIX2_I2S_MODULE				GET_I2S_I2S_PORT(I2S_MIX2_MCLK_GPIO)	//根据I2S_MCLK_GPIO自动配置i2s1/i2s0
+	#define CFG_PARA_MIX2_I2S_SAMPLERATE		44100
+	#define CFG_FUNC_MIX2_I2S_IN_SYNC_EN		//缺省为SRA
+	#define CFG_FUNC_MIX2_I2S_OUT_SYNC_EN
+#endif
 #endif
 
 #define CFG_FUNC_AUDIO_EFFECT_EN //总音效使能开关
 #ifdef CFG_FUNC_AUDIO_EFFECT_EN
 
+	#define CFG_FUNC_AUDIOEFFECT_AUTO_GEN_MSG_PROC		//自动生成音效控制代码
 	//#define CFG_FUNC_EFFECT_BYPASS_EN		//开启后默认运行bypass音效框图，用于音频指标测试
 	#ifdef CFG_FUNC_EFFECT_BYPASS_EN
 		#undef CFG_FUNC_MIC_KARAOKE_EN
@@ -274,6 +299,8 @@
 			#define SHNNIN_VOL_RECOVER_TIME                      50////伴奏音量恢复时长：50*20ms = 1s
 			#define SHNNIN_UP_DLY                                3/////音量上升时间
 			#define SHNNIN_DOWN_DLY                              1/////音量下降时间
+
+			#define CFG_FLOWCHART_KARAOKE_ENABLE
 	#endif
     //#define CFG_FUNC_SILENCE_AUTO_POWER_OFF_EN     //无信号自动关机功能，
     #ifdef CFG_FUNC_SILENCE_AUTO_POWER_OFF_EN      
@@ -334,15 +361,15 @@
 //#define CFG_FUNC_RECORDER_EN
 #ifdef CFG_FUNC_RECORDER_EN
 	#define CFG_FUNC_RECORD_SD_UDISK	//录音到SD卡或者U盘
-	//#define CFG_FUNC_RECORD_FLASHFS 	//不可同时开启 CFG_FUNC_RECORD_SD_UDISK
-	//下面宏定义采用脚本控制，必须单独一行，不要在该行后面添加注释
-#ifndef CFG_FUNC_RECORD_SD_UDISK
-	//#define	 CFG_FUNC_RECORD_EXTERN_FLASH_EN
-#endif
-//暂不支持flash
-//#ifdef CFG_APP_FLASH_FATFS_PLAY_MODE_EN
-//	//#define CFG_FUNC_RECORD_FLASHFATFS	//rec to extern fatfs
-//#endif
+	//录制多段提示音到外置flash/内部flash用于特效音录制和播放，和CFG_FUNC_RECORD_SD_UDISK只能2选1
+	//关闭USE_EXTERN_FLASH_SPACE宏，录制特效音到内部flash，还需要到 \BT_Audio_APP\tools\merge_script\merge.ini配置地址
+	//merge.ini中开启如下配置，	maxlen长度需要配置为 CFG_PARA_RECORDS_MAX_SIZE * CFG_PARA_RECORDS_INDEX
+	//	[rec_data]
+	//	virtual = 1
+	//	fullpath=..\merge_script\rec_data.bin
+	//	maxlen = 0x30000
+	//	enable = 1
+//	#define	CFG_FUNC_RECORD_EXTERN_FLASH_EN
 
 	#ifdef CFG_FUNC_RECORD_SD_UDISK
 		#define CFG_FUNC_RECORD_UDISK_FIRST				//U盘和卡同时存在时，录音设备优先选择U盘，否则优先选择录音到SD卡。
@@ -358,7 +385,7 @@
 
 	#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
 		//#define USE_EXTERN_FLASH_SPACE		//使用外置flash空间(屏蔽这行使用芯片内置flash)
-		#define CFG_PARA_RECORDS_MAX_SIZE			(0x10000*3) 	// 定义为一个录音文件的大小192K
+		#define CFG_PARA_RECORDS_MAX_SIZE			(0x30000) 	// 定义为一个录音文件的大小192K
 		#define CFG_PARA_RECORDS_INFO_SIZE			256				// 定义256BYTE空间，用来放置一些想保存的录音信息，例如录音时长、录音大小等等等
 		#define	EXTERN_FLASH_RECORDER_FILE_SECOND	30				//单个文件录音时间
 		#ifdef USE_EXTERN_FLASH_SPACE
@@ -368,18 +395,11 @@
 			#define	SpiRead(a,b,c)						SPI_Flash_Read(a,b,c)
 			#define SpiErase(a)							SPI_Flash_Erase_4K(a)
 		#else
-			#define CFG_PARA_RECORDS_INDEX				2			// 定义最大的允许录音数量
-			//#define	CFG_PARA_RECORDS_FLASH_BEGIN_ADDR	0x130000	// 录音文件的起始地址
+			#define CFG_PARA_RECORDS_INDEX				1			// 定义最大的允许录音数量
 			#define	SpiWrite(a,b,c)						SpiFlashWrite(a,b,c,1)
 			#define	SpiRead(a,b,c)						SpiFlashRead(a,b,c,1)
 			#define SpiErase(a)							SpiFlashErase(SECTOR_ERASE, a, 1)
 		#endif
-	#endif
-
-
-	/*注意flash空间，避免冲突   middleware/flashfs/file.h FLASH_BASE*/
-	#ifdef CFG_FUNC_RECORD_FLASHFS
-		#define CFG_PARA_FLASHFS_FILE_NAME		"REC.MP3"//RECORDER_FILE_NAME
 	#endif
 
 	//N >= 2 ；考虑128系统帧以及加音效MIPS较高，优先级为3的编码进程处理数据较慢，推荐值为 6。提高系统帧，mips低时可以调小N,节约ram。

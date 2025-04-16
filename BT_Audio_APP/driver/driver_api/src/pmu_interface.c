@@ -20,7 +20,7 @@ static TE_PWRKEYINIT_RET SystemPowerKeySetting(TE_PWRKEY_MODE eMode, uint8_t u8_
 {
 	uint32_t KeyState = 0;
 	//check eMode
-	if (E_PWRKEY_MODE_SLIDESWITCH < eMode)
+	if (E_PWRKEY_MODE_SLIDESWITCH_LON < eMode)
 	{
 		return E_PWRKEYINIT_UNKNOWN_MODE;
 	}
@@ -66,7 +66,7 @@ static TE_PWRKEYINIT_RET SystemPowerKeySetting(TE_PWRKEY_MODE eMode, uint8_t u8_
 		return E_PWRKEYINIT_LTIME_GE_RSTTIME_ERR;
 	}
 
-	if ((E_PWRKEY_MODE_SLIDESWITCH == eMode) && PMU_FristPowerOnFlagGet())
+	if (((E_PWRKEY_MODE_SLIDESWITCH_LON == eMode)||(E_PWRKEY_MODE_SLIDESWITCH_HON == eMode)) && PMU_FristPowerOnFlagGet())
 	{
 		KeyState = PMU_PowerKeyPinStateGet();
 	}
@@ -82,7 +82,14 @@ static TE_PWRKEYINIT_RET SystemPowerKeySetting(TE_PWRKEY_MODE eMode, uint8_t u8_
 	{
 		PMU_PowerKeyModeSet(HARD_MODE);								//hard mode
 		PMU_PowerKeyHardModeSet(EDGE_TRIGGER);						//edge trigger
-		PMU_PowerKeyActiveLevelSet(HIGH_INDICATE_POWERON);			//high level power on
+		if (E_PWRKEY_MODE_SLIDESWITCH_HON == eMode)
+		{
+			PMU_PowerKeyActiveLevelSet(HIGH_INDICATE_POWERON);			//high level power on
+		}
+		else
+		{
+			PMU_PowerKeyActiveLevelSet(LOW_INDICATE_POWERON);			//Low level power on
+		}
 	}
 
 	//set poweron press mode
@@ -109,10 +116,17 @@ static TE_PWRKEYINIT_RET SystemPowerKeySetting(TE_PWRKEY_MODE eMode, uint8_t u8_
 	//LONGR_RST_MODE_TIMEOUT: reset release when press time reached 8s no matter when press release
 	PMU_PowerLongResetModeSet(eRstMode);
 
-	if((KeyState == 1) && (E_PWRKEY_MODE_SLIDESWITCH == eMode))
+	if((KeyState == 1) && (E_PWRKEY_MODE_SLIDESWITCH_LON == eMode))
 	{
 		PMU_SystemPowerDown();
+		while(1);
 	}
+	else if((KeyState == 0) && (E_PWRKEY_MODE_SLIDESWITCH_HON == eMode))
+	{
+		PMU_SystemPowerDown();
+		while(1);
+	}
+
 	return E_PWRKEYINIT_OK;
 }
 
@@ -141,7 +155,15 @@ TE_PWRKEY_MODE SystemPowerKeyGetMode(void)
 	{
 		if (PMU_PowerKeyModeGet() == HARD_MODE)
 		{
-			return E_PWRKEY_MODE_SLIDESWITCH;
+			if (PMU_PowerKeyActiveLevelGet() == HIGH_INDICATE_POWERON)
+			{
+				return E_PWRKEY_MODE_SLIDESWITCH_HON;
+			}
+			else
+			{
+				return E_PWRKEY_MODE_SLIDESWITCH_LON;
+			}
+
 		}
 		else
 		{
@@ -164,7 +186,8 @@ static bool SystemPowerKeyDetectEvt(POWERKEY_LONGORSHORT_PRESS_SEL ePressMode)
 
 	switch(SystemPowerKeyGetMode())
 	{
-		case E_PWRKEY_MODE_SLIDESWITCH:
+		case E_PWRKEY_MODE_SLIDESWITCH_HON:
+		case E_PWRKEY_MODE_SLIDESWITCH_LON:
 			bIsFlagSet = PMU_PowerKeyTrigStateGet();
 			break;
 

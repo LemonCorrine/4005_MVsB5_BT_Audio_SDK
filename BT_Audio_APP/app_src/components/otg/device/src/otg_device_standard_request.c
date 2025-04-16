@@ -484,7 +484,7 @@ void OTG_DeviceRequestProcess(void)
 	uint8_t ReqType;
 	if(BusEvent & 0x04)
 	{
-		OTG_DeviceAddressSet(0);
+//		OTG_DeviceAddressSet(0);
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
 		UsbAudioMic.InitOk = 0;
 		UsbAudioSpeaker.InitOk = 0;

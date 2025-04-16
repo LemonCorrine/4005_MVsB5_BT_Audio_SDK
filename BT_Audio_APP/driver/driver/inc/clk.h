@@ -482,11 +482,11 @@ bool Clock_SysClkSelect(CLK_MODE ClkMode);
 void Clock_UARTClkSelect(CLK_MODE ClkMode);
 
 /**
- * @brief	Timer3模块时钟选择,系统时钟时钟还是RC时钟
+ * @brief	Timer5模块时钟选择,系统时钟时钟还是RC时钟
  * @param	ClkMode SYSTEM_CLK_MODE: 系统时钟; RC_CLK_MODE:RC 12M时钟
  * @return  无
  */
-void Clock_Timer3ClkSelect(CLK_MODE ClkMode);
+void Clock_Timer5ClkSelect(CLK_MODE ClkMode);
 
 /**
  * @brief	BTDM模块时钟选择,系统时钟时钟还是RC时钟
@@ -610,6 +610,14 @@ bool Clock_DeepSleepSysClkSelect(CLK_MODE SysClockSelect, FSHC_CLK_MODE FlashClo
  * @return  无
  */
 void Clock_HOSCCapSet(uint32_t XICap, uint32_t XOCap);
+
+/**
+ * @brief	配置高频晶体的内置粗档电容
+ * @param	XICap 晶体粗档输入端起振电容【0-3】
+ * @param	XOCap 晶体粗档输出端起振电容【0-3】
+ * @return  无
+ */
+void Clock_HOSCMosCapSet(uint32_t XICap, uint32_t XOCap);
 
 /**
  * @brief	配置高频晶体的内置起振电容偏置电流

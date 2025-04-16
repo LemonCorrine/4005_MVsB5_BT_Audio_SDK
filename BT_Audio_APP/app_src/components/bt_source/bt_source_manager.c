@@ -44,12 +44,12 @@ void BtSourceInquiryResultParse(uint8_t *addr, uint16_t extRespLen, uint8_t *ext
 
 			BtSourceInquiryListInsert(addr, name_len, &extResp[name_offset], classOfDevice, rssi);
 
-			/*printf("name: ");
+			/*APP_DBG("name: ");
 			for(len = 0; len < name_len; len++)
 			{
-				printf("%c", extResp[offset+2+len]);
+				APP_DBG("%c", extResp[offset+2+len]);
 			}
-			printf(",classOfDev:%x-%x-%x\n", classOfDevice[0], classOfDevice[1], classOfDevice[2]);
+			APP_DBG(",classOfDev:%x-%x-%x\n", classOfDevice[0], classOfDevice[1], classOfDevice[2]);
 			*/
 
 			nameInforFlag = 1;
@@ -206,7 +206,7 @@ void BtSourceInquiryListPrintf(void)
 	{
 		if(btManager.SourceInqResultList[i].flag)
 		{
-			printf("ID[%d]: Addr[%02x:%02x:%02x:%02x:%02x:%02x], name = %s ,classOfDev:%02x-%02x-%02x, rssi:%d\n",
+			APP_DBG("ID[%d]: Addr[%02x:%02x:%02x:%02x:%02x:%02x], name = %s ,classOfDev:%02x-%02x-%02x, rssi:%d\n",
 				i,
 				btManager.SourceInqResultList[i].addr[0],
 				btManager.SourceInqResultList[i].addr[1],
@@ -238,7 +238,7 @@ void BtSourceNameRequest(void)
 		{
 			if(btManager.SourceInqResultList[i].nameFlag == 0)
 			{
-				printf("ID[%d] name request: Addr[%02x:%02x:%02x:%02x:%02x:%02x]\n",
+				APP_DBG("ID[%d] name request: Addr[%02x:%02x:%02x:%02x:%02x:%02x]\n",
 				i,
 				btManager.SourceInqResultList[i].addr[0],
 				btManager.SourceInqResultList[i].addr[1],
@@ -260,7 +260,7 @@ void BtSourceNameRequest(void)
 
 	gBtSourceInquiryStart = 0;
 	BtSourceInquiryListPrintf();
-	printf("!!!!!!!!!! end!!!!\n");
+	APP_DBG("!!!!!!!!!! end!!!!\n");
 
 	BtSourceNameMatch();
 
@@ -292,7 +292,7 @@ uint8_t BtSourceConnectIndex(uint32_t index)
 	{
 		if(index < A2DP_SCAN_NUMBER && btManager.SourceInqResultList[index].flag)
 		{
-			printf("BtSourceConnectIndex :  [%02x:%02x:%02x:%02x:%02x:%02x]\n",
+			APP_DBG("BtSourceConnectIndex :  [%02x:%02x:%02x:%02x:%02x:%02x]\n",
 				btManager.SourceInqResultList[index].addr[0],
 				btManager.SourceInqResultList[index].addr[1],
 				btManager.SourceInqResultList[index].addr[2],
@@ -329,7 +329,7 @@ void BtSourceNameMatch(void)
 				)
 #endif
 			{
-				printf("connect :  [%02x:%02x:%02x:%02x:%02x:%02x]\n",
+				APP_DBG("connect :  [%02x:%02x:%02x:%02x:%02x:%02x]\n",
 					btManager.SourceInqResultList[i].addr[0],
 					btManager.SourceInqResultList[i].addr[1],
 					btManager.SourceInqResultList[i].addr[2],
@@ -496,7 +496,7 @@ void BtSourceGetRemoteName(void * para)
 	{
 		memcpy(btManager.remoteAddr, param->params.remDevName.addr, 6);
 		BtSourceCheckConn(btManager.remoteAddr,3500);
-		printf("---------BtSourceCheckConn(btManager.remoteAddr)\n");
+		APP_DBG("---------BtSourceCheckConn(btManager.remoteAddr)\n");
 	}
 
 	QuiryDelayTimerSet(3000);//有回连，先延时Inquiry
@@ -512,7 +512,7 @@ void BtSourceGetRemoteName(void * para)
 		}
 		memcpy(btManager.remoteAddr, param->params.remDevName.addr, 6);
 		BtSourceCheckConn(btManager.remoteAddr,3500);
-		printf("---------BtSourceCheckConn(btManager.remoteAddr)\n");
+		APP_DBG("---------BtSourceCheckConn(btManager.remoteAddr)\n");
 	}
 
 	if(gBtSourceInquiryStart)

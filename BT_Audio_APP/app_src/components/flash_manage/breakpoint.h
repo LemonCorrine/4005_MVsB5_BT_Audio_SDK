@@ -94,7 +94,6 @@ typedef struct _BP_SYS_INFO_
 	uint8_t     EqMode;
 #endif
 	uint8_t		ReverbStep;
-    uint8_t  	MicEffectDelayStep;
 #ifdef CFG_FUNC_MUSIC_TREB_BASS_EN
 	uint8_t 	MicBassStep;
     uint8_t 	MicTrebStep;

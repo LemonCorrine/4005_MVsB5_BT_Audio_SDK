@@ -155,7 +155,7 @@ void BtHfgCallback(BT_HFG_CALLBACK_EVENT event, BT_HFG_CALLBACK_PARAMS * param)
 			break;
 
 		case BT_STACK_EVENT_HFG_GENERATE_DTMF:
-			printf("BT_STACK_EVENT_HFG_GENERATE_DTMF %d\n",param->params.DtmfDate);
+			APP_DBG("BT_STACK_EVENT_HFG_GENERATE_DTMF %d\n",param->params.DtmfDate);
 			break;
 
 		case BT_STACK_EVENT_HFG_SCO_DATA_RECEIVED:
@@ -181,13 +181,13 @@ void BtHfgCallback(BT_HFG_CALLBACK_EVENT event, BT_HFG_CALLBACK_PARAMS * param)
  **************************************************************************/
 void BtHfgCreateCall(void)
 {
-	printf("~~BtHfgCreateCall\n");
+	APP_DBG("~~BtHfgCreateCall\n");
 	if(GetSourceHfgState() >= BT_HFP_STATE_CONNECTED)
 	{
 		//hfgSetIndicator(HFG_IND_CALL,1);
 		if(hfgSetIndicator(HFG_IND_CALL_SETUP,2)!=1)//outgoing
 		{
-			printf("~~HfgAudioConnect\n");
+			APP_DBG("~~HfgAudioConnect\n");
 			HfgAudioConnect();//audio sco connect
 		}
 	}
@@ -197,7 +197,7 @@ void BthfgIncomingWait(char *number)//呼入等待
 {
 	if(GetSourceHfgState() < BT_HFP_STATE_CONNECTED) return;
 	SetSourceHfgState(BT_HFP_STATE_INCOMING);
-	printf("IncomingWait\n");
+	APP_DBG("IncomingWait\n");
 	hfgSetIndicator(HFG_IND_CALL_SETUP,1);
 	HfgSetCallIndex(1);
 	BtHfgSetCallState(1, 4);
@@ -213,7 +213,7 @@ void BthfgOutgoingWait(char *number)//呼出等待
 {
 	if(GetSourceHfgState() < BT_HFP_STATE_CONNECTED) return;
 	SetSourceHfgState(BT_HFP_STATE_OUTGOING);
-	printf("OutgoingWait\n");
+	APP_DBG("OutgoingWait\n");
 	hfgSetIndicator(HFG_IND_CALL_SETUP,2);
 	HfgSetCallIndex(1);
 	BtHfgSetCallState(0, 2);
@@ -224,7 +224,7 @@ void BthfgOutgoingWait(char *number)//呼出等待
 void BthfgAnswer(uint8_t flag)//接听电话
 {
 	if(GetSourceHfgState() < BT_HFP_STATE_CONNECTED) return;
-	printf("BthfgAnswer\n");
+	APP_DBG("BthfgAnswer\n");
 	if(hfgSetIndicator(HFG_IND_CALL,1)!=1)
 	{
 //		HfgAudioConnect();//audio sco connect
@@ -266,7 +266,7 @@ void BtHfgHangUp(void)
 		if(!hfgSetIndicator(HFG_IND_CALL_SETUP,0)!=1)//
 		{
 			WaitMs(1);
-			//printf("~~HfgAudioDiconnect\n");
+			//APP_DBG("~~HfgAudioDiconnect\n");
 			HfgAudioDiconnect();//audio sco disconnect
 		}
 		BthfgCallStateClear();

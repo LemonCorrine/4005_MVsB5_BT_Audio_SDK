@@ -434,7 +434,7 @@ void DispResume(void)
 		{
 			case ModeIdle:
 #ifndef FUNC_RTC_EN
-				DispString(" NOD");	
+				//DispString(" NOD");	
 #else
 				//DispRtc();
 #endif
@@ -541,13 +541,17 @@ void DispResume(void)
 #ifdef CFG_APP_LINEIN_MODE_EN
 			case ModeLineAudioPlay:
 				DispString(" AUX");
+				DispIcon(ICON_USB, LIGHT_OFF);
+				DispIcon(ICON_SD, LIGHT_OFF);
 				DispIcon(ICON_DP_FM_MHZ, LIGHT_OFF);
 				DispIcon(ICON_COLON, LIGHT_OFF);
+				DispIcon(ICON_PLAY, LIGHT_OFF);
+				DispIcon(ICON_PAUSE, LIGHT_OFF);
 				break;
 #endif
 
 #ifdef CFG_APP_HDMIIN_MODE_EN
-			case AppModeHdmiAudioPlay:
+			case ModeHdmiAudioPlay:
 				DispString(" ARC");
 				DispIcon(ICON_USB, LIGHT_OFF);
 				DispIcon(ICON_SD, LIGHT_OFF);
@@ -561,10 +565,40 @@ void DispResume(void)
 
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
 			case ModeUsbDevicePlay:
+				DispIcon(ICON_USB, LIGHT_OFF);
+				DispIcon(ICON_SD, LIGHT_OFF);
+				DispIcon(ICON_DP_FM_MHZ, LIGHT_OFF);
+				DispIcon(ICON_COLON, LIGHT_OFF);
+				DispIcon(ICON_PLAY, LIGHT_OFF);
+				DispIcon(ICON_PAUSE, LIGHT_OFF);
 				DispString(" PC ");
 			 	break;
 #endif
+#ifdef CFG_APP_OPTICAL_MODE_EN
+			case ModeOpticalAudioPlay:
+				DispString(" OPT");
+				DispIcon(ICON_USB, LIGHT_OFF);
+				DispIcon(ICON_SD, LIGHT_OFF);
+				DispIcon(ICON_DP_FM_MHZ, LIGHT_OFF);
+				DispIcon(ICON_COLON, LIGHT_OFF);
+				DispIcon(ICON_PLAY, LIGHT_OFF);
+				DispIcon(ICON_PAUSE, LIGHT_OFF);
+				DispHoldTime = 0;
+				break;
+#endif
 
+#ifdef CFG_APP_COAXIAL_MODE_EN
+			case ModeCoaxialAudioPlay:
+				DispString(" COA");
+				DispIcon(ICON_USB, LIGHT_OFF);
+				DispIcon(ICON_SD, LIGHT_OFF);
+				DispIcon(ICON_DP_FM_MHZ, LIGHT_OFF);
+				DispIcon(ICON_COLON, LIGHT_OFF);
+				DispIcon(ICON_PLAY, LIGHT_OFF);
+				DispIcon(ICON_PAUSE, LIGHT_OFF);
+				DispHoldTime = 0;
+				break;
+#endif
 #ifdef FUNC_STANDBY_EN
 			case SYS_MODE_STANDBY:				
 #ifndef FUNC_RTC_EN

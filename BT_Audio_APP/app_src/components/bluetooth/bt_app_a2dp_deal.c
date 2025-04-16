@@ -223,13 +223,13 @@ void BtA2dpDisconnectedDev(BT_A2DP_CALLBACK_PARAMS * param)
 				//延时1s再次尝试;
 				btManager.btReconExcuteSt->TryCount = 0;
 				BtReconnectDevAgain(1000);//延时1s再次发起连接
-				printf("============ delay 1000ms, reconnect again\n");
+				APP_DBG("============ delay 1000ms, reconnect again\n");
 			}
 			else
 			{
 				BtReconnectDevStop();
 				BtLinkStateConnect(1, param->index);
-				printf("=============hfp cannot connect, finished..\n");
+				APP_DBG("=============hfp cannot connect, finished..\n");
 			}
 		}
 #endif
@@ -368,7 +368,7 @@ void BtA2dpStreamStart(BT_A2DP_CALLBACK_PARAMS * param)
 	else
 	{
 		//if(btManager.cur_index)
-		//printf("111\n");
+		//APP_DBG("111\n");
 #ifdef LAST_PLAY_PRIORITY
 		extern uint32_t AvrcpStateSuspendCount;
 		AvrcpStateSuspendCount++;
@@ -377,7 +377,7 @@ void BtA2dpStreamStart(BT_A2DP_CALLBACK_PARAMS * param)
 
 		if(GetA2dpState(btManager.cur_index) != BT_A2DP_STATE_STREAMING)
 		{
-			//printf("222\n");
+			//APP_DBG("222\n");
 			//btManager.cur_index = param->index;
 			BtCurIndex_Set(index);
 			BT_DBG("channel[%d]:start playing\n", btManager.cur_index);

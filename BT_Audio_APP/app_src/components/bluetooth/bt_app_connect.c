@@ -186,7 +186,7 @@ uint32_t BtReconProfilePrioFlagGet(void)
  ****************************************************************************************/
 void BtReconnectDevExcute(void)
 {
-	printf("BtReconnectDevExcute, %d\n", btManager.btReconPhoneSt.TryCount);
+	APP_DBG("BtReconnectDevExcute, %d\n", btManager.btReconPhoneSt.TryCount);
 	uint8_t i;
 
 #if BT_SOURCE_SUPPORT
@@ -211,7 +211,7 @@ void BtReconnectDevExcute(void)
 	        //当前链路存在,则应用层停止发起新的连接,等待超时后再发起连接
 	        if(lm_env_link_state(btManager.btDdbLastAddr))
 	        {
-		        printf("link exist, delay2s reconnect device...\n");
+		        APP_DBG("link exist, delay2s reconnect device...\n");
 	            BtReconnectDevStop();
 	            BtReconnectDevCreate(btManager.btDdbLastAddr, sys_parameter.bt_ReconnectionTryCounts, sys_parameter.bt_ReconnectionInternalTime, 2000, btManager.btDdbLastProfile);
 	            return;
@@ -269,7 +269,7 @@ void BtReconnectDevExcute(void)
 		status = BtHfpConnect(0,btManager.btDdbLastAddr);
 		if(status > 2)
 		{
-	        printf("link exist, delay2s reconnect device...\n");
+	        APP_DBG("link exist, delay2s reconnect device...\n");
             BtReconnectDevStop();
             BtReconnectDevCreate(btManager.btDdbLastAddr, sys_parameter.bt_ReconnectionTryCounts, sys_parameter.bt_ReconnectionInternalTime, 2000, btManager.btDdbLastProfile);
             return;

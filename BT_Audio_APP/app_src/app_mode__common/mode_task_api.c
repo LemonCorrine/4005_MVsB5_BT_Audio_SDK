@@ -38,6 +38,10 @@
 extern bool I2S_MixInit(void);
 extern bool I2S_MixDeinit(void);
 #endif
+#ifdef CFG_FUNC_I2S_MIX2_MODE
+extern bool I2S_Mix2Init(void);
+extern bool I2S_Mix2Deinit(void);
+#endif
 #ifdef CFG_FUNC_LINEIN_MIX_MODE
 extern bool LineInMixPlayInit(void);
 extern bool LineInMixPlayDeinit(void);
@@ -75,33 +79,13 @@ const DACParamCt DACDefaultParamCt =
 #endif
 };
 
+extern bool EffectModeCmp(uint8_t mode1,uint8_t mode2);
+extern uint8_t EffectModeMsgProcess(uint16_t Msg);
+extern uint8_t AudioCommonMsgProcess(uint16_t Msg);
+
 #ifdef CFG_FUNC_USB_AUDIO_MIX_MODE  //USB MIX通道，使用 USB_SOURCE_NUM
 	uint32_t	UsbAudioSourceNum = APP_SOURCE_NUM;
 #endif
-
-//音效模式按键切换表，顺序切换
-const uint8_t EffectModeToggleMap[] =
-{
-#ifdef CFG_AI_DENOISE_EN
-	EFFECT_MODE_MICUSBAI,
-#endif
-#ifdef CFG_FUNC_EFFECT_BYPASS_EN
-	EFFECT_MODE_BYPASS,
-#else
-	#ifdef CFG_FUNC_MIC_KARAOKE_EN
-		EFFECT_MODE_HunXiang,
-		EFFECT_MODE_DianYin,
-		EFFECT_MODE_MoYin,
-		EFFECT_MODE_HanMai,
-		EFFECT_MODE_NanBianNv,
-		EFFECT_MODE_NvBianNan,
-		EFFECT_MODE_WaWaYin,
-	#else
-		EFFECT_MODE_MIC,
-		EFFECT_MODE_MUSIC,
-	#endif
-#endif
-};
 
 uint32_t get_audioeffect_default_frame_info(roboeffect_effect_list_info *user_effect_list,uint32_t type)
 {
@@ -311,7 +295,7 @@ bool AudioEffectInit()
 			DBG("EFFECT_MODE: %s\n", AudioEffect.cur_effect_para->user_effect_name);
 		}
 #ifdef CFG_FUNC_USB_AUDIO_MIX_MODE
-		if(AudioCoreSourceToRoboeffect(USB_SOURCE_NUM) != AUDIOCORE_SOURCE_SINK_ERROR)
+		if(AudioCoreSourceToRoboeffect(USB_SOURCE_NUM) != AUDIOCORE_SOURCE_SINK_ERROR || GetSystemMode() != ModeUsbDevicePlay)
 			UsbAudioSourceNum = USB_SOURCE_NUM;	//框图存在USB MIX通道，USB MIX开启的情况下使用该通道
 		else
 			UsbAudioSourceNum = APP_SOURCE_NUM;
@@ -408,13 +392,14 @@ bool AudioEffectInit()
 		/**
 		 * initial roboeffect context memory
 		*/
-		if(ROBOEFFECT_ERROR_OK != roboeffect_init(AudioEffect.context_memory,
-												  AudioEffect.audioeffect_memory_size,
-												  AudioEffect.cur_effect_para->user_effect_steps,
-												  AudioEffect.cur_effect_para->user_effect_list,
-												  AudioEffect.user_effect_parameters) )
+		ROBOEFFECT_ERROR_CODE ret = roboeffect_init(AudioEffect.context_memory,
+				  AudioEffect.audioeffect_memory_size,
+				  AudioEffect.cur_effect_para->user_effect_steps,
+				  AudioEffect.cur_effect_para->user_effect_list,
+				  AudioEffect.user_effect_parameters);
+		if(ROBOEFFECT_ERROR_OK !=  ret)
 		{
-			DBG("roboeffect_init failed.\n");
+			DBG("roboeffect_init failed. %d \n",ret);
 			return FALSE;
 		}
 		else
@@ -539,7 +524,7 @@ bool ModeCommonInit(void)
 	#else
 		BitWidth = 16;
 	#endif
-		AudioDAC_Init(&DACDefaultParamCt,sampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
+		AudioDAC_Init((DACParamCt *)&DACDefaultParamCt,sampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
 
 	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 		Clock_AudioMclkSel(AUDIO_DAC0, gCtrlVars.HwCt.DAC0Ct.dac_mclk_source);
@@ -795,6 +780,12 @@ bool ModeCommonInit(void)
 		return FALSE;
 	}
 #endif
+#ifdef CFG_FUNC_I2S_MIX2_MODE
+	if(!I2S_Mix2Init())
+	{
+		return FALSE;
+	}
+#endif
 #ifdef CFG_FUNC_LINEIN_MIX_MODE
 	if(!LineInMixPlayInit())
 	{
@@ -870,6 +861,7 @@ void ModeCommonDeinit(void)
 #endif
 #if defined(CFG_RES_AUDIO_I2SOUT_EN)
 	I2S_ModuleDisable(CFG_RES_I2S_MODULE);
+	RST_I2SModule(CFG_RES_I2S_MODULE);
 	DMA_InterruptFlagClear(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE, DMA_DONE_INT);
 	DMA_InterruptFlagClear(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE, DMA_THRESHOLD_INT);
 	DMA_InterruptFlagClear(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE, DMA_ERROR_INT);
@@ -913,6 +905,9 @@ void ModeCommonDeinit(void)
 
 #ifdef CFG_FUNC_I2S_MIX_MODE
 	I2S_MixDeinit();
+#endif
+#ifdef CFG_FUNC_I2S_MIX2_MODE
+	I2S_Mix2Deinit();
 #endif
 #ifdef CFG_FUNC_LINEIN_MIX_MODE
 	LineInMixPlayDeinit();
@@ -1099,7 +1094,7 @@ bool AudioIoCommonForHfp(uint16_t gain)
 	#else
 		BitWidth = 16;
 	#endif
-		AudioDAC_Init(&DACDefaultParamCt,sampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
+		AudioDAC_Init((DACParamCt *)&DACDefaultParamCt,sampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
 
 	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 		Clock_AudioMclkSel(AUDIO_DAC0, gCtrlVars.HwCt.DAC0Ct.dac_mclk_source);
@@ -1111,7 +1106,7 @@ bool AudioIoCommonForHfp(uint16_t gain)
 	{
 		AudioDAC0_SampleRateChange(sampleRate);
 		gCtrlVars.HwCt.DAC0Ct.dac_mclk_source = Clock_AudioMclkGet(AUDIO_DAC0);
-		printf("mode task io set\n");
+		APP_DBG("mode task io set\n");
 #ifdef	CFG_AUDIO_WIDTH_24BIT
 		AudioCore.AudioSink[AUDIO_DAC0_SINK_NUM].BitWidth = AudioIOSet.IOBitWidth;
 		AudioCore.AudioSink[AUDIO_DAC0_SINK_NUM].BitWidthConvFlag = AudioIOSet.IOBitWidthConvFlag;
@@ -1196,11 +1191,30 @@ bool AudioIoCommonForHfp(uint16_t gain)
 	return TRUE;
 }
 
-//sel: 0 = init hw, 1 = effect, 2 = hw + effect
-bool AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
+void AudioCoreSourceSinkPcmBufReinit(void)
 {
 	uint8_t i;
 
+	for(i = 0; i < AUDIO_CORE_SOURCE_MAX_NUM; i++)
+	{
+		if(AudioCoreSourceToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
+		{
+			AudioCore.AudioSource[i].PcmInBuf = roboeffect_get_source_buffer(
+							AudioEffect.context_memory, AudioCoreSourceToRoboeffect(i));
+		}
+	}
+	for(i = 0; i < AUDIO_CORE_SINK_MAX_NUM; i++)
+	{
+		if(AudioCoreSinkToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
+		{
+			AudioCore.AudioSink[i].PcmOutBuf = roboeffect_get_sink_buffer(
+							AudioEffect.context_memory, AudioCoreSinkToRoboeffect(i));
+		}
+	}
+}
+//sel: 0 = init hw, 1 = effect, 2 = hw + effect
+bool AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
+{
 	if(sel == 1 || sel == 2)
 	{
 		PauseAuidoCore();
@@ -1213,22 +1227,7 @@ bool AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 			return FALSE;
 		}
 
-		for(i = 0; i < AUDIO_CORE_SOURCE_MAX_NUM; i++)
-		{
-			if(AudioCoreSourceToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
-			{
-				AudioCore.AudioSource[i].PcmInBuf = roboeffect_get_source_buffer(
-								AudioEffect.context_memory, AudioCoreSourceToRoboeffect(i));
-			}
-		}
-		for(i = 0; i < AUDIO_CORE_SINK_MAX_NUM; i++)
-		{
-			if(AudioCoreSinkToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
-			{
-				AudioCore.AudioSink[i].PcmOutBuf = roboeffect_get_sink_buffer(
-								AudioEffect.context_memory, AudioCoreSinkToRoboeffect(i));
-			}
-		}
+		AudioCoreSourceSinkPcmBufReinit();
 
 #ifdef CFG_APP_LINEIN_MODE_EN
 		if(GetSystemMode() == ModeLineAudioPlay)
@@ -1280,11 +1279,26 @@ bool AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 	}
 	return TRUE;
 }
-uint8_t test_buff_lym[] = {0x42};
+
+uint8_t AudioMsgProccess(uint16_t Msg)
+{
+	uint8_t 	refresh_addr = 0;
+
+	refresh_addr = AudioCommonMsgProcess(Msg);   //Msg优先发给SDK代码 处理
+	if(refresh_addr == 0)
+	{
+		//转发Msg到脚本生成的代码 中处理
+		refresh_addr = EffectModeMsgProcess(Msg);
+	}
+
+	return refresh_addr;
+}
+
 //各模式下的通用消息处理, 共有的提示音在此处理，因此要求调用次API前，确保APP running状态。避免解码器没准备好。
 void CommonMsgProccess(uint16_t Msg)
 {
 	uint8_t     EffectMode;
+	uint8_t 	refresh_addr = 0;
 #if defined(CFG_FUNC_DISPLAY_EN)
 	MessageContext	msgSend;
 #endif
@@ -1340,69 +1354,6 @@ void CommonMsgProccess(uint16_t Msg)
             MessageSend(GetSysModeMsgHandle(), &msgSend);
 			#endif
 			break;
-
-		case MSG_MAIN_VOL_UP:
-			SystemVolUp();
-			gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
-			APP_DBG("MSG_MAIN_VOL_UP\n");
-			#ifdef CFG_FUNC_DISPLAY_EN
-            msgSend.msgId = MSG_DISPLAY_SERVICE_VOL;
-            MessageSend(GetSysModeMsgHandle(), &msgSend);
-			#endif
-			break;
-
-		case MSG_MAIN_VOL_DW:
-			SystemVolDown();
-			gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
-			APP_DBG("MSG_MAIN_VOL_DW\n");
-			#ifdef CFG_FUNC_DISPLAY_EN
-            msgSend.msgId = MSG_DISPLAY_SERVICE_VOL;
-            MessageSend(GetSysModeMsgHandle(), &msgSend);
-			#endif
-			break;
-
-		case MSG_MUSIC_VOLUP:
-			AudioMusicVolUp();
-			gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
-			APP_DBG("MSG_MUSIC_VOLUP\n");
-			#ifdef CFG_FUNC_DISPLAY_EN
-            msgSend.msgId = MSG_DISPLAY_SERVICE_MUSIC_VOL;
-            MessageSend(GetSysModeMsgHandle(), &msgSend);
-			#endif
-			break;
-
-		case MSG_MUSIC_VOLDOWN:
-			AudioMusicVolDown();
-			gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
-			APP_DBG("MSG_MUSIC_VOLDOWN\n");
-			#ifdef CFG_FUNC_DISPLAY_EN
-            msgSend.msgId = MSG_DISPLAY_SERVICE_MUSIC_VOL;
-            MessageSend(GetSysModeMsgHandle(), &msgSend);
-			#endif
-			break;
-
-		#if CFG_RES_MIC_SELECT
-		case MSG_MIC_VOLUP:
-			AudioMicVolUp();
-			gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
-			APP_DBG("MSG_MIC_VOLUP\n");
-			#ifdef CFG_FUNC_DISPLAY_EN
-            msgSend.msgId = MSG_DISPLAY_SERVICE_MIC_VOL;
-            MessageSend(GetSysModeMsgHandle(), &msgSend);
-			#endif
-			break;
-
-		case MSG_MIC_VOLDOWN:
-			AudioMicVolDown();
-			gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
-			APP_DBG("MSG_MIC_VOLDOWN\n");
-			#ifdef CFG_FUNC_DISPLAY_EN
-            msgSend.msgId = MSG_DISPLAY_SERVICE_MIC_VOL;
-            MessageSend(GetSysModeMsgHandle(), &msgSend);
-			#endif
-			break;
-		#endif
-
 #ifdef CFG_APP_BT_MODE_EN
 		case MSG_BT_PLAY_SYNC_VOLUME_CHANGED:
 			APP_DBG("MSG_BT_PLAY_SYNC_VOLUME_CHANGED\n");
@@ -1411,233 +1362,7 @@ void CommonMsgProccess(uint16_t Msg)
 #endif
 			break;
 #endif
-
 #ifdef CFG_FUNC_AUDIO_EFFECT_EN
-		case MSG_MIC_EFFECT_UP:
-			if(mainAppCt.ReverbStep < MAX_MIC_REVB_STEP)
-			{
-				mainAppCt.ReverbStep++;
-			}
-			else
-			{
-				mainAppCt.ReverbStep = 0;
-			}
-			AudioEffect_ReverbStep_Ajust(mainAppCt.ReverbStep);
-			gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
-			APP_DBG("MSG_MIC_EFFECT_UP\n");
-			APP_DBG("ReverbStep = %d\n", mainAppCt.ReverbStep);
-			#ifdef CFG_FUNC_BREAKPOINT_EN
-			BackupInfoUpdata(BACKUP_SYS_INFO);
-			#endif
-			break;
-
-		case MSG_MIC_EFFECT_DW:
-			if(mainAppCt.ReverbStep > 0)
-			{
-				mainAppCt.ReverbStep--;
-			}
-			else
-			{
-				mainAppCt.ReverbStep = 0;
-			}
-			AudioEffect_ReverbStep_Ajust(mainAppCt.ReverbStep);
-			gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
-			APP_DBG("MSG_MIC_EFFECT_DW\n");
-			APP_DBG("ReverbStep = %d\n", mainAppCt.ReverbStep);
-			#ifdef CFG_FUNC_BREAKPOINT_EN
-			BackupInfoUpdata(BACKUP_SYS_INFO);
-			#endif
-
-			break;
-
-
-		#ifdef CFG_FUNC_MUSIC_EQ_MODE_EN
-		case MSG_EQ:
-			APP_DBG("MSG_EQ\n");
-			if(mainAppCt.EqMode < EQ_MODE_VOCAL_BOOST)
-			{
-				mainAppCt.EqMode++;
-			}
-			else
-			{
-				mainAppCt.EqMode = EQ_MODE_FLAT;
-			}
-			APP_DBG("EqMode = %d\n", mainAppCt.EqMode);
-			AudioEffect_EQMode_Set(mainAppCt.EqMode);
-			gCtrlVars.AutoRefresh = get_audioeffect_addr(MUSIC_EQ);
-			#ifdef CFG_FUNC_DISPLAY_EN
-			msgSend.msgId = MSG_DISPLAY_SERVICE_EQ;
-			MessageSend(GetSysModeMsgHandle(), &msgSend);
-			#endif
-			#ifdef CFG_FUNC_BREAKPOINT_EN
-			BackupInfoUpdata(BACKUP_SYS_INFO);
-			#endif
-			break;
-		#endif
-
-		#ifdef CFG_FUNC_MIC_TREB_BASS_EN
-		case MSG_MIC_TREB_UP:
-			APP_DBG("MSG_MIC_TREB_UP\n");
-			if(mainAppCt.MicTrebStep < MAX_BASS_TREB_GAIN)
-			{
-				mainAppCt.MicTrebStep++;
-			}
-			APP_DBG("MicTrebStep = %d\n", mainAppCt.MicTrebStep);
-			AudioEffect_EQ_Ajust(MIC_EQ, mainAppCt.MicBassStep, mainAppCt.MicTrebStep);
-			gCtrlVars.AutoRefresh = get_audioeffect_addr(MIC_EQ);
-			#ifdef CFG_FUNC_DISPLAY_EN
-			msgSend.msgId = MSG_DISPLAY_SERVICE_TRE;
-			MessageSend(GetDisplayMessageHandle(), &msgSend);
-			#endif
-			#ifdef CFG_FUNC_BREAKPOINT_EN
-			BackupInfoUpdata(BACKUP_SYS_INFO);
-			#endif
-			break;
-
-		case MSG_MIC_TREB_DW:
-			APP_DBG("MSG_MIC_TREB_DW\n");
-			if(mainAppCt.MicTrebStep)
-			{
-				mainAppCt.MicTrebStep--;
-			}
-			APP_DBG("MicTrebStep = %d\n", mainAppCt.MicTrebStep);
-			AudioEffect_EQ_Ajust(MIC_EQ, mainAppCt.MicBassStep, mainAppCt.MicTrebStep);
-			gCtrlVars.AutoRefresh = get_audioeffect_addr(MIC_EQ);
-			#ifdef CFG_FUNC_DISPLAY_EN
-			msgSend.msgId = MSG_DISPLAY_SERVICE_TRE;
-			MessageSend(GetDisplayMessageHandle(), &msgSend);
-			#endif
-			#ifdef CFG_FUNC_BREAKPOINT_EN
-			BackupInfoUpdata(BACKUP_SYS_INFO);
-			#endif
-			break;
-
-		case MSG_MIC_BASS_UP:
-			APP_DBG("MSG_MIC_BASS_UP\n");
-			if(mainAppCt.MicBassStep < MAX_BASS_TREB_GAIN)
-			{
-				mainAppCt.MicBassStep++;
-			}
-			APP_DBG("MicBassStep = %d\n", mainAppCt.MicBassStep);
-			AudioEffect_EQ_Ajust(MIC_EQ, mainAppCt.MicBassStep, mainAppCt.MicTrebStep);
-			gCtrlVars.AutoRefresh = get_audioeffect_addr(MIC_EQ);
-			#ifdef CFG_FUNC_DISPLAY_EN
-			msgSend.msgId = MSG_DISPLAY_SERVICE_BAS;
-			MessageSend(GetDisplayMessageHandle(), &msgSend);
-			#endif
-			#ifdef CFG_FUNC_BREAKPOINT_EN
-			BackupInfoUpdata(BACKUP_SYS_INFO);
-			#endif
-			break;
-
-		case MSG_MIC_BASS_DW:
-			APP_DBG("MSG_MIC_BASS_DW\n");
-			if(mainAppCt.MicBassStep)
-			{
-				mainAppCt.MicBassStep--;
-			}
-			APP_DBG("MicBassStep = %d\n", mainAppCt.MicBassStep);
-			AudioEffect_EQ_Ajust(MIC_EQ, mainAppCt.MicBassStep, mainAppCt.MicTrebStep);
-			gCtrlVars.AutoRefresh = get_audioeffect_addr(MIC_EQ);
-			#ifdef CFG_FUNC_DISPLAY_EN
-			msgSend.msgId = MSG_DISPLAY_SERVICE_BAS;
-			MessageSend(GetDisplayMessageHandle(), &msgSend);
-			#endif
-			#ifdef CFG_FUNC_BREAKPOINT_EN
-			BackupInfoUpdata(BACKUP_SYS_INFO);
-			#endif
-			break;
-		#endif
-
-		#ifdef CFG_FUNC_MUSIC_TREB_BASS_EN
-		case MSG_MUSIC_TREB_UP:
-			APP_DBG("MSG_MUSIC_TREB_UP\n");
-			if(mainAppCt.MusicTrebStep < MAX_BASS_TREB_GAIN)
-			{
-				mainAppCt.MusicTrebStep++;
-			}
-			APP_DBG("MusicTrebStep = %d\n", mainAppCt.MusicTrebStep);
-			AudioEffect_EQ_Ajust(MUSIC_EQ, mainAppCt.MusicBassStep, mainAppCt.MusicTrebStep);
-			gCtrlVars.AutoRefresh = get_audioeffect_addr(MUSIC_EQ);
-			#ifdef CFG_FUNC_BREAKPOINT_EN
-			BackupInfoUpdata(BACKUP_SYS_INFO);
-			#endif
-			break;
-
-		case MSG_MUSIC_TREB_DW:
-			APP_DBG("MSG_MUSIC_TREB_DW\n");
-			if(mainAppCt.MusicTrebStep)
-			{
-				mainAppCt.MusicTrebStep--;
-			}
-			APP_DBG("MusicTrebStep = %d\n", mainAppCt.MusicTrebStep);
-			AudioEffect_EQ_Ajust(MUSIC_EQ, mainAppCt.MusicBassStep, mainAppCt.MusicTrebStep);
-			gCtrlVars.AutoRefresh = get_audioeffect_addr(MUSIC_EQ);
-			#ifdef CFG_FUNC_BREAKPOINT_EN
-			BackupInfoUpdata(BACKUP_SYS_INFO);
-			#endif
-			break;
-
-		case MSG_MUSIC_BASS_UP:
-			APP_DBG("MSG_MUSIC_BASS_UP\n");
-			if(mainAppCt.MusicBassStep < MAX_BASS_TREB_GAIN)
-			{
-				mainAppCt.MusicBassStep++;
-			}
-			APP_DBG("MusicBassStep = %d\n", mainAppCt.MusicBassStep);
-			AudioEffect_EQ_Ajust(MUSIC_EQ, mainAppCt.MusicBassStep, mainAppCt.MusicTrebStep);
-			gCtrlVars.AutoRefresh = get_audioeffect_addr(MUSIC_EQ);
-			#ifdef CFG_FUNC_BREAKPOINT_EN
-			BackupInfoUpdata(BACKUP_SYS_INFO);
-			#endif
-			break;
-
-		case MSG_MUSIC_BASS_DW:
-			APP_DBG("MSG_MUSIC_BASS_DW\n");
-			if(mainAppCt.MusicBassStep)
-			{
-				mainAppCt.MusicBassStep--;
-			}
-			APP_DBG("MusicBassStep = %d\n", mainAppCt.MusicBassStep);
-			AudioEffect_EQ_Ajust(MUSIC_EQ, mainAppCt.MusicBassStep, mainAppCt.MusicTrebStep);
-			gCtrlVars.AutoRefresh = get_audioeffect_addr(MUSIC_EQ);
-			#ifdef CFG_FUNC_BREAKPOINT_EN
-			BackupInfoUpdata(BACKUP_SYS_INFO);
-			#endif
-			break;
-		#endif
-
-		case MSG_3D:
-			APP_DBG("MSG_3D\n");
-			#if CFG_AUDIO_EFFECT_MUSIC_3D_EN
-			gCtrlVars.music_threed_unit.three_d_en = !gCtrlVars.music_threed_unit.three_d_en;
-			#endif
-
-			#ifdef CFG_FUNC_DISPLAY_EN
-            msgSend.msgId = MSG_DISPLAY_SERVICE_3D;
-            MessageSend(GetSysModeMsgHandle(), &msgSend);
-			#endif
-			break;
-
-		case MSG_VOCAL_CUT:
-			APP_DBG("MSG_VOCAL_CUT\n");
-			AudioEffect_effect_enable(VOCAL_CUT, !AudioEffect_effect_status_Get(VOCAL_CUT));
-			#ifdef CFG_FUNC_DISPLAY_EN
-            msgSend.msgId = MSG_DISPLAY_SERVICE_VOCAL_CUT;
-            MessageSend(GetSysModeMsgHandle(), &msgSend);
-			#endif
-			break;
-
-		case MSG_VB:
-			APP_DBG("MSG_VB\n");
-			#if CFG_AUDIO_EFFECT_MUSIC_VIRTUAL_BASS_EN
-			gCtrlVars.music_vb_unit.vb_en = !gCtrlVars.music_vb_unit.vb_en;
-			#endif
-			#ifdef CFG_FUNC_DISPLAY_EN
-            msgSend.msgId = MSG_DISPLAY_SERVICE_VB;
-            MessageSend(GetSysModeMsgHandle(), &msgSend);
-			#endif
-			break;
 		case MSG_MIC_FIRST:
 			APP_DBG("MSG_MIC_FIRST\n");
 			#ifdef CFG_FUNC_SHUNNING_EN
@@ -1661,24 +1386,17 @@ void CommonMsgProccess(uint16_t Msg)
 			{
 				HardWareMuteOrUnMute();
 			}
+			PauseAuidoCore();
 			if(AudioEffect.effect_mode_expected)
 			{
 				mainAppCt.EffectMode = AudioEffect.effect_mode_expected;
+				AudioEffect.effect_mode_expected = 0;
 			}
 			else
 			{
-				uint8_t i;
+				extern uint8_t GetNextEffectMode(void);
 
-				for(i = 0; i < sizeof(EffectModeToggleMap); i++)
-				{
-					if(mainAppCt.EffectMode == EffectModeToggleMap[i])
-					{	//切换到下一个音效模式
-						mainAppCt.EffectMode = EffectModeToggleMap[(i+1)%sizeof(EffectModeToggleMap)];
-						break;
-					}
-				}
-				if(i >= sizeof(EffectModeToggleMap))	//没有找到音效模式，默认第一个音效模式
-					mainAppCt.EffectMode = EffectModeToggleMap[0];
+				mainAppCt.EffectMode = GetNextEffectMode();
 			}
 #ifdef CFG_FUNC_BREAKPOINT_EN
 			BackupInfoUpdata(BACKUP_SYS_INFO);
@@ -1689,6 +1407,7 @@ void CommonMsgProccess(uint16_t Msg)
 			DBG("EFFECT_MODE: %s,%ld,%d\n", mpara->user_effect_name,mpara->user_effect_list->sample_rate,FrameSize);
 			if (FrameSize == AudioCoreFrameSizeGet(DefaultNet)
 			   && mpara->user_effect_list->sample_rate == AudioCoreMixSampleRateGet(DefaultNet)
+			//   && EffectModeCmp(EffectMode,mainAppCt.EffectMode)
 			)	//不涉及修改帧长 采样率
 			{
 				if(!AudioEffectModeSel(mainAppCt.EffectMode, 2))//sel: 0=init hw, 1=effect, 2=hw + effect
@@ -1701,7 +1420,7 @@ void CommonMsgProccess(uint16_t Msg)
 			else
 			{
 				uint32_t usb_source = USB_AUDIO_SOURCE_NUM;
-				uint8_t defaultFrameSize= mpara->user_effect_list->frame_size;
+				uint16_t defaultFrameSize= mpara->user_effect_list->frame_size;
 				mpara->user_effect_list->frame_size = roboeffect_estimate_frame_size(mpara->user_effect_list, mpara->user_effect_parameters);
 				FrameSize = AudioCoreFrameSizeGet(DefaultNet);
 				PauseAuidoCore();
@@ -1711,22 +1430,7 @@ void CommonMsgProccess(uint16_t Msg)
 					APP_DBG("MSG_EFFECTMODE ModeInit Error!!!\n");
 					break;
 				}
-				for(int8_t i = 0; i < AUDIO_CORE_SOURCE_MAX_NUM; i++)
-				{
-					if(AudioCoreSourceToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
-					{
-						AudioCore.AudioSource[i].PcmInBuf = roboeffect_get_source_buffer(
-										AudioEffect.context_memory, AudioCoreSourceToRoboeffect(i));
-					}
-				}
-				for(int8_t i = 0; i < AUDIO_CORE_SINK_MAX_NUM; i++)
-				{
-					if(AudioCoreSinkToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
-					{
-						AudioCore.AudioSink[i].PcmOutBuf = roboeffect_get_sink_buffer(
-										AudioEffect.context_memory, AudioCoreSinkToRoboeffect(i));
-					}
-				}
+				AudioCoreSourceSinkPcmBufReinit();
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
 			#ifdef CFG_FUNC_USB_AUDIO_MIX_MODE
 				//USB_AUDIO_MIX模式，帧长改变 或者 通道改变，声卡需要重新初始化通道
@@ -1757,23 +1461,14 @@ void CommonMsgProccess(uint16_t Msg)
 			{
 				HardWareMuteOrUnMute();
 			}
-			if(AudioEffect.effect_mode_expected)
+
+			if(!EffectModeCmp(EffectMode,mainAppCt.EffectMode))
 			{
-				AudioEffect.effect_mode_expected = 0;
-				gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
+				gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
 			}
 			else
 			{
-				extern AUDIOEFFECT_EFFECT_PARA_TABLE * GetCurEffectParaMode(void);
-				AUDIOEFFECT_EFFECT_PARA_TABLE *param_t = GetCurEffectParaMode();
-				if((EffectMode < param_t->effect_id ) || (EffectMode >= (param_t->effect_id + param_t->effect_id_count)))
-				{
-					gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
-				}
-				else
-				{
-					gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
-				}
+				gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
 			}
 #endif
 #endif
@@ -1957,6 +1652,16 @@ void CommonMsgProccess(uint16_t Msg)
 			#ifdef CFG_ADC_LEVEL_KEY_EN
 			AdcLevelMsgProcess(Msg);
 			#endif
+
+			refresh_addr = AudioMsgProccess(Msg);
+			if(refresh_addr)
+			{
+				gCtrlVars.AutoRefresh = refresh_addr;
+#ifdef CFG_FUNC_BREAKPOINT_EN
+				SystemVolSync();
+				BackupInfoUpdata(BACKUP_SYS_INFO);
+#endif
+			}
 			break;
 	}
 }

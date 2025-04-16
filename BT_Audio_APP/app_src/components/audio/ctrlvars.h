@@ -28,18 +28,19 @@ extern "C" {
 #include "irqn.h"
 #include "i2s_interface.h"
 
-#define  MIN_BASS_TREB_GAIN             (0)
-#define  MAX_BASS_TREB_GAIN             (15)
-#define  MIN_MIC_DIG_STEP               (0)
 #define  MAX_MIC_DIG_STEP               (32)
-#define  MIN_MIC_REVB_STEP              (0)
-#define  MAX_MIC_REVB_STEP              (32)
-#define  MIN_MIC_EFFECT_DELAY_STEP      (0)
-#define  MAX_MIC_EFFECT_DELAY_STEP      (32)
-#define  MIN_MUSIC_DIG_STEP             (0)
 #define  MAX_MUSIC_DIG_STEP             (32)
+#define  MAX_MIC_EFFECT_DELAY_STEP      (32)
 
-	
+extern int16_t EqMode;
+extern int16_t MicBassStep;
+extern int16_t MicTrebStep;
+extern int16_t MicVolume;
+extern int16_t MusicBassStep;
+extern int16_t MusicTrebStep;
+extern int16_t MusicVolume;
+extern int16_t ReverbStep;
+
 typedef enum _EFFECT_MODE
 {
 	EFFECT_MODE_DEFAULT = 0,
@@ -320,20 +321,9 @@ void SyncModule_Get(void);
 void SyncModule_Process(void);
 #endif
 
-extern const uint16_t DigVolTab_256[256];
-extern const int16_t DigVolTab_64[64];
 extern const int16_t DigVolTab_32[32];
 extern const int16_t DigVolTab_16[16];
-extern const int16_t BassTrebGainTable[16];
 
-#ifdef CFG_FUNC_MUSIC_EQ_MODE_EN
-extern const unsigned char Flat[];
-extern const unsigned char Classical[];
-extern const unsigned char Pop[];
-extern const unsigned char Rock[];
-extern const unsigned char Jazz[];
-extern const unsigned char Vocal_Booster[];
-#endif
 
 #ifdef  __cplusplus
 }

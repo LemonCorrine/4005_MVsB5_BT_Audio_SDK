@@ -32,8 +32,10 @@
 #define MODE_TASK_PRIO						4
 #define MODE_TASK_STACK_SIZE				768//1024
 
+#define	ALWAY_PLUG_OUT_MODE					(BIT(ModeIdle) | BIT(ModeBtHfPlay))
+
 static SysModeContext SysModeCt = {NULL,NULL};
-static uint32_t sPlugOutMode = BIT(ModeIdle) | BIT(ModeBtHfPlay);
+static uint32_t sPlugOutMode = ALWAY_PLUG_OUT_MODE;
 
 extern void IdlePrevModeSet(SysModeNumber mode);
 extern void IdleModeEnter(void);
@@ -383,7 +385,7 @@ static void SysModeGenerateByPlugEvent(uint16_t Msg)
 				}
 				else
 				{
-					sPlugOutMode |= BIT(mainAppCt.SysCurrentMode);
+					sPlugOutMode |= DeviceEventMsgTableArray[i_count].SupportMode;//BIT(mainAppCt.SysCurrentMode);
 					SysModeEnter(mainAppCt.SysPrevMode);
 				}
 				osMutexUnlock(SysModeMutex);
@@ -554,8 +556,7 @@ static void SysModeDeinit(void)
 			if(sPlugOutMode&(BIT(SysMode[Deinit_count].ModeNumber)))
 			{
 				SysMode[Deinit_count].ModeState = ModeStateSusend;
-				sPlugOutMode &= ~(BIT(SysMode[Deinit_count].ModeNumber));
-				sPlugOutMode = BIT(ModeIdle) | BIT(ModeBtHfPlay);	
+				sPlugOutMode = ALWAY_PLUG_OUT_MODE;
 			}
 			else
 			{

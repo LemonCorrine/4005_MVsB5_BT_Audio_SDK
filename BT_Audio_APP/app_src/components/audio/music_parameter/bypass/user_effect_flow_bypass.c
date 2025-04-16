@@ -98,9 +98,9 @@ char *parameter_group_name_bypass[1] = { "Bypass" };
 const unsigned char user_effect_parameters_bypass_Bypass[] = {
 0x1e, 0x00, /*total data length*/
 
-0x02, 0x26, 0x00, /*Effect Version*/
+0x02, 0x2a, 0x00, /*Effect Version*/
 
-0x02, 0x11, 0x07, /* Roboeffect Version*/
+0x02, 0x16, 0x00, /* Roboeffect Version*/
 
 0x01, 0x00, /*3rd part data total length  */
 0x00, /*number of 3rd part items*/

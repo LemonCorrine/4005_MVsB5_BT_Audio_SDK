@@ -12,6 +12,7 @@
  */
 
 #include <string.h>
+#include <math.h>
 #include "main_task.h"
 #include "otg_device_hcd.h"
 #include "otg_device_standard_request.h"
@@ -93,18 +94,75 @@ bool OTG_DeviceAudioSendPcCmd(uint8_t Cmd)
 	return TRUE;
 }
 //////////////////////////////////////////////////audio core api/////////////////////////////////////////////////////
+
+//音量淡入淡出
+#define MixerFadeVolume(a, b, c)  	\
+    if(a > b + c)		    \
+	{						\
+		a -= c;				\
+	}						\
+	else if(a + c < b)	   	\
+	{						\
+		a += c;				\
+	}						\
+	else					\
+	{						\
+		a = b;				\
+	}
+
+int16_t UsbValToMcuGain(int16_t UsbVal)
+{
+	float Db;
+	Db = (float)UsbVal/256;
+	return (int16_t)roundf(powf(10.0f,(Db/20.0f)) * (1<<12));
+}
+void UsbAudioGainApply(uint8_t *pcm_buf,uint32_t sample,int16_t left_pregain,int16_t rigth_pregain,uint8_t channel)
+{
+	int32_t s;
+	for(s = 0; s<sample; s++)
+	{
+		pcm_int *pcm = (pcm_int *)pcm_buf;
+		if(channel == 2)//立体声
+		{
+			pcm[2 * s + 0] = __nds32__clips(((((gain_int)pcm[2 * s + 0]) * left_pregain + 2048) >> 12), (USB_AUDIO_WIDTH)-1);
+			pcm[2 * s + 1] = __nds32__clips(((((gain_int)pcm[2 * s + 1]) * rigth_pregain + 2048) >> 12), (USB_AUDIO_WIDTH)-1);
+		}
+		else
+		{
+			pcm[s] = __nds32__clips(((((gain_int)pcm[s]) * left_pregain + 2048) >> 12), (USB_AUDIO_WIDTH)-1);
+		}
+	}
+}
+
 //pc->chip 从缓存区获取数据
 uint16_t UsbAudioSpeakerDataGet(void *Buffer, uint16_t Len)
 {
 	uint16_t Length = 0;
-
+	int16_t left_pregain = UsbAudioSpeaker.LeftGain;
+	int16_t rigth_pregain = UsbAudioSpeaker.RightGain;
+	uint8_t channel = UsbAudioSpeaker.Channels;
+	
 	if(!UsbAudioSpeaker.PCMBuffer)
 	{
 		return 0;
 	}
-	Length = Len * sizeof(PCM_DATA_TYPE) * PACKET_CHANNELS_NUM;
+	Length = Len * sizeof(PCM_DATA_TYPE) * channel;
 	Length = MCUCircular_GetData(&UsbAudioSpeaker.CircularBuf, Buffer, Length);
-	return Length / (sizeof(PCM_DATA_TYPE) * PACKET_CHANNELS_NUM);
+
+	Length = Length/(sizeof(PCM_DATA_TYPE)*channel);
+
+#ifdef CFG_RES_AUDIO_USB_VOL_SET_EN
+	if(UsbAudioSpeaker.Mute)
+	{
+		left_pregain = 0;
+		rigth_pregain = 0;
+	}
+	MixerFadeVolume(UsbAudioSpeaker.LeftCurGain,left_pregain,100);
+	MixerFadeVolume(UsbAudioSpeaker.RightCurGain,rigth_pregain,100);
+
+	UsbAudioGainApply(Buffer,Length,UsbAudioSpeaker.LeftCurGain,UsbAudioSpeaker.RightCurGain,channel);
+#endif
+	return Length;
 }
 
 //pc->chip 获取缓存区数据长度
@@ -118,7 +176,7 @@ uint16_t UsbAudioSpeakerDataLenGet(void)
 	}
 	Len = MCUCircular_GetDataLen(&UsbAudioSpeaker.CircularBuf);
 	Len = Len / (sizeof(PCM_DATA_TYPE) * PACKET_CHANNELS_NUM);
-//	printf("Len: %d\r\n",Len);
+//	APP_DBG("Len: %d\r\n",Len);
 	return Len;
 }
 uint16_t UsbAudioSpeakerDepthGet(void)
@@ -126,18 +184,35 @@ uint16_t UsbAudioSpeakerDepthGet(void)
 	uint16_t Len;
 	Len = UsbAudioSpeaker.CircularBuf.BufDepth;
 	Len = Len / (sizeof(PCM_DATA_TYPE) * PACKET_CHANNELS_NUM);
-//	printf(" UsbAudioSpeaker BufDepth: %d\r\n",Len);
+//	APP_DBG(" UsbAudioSpeaker BufDepth: %d\r\n",Len);
 	return Len;
 }
 
 //chip->pc 保存数据到缓存区
 uint16_t UsbAudioMicDataSet(void *Buffer, uint16_t Len)
 {
+	int16_t left_pregain = UsbAudioMic.LeftGain;
+	int16_t rigth_pregain = UsbAudioMic.RightGain;
+	uint8_t channel = UsbAudioMic.Channels;
+
 	if(!UsbAudioMic.PCMBuffer)
 	{
 		return 0;
 	}
-	MCUCircular_PutData(&UsbAudioMic.CircularBuf, Buffer, Len * sizeof(PCM_DATA_TYPE) * UsbAudioMic.Channels);
+
+#ifdef CFG_RES_AUDIO_USB_VOL_SET_EN
+	if(UsbAudioMic.Mute)
+	{
+		left_pregain = 0;
+		rigth_pregain = 0;
+	}
+	MixerFadeVolume(UsbAudioMic.LeftCurGain,left_pregain,100);
+	MixerFadeVolume(UsbAudioMic.RightCurGain,rigth_pregain,100);
+
+	UsbAudioGainApply(Buffer,Len,UsbAudioMic.LeftCurGain,UsbAudioMic.RightCurGain,channel);
+#endif
+
+	MCUCircular_PutData(&UsbAudioMic.CircularBuf, Buffer, Len * sizeof(PCM_DATA_TYPE) * channel);
 	return Len;
 }
 
@@ -160,9 +235,11 @@ uint16_t UsbAudioMicDepthGet(void)
 	uint16_t Len;
 	Len = UsbAudioMic.CircularBuf.BufDepth;
 	Len = Len / (sizeof(PCM_DATA_TYPE) * MIC_CHANNELS_NUM);
-//	printf(" UsbAudioMic BufDepth: %d\r\n",Len);
+//	APP_DBG(" UsbAudioMic BufDepth: %d\r\n",Len);
 	return Len;
 }
+
+
 
 //转采样直接在中断中处理，转采样时间大约是180us。
 //注意一下需要4字节对齐
@@ -171,9 +248,6 @@ void OnDeviceAudioRcvIsoPacket(void)
 #ifdef CFG_OTG_MODE_AUDIO_EN
 	uint32_t Len;
 	int32_t s;
-	int32_t left_pregain = UsbAudioSpeaker.LeftVol;
-	int32_t rigth_pregain = UsbAudioSpeaker.RightVol;
-	uint32_t channel = UsbAudioSpeaker.Channels;
 	uint32_t sample = 0;
 	OTG_DeviceISOReceive(DEVICE_ISO_OUT_EP, (uint8_t*)iso_buf, OUT_PCM_LEN, &Len);
 
@@ -225,26 +299,7 @@ void OnDeviceAudioRcvIsoPacket(void)
 		}
 #endif
 	}
-#ifdef CFG_RES_AUDIO_USB_VOL_SET_EN
-	if(UsbAudioSpeaker.Mute)
-	{
-		left_pregain = 0;
-		rigth_pregain = 0;
-	}
-	for(s = 0; s<sample/channel; s++)
-	{
-		pcm_int *pcm = (pcm_int *)iso_buf;
-		if(channel == 2)//立体声
-		{
-			pcm[2 * s + 0] = __nds32__clips(((((gain_int)pcm[2 * s + 0]) * left_pregain + 2048) >> 12), (USB_AUDIO_WIDTH)-1);
-			pcm[2 * s + 1] = __nds32__clips(((((gain_int)pcm[2 * s + 1]) * rigth_pregain + 2048) >> 12), (USB_AUDIO_WIDTH)-1);
-		}
-		else
-		{
-			pcm[s] = __nds32__clips(((((gain_int)pcm[s]) * left_pregain + 2048) >> 12), (USB_AUDIO_WIDTH)-1);
-		}
-	}
-#endif
+
 	if(UsbAudioSpeaker.PCMBuffer == NULL)
 	{
 		return;
@@ -258,11 +313,8 @@ void OnDeviceAudioSendIsoPacket(void)
 {
 #ifdef CFG_OTG_MODE_MIC_EN
 	int32_t s;
-	int32_t left_pregain = UsbAudioMic.LeftVol;
-	int32_t rigth_pregain = UsbAudioMic.RightVol;
-	uint32_t channel = UsbAudioMic.Channels;
 	uint32_t RealLen = 0;
-
+	uint8_t channel = UsbAudioMic.Channels;
 	UsbAudioMic.FramCount++;
 
 	RealLen = UsbAudioMic.AudioSampleRate/1000;
@@ -273,11 +325,11 @@ void OnDeviceAudioSendIsoPacket(void)
 		RealLen += 1;
 	}
 
-	if(UsbAudioMic.FramCount < (UsbAudioMic.AudioSampleRate/AudioCoreMixSampleRateGet(DefaultNet))*10)
+/*	if(UsbAudioMic.FramCount < (UsbAudioMic.AudioSampleRate/AudioCoreMixSampleRateGet(DefaultNet))*10)
 	{
 		memset(iso_buf,0,RealLen*sizeof(PCM_DATA_TYPE)*channel);
 	}
-	else if(UsbAudioMic.PCMBuffer != NULL)
+	else */if(UsbAudioMic.PCMBuffer != NULL)
 	{
 		if(MCUCircular_GetDataLen(&UsbAudioMic.CircularBuf) < RealLen*sizeof(PCM_DATA_TYPE)*channel)
 		{
@@ -288,27 +340,6 @@ void OnDeviceAudioSendIsoPacket(void)
 			MCUCircular_GetData(&UsbAudioMic.CircularBuf, iso_buf,RealLen*sizeof(PCM_DATA_TYPE)*channel);
 		}
 	}
-
-#ifdef CFG_RES_AUDIO_USB_VOL_SET_EN
-	if(UsbAudioMic.Mute)
-	{
-		left_pregain = 0;
-		rigth_pregain = 0;
-	}
-	for(s = 0; s<RealLen; s++)
-	{
-		pcm_int *pcm = (pcm_int *)iso_buf;
-		if(channel == 2)//立体声
-		{
-			pcm[2 * s + 0] = __nds32__clips(((((gain_int)pcm[2 * s + 0]) * left_pregain + 2048) >> 12), (USB_AUDIO_WIDTH)-1);
-			pcm[2 * s + 1] = __nds32__clips(((((gain_int)pcm[2 * s + 1]) * rigth_pregain + 2048) >> 12), (USB_AUDIO_WIDTH)-1);
-		}
-		else
-		{
-			pcm[s] = __nds32__clips(((((gain_int)pcm[s]) * left_pregain + 2048) >> 12), (USB_AUDIO_WIDTH)-1);
-		}
-	}
-#endif
 
 	if(UsbAudioMic.ByteSet == PCM16BIT)
 	{
@@ -384,7 +415,7 @@ void OTG_DeviceAudioRequest(void)
 			if(UsbAudioMic.AudioSampleRate != SWAP_BUF_TO_U32(Request))
 			{
 				UsbAudioMic.AudioSampleRate = SWAP_BUF_TO_U32(Request);
-				printf("UsbAudioMic.AudioSampleRate:%u\n",(unsigned int)UsbAudioMic.AudioSampleRate);
+				APP_DBG("UsbAudioMic.AudioSampleRate:%u\n",(unsigned int)UsbAudioMic.AudioSampleRate);
 				AudioCoreSinkChange(USB_AUDIO_SINK_NUM, UsbAudioMic.Channels, UsbAudioMic.AudioSampleRate);
 			}
 		}
@@ -393,7 +424,7 @@ void OTG_DeviceAudioRequest(void)
 			if(UsbAudioSpeaker.AudioSampleRate != SWAP_BUF_TO_U32(Request))
 			{
 				UsbAudioSpeaker.AudioSampleRate = SWAP_BUF_TO_U32(Request);
-				printf("UsbAudioSpeaker.AudioSampleRate:%u\n",(unsigned int)UsbAudioSpeaker.AudioSampleRate);
+				APP_DBG("UsbAudioSpeaker.AudioSampleRate:%u\n",(unsigned int)UsbAudioSpeaker.AudioSampleRate);
 			#ifdef CFG_AUDIO_OUT_AUTO_SAMPLE_RATE_44100_48000
 				 AudioOutSampleRateSet(UsbAudioSpeaker.AudioSampleRate);
 			#endif
@@ -458,7 +489,7 @@ void OTG_DeviceAudioRequest(void)
 		}
 		else if(AudioCmd == GET_CUR)
 		{
-			uint32_t Vol = 0;
+			int16_t Vol = 0;
 			if(Channel == 0x01)
 			{
 				Vol = UsbAudioSpeaker.LeftVol;//UsbAudioSpeaker.FuncLeftVolGet();
@@ -471,15 +502,17 @@ void OTG_DeviceAudioRequest(void)
 		}
 		else if(AudioCmd == SET_CUR)
 		{
-			uint32_t Temp = 0;
+			int16_t Temp = 0;
 			Temp = Request[1]* 256 + Request[0];
 			if(Setup[2] == 0x01)
 			{
 				UsbAudioSpeaker.LeftVol = Temp;
+				UsbAudioSpeaker.LeftGain = UsbValToMcuGain(Temp);
 			}
 			else
 			{
 				UsbAudioSpeaker.RightVol = Temp;
+				UsbAudioSpeaker.RightGain = UsbValToMcuGain(Temp);
 			}
 		}
 		else
@@ -522,27 +555,29 @@ void OTG_DeviceAudioRequest(void)
 		}
 		else if(AudioCmd == GET_CUR)
 		{
-			uint32_t Vol = 0;
+			int16_t Temp = 0;
 			if(Channel == 0x01)
 			{
-				Vol = UsbAudioMic.LeftVol;
+				Temp = UsbAudioMic.LeftVol;
 			}
 			else
 			{
-				Vol = UsbAudioMic.RightVol;
+				Temp = UsbAudioMic.RightVol;
 			}
-			OTG_DeviceSendResp(Vol, 2);
+			OTG_DeviceSendResp(Temp, 2);
 		}
 		else if(AudioCmd == SET_CUR)
 		{
-			uint32_t Vol = Request[1] * 256 + Request[0];
+			int16_t Temp = Request[1] * 256 + Request[0];
 			if(Setup[2] == 0x01)
 			{
-				UsbAudioMic.LeftVol = Vol;
+				UsbAudioMic.LeftVol = Temp;
+				UsbAudioMic.LeftGain = UsbValToMcuGain(Temp);
 			}
 			else
 			{
-				UsbAudioMic.RightVol = Vol;
+				UsbAudioMic.RightVol = Temp;
+				UsbAudioMic.RightGain = UsbValToMcuGain(Temp);
 			}
 		}
 		else
@@ -648,17 +683,17 @@ void OTG_DeviceAudioRequest(void)
 			}
 			else if(AudioCmd == SET_CUR)
 			{
-				uint32_t Temp = 0;
+				uint16_t Temp = 0;
 				Temp = Request[1]* 256 + Request[0];
 				if(Setup[2] == 0x01)
 				{
-//					UsbAudioSpeaker.LeftVol = Temp&0x7fff;
 					UsbAudioSpeaker.LeftVol = Temp;
+					UsbAudioSpeaker.LeftGain = UsbValToMcuGain(Temp);
 				}
 				else
 				{
-//					UsbAudioSpeaker.RightVol = Temp&0x7fff;
 					UsbAudioSpeaker.RightVol = Temp;
+					UsbAudioSpeaker.RightGain = UsbValToMcuGain(Temp);
 				}
 			}
 		}
@@ -704,27 +739,27 @@ void OTG_DeviceAudioRequest(void)
 				int16_t Vol = 0;
 				if(Channel == 0x01)
 				{
-					Vol = UsbAudioMic.LeftVol;//UsbAudioSpeaker.FuncLeftVolGet();
+					Vol = UsbAudioMic.LeftVol;
 				}
 				else
 				{
-					Vol = UsbAudioMic.RightVol;//UsbAudioSpeaker.FuncRightVolGet();
+					Vol = UsbAudioMic.RightVol;
 				}
 				OTG_DeviceSendResp(Vol, 2);
 			}
 			else if(AudioCmd == SET_CUR)
 			{
-				uint32_t Temp = 0;
+				int16_t Temp = 0;
 				Temp = Request[1]* 256 + Request[0];
 				if(Setup[2] == 0x01)
 				{
-//					UsbAudioMic.LeftVol = Temp&0x7fff;
 					UsbAudioMic.LeftVol = Temp;
+					UsbAudioMic.LeftGain = UsbValToMcuGain(Temp);
 				}
 				else
 				{
-//					UsbAudioMic.RightVol = Temp&0x7fff;
 					UsbAudioMic.RightVol = Temp;
+					UsbAudioMic.RightGain = UsbValToMcuGain(Temp);
 				}
 			}
 		}

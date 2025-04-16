@@ -4,7 +4,7 @@
  * @brief	Plate class reverberation effect for both 16 bit & 24 bit.
  *
  * @author	ZHAO Ying (Alfred)
- * @version	v2.3.0
+ * @version	v2.3.1
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************

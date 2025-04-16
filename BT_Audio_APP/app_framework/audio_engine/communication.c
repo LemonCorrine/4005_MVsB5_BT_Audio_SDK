@@ -44,6 +44,12 @@ extern uint32_t SysemMipsPercent;
 extern int16_t cpu_core_clk;
 extern uint16_t sizeof_effect_property_for_display(void);
 
+extern uint8_t GetEffectModeParaCount(void);
+extern uint8_t GetCurSameEffectModeID(uint8_t index);
+extern AUDIOEFFECT_EFFECT_PARA * GetCurSameEffectModeAudioPara(uint8_t index);
+extern uint8_t GetCurEffectModeNum(void);
+extern void AudioEffect_effect_enable(uint8_t effect_addr, uint8_t enable);
+
 static const uint32_t SupportSampleRateList[]={
 	8000,
 	11025,
@@ -172,30 +178,15 @@ bool roboeffect_effect_update_params_entrance(uint8_t addr, uint8_t *buf, uint32
 			}
 			if (addr == AudioEffect.effect_count || AudioEffect.reinit_done)
 			{
-                AudioEffect.effect_addr = addr;
-                AudioEffect.effect_enable = enable;
                 AudioEffect.reinit_done = 0;
-				MessageContext msgSend;
-				msgSend.msgId = MSG_EFFECTREINIT;
-				MessageSend(GetMainMessageHandle(), &msgSend);
+				AudioEffect_effect_enable(addr,enable);
 			}
-
-//            roboeffect_set_effect_parameter(AudioEffect.context_memory, addr, 0xff, params);
-//            roboeffect_enable_effect(AudioEffect.context_memory, addr, enable);
         }
         else//one parameter
         {
             if(buf[0] == 0)//only enable/disable
             {
-				int16_t enable = buf[1];//[1] is enable/disable
-
-//                roboeffect_enable_effect(AudioEffect.context_memory, addr, enable);
-                AudioEffect.effect_addr = addr;
-                AudioEffect.effect_enable = enable;
-
-                MessageContext msgSend;
-                msgSend.msgId = MSG_EFFECTREINIT;
-                MessageSend(GetMainMessageHandle(), &msgSend);
+            	AudioEffect_effect_enable(addr,buf[1]);
             }
             else//other parameter, only one parameter configurated
             {
@@ -363,12 +354,11 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 	}
 	else if (buf[0] == V3_PACKAGE_TYPE_EFFECT_NAME)
 	{
-		extern AUDIOEFFECT_EFFECT_PARA_TABLE * GetCurEffectParaMode(void);
-		AUDIOEFFECT_EFFECT_PARA_TABLE *param_t = GetCurEffectParaMode();
 		uint8_t index,len = 0;
-		for (index = param_t->effect_id; index < (param_t->effect_id + param_t->effect_id_count); index++)
+		AUDIOEFFECT_EFFECT_PARA *para;
+		for (index = 0; index < GetEffectModeParaCount(); index++)
 		{
-			AUDIOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(index);
+			para = GetCurSameEffectModeAudioPara(index);
 			memcpy(&tx_buf[7 + len + 1], para->user_effect_name, strlen((char *)para->user_effect_name));
 			len += strlen((char *)para->user_effect_name);
 //			APP_DBG("effect_name:%s, len:%d\n", para->user_effect_name, len);
@@ -394,8 +384,6 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 	}
 	else if (buf[0] == V3_PACKAGE_TYPE_EFFECT_ID)
 	{
-		extern AUDIOEFFECT_EFFECT_PARA_TABLE * GetCurEffectParaMode(void);
-		AUDIOEFFECT_EFFECT_PARA_TABLE *param_t = GetCurEffectParaMode();
 		temp[0] = 0xA5;
 		temp[1] = 0x5A;
 		temp[2] = 0x80;
@@ -406,7 +394,7 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 		temp[7] = V3_PACKAGE_TYPE_EFFECT_ID;//type
 
 		temp[8] = 0x0;//reserved
-		temp[9] = mainAppCt.EffectMode - param_t->effect_id;
+		temp[9] = GetCurEffectModeNum();
 //		APP_DBG("effect mode: %d\n", temp[9]);
 
 		temp[10] = 0x01;//EOM
@@ -1180,7 +1168,6 @@ void Communication_Effect_0x0B(uint8_t *buf, uint32_t len)//I2S0
 	uint16_t i,k;
 	if(len == 0) //ask
 	{
-		uint32_t Sample = I2S_SampleRateGet(I2S0_MODULE);
 		memset(tx_buf, 0, sizeof(tx_buf));
 #if defined(CFG_APP_I2SIN_MODE_EN) || defined(CFG_RES_AUDIO_I2SOUT_EN) || defined(CFG_RES_AUDIO_I2S_MIX_IN_EN) || defined(CFG_RES_AUDIO_I2S_MIX_OUT_EN)
 		tx_buf[0]  = 0xa5;
@@ -1198,17 +1185,16 @@ void Communication_Effect_0x0B(uint8_t *buf, uint32_t len)//I2S0
 #else
 		tx_buf[7] = 0;
 #endif
-		tx_buf[9]  = (Sample >> 8) & 0xff;
-		tx_buf[10] = (Sample) & 0xff;
-		tx_buf[12] = (gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source) & 0xff;
-		tx_buf[14] = (AudioI2S_MasterModeGet(I2S0_MODULE)) & 0xff;
-		tx_buf[16] = 2;
-//		tx_buf[18] = 0;
-//		tx_buf[20] = 0;
-		tx_buf[22] = 2;
+		tx_buf[9] = comm_ret_sample_rate_enum(I2S_SampleRateGet(I2S0_MODULE));
+		tx_buf[11] = gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source;
+		tx_buf[13] = AudioI2S_MasterModeGet(I2S0_MODULE);
+		tx_buf[15] = I2S_WordlengthGet(I2S0_MODULE);
+		tx_buf[17] = 0;
+		tx_buf[19] = 90;
+		tx_buf[21] = 1;
 		tx_buf[27] = 0x16;
 #endif
-		Communication_Effect_Send(tx_buf,28);
+		Communication_Effect_Send(tx_buf, tx_buf[3] + 5);
 	}
 	else
 	{
@@ -1254,7 +1240,6 @@ void Communication_Effect_0x0C(uint8_t *buf, uint32_t len)//I2S1
 	uint16_t i,k;
 	if(len == 0) //ask
 	{
-		uint32_t Sample = I2S_SampleRateGet(I2S1_MODULE);
 		memset(tx_buf, 0, sizeof(tx_buf));
 #if defined(CFG_APP_I2SIN_MODE_EN) || defined(CFG_RES_AUDIO_I2SOUT_EN) || defined(CFG_RES_AUDIO_I2S_MIX_IN_EN) || defined(CFG_RES_AUDIO_I2S_MIX_OUT_EN)
 		tx_buf[0]  = 0xa5;
@@ -1272,17 +1257,16 @@ void Communication_Effect_0x0C(uint8_t *buf, uint32_t len)//I2S1
 #else
 		tx_buf[7] = 0;
 #endif
-		tx_buf[9]  = (Sample >> 8) & 0xff;
-		tx_buf[10] = (Sample) & 0xff;
-		tx_buf[12] = (gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source) & 0xff;
-		tx_buf[14] = (AudioI2S_MasterModeGet(I2S1_MODULE)) & 0xff;
-		tx_buf[16] = 2;
-//		tx_buf[18] = 0;
-//		tx_buf[20] = 0;
-		tx_buf[22] = 2;
+		tx_buf[9] = comm_ret_sample_rate_enum(I2S_SampleRateGet(I2S1_MODULE));
+		tx_buf[11] = gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source;
+		tx_buf[13] = AudioI2S_MasterModeGet(I2S1_MODULE);
+		tx_buf[15] = I2S_WordlengthGet(I2S1_MODULE);
+		tx_buf[17] = 0;
+		tx_buf[19] = 90;
+		tx_buf[21] = 2;
 		tx_buf[27] = 0x16;
 #endif
-		Communication_Effect_Send(tx_buf,28);
+		Communication_Effect_Send(tx_buf, tx_buf[3] + 5);
 	}
 	else
 	{
@@ -1352,10 +1336,8 @@ void Communication_Effect_0x80(uint8_t *buf, uint32_t len)
 	{
 		if (buf[0] == V3_PACKAGE_TYPE_EFFECT_ID)
 		{
-			extern AUDIOEFFECT_EFFECT_PARA_TABLE * GetCurEffectParaMode(void);
-			AUDIOEFFECT_EFFECT_PARA_TABLE *param_t = GetCurEffectParaMode();
-			AudioEffect.effect_mode_expected = buf[1] + param_t->effect_id;
-			APP_DBG("mode change:%d\n", AudioEffect.effect_mode_expected);
+			AudioEffect.effect_mode_expected = GetCurSameEffectModeID(buf[1]);
+//			APP_DBG("mode change:%d\n", AudioEffect.effect_mode_expected);
 			MessageContext msgSend;
 			msgSend.msgId = MSG_EFFECTMODE;
 			MessageSend(GetMainMessageHandle(), &msgSend);
@@ -1409,13 +1391,13 @@ void Communication_Effect_0xfc(uint8_t *buf, uint8_t len)//user define tag
 #ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
 		if(AudioEffect.EffectFlashUseFlag)
 		{
-			strcpy(temp,EFFECT_FLASH_MODE_NAME);
-			strcat(temp,AudioEffect.cur_effect_para->user_effect_name);
+			strcpy((char *)temp,(char *)EFFECT_FLASH_MODE_NAME);
+			strcat((char *)temp,(char *)AudioEffect.cur_effect_para->user_effect_name);
 		}
 		else
 #endif
 		{
-			strcpy(temp,AudioEffect.cur_effect_para->user_effect_name);
+			strcpy((char *)temp,(char *)AudioEffect.cur_effect_para->user_effect_name);
 		}
 
 		tx_buf[3]  = strlen((char *)temp);//len

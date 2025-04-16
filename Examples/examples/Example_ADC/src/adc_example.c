@@ -217,7 +217,7 @@ int main(void)
     Clock_UARTClkSelect(PLL_CLK_MODE);
     Clock_HOSCCurrentSet(5);
 
-	Clock_Timer3ClkSelect(SYSTEM_CLK_MODE);
+//	Clock_Timer3ClkSelect(SYSTEM_CLK_MODE);
 
     GPIO_PortAModeSet(GPIOA9, 1);  // Rx, A9:uart1_rxd_1
     GPIO_PortAModeSet(GPIOA10, 5); // Tx, A10:uart1_txd_1

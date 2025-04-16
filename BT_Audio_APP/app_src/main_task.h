@@ -73,6 +73,15 @@ typedef struct _MainAppContext
 	uint32_t			I2S_MIX_RX_FIFO_LEN;
 #endif
 
+#ifdef CFG_RES_AUDIO_I2S_MIX2_OUT_EN
+	uint32_t			*I2S_MIX2_TX_FIFO;
+	uint32_t			I2S_MIX2_TX_FIFO_LEN;
+#endif
+#ifdef CFG_RES_AUDIO_I2S_MIX2_IN_EN
+	uint32_t			*I2S_MIX2_RX_FIFO;
+	uint32_t			I2S_MIX2_RX_FIFO_LEN;
+#endif
+
 
 #ifdef CFG_RES_AUDIO_SPDIFOUT_EN
 	uint32_t			*SPDIF_OUT_FIFO;
@@ -95,43 +104,14 @@ typedef struct _MainAppContext
 	#endif
 #endif
 	SysVolContext		gSysVol;
-    uint8_t     MusicVolume;
 #ifdef CFG_APP_BT_MODE_EN
     uint8_t     HfVolume;
 #endif
 	uint8_t     EffectMode;
-    uint8_t     MicVolume;
-	uint8_t     MicVolumeBak;
-#ifdef CFG_FUNC_MUSIC_EQ_MODE_EN
-	uint8_t     EqMode;
-	#ifdef CFG_FUNC_EQMODE_FADIN_FADOUT_EN   
-    uint8_t     EqModeBak;
-	uint8_t     EqModeFadeIn;
-	uint8_t     eqSwitchFlag;
-	#endif
-#endif
 
-#ifdef CFG_FUNC_MIC_AUTOTUNE_STEP_EN
-	uint8_t 	MicAutoTuneStep;
-	uint8_t 	MicAutoTuneStepBak;
-#endif
-
-    uint8_t  	ReverbStep;
-	uint8_t		MicEffectDelayStep;
-    uint8_t  	ReverbStepBak;
-	uint8_t		MicEffectDelayStepBak;
-#ifdef CFG_FUNC_MIC_TREB_BASS_EN
-	uint8_t 	MicBassStep;
-    uint8_t 	MicTrebStep;
-#endif
-#ifdef CFG_FUNC_MUSIC_TREB_BASS_EN	
-	uint8_t 	MusicBassStep;
-    uint8_t 	MusicTrebStep;
-#endif
 #ifdef CFG_FUNC_SHUNNING_EN
 	uint8_t             ShunningMode;
 	uint32_t            aux_out_dyn_gain;
-	uint32_t            remind_out_dyn_gain;
 #endif
 
 #ifdef CFG_FUNC_SILENCE_AUTO_POWER_OFF_EN

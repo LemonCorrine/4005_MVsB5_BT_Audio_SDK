@@ -21,6 +21,8 @@
 #define CFG_CHIP_BP1532E1		15
 #define CFG_CHIP_BP1552A2		16
 #define CFG_CHIP_BP1552D2		17
+#define CFG_CHIP_BP1532F1		18
+#define CFG_CHIP_BP1532F2		19
 //****************************************************************************************
 //       芯片型号选择配置
 // 不同的封装的电源配置/蓝牙模拟参数等可能会不一样
@@ -106,6 +108,20 @@
 	#define	CHIP_LINEIN_CHANNEL				ANA_INPUT_CH_LINEIN2
 	#define	CHIP_USE_DCDC
 	#define	CHIP_BT_DISABLE											//无蓝牙功能
+#elif (CFG_CHIP_SEL == CFG_CHIP_BP1532F1)
+    #define CHIP_FLASH_CAPACTITY			8
+	#define	CHIP_LINEIN_CHANNEL				ANA_INPUT_CH_LINEIN2
+	#define	CHIP_DAC_USE_DIFF										//DAC使用差分输出
+	//PVDD板子上连接了DVDD16需要打开CHIP_DAC_USE_PVDD16,如果连接了DVDD33则关闭该宏
+	#define	CHIP_DAC_USE_PVDD16										//DAC使用PVDD16
+	#define	CHIP_USE_DCDC											//使用DCDC
+#elif (CFG_CHIP_SEL == CFG_CHIP_BP1532F2)
+    #define CHIP_FLASH_CAPACTITY			16
+	#define	CHIP_LINEIN_CHANNEL				ANA_INPUT_CH_LINEIN2
+	#define	CHIP_DAC_USE_DIFF										//DAC使用差分输出
+	//PVDD板子上连接了DVDD16需要打开CHIP_DAC_USE_PVDD16,如果连接了DVDD33则关闭该宏
+	#define	CHIP_DAC_USE_PVDD16										//DAC使用PVDD16
+	#define	CHIP_USE_DCDC
 #else
     #define CHIP_FLASH_CAPACTITY			16
 	#define	CHIP_LINEIN_CHANNEL				ANA_INPUT_CH_LINEIN1

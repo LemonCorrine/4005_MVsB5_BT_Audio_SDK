@@ -56,7 +56,7 @@ extern void Set_Current_SCO_ID(uint32_t ID);
  *************************************************************************************/
 void EnterBtHfModeReady(uint8_t index)
 {
-	printf("EnterBtHfModeReady\n");
+	APP_DBG("EnterBtHfModeReady\n");
 #if (BT_LINK_DEV_NUM == 2)
 	uint8_t otherIndex;
 	otherIndex = (index == 0)? 1 : 0;
@@ -278,14 +278,14 @@ void BtHfpDisconnectedDev(BT_HFP_CALLBACK_PARAMS * param)
 			if((GetA2dpState(ConnectIndex) >= BT_A2DP_STATE_CONNECTED)&&(GetAvrcpState(ConnectIndex) >= BT_AVRCP_STATE_CONNECTED))
 			{
 				BtReconnectDevStop();
-				printf("============ hfp cannot connect, stop..\n");
+				APP_DBG("============ hfp cannot connect, stop..\n");
 				return;
 			}
 		}
 			
 		BtReconProfilePrioRegister(BT_PROFILE_SUPPORTED_A2DP|BT_PROFILE_SUPPORTED_AVRCP);
 		BtReconnectDevAgain(1000);
-		printf("============ delay 1000ms, reconnect a2dp+avrcp\n");
+		APP_DBG("============ delay 1000ms, reconnect a2dp+avrcp\n");
 	}
 }
 
@@ -310,7 +310,7 @@ void BtHfpScoLinkConnected(BT_HFP_CALLBACK_PARAMS * param)
 	{
 		//当前的index非活跃的index,并且活跃index已经切换到私密接听,则能动态切换index
 		btManager.HfpCurIndex = param->index;
-		printf("HfpCurIndex update -> %d\n", btManager.HfpCurIndex);
+		APP_DBG("HfpCurIndex update -> %d\n", btManager.HfpCurIndex);
 		SetHfpState(btManager.HfpCurIndex, BT_HFP_STATE_ACTIVE);
 		FirstTalkingPhoneIndexSet(btManager.HfpCurIndex);
 	
@@ -907,7 +907,7 @@ void BtHfpSingleCallingStateSet(uint8_t curIndex, uint8_t state)
 	{
 		if(GetHfpState(curIndex) != BT_HFP_STATE_OUTGOING)
 		{
-			printf("-----> %x -> signal outgoing\n", GetHfpState(curIndex));
+			APP_DBG("-----> %x -> signal outgoing\n", GetHfpState(curIndex));
 			SetHfpState(curIndex, BT_HFP_STATE_OUTGOING);
 		}
 	}
@@ -915,7 +915,7 @@ void BtHfpSingleCallingStateSet(uint8_t curIndex, uint8_t state)
 	{
 		if(GetHfpState(curIndex) != BT_HFP_STATE_INCOMING)
 		{
-			printf("-----> %x -> signal incoming\n", GetHfpState(curIndex));
+			APP_DBG("-----> %x -> signal incoming\n", GetHfpState(curIndex));
 			SetHfpState(curIndex, BT_HFP_STATE_INCOMING);
 			BtHfModeEnter_Index(curIndex);
 		}
@@ -924,7 +924,7 @@ void BtHfpSingleCallingStateSet(uint8_t curIndex, uint8_t state)
 	{
 		if(GetHfpState(curIndex) != BT_HFP_STATE_ACTIVE)
 		{
-			printf("-----> %x -> signal active\n", GetHfpState(curIndex));
+			APP_DBG("-----> %x -> signal active\n", GetHfpState(curIndex));
 			SetHfpState(curIndex, BT_HFP_STATE_ACTIVE);
 		}
 	}
@@ -939,7 +939,7 @@ void BtHfp3WayCallingStateSet(uint8_t curIndex)
 		{
 			if(GetHfpState(curIndex) != BT_HFP_STATE_3WAY_OUTGOING_CALL)
 			{
-				printf("-----> signal active -> 3way outgoing\n");
+				APP_DBG("-----> signal active -> 3way outgoing\n");
 				SetHfpState(curIndex, BT_HFP_STATE_3WAY_OUTGOING_CALL);
 			}
 		}
@@ -948,7 +948,7 @@ void BtHfp3WayCallingStateSet(uint8_t curIndex)
 		{
 			if(GetHfpState(curIndex) != BT_HFP_STATE_3WAY_INCOMING_CALL)
 			{
-				printf("-----> signal active -> 3way incoming\n");
+				APP_DBG("-----> signal active -> 3way incoming\n");
 				SetHfpState(curIndex, BT_HFP_STATE_3WAY_INCOMING_CALL);
 			}
 		}
@@ -956,7 +956,7 @@ void BtHfp3WayCallingStateSet(uint8_t curIndex)
 		{
 			if(GetHfpState(curIndex) != BT_HFP_STATE_3WAY_ATCTIVE_CALL)
 			{
-				printf("-----> signal active -> 3way active\n");
+				APP_DBG("-----> signal active -> 3way active\n");
 				SetHfpState(curIndex, BT_HFP_STATE_3WAY_ATCTIVE_CALL);
 			}
 		}

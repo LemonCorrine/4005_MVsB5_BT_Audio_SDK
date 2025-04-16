@@ -243,14 +243,20 @@ bool AudioCoreSourceInit(AudioCoreIO * AudioIO, uint8_t Index)
 	Source->BitWidth = AudioIO->IOBitWidth;
 	Source->BitWidthConvFlag = AudioIO->IOBitWidthConvFlag;
 #endif
+	Source->PcmBufFlag = 0;
 	switch(AudioIO->Adapt)
 	{
 		case	STD:
 			Source->PcmInBuf = roboeffect_get_source_buffer(AudioEffect.context_memory, AudioCoreSourceToRoboeffect(Index));
 			if(Source->PcmInBuf == NULL)
 			{
-				DBG("PcmInBuf NULL error!\n");
-				return FALSE;
+				Source->PcmInBuf = (PCM_DATA_TYPE *)osPortMalloc(SOURCEFRAME(Index) * sizeof(PCM_DATA_TYPE) * 2);
+				if(Source->PcmInBuf == NULL)
+				{
+					DBG("PcmInBuf NULL error!\n");
+					return FALSE;
+				}
+				Source->PcmBufFlag = 1;
 			}
 			Source->AdaptBuf = NULL;
 			Source->AdjAdapter = NULL;
@@ -275,8 +281,14 @@ bool AudioCoreSourceInit(AudioCoreIO * AudioIO, uint8_t Index)
 			Source->PcmInBuf = roboeffect_get_source_buffer(AudioEffect.context_memory, AudioCoreSourceToRoboeffect(Index));
 			if(Source->PcmInBuf == NULL)
 			{
-				DBG("PcmInBuf NULL error!\n");
-				return FALSE;
+				Source->PcmInBuf = (PCM_DATA_TYPE *)osPortMalloc(SOURCEFRAME(Index) * sizeof(PCM_DATA_TYPE) * 2);
+				if(Source->PcmInBuf == NULL)
+				{
+					DBG("PcmInBuf NULL error!\n");
+					osPortFree(AdaptBuf);
+					return FALSE;
+				}
+				Source->PcmBufFlag = 1;
 			}
 			SrcAdapter = (SRC_ADAPTER *)osPortMalloc(sizeof(SRC_ADAPTER));
 			if(SrcAdapter == NULL)
@@ -315,7 +327,17 @@ bool AudioCoreSourceInit(AudioCoreIO * AudioIO, uint8_t Index)
 			}
 			memset(AdaptBuf, 0, UsedSize);
 			Source->PcmInBuf = roboeffect_get_source_buffer(AudioEffect.context_memory, AudioCoreSourceToRoboeffect(Index));
-
+			if(Source->PcmInBuf == NULL)
+			{
+				Source->PcmInBuf = (PCM_DATA_TYPE *)osPortMalloc(SOURCEFRAME(Index) * sizeof(PCM_DATA_TYPE) * 2);
+				if(Source->PcmInBuf == NULL)
+				{
+					DBG("PcmInBuf NULL error!\n");
+					osPortFree(AdaptBuf);
+					return FALSE;
+				}
+				Source->PcmBufFlag = 1;
+			}
 			AdjAdapter = (SRA_ADAPTER *)osPortMalloc(sizeof(SRA_ADAPTER));
 			if(AdjAdapter == NULL)
 			{
@@ -340,6 +362,16 @@ bool AudioCoreSourceInit(AudioCoreIO * AudioIO, uint8_t Index)
 		{
 			CLK_ADJUST_ADAPTER *AdjAdapter;
 			Source->PcmInBuf = roboeffect_get_source_buffer(AudioEffect.context_memory, AudioCoreSourceToRoboeffect(Index));
+			if(Source->PcmInBuf == NULL)
+			{
+				Source->PcmInBuf = (PCM_DATA_TYPE *)osPortMalloc(SOURCEFRAME(Index) * sizeof(PCM_DATA_TYPE) * 2);
+				if(Source->PcmInBuf == NULL)
+				{
+					DBG("PcmInBuf NULL error!\n");
+					return FALSE;
+				}
+				Source->PcmBufFlag = 1;
+			}
 			if(Source->PcmInBuf  == NULL
 #ifdef AUDIO_CORE_DEBUG
 					|| AudioIO->HighLevelCent == 0
@@ -387,7 +419,17 @@ bool AudioCoreSourceInit(AudioCoreIO * AudioIO, uint8_t Index)
 			}
 			memset(AdaptBuf, 0, UsedSize);
 			Source->PcmInBuf = roboeffect_get_source_buffer(AudioEffect.context_memory, AudioCoreSourceToRoboeffect(Index));
-
+			if(Source->PcmInBuf == NULL)
+			{
+				Source->PcmInBuf = (PCM_DATA_TYPE *)osPortMalloc(SOURCEFRAME(Index) * sizeof(PCM_DATA_TYPE) * 2);
+				if(Source->PcmInBuf == NULL)
+				{
+					DBG("PcmInBuf NULL error!\n");
+					osPortFree(AdaptBuf);
+					return FALSE;
+				}
+				Source->PcmBufFlag = 1;
+			}
 			Source->AdjAdapter = osPortMalloc(sizeof(SRA_ADAPTER) + sizeof(SRC_ADAPTER));
 			if(Source->AdjAdapter == NULL)
 			{
@@ -439,7 +481,17 @@ bool AudioCoreSourceInit(AudioCoreIO * AudioIO, uint8_t Index)
 			}
 			memset(AdaptBuf, 0, UsedSize);
 			Source->PcmInBuf = roboeffect_get_source_buffer(AudioEffect.context_memory, AudioCoreSourceToRoboeffect(Index));
-
+			if(Source->PcmInBuf == NULL)
+			{
+				Source->PcmInBuf = (PCM_DATA_TYPE *)osPortMalloc(SOURCEFRAME(Index) * sizeof(PCM_DATA_TYPE) * 2);
+				if(Source->PcmInBuf == NULL)
+				{
+					DBG("PcmInBuf NULL error!\n");
+					osPortFree(AdaptBuf);
+					return FALSE;
+				}
+				Source->PcmBufFlag = 1;
+			}
 			Source->AdjAdapter = osPortMalloc(sizeof(CLK_ADJUST_ADAPTER) + sizeof(SRC_ADAPTER));
 			if(Source->AdjAdapter == NULL)
 			{
@@ -466,6 +518,7 @@ bool AudioCoreSourceInit(AudioCoreIO * AudioIO, uint8_t Index)
 			break;
 		}
 	}
+	Source->InitFlag = TRUE;
 	return TRUE;
 }
 
@@ -481,7 +534,9 @@ void AudioCoreSourceDeinit(uint8_t Index)
 	SOURCE_BIT_DIS(AudioCore.FrameReady, Index);
 	Source->DataGetFunc = NULL;
 	Source->DataLenFunc = NULL;
-//	osPortFree(Source->PcmInBuf);
+	if(Source->PcmBufFlag)
+		osPortFree(Source->PcmInBuf);
+	Source->PcmBufFlag = 0;
 	Source->PcmInBuf = NULL;
 	switch(Source->Adapt)
 	{
@@ -512,6 +567,7 @@ void AudioCoreSourceDeinit(uint8_t Index)
 		default:
 			break;
 	}
+	Source->InitFlag = FALSE;
 }
 
 bool AudioCoreSinkInit(AudioCoreIO * AudioIO, uint8_t Index)
@@ -545,13 +601,19 @@ bool AudioCoreSinkInit(AudioCoreIO * AudioIO, uint8_t Index)
 	Sink->BitWidth = AudioIO->IOBitWidth;
 	Sink->BitWidthConvFlag = AudioIO->IOBitWidthConvFlag;
 #endif
+	Sink->PcmBufFlag = 0;
 	switch(AudioIO->Adapt)
 	{
 		case	STD:
 			Sink->PcmOutBuf = roboeffect_get_sink_buffer(AudioEffect.context_memory, AudioCoreSinkToRoboeffect(Index));
 			if(Sink->PcmOutBuf == NULL)
 			{
-				return FALSE;
+				Sink->PcmOutBuf = (PCM_DATA_TYPE *)osPortMalloc(SINKFRAME(Index) * sizeof(PCM_DATA_TYPE) * 2);
+				if(Sink->PcmOutBuf == NULL)
+				{
+					return FALSE;
+				}
+				Sink->PcmBufFlag = 1;
 			}
 			Sink->AdaptBuf = NULL;
 			Sink->AdjAdapter = NULL;
@@ -581,7 +643,16 @@ bool AudioCoreSinkInit(AudioCoreIO * AudioIO, uint8_t Index)
 			}
 			memset(AdaptBuf, 0, UsedSize);
 			Sink->PcmOutBuf = roboeffect_get_sink_buffer(AudioEffect.context_memory, AudioCoreSinkToRoboeffect(Index));
-
+			if(Sink->PcmOutBuf == NULL)
+			{
+				Sink->PcmOutBuf = (PCM_DATA_TYPE *)osPortMalloc(SINKFRAME(Index) * sizeof(PCM_DATA_TYPE) * 2);
+				if(Sink->PcmOutBuf == NULL)
+				{
+					osPortFree(AdaptBuf);
+					return FALSE;
+				}
+				Sink->PcmBufFlag = 1;
+			}
 			SrcAdapter = (SRC_ADAPTER *)osPortMalloc(sizeof(SRC_ADAPTER));
 			if(SrcAdapter == NULL)
 			{
@@ -626,7 +697,16 @@ bool AudioCoreSinkInit(AudioCoreIO * AudioIO, uint8_t Index)
 			}
 			memset(AdaptBuf, 0, UsedSize);
 			Sink->PcmOutBuf = roboeffect_get_sink_buffer(AudioEffect.context_memory, AudioCoreSinkToRoboeffect(Index));
-
+			if(Sink->PcmOutBuf == NULL)
+			{
+				Sink->PcmOutBuf = (PCM_DATA_TYPE *)osPortMalloc(SINKFRAME(Index) * sizeof(PCM_DATA_TYPE) * 2);
+				if(Sink->PcmOutBuf == NULL)
+				{
+					osPortFree(AdaptBuf);
+					return FALSE;
+				}
+				Sink->PcmBufFlag = 1;
+			}
 			AdjAdapter = (SRA_ADAPTER *)osPortMalloc(sizeof(SRA_ADAPTER));
 			if(AdjAdapter == NULL)
 			{
@@ -651,6 +731,15 @@ bool AudioCoreSinkInit(AudioCoreIO * AudioIO, uint8_t Index)
 		{
 			CLK_ADJUST_ADAPTER *AdjAdapter;
 			Sink->PcmOutBuf = roboeffect_get_sink_buffer(AudioEffect.context_memory, AudioCoreSinkToRoboeffect(Index));
+			if(Sink->PcmOutBuf == NULL)
+			{
+				Sink->PcmOutBuf = (PCM_DATA_TYPE *)osPortMalloc(SINKFRAME(Index) * sizeof(PCM_DATA_TYPE) * 2);
+				if(Sink->PcmOutBuf == NULL)
+				{
+					return FALSE;
+				}
+				Sink->PcmBufFlag = 1;
+			}
 			if(Sink->PcmOutBuf == NULL
 #ifdef AUDIO_CORE_DEBUG
 					|| AudioIO->HighLevelCent == 0
@@ -706,7 +795,16 @@ bool AudioCoreSinkInit(AudioCoreIO * AudioIO, uint8_t Index)
 			}
 			memset(AdaptBuf, 0, UsedSize);
 			Sink->PcmOutBuf = roboeffect_get_sink_buffer(AudioEffect.context_memory, AudioCoreSinkToRoboeffect(Index));
-
+			if(Sink->PcmOutBuf == NULL)
+			{
+				Sink->PcmOutBuf = (PCM_DATA_TYPE *)osPortMalloc(SINKFRAME(Index) * sizeof(PCM_DATA_TYPE) * 2);
+				if(Sink->PcmOutBuf == NULL)
+				{
+					osPortFree(AdaptBuf);
+					return FALSE;
+				}
+				Sink->PcmBufFlag = 1;
+			}
 			Sink->AdjAdapter = osPortMalloc(sizeof(SRA_ADAPTER) + sizeof(SRC_ADAPTER));
 			if(Sink->AdjAdapter == NULL)
 			{
@@ -764,7 +862,16 @@ bool AudioCoreSinkInit(AudioCoreIO * AudioIO, uint8_t Index)
 			}
 			memset(AdaptBuf, 0, UsedSize);
 			Sink->PcmOutBuf = roboeffect_get_sink_buffer(AudioEffect.context_memory, AudioCoreSinkToRoboeffect(Index));
-
+			if(Sink->PcmOutBuf == NULL)
+			{
+				Sink->PcmOutBuf = (PCM_DATA_TYPE *)osPortMalloc(SINKFRAME(Index) * sizeof(PCM_DATA_TYPE) * 2);
+				if(Sink->PcmOutBuf == NULL)
+				{
+					osPortFree(AdaptBuf);
+					return FALSE;
+				}
+				Sink->PcmBufFlag = 1;
+			}
 			Sink->AdjAdapter = osPortMalloc(sizeof(CLK_ADJUST_ADAPTER) + sizeof(SRC_ADAPTER));
 			if(Sink->AdjAdapter == NULL)
 			{
@@ -792,6 +899,8 @@ bool AudioCoreSinkInit(AudioCoreIO * AudioIO, uint8_t Index)
 			break;
 		}
 	}
+
+	Sink->InitFlag = TRUE;
 	return TRUE;
 }
 
@@ -808,7 +917,9 @@ void AudioCoreSinkDeinit(uint8_t Index)
 	SINK_BIT_DIS(AudioCore.FrameReady, Index);
 	Sink->DataSetFunc = NULL;
 	Sink->SpaceLenFunc = NULL;
-//	osPortFree(Sink->PcmOutBuf);
+	if(Sink->PcmBufFlag)
+		osPortFree(Sink->PcmOutBuf);
+	Sink->PcmBufFlag = 0;
 	Sink->PcmOutBuf = NULL;
 	switch(Sink->Adapt)
 	{
@@ -839,6 +950,8 @@ void AudioCoreSinkDeinit(uint8_t Index)
 		default:
 			break;
 	}
+
+	Sink->InitFlag = FALSE;
 }
 
 #ifdef CFG_AUDIO_WIDTH_24BIT
@@ -1973,22 +2086,18 @@ void AudioCoreSinkDepthChange(uint8_t Index, uint32_t NewDepth)
 
 bool AudioCoreSourceIsInit(uint8_t Index)
 {
-	if(Index < AUDIO_CORE_SOURCE_MAX_NUM &&
-		(AudioCore.AudioSource[Index].AdaptBuf || //修改下判断条件，PcmInBuf不在audiocore中申请，可以多次初始化
-		AudioCore.AudioSource[Index].AdjAdapter))
+	if(Index < AUDIO_CORE_SOURCE_MAX_NUM)
 	{
-		return TRUE;
+		return AudioCore.AudioSource[Index].InitFlag;
 	}
 	return FALSE;
 }
 
 bool AudioCoreSinkIsInit(uint8_t Index)
 {
-	if(Index < AUDIO_CORE_SINK_MAX_NUM &&
-	  (AudioCore.AudioSink[Index].AdaptBuf || //修改下判断条件，PcmOutBuf不在audiocore中申请，可以多次初始化
-	   AudioCore.AudioSink[Index].AdjAdapter))
+	if(Index < AUDIO_CORE_SINK_MAX_NUM)
 	{
-		return TRUE;
+		return AudioCore.AudioSink[Index].InitFlag;
 	}
 	return FALSE;
 }

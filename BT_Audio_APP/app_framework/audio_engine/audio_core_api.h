@@ -26,6 +26,7 @@ enum
 	REMIND_SOURCE_NUM,	 	//提示音使用固定混音通道 无音效
 	PLAYBACK_SOURCE_NUM,	//flashfs 录音回放通道		无音效
 	I2S_MIX_SOURCE_NUM,         //I2S MIX通道
+	I2S_MIX2_SOURCE_NUM,        //I2S MIX2通道
 	USB_SOURCE_NUM,             //USB MIX通道
 	LINEIN_MIX_SOURCE_NUM,      //Line in MIX通道
 	AUDIO_CORE_SOURCE_MAX_NUM,
@@ -48,7 +49,7 @@ enum
 #if	(defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT)) || defined(CFG_APP_USB_AUDIO_MODE_EN)
 	AUDIO_APP_SINK_NUM,
 #endif
-#if defined(CFG_RES_AUDIO_I2SOUT_EN)
+#if defined(CFG_RES_AUDIO_I2SOUT_EN) || defined(CFG_RES_AUDIO_I2S_MIX2_OUT_EN)
 	AUDIO_STEREO_SINK_NUM,      //模式无关Dac0之外的 立体声输出
 #endif
 #ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
@@ -68,6 +69,9 @@ enum
 
 #if defined(CFG_RES_AUDIO_I2SOUT_EN)
 #define AUDIO_I2SOUT_SINK_NUM	AUDIO_STEREO_SINK_NUM//i2s_out通道 常驻
+#endif
+#ifdef CFG_RES_AUDIO_I2S_MIX2_OUT_EN
+#define AUDIO_I2S_MIX2_OUT_SINK_NUM AUDIO_STEREO_SINK_NUM //I2S MIX2 OUT通道
 #endif
 
 typedef uint16_t (*AudioCoreDataGetFunc)(void* Buf, uint16_t Samples);
@@ -112,6 +116,8 @@ typedef struct _AudioCoreSource
 #endif
 	SRC_ADAPTER					*SrcAdapter; //转采样适配器
 	void						*AdjAdapter;//微调适配器
+	bool						InitFlag;	 //初始化标志
+	bool						PcmBufFlag;	//为1的时候，PcmInBuf由audiocore申请，需要audiocore释放
 }AudioCoreSource;
 
 
@@ -137,6 +143,9 @@ typedef struct _AudioCoreSink
 #endif
 	void							*AdjAdapter; //微调适配器
 	SRC_ADAPTER						*SrcAdapter; //转采样适配器
+
+	bool							InitFlag;	 //初始化标志
+	bool							PcmBufFlag;	//为1的时候，PcmOutBuf由audiocore申请，需要audiocore释放
 }AudioCoreSink;
 
 

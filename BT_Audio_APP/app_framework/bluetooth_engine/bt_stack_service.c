@@ -932,11 +932,11 @@ static void BtStackServiceEntrance(void * param)
 			a2dp_pause_delay_cnt--;
 			if(a2dp_pause_delay_cnt == 0)
 			{
-				printf("a2dp_pause_delay_cnt  \n");
+				APP_DBG("a2dp_pause_delay_cnt  \n");
 				uint8_t cfg_index = (btManager.cur_index == 0)? 1 : 0;
 				if((GetA2dpState(cfg_index) == BT_A2DP_STATE_STREAMING) && (GetSystemMode() == ModeBtHfPlay))
 				{
-					printf("pause....%d...  \n", cfg_index);
+					APP_DBG("pause....%d...  \n", cfg_index);
 					AvrcpCtrlPause(cfg_index);
 				}
 			}
@@ -1154,6 +1154,7 @@ void BBErrorReport(uint8_t mode, uint32_t errorType)
  **********************************************************************************/
 void BT_IntDisable(void)
 {
+	NVIC_DisableIRQ(DM_IRQn);
 	NVIC_DisableIRQ(BT_IRQn);
 	NVIC_DisableIRQ(BLE_IRQn);
 }
@@ -1163,9 +1164,11 @@ void BT_IntDisable(void)
  **********************************************************************************/
 void BT_ModuleClose(void)
 {
-//	Reset_RegisterReset(MDM_REG_SEPA);
-//	Reset_FunctionReset(BTDM_FUNC_SEPA|MDM_FUNC_SEPA|RF_FUNC_SEPA);
-//	Clock_Module2Disable(ALL_MODULE2_CLK_SWITCH); //close clock
+#include "reset.h"
+	Reset_FunctionReset(BTDM_FUNC_SEPA|MDM_FUNC_SEPA);
+//	Clock_Module2Disable(MDM_APLL_CLK_EN|BT32K_CLK_EN|BT_OR_PMU_32K_CLK_EN|PMU_32K_CLK_EN|MDM_DPLL_CLK_EN); //close clock
+//	Clock_Module1Disable(BTDM_HCLK_EN|BTDM_24M_CLK_EN|MDM_PLL_CLK_EN);
+//	Clock_Module3Disable(BTDM_LP_CLK_EN|MDM_12M_CLK_EN|MDM_24M_CLK_EN|MDM_48M_CLK_EN);
 }
 
 

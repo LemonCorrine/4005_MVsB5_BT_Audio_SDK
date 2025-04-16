@@ -137,20 +137,19 @@ static void SysVarInit(void)
 	mainAppCt.EffectMode = pBpSysInfo->EffectMode;
 	APP_DBG("EffectMode:%d,%d\n", mainAppCt.EffectMode, pBpSysInfo->EffectMode);
 
-	mainAppCt.MusicVolume = pBpSysInfo->MusicVolume;
-	if((mainAppCt.MusicVolume > CFG_PARA_MAX_VOLUME_NUM) || (mainAppCt.MusicVolume <= 0))
+	MusicVolume = pBpSysInfo->MusicVolume;
+	if((MusicVolume > CFG_PARA_MAX_VOLUME_NUM) || (MusicVolume <= 0))
 	{
-		mainAppCt.MusicVolume = CFG_PARA_MAX_VOLUME_NUM;
+		MusicVolume = CFG_PARA_MAX_VOLUME_NUM;
 	}
-	APP_DBG("MusicVolume:%d,%d\n", mainAppCt.MusicVolume, pBpSysInfo->MusicVolume);	
+	APP_DBG("MusicVolume:%d,%d\n", MusicVolume, pBpSysInfo->MusicVolume);
 	
-	mainAppCt.MicVolume = pBpSysInfo->MicVolume;
-	if((mainAppCt.MicVolume > CFG_PARA_MAX_VOLUME_NUM) || (mainAppCt.MicVolume <= 0))
+	MicVolume = pBpSysInfo->MicVolume;
+	if((MicVolume > CFG_PARA_MAX_VOLUME_NUM) || (MicVolume <= 0))
 	{
-		mainAppCt.MicVolume = CFG_PARA_MAX_VOLUME_NUM;
+		MicVolume = CFG_PARA_MAX_VOLUME_NUM;
 	}
-	mainAppCt.MicVolumeBak = mainAppCt.MicVolume;
-	APP_DBG("MicVolume:%d,%d\n", mainAppCt.MicVolume, pBpSysInfo->MicVolume);
+	APP_DBG("MicVolume:%d,%d\n", MicVolume, pBpSysInfo->MicVolume);
 
 	#ifdef CFG_APP_BT_MODE_EN
 	mainAppCt.HfVolume = pBpSysInfo->HfVolume;
@@ -162,69 +161,59 @@ static void SysVarInit(void)
 	#endif
 	
 #ifdef CFG_FUNC_MUSIC_EQ_MODE_EN
-	mainAppCt.EqMode = pBpSysInfo->EqMode;
-	if(mainAppCt.EqMode > EQ_MODE_VOCAL_BOOST)
+	EqMode = pBpSysInfo->EqMode;
+	if(EqMode > EQ_MODE_VOCAL_BOOST)
 	{
-		mainAppCt.EqMode = EQ_MODE_FLAT;
+		EqMode = EQ_MODE_FLAT;
 	}
-	AudioEffect_EQMode_Set(mainAppCt.EqMode);
 //	EqModeSet(mainAppCt.EqMode);
 	#ifdef CFG_FUNC_EQMODE_FADIN_FADOUT_EN    
 	mainAppCt.EqModeBak = mainAppCt.EqMode;
 	mainAppCt.EqModeFadeIn = 0;
 	mainAppCt.eqSwitchFlag = 0;
 	#endif
-	APP_DBG("EqMode:%d,%d\n", mainAppCt.EqMode, pBpSysInfo->EqMode);
+	APP_DBG("EqMode:%d,%d\n", EqMode, pBpSysInfo->EqMode);
 #endif
 
-	mainAppCt.MicEffectDelayStep = pBpSysInfo->MicEffectDelayStep;
-    if((mainAppCt.MicEffectDelayStep > MAX_MIC_EFFECT_DELAY_STEP) || (mainAppCt.MicEffectDelayStep <= 0))
+	ReverbStep = pBpSysInfo->ReverbStep;
+    if((ReverbStep > MAX_MIC_DIG_STEP) || (ReverbStep <= 0))
 	{
-		mainAppCt.MicEffectDelayStep = MAX_MIC_EFFECT_DELAY_STEP;
+    	ReverbStep = MAX_MIC_DIG_STEP;
 	}
-	mainAppCt.MicEffectDelayStepBak = mainAppCt.MicEffectDelayStep;
-	APP_DBG("MicEffectDelayStep:%d,%d\n", mainAppCt.MicEffectDelayStep, pBpSysInfo->MicEffectDelayStep);
-
-	mainAppCt.ReverbStep = pBpSysInfo->ReverbStep;
-    if((mainAppCt.ReverbStep > MAX_MIC_DIG_STEP) || (mainAppCt.ReverbStep <= 0))
-	{
-    	mainAppCt.ReverbStep = MAX_MIC_DIG_STEP;
-	}
-	mainAppCt.ReverbStepBak = mainAppCt.ReverbStep;
-	APP_DBG("ReverbStep:%d,%d\n", mainAppCt.ReverbStep, pBpSysInfo->ReverbStep);
+	APP_DBG("ReverbStep:%d,%d\n", ReverbStep, pBpSysInfo->ReverbStep);
 
 #ifdef CFG_FUNC_MIC_TREB_BASS_EN
-    mainAppCt.MicBassStep = pBpSysInfo->MicBassStep;
-    if((mainAppCt.MicBassStep > MAX_MUSIC_DIG_STEP) || (mainAppCt.MicBassStep <= 0))
+    MicBassStep = pBpSysInfo->MicBassStep;
+    if((MicBassStep > MAX_MUSIC_DIG_STEP) || (MicBassStep <= 0))
 	{
-		mainAppCt.MicBassStep = 7;
+		MicBassStep = 7;
 	}
-    mainAppCt.MicTrebStep = pBpSysInfo->MicTrebStep;
-    if((mainAppCt.MicTrebStep > MAX_MUSIC_DIG_STEP) || (mainAppCt.MicTrebStep <= 0))
+    MicTrebStep = pBpSysInfo->MicTrebStep;
+    if((MicTrebStep > MAX_MUSIC_DIG_STEP) || (MicTrebStep <= 0))
 	{
-		mainAppCt.MicTrebStep = 7;
+		MicTrebStep = 7;
 	}
-	APP_DBG("MicTrebStep:%d,%d\n", mainAppCt.MicTrebStep, pBpSysInfo->MicTrebStep);
-	APP_DBG("MicBassStep:%d,%d\n", mainAppCt.MicBassStep, pBpSysInfo->MicBassStep);
+	APP_DBG("MicTrebStep:%d,%d\n", MicTrebStep, pBpSysInfo->MicTrebStep);
+	APP_DBG("MicBassStep:%d,%d\n", MicBassStep, pBpSysInfo->MicBassStep);
 #endif
 #ifdef CFG_FUNC_MUSIC_TREB_BASS_EN	
-    mainAppCt.MusicBassStep = pBpSysInfo->MusicBassStep;
-    if((mainAppCt.MusicBassStep > MAX_MUSIC_DIG_STEP) || (mainAppCt.MusicBassStep <= 0))
+    MusicBassStep = pBpSysInfo->MusicBassStep;
+    if((MusicBassStep > MAX_MUSIC_DIG_STEP) || (MusicBassStep <= 0))
 	{
-		mainAppCt.MusicBassStep = 7;
+		MusicBassStep = 7;
 	}
-    mainAppCt.MusicTrebStep = pBpSysInfo->MusicTrebStep;
-    if((mainAppCt.MusicTrebStep > MAX_MUSIC_DIG_STEP) || (mainAppCt.MusicTrebStep <= 0))
+    MusicTrebStep = pBpSysInfo->MusicTrebStep;
+    if((MusicTrebStep > MAX_MUSIC_DIG_STEP) || (MusicTrebStep <= 0))
 	{
-		mainAppCt.MusicTrebStep = 7;
+		MusicTrebStep = 7;
 	}
-	APP_DBG("MusicTrebStep:%d,%d\n", mainAppCt.MusicTrebStep, pBpSysInfo->MusicTrebStep);
-	APP_DBG("MusicBassStep:%d,%d\n", mainAppCt.MusicBassStep, pBpSysInfo->MusicBassStep);
+	APP_DBG("MusicTrebStep:%d,%d\n", MusicTrebStep, pBpSysInfo->MusicTrebStep);
+	APP_DBG("MusicBassStep:%d,%d\n", MusicBassStep, pBpSysInfo->MusicBassStep);
 #endif
 
 #else
 	//mainAppCt.appBackupMode = ModeBtAudioPlay;		  
-	mainAppCt.MusicVolume = CFG_PARA_MAX_VOLUME_NUM;
+	MusicVolume = CFG_PARA_MAX_VOLUME_NUM;
 	#ifdef CFG_APP_BT_MODE_EN
 	mainAppCt.HfVolume = CFG_PARA_MAX_VOLUME_NUM;
 	#endif
@@ -239,7 +228,7 @@ static void SysVarInit(void)
 #endif
 #endif
 
-	mainAppCt.MicVolume = CFG_PARA_MAX_VOLUME_NUM;
+	MicVolume = CFG_PARA_MAX_VOLUME_NUM;
 	
 #ifdef CFG_FUNC_MUSIC_EQ_MODE_EN
 	mainAppCt.EqMode = EQ_MODE_FLAT;
@@ -250,12 +239,12 @@ static void SysVarInit(void)
 #endif
 	//mainAppCt.ReverbStep = MAX_MIC_DIG_STEP;
 #ifdef CFG_FUNC_MIC_TREB_BASS_EN
-	mainAppCt.MicBassStep = 7;
-	mainAppCt.MicTrebStep = 7;
+	MicBassStep = 7;
+	MicTrebStep = 7;
 #endif
 #ifdef CFG_FUNC_MUSIC_TREB_BASS_EN	
-	mainAppCt.MusicBassStep = 7;
-	mainAppCt.MusicTrebStep = 7;
+	MusicBassStep = 7;
+	MusicTrebStep = 7;
 #endif	
 
 #endif
@@ -288,11 +277,11 @@ static void SysVarInit(void)
 	{
 		if(i == MIC_SOURCE_NUM)
 		{
-			mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM] = mainAppCt.MicVolume;
+			mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM] = MicVolume;
 		}
 		else if(i == APP_SOURCE_NUM)
 		{
-			mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM] = mainAppCt.MusicVolume;
+			mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM] = MusicVolume;
 		}
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 		else if(i == REMIND_SOURCE_NUM)

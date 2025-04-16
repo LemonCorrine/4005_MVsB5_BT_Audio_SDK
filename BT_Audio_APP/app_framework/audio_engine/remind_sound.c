@@ -33,7 +33,10 @@
 #include "flash_table.h"
 #include "delay.h"
 #include "recorder_service.h"
+
 #ifdef CFG_FUNC_REMIND_SOUND_EN
+extern void HardWareMuteOrUnMute(void);
+extern bool IsAudioPlayerMute(void);
 
 #define CFG_DBUS_ACCESS_REMIND_SOUND_DATA  	//开启宏则使用DBUS从flash中获取提示音数据
 
@@ -226,7 +229,7 @@ static bool	RemindSoundReadItemInfo(uint16_t ItemRef)
 		RemindSoundCt.ConstDataOffset   = 0;//CFG_PARA_RECORDS_INFO_SIZE;
 		RemindSoundCt.ConstDataAddr 	= rec_addr_start + CFG_PARA_RECORDS_MAX_SIZE *(RemindSoundCt.Idflash - 1)+CFG_PARA_RECORDS_INFO_SIZE;
 		RemindSoundCt.ConstDataSize 	= rec_msg.RecSize;
-		printf("rec_msg.RecSize:%d\n",rec_msg.RecSize);
+		APP_DBG("rec_msg.RecSize:%d\n",rec_msg.RecSize);
 	}
 	else
 #endif

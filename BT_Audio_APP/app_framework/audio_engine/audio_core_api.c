@@ -222,6 +222,10 @@ void AudioCoreRun(void)
 					gACBtMonitor = 0;
 				}
 			}
+			else//一旦收到数据就清寄存器
+			{
+				gACBtMonitor = 0;
+			}
 #endif
 			ret = AudioCoreSourceSync();
 			if(ret == FALSE)
@@ -339,11 +343,12 @@ void AudioCoreSourceMuteApply(void)
 	for(j = 0; j < AUDIO_CORE_SOURCE_MAX_NUM; j++)
 	{
 		mute = AudioCore.AudioSource[j].LeftMuteFlag || AudioCore.AudioSource[j].RightMuteFlag || mainAppCt.gSysVol.MuteFlag;
-		if((!AudioCore.AudioSource[j].Active) || (mute == AudioCore.AudioSource[j].MuteFlagbk))
+		if((!AudioCore.AudioSource[j].Active) || (!AudioCore.AudioSource[j].Enable) || (mute == AudioCore.AudioSource[j].MuteFlagbk))
 		{
 			if(AudioCoreSourceToRoboeffect(j) != AUDIOCORE_SOURCE_SINK_ERROR)
 			{
-				if(!AudioCore.AudioSource[j].Active || mainAppCt.gSysVol.MuteFlag || AudioCore.AudioSource[j].LeftMuteFlag)
+				if(!AudioCore.AudioSource[j].Active || !AudioCore.AudioSource[j].Enable
+						|| mainAppCt.gSysVol.MuteFlag || AudioCore.AudioSource[j].LeftMuteFlag)
 				{
 					memset(roboeffect_get_source_buffer(AudioEffect.context_memory, AudioCoreSourceToRoboeffect(j)),
 										0, roboeffect_get_buffer_size(AudioEffect.context_memory));
@@ -389,7 +394,7 @@ void AudioCoreSourceMuteApply(void)
 			int16_t * PcmInBuf = (int16_t *)AudioCore.AudioSource[j].PcmInBuf;
 			if(AudioCore.AudioSource[j].Channels == 2)
 			{
-				for(i=0; i < SINKFRAME(j); i++)
+				for(i=0; i < SOURCEFRAME(j); i++)
 				{
 					PcmInBuf[2 * i + 0] = __nds32__clips((((int32_t)PcmInBuf[2 * i + 0]) * LeftVol + 2048) >> 12, (16)-1);
 					PcmInBuf[2 * i + 1] = __nds32__clips((((int32_t)PcmInBuf[2 * i + 1]) * LeftVol + 2048) >> 12, (16)-1);
@@ -400,7 +405,7 @@ void AudioCoreSourceMuteApply(void)
 			}
 			else if(AudioCore.AudioSource[j].Channels == 1)
 			{
-				for(i=0; i<SINKFRAME(j); i++)
+				for(i=0; i<SOURCEFRAME(j); i++)
 				{
 					PcmInBuf[i] = __nds32__clips((((int32_t)PcmInBuf[i]) * LeftVol + 2048) >> 12, (16)-1);
 
@@ -422,8 +427,17 @@ void AudioCoreSinkMuteApply(void)
 	for(j = 0; j < AUDIO_CORE_SINK_MAX_NUM; j++)
 	{
 		mute = AudioCore.AudioSink[j].LeftMuteFlag || AudioCore.AudioSink[j].RightMuteFlag || mainAppCt.gSysVol.MuteFlag;
-		if((!AudioCore.AudioSink[j].Active) || (mute == AudioCore.AudioSink[j].MuteFlagbk))
+		if((!AudioCore.AudioSink[j].Active) || (!AudioCore.AudioSink[j].Enable) || (mute == AudioCore.AudioSink[j].MuteFlagbk))
 		{
+			if(AudioCoreSinkToRoboeffect(j) != AUDIOCORE_SOURCE_SINK_ERROR)
+			{
+				if(!AudioCore.AudioSink[j].Active || !AudioCore.AudioSink[j].Enable
+						|| mainAppCt.gSysVol.MuteFlag || AudioCore.AudioSink[j].LeftMuteFlag)
+				{
+					memset(roboeffect_get_sink_buffer(AudioEffect.context_memory, AudioCoreSinkToRoboeffect(j)),
+										0, roboeffect_get_buffer_size(AudioEffect.context_memory));
+				}
+			}
 			continue;
 		}
 

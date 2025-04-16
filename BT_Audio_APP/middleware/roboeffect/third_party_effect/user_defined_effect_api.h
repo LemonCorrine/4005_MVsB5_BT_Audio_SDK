@@ -32,7 +32,7 @@
 	#define AI_DENOISE_ENABLE                  (1)
 #endif
 
-#define SIMPLE_GAIN_ENABLE                 (1)
+#define SIMPLE_GAIN_ENABLE                 (0)
 
 
 //Add AI_DENOISE_INFO_DATA to USER_DEFINED_LIBS_DATA
