@@ -4,7 +4,7 @@
  * @brief	3D+ audio effect for stereo signals
  *
  * @author	ZHAO Ying (Alfred)
- * @version	v1.0.2
+ * @version	v1.1.0
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************
@@ -55,7 +55,7 @@ int32_t three_d_plus_init(ThreeDPlusContext *ct, int32_t sample_rate);
 
 
 /**
- * @brief Apply 3D+ audio effect to a frame of PCM data(stereo).
+ * @brief Apply 3D+ audio effect to a frame of PCM data(stereo, 16-bit).
  * @param ct Pointer to a ThreeDPlusContext object.
  * @param pcm_in Address of the PCM input. The PCM layout is like "L,R,L,R,..."
  * @param pcm_out Address of the PCM output. The PCM layout is like "L,R,L,R,..."
@@ -67,6 +67,19 @@ int32_t three_d_plus_init(ThreeDPlusContext *ct, int32_t sample_rate);
  */
 int32_t three_d_plus_apply(ThreeDPlusContext *ct, int16_t *pcm_in, int16_t *pcm_out, int32_t n, int32_t intensity);
 
+
+/**
+ * @brief Apply 3D+ audio effect to a frame of PCM data(stereo, 24-bit).
+ * @param ct Pointer to a ThreeDPlusContext object.
+ * @param pcm_in Address of the PCM input. The PCM layout is like "L,R,L,R,..."
+ * @param pcm_out Address of the PCM output. The PCM layout is like "L,R,L,R,..."
+ *        pcm_out can be the same as pcm_in. In this case, the PCM is changed in-place.
+ * @param n Number of PCM samples to process.
+ * @param intensity 3D+ intensity. range: 0 ~ 100
+ * @return error code. THREE_D_PLUS_ERROR_OK means successful, other codes indicate error.
+ * @note Only 2 channel PCM input is supported.
+ */
+int32_t three_d_plus_apply24(ThreeDPlusContext* ct, int32_t* pcm_in, int32_t* pcm_out, int32_t n, int32_t intensity);
 
 #ifdef __cplusplus
 }

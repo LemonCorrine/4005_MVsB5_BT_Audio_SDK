@@ -118,6 +118,7 @@ static void AudioMicExample(void)
     ct.DACLoadStatus = DAC_NOLoad;
     ct.PVDDModel = PVDD33;
     ct.DACEnergyModel = DACCommonEnergy;
+    ct.DACVcomModel = Disable;
 
     AudioADC_AnaInit(ADC1_MODULE, CHANNEL_LEFT, MIC_LEFT, Single, ADCCommonEnergy, 04);
     AudioADC_DigitalInit(ADC1_MODULE, SampleRate, ADCBitWidth, (void *)AudioADC1Buf, sizeof(AudioADC1Buf));
@@ -210,6 +211,7 @@ static void AudioLineIn1Example()
     ct.DACLoadStatus = DAC_NOLoad;
     ct.PVDDModel = PVDD33;
     ct.DACEnergyModel = DACCommonEnergy;
+    ct.DACVcomModel = Disable;
 
     AudioADC_AnaInit(ADC0_MODULE, CHANNEL_LEFT, LINEIN1_LEFT, Single, ADCCommonEnergy, 17);
     AudioADC_AnaInit(ADC0_MODULE, CHANNEL_RIGHT, LINEIN1_RIGHT, Single, ADCCommonEnergy, 17);
@@ -247,6 +249,7 @@ static void AudioLineIn2Example()
     ct.DACLoadStatus = DAC_NOLoad;
     ct.PVDDModel = PVDD33;
     ct.DACEnergyModel = DACCommonEnergy;
+    ct.DACVcomModel = Disable;
 
     AudioADC_AnaInit(ADC0_MODULE, CHANNEL_LEFT, LINEIN2_LEFT, Single, ADCCommonEnergy, 17);
     AudioADC_AnaInit(ADC0_MODULE, CHANNEL_RIGHT, LINEIN2_RIGHT, Single, ADCCommonEnergy, 17);

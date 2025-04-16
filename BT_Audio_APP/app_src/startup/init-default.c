@@ -80,6 +80,27 @@ void ExceptionCommHandler(unsigned stack, unsigned exception_num)
 
 
 	  APP_DBG("PC  = 0x%08x\r\n",mask_ipc);
+	  APP_DBG("R0  = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R1  = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R2  = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R3  = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R4  = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R5  = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R6  = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R7  = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R8  = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R9  = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R10 = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R11 = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R12 = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R13 = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R14 = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R15 = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R16 = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R17 = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R18 = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R19 = 0x%08x\r\n",*pstack++);
+	  APP_DBG("R20 = 0x%08x\r\n",*pstack++);
 	  APP_DBG("lp  = 0x%08x\r\n",*pstack++);
 	  APP_DBG("sp  = 0x%08x\r\n",(*pstack++)-2048);
 	  APP_DBG("exception num = %d\n", exception_num);

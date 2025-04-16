@@ -1,58 +1,40 @@
 #include "user_effect_flow_hfp.h"
 #include "user_effect_parameter.h"
 
-static const AUDIOEFFECT_EFFECT_PARA effect_para[] =
+const AUDIOEFFECT_EFFECT_PARA hfp_effect_para =
 {
-	{
-		.user_effect_name = (uint8_t *)"Hfp",
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_hfp,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_hfp,
-		.user_effects_script = (uint8_t *)user_effects_script_hfp,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_hfp_Hfp,
-		.user_module_parameters = (uint8_t *)user_module_parameters_hfp_Hfp,
-		.get_user_effects_script_len = get_user_effects_script_len_hfp,
-	}
+	.user_effect_name = (uint8_t *)"Hfp",
+	.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_hfp,
+	.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_hfp,
+	.user_effects_script = (uint8_t *)user_effects_script_hfp,
+	.user_effect_parameters = (uint8_t *)user_effect_parameters_hfp_Hfp,
+	.user_module_parameters = (uint8_t *)user_module_parameters_hfp_Hfp,
+	.get_user_effects_script_len = get_user_effects_script_len_hfp,
 };
 
-const AUDIOEFFECT_EFFECT_PARA_TABLE hfp_mode =
+const AUDIOEFFECT_SOURCE_SINK_NUM hfp_mode =
 {
-	//ROBOEFFECT effect ID 通过这个ID来搜索匹配
-	.effect_id    = EFFECT_MODE_HFP_AEC ,
-	//该框图下面有1个音效
-	.effect_id_count = 1,
-
-	//ROBOEFFECT effect 音效地址映射
-	.effect_addr =
-	{
-		.APP_SOURCE_GAIN_ADDR = HFP_music_gain_ADDR,
-		.MIC_SOURCE_GAIN_ADDR = HFP_mic_gain_ADDR,
-		.SILENCE_DETECTOR_ADDR = HFP_silence_detector_mic_ADDR,
-		.SILENCE_DETECTOR_MUSIC_ADDR = HFP_silence_detector_music_ADDR,
-	},
+	//不要删除，source/sink默认值
+	AUDIOEFFECT_SOURCE_SINK_DEFAULT_INIT,
 
 	//ROBOEFFECT effect SOURCE映射
-	.audioeffect_source =
-	{
-		.mic_source = HFP_SOURCE_MIC_SOURCE,
-		.app_source = HFP_SOURCE_APP_SOURCE,
-		.remind_source = HFP_SOURCE_REMIND_SOURCE,
-		.rec_source = HFP_SOURCE_REC_SOURCE,
-		.usb_source = AUDIOCORE_SOURCE_SINK_ERROR,
-		.i2s_mix_source = AUDIOCORE_SOURCE_SINK_ERROR,
-		.linein_mix_source = AUDIOCORE_SOURCE_SINK_ERROR,
-	},
+	.mic_source = HFP_SOURCE_MIC_SOURCE,
+	.app_source = HFP_SOURCE_APP_SOURCE,
+	.remind_source = HFP_SOURCE_REMIND_SOURCE,
+	.rec_source = HFP_SOURCE_REC_SOURCE,
 
 	//ROBOEFFECT effect SINK映射
-	.audioeffect_sink =
-	{
-		.dac0_sink = HFP_SINK_DAC0_SINK,
-		.app_sink = HFP_SINK_APP_SINK,
-		.stereo_sink = HFP_SINK_STEREO_SINK,
-		.rec_sink = HFP_SINK_REC_SINK,
-		.i2s_mix_sink = AUDIOCORE_SOURCE_SINK_ERROR,
-		.spdif_sink = HFP_SINK_SPDIF_SINK,
-	},
+	.dac0_sink = HFP_SINK_DAC0_SINK,
+	.app_sink = HFP_SINK_APP_SINK,
+	.stereo_sink = HFP_SINK_STEREO_SINK,
+	.rec_sink = HFP_SINK_REC_SINK,
+	.spdif_sink = HFP_SINK_SPDIF_SINK,
+};
 
-	//ROBOEFFECT effect 参数
-	.audioeffect_para = (AUDIOEFFECT_EFFECT_PARA *)&effect_para[0],
+const uint8_t hfp_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX] =
+{
+	[MUSIC_VOLUME_ADJUST] = HFP_music_gain_ADDR,
+	[MIC_VOLUME_ADJUST] = HFP_mic_gain_ADDR,
+	[MIC_SILENCE_DETECTOR_PARAM] = HFP_silence_detector_mic_ADDR,
+	[MUSIC_SILENCE_DETECTOR_PARAM] = HFP_silence_detector_music_ADDR,
 };

@@ -25,9 +25,11 @@ extern "C" {
 #include "app_config.h"
 #endif
 
-#define AUDIO_MAX_VOLUME	4096
-#define AUDIO_MIN_VOLUME	0
-#define AUDIO_RES_VOLUME	1
+#define DB_TO_USBVAL(db)	((int16_t)(db*256))
+
+#define AUDIO_MAX_VOLUME	DB_TO_USBVAL(0)		//0db
+#define AUDIO_MIN_VOLUME	DB_TO_USBVAL(-60)	//-60db
+#define AUDIO_RES_VOLUME	0x0080				//0.5db
 
 
 typedef struct _UsbAudio
@@ -38,12 +40,18 @@ typedef struct _UsbAudio
 	uint8_t					ByteSet;
 	uint8_t 				Channels;
 	uint8_t 				Mute;
-	uint32_t				LeftVol;
-	uint32_t				RightVol;
+	int16_t					LeftVol;
+	int16_t					RightVol;
+	int16_t					LeftGain;
+	int16_t					RightGain;
 	uint32_t				AudioSampleRate;
 	uint32_t				FramCount;
 	uint32_t				TempFramCount;
 	uint32_t 				Accumulator;
+#ifdef CFG_RES_AUDIO_USB_VOL_SET_EN
+	int16_t					LeftCurGain;
+	int16_t					RightCurGain;
+#endif
 	//缓存FIFO
 	MCU_CIRCULAR_CONTEXT 	CircularBuf;
 	int16_t*				PCMBuffer;
@@ -72,6 +80,7 @@ uint16_t UsbAudioMicDataSet(void *Buffer,uint16_t Len);
 //chip->pc 数据缓存区剩余空间
 uint16_t UsbAudioMicSpaceLenGet(void);
 uint16_t UsbAudioMicDepthGet(void);
+int16_t UsbValToMcuGain(int16_t UsbVal);
 #ifdef  __cplusplus
 }
 #endif//__cplusplus

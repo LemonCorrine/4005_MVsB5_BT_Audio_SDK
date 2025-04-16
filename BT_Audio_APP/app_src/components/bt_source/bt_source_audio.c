@@ -55,7 +55,7 @@ void BtSourceInit(void)
 	if(gSbcEncoderReinit == 0)
 		return;
 
-	printf("ch mode:%d, bitpool:%d, allocation:%d d:%d \n", AppA2dpSourceSbcChannelMode(),AppA2dpSourceSbcBitpool(),AppA2dpSourceSbcAllocation(),SBC_NUMBER_PER_FRAME_QUALITY);
+	APP_DBG("ch mode:%d, bitpool:%d, allocation:%d d:%d \n", AppA2dpSourceSbcChannelMode(),AppA2dpSourceSbcBitpool(),AppA2dpSourceSbcAllocation(),SBC_NUMBER_PER_FRAME_QUALITY);
 
 	if(sbc_source_encode_ct == NULL)
 		sbc_source_encode_ct = (SBCEncoderContext*)osPortMalloc(sizeof(SBCEncoderContext));
@@ -84,7 +84,7 @@ void BtSourceInit(void)
 	gSbcEncoderReinit = 0;
 	gSbcEncoderRegistered = 1;
 
-	printf("bt source init success ok!!!\n");
+	APP_DBG("bt source init success ok!!!\n");
 }
 uint16_t SbcSourceEncode(void* InBuf, uint16_t InLen)
 {
@@ -114,7 +114,7 @@ uint16_t SbcSourceEncode(void* InBuf, uint16_t InLen)
 	}
 	
 	s_operate_only=1;
-	//printf("sampe=%d\n",InLen);
+	//APP_DBG("sampe=%d\n",InLen);
 	for(sample_count=0;sample_count<InLen/128;sample_count++)
 	{
 	
@@ -124,7 +124,7 @@ uint16_t SbcSourceEncode(void* InBuf, uint16_t InLen)
 		{
 			//__nds32__mtsr(0,NDS32_SR_PFM_CTL);
 			//cycle_value=__nds32__mfsr(NDS32_SR_PFMC0);
-			 //printf("%d\n",sbc_encoded_data_length);//*1000/288000000
+			 //APP_DBG("%d\n",sbc_encoded_data_length);//*1000/288000000
 			 if(MCUCircular_GetSpaceLen(&sAudioSbcCircularBuf) > sbc_encoded_data_length)
 			 {
 				 MCUCircular_PutData(&sAudioSbcCircularBuf,sbc_encode_buffer,sbc_encoded_data_length);//SBC_NUMBER_PER_FRAME BYTE

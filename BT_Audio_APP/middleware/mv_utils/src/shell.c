@@ -113,9 +113,9 @@ void UART0_Interrupt(void)
         UARTS_IOCTL(UART_PORT0, UART_IOCTL_RXINT_CLR, 1);
     }
 
-    if(UARTS_IOCTL(UART_PORT0, UART_IOCTL_TXSTAT_GET, 0)) { //发送中断
-        UARTS_IOCTL(UART_PORT0, UART_IOCTL_TXINT_CLR, 1);
-    }
+//    if(UARTS_IOCTL(UART_PORT0, UART_IOCTL_TXSTAT_GET, 0)) { //发送中断
+//        UARTS_IOCTL(UART_PORT0, UART_IOCTL_TXINT_CLR, 1);
+//    }
 }
 
 #else
@@ -146,9 +146,9 @@ void UART1_Interrupt(void)
         UARTS_IOCTL(UART_PORT1, UART_IOCTL_RXINT_CLR, 1);
     }
 
-    if(UARTS_IOCTL(UART_PORT1, UART_IOCTL_TXSTAT_GET, 0)) { //发送中断
-        UARTS_IOCTL(UART_PORT1, UART_IOCTL_TXINT_CLR, 1);
-    }
+//    if(UARTS_IOCTL(UART_PORT1, UART_IOCTL_TXSTAT_GET, 0)) { //发送中断
+//        UARTS_IOCTL(UART_PORT1, UART_IOCTL_TXINT_CLR, 1);
+//    }
 }
 #endif
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

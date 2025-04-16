@@ -161,7 +161,7 @@ void BtAccessModeUpdate(BtAccessMode accessMode)
 #if (BT_DEVICE_NUMBER == 2)
 static void BtAccessMode_DualPhone(void)
 {
-	printf("BtAccessModeSetting, DualPhone \n");
+	APP_DBG("BtAccessModeSetting, DualPhone \n");
 
 	if(btManager.btLinkState)
 	{
@@ -213,7 +213,7 @@ static void BtAccessMode_DualPhone(void)
 #if (BT_DEVICE_NUMBER == 1)
 static void BtAccessMode_SinglePhone(void)
 {
-	printf("BtAccessModeSetting, SinglePhone \n");
+	APP_DBG("BtAccessModeSetting, SinglePhone \n");
 	
 	if(btManager.btLinkState)
 	{
@@ -312,13 +312,13 @@ void BtGetRemoteName(BT_STACK_CALLBACK_PARAMS * param)
 	{
         if(btManager.btLinkState)
         {
-    	    printf("device is connected, disconnect btbox\n");
+    	    APP_DBG("device is connected, disconnect btbox\n");
     		btManager.btLastAddrUpgradeIgnored = 0;
             BTHciDisconnectCmd(param->params.remDevName.addr);
         }
         else
         {
-    		printf("connect btbox\n");
+    		APP_DBG("connect btbox\n");
     		btManager.btLastAddrUpgradeIgnored = 1;
 			memset(btManager.btDdbLastAddr, 0, 6);
         }
@@ -636,7 +636,7 @@ void BtEventFlagProcess(void)
 				{
 					if((GetAvrcpState(BtCurIndex_Get()) < BT_AVRCP_STATE_CONNECTED)&&(GetA2dpState(BtCurIndex_Get()) >= BT_A2DP_STATE_CONNECTED))
 					{
-						printf("+++ avrcp connect \n");
+						APP_DBG("+++ avrcp connect \n");
 						BtAvrcpConnect(BtCurIndex_Get(),btManager.remoteAddr);
 					}
 					btManager.btEventFlagMask = BT_EVENT_FLAG_NONE;
@@ -657,7 +657,7 @@ void BtEventFlagProcess(void)
 				{
 					if(GetAvrcpState(BtCurIndex_Get()) > BT_AVRCP_STATE_NONE)
 					{
-						printf("--- avrcp disconnect \n");
+						APP_DBG("--- avrcp disconnect \n");
 						AvrcpDisconnect(BtCurIndex_Get());
 					}
 					btManager.btEventFlagMask = BT_EVENT_FLAG_NONE;
@@ -678,7 +678,7 @@ void BtEventFlagProcess(void)
 				{
 					if(GetA2dpState(BtCurIndex_Get()) > BT_A2DP_STATE_NONE)
 					{
-						printf("--- a2dp disconnect \n");
+						APP_DBG("--- a2dp disconnect \n");
 						A2dpDisconnect(BtCurIndex_Get());
 					}
 					btManager.btEventFlagMask = BT_EVENT_FLAG_NONE;

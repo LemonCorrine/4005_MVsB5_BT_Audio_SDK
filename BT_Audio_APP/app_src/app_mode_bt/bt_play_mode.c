@@ -62,7 +62,11 @@ static const uint8_t DmaChannelMap[6] = {
 	#ifdef CFG_RES_AUDIO_I2SOUT_EN
 		PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE,
 	#else
-		255
+		#ifdef CFG_RES_AUDIO_I2S_MIX2_IN_EN
+			PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX2_I2S_MODULE,
+		#else
+			255,
+		#endif
 	#endif
 };
 

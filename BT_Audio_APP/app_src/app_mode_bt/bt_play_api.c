@@ -379,11 +379,11 @@ void a2dp_sbc_save(uint8_t *p,uint32_t len)
 	}
 	if(info_ok)
 	{
-		printf("%ld %ld %ld\n",a2dp_player->sbc_bytes,a2dp_player->sample_rate,len);
+		APP_DBG("%ld %ld %ld\n",a2dp_player->sbc_bytes,a2dp_player->sample_rate,len);
 	}
 	if(play_start)
 	{
-		printf("sbc start decoder\n");
+		APP_DBG("sbc start decoder\n");
 	}
 	OS_SBC_UNLOCK;
 	return;
@@ -391,7 +391,7 @@ void a2dp_sbc_save(uint8_t *p,uint32_t len)
 	err:
 	AudioCoreSourceDisable(APP_SOURCE_NUM);
 	MCUCircular_Config(&a2dp_player->sbc_fifo_cnt,a2dp_player->sbc_fifo,sizeof(a2dp_player->sbc_fifo));
-	printf("fifo reset a2dp_sbc_save\n");
+	APP_DBG("fifo reset a2dp_sbc_save\n");
 	a2dp_player->last_pcm_len = 0;
 	a2dp_player->dec_out_pcm_offset = 0;
 	a2dp_player->sbc_bytes = 0;
@@ -538,7 +538,7 @@ uint16_t A2DPDataGet(void* Buf, uint16_t Samples)
 			ret = sbc_get_fram_infor(a2dp_player->sbc_buffer,&a2dp_player->sbc_bytes,&a2dp_player->sample_rate,&a2dp_player->decoder_out_sample);
 			if(ret != 0)
 			{
-				printf("sbc fram infor error: %d %u\n", (int)ret,MCUCircular_GetDataLen(&a2dp_player->sbc_fifo_cnt));
+				APP_DBG("sbc fram infor error: %d %u\n", (int)ret,MCUCircular_GetDataLen(&a2dp_player->sbc_fifo_cnt));
 				goto err;
 			}
 				
@@ -552,7 +552,7 @@ uint16_t A2DPDataGet(void* Buf, uint16_t Samples)
 				ret = sbc_decoder_apply_phone(&a2dp_player->sbc_dec_handle,a2dp_player->sbc_buffer,a2dp_player->sbc_bytes,&a2dp_player->dec_out_pcm[a2dp_player->dec_out_pcm_offset]);
 				if(ret !=0)
 				{
-					printf("decoder eixt,a2dp_player->sbc_bytes = %ld  decoder_out_sample = %ld \n",a2dp_player->sbc_bytes,a2dp_player->decoder_out_sample);
+					APP_DBG("decoder eixt,a2dp_player->sbc_bytes = %ld  decoder_out_sample = %ld \n",a2dp_player->sbc_bytes,a2dp_player->decoder_out_sample);
 					goto err;
 				}
 				i_count += a2dp_player->decoder_out_sample;
@@ -563,7 +563,7 @@ uint16_t A2DPDataGet(void* Buf, uint16_t Samples)
 					ret = sbc_get_fram_infor(a2dp_player->sbc_buffer,&a2dp_player->sbc_bytes,&a2dp_player->sample_rate,&a2dp_player->decoder_out_sample);
 					if(ret != 0)
 					{
-						printf("sbc fram infor error: %d %u\n", (int)ret,MCUCircular_GetDataLen(&a2dp_player->sbc_fifo_cnt));
+						APP_DBG("sbc fram infor error: %d %u\n", (int)ret,MCUCircular_GetDataLen(&a2dp_player->sbc_fifo_cnt));
 						goto err;
 					}
 				
@@ -583,7 +583,7 @@ uint16_t A2DPDataGet(void* Buf, uint16_t Samples)
 			
 			if(src_len < 0)
 			{
-				printf("resampler_polyphase_apply error: %d\n", src_len);
+				APP_DBG("resampler_polyphase_apply error: %d\n", src_len);
 				error_coer = ret;
 				goto err;
 			}
@@ -620,7 +620,7 @@ uint16_t A2DPDataGet(void* Buf, uint16_t Samples)
 	}
 	err:
 	{
-		printf("err:%d\n",error_coer);
+		APP_DBG("err:%d\n",error_coer);
 		int gie_ret = GIE_STATE_GET();
 		GIE_DISABLE();
 		AudioCoreSourceDisable(APP_SOURCE_NUM);

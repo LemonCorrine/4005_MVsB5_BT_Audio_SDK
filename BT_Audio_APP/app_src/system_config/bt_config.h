@@ -15,7 +15,8 @@
 /*****************************************************************
  * 蓝牙频偏参数
  *****************************************************************/
-#define BT_DEFAULT_TRIM				0x7 //trim范围:0x00~0x0f
+#define BT_DEFAULT_TRIM				0x06 //trim范围:0x00~0x0f
+
 #define BT_MIN_TRIM					0x0
 #define BT_MAX_TRIM					0xf
 
@@ -196,8 +197,6 @@ enum
 /*****************************************************************
  * HFP profile
  *****************************************************************/
-#if BT_HFP_SUPPORT
-
 //蓝牙通话来电铃声配置
 //0 -> 不支持来电铃声
 //1 -> 来电报号和铃声
@@ -212,6 +211,7 @@ enum
 };
 #define SYS_DEFAULT_RING_TYPE		USE_LOCAL_AND_PHONE_RING			
 
+#if BT_HFP_SUPPORT
 //0: only cvsd
 //1: cvsd + msbc
 #define BT_HFP_SUPPORT_WBS				(1)

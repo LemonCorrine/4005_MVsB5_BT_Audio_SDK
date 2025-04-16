@@ -26,10 +26,12 @@ extern "C" {
 #define DC_BLOCKER_ENABLE                  (0)
 #define DISTORTION_DS1_ENABLE              (0)
 #define DRC_ENABLE                         (1)
+#define DYNAMIC_EQ_ENABLE                  (0)
 #define ECHO_ENABLE                        (1)
 #define ENGINE_SOUND_ENABLE                (0)
 #define EQ_ENABLE                          (1)
 #define EQ_DRC_ENABLE                      (0)
+#define FILTER_BUTTERWORTH_ENABLE          (0)
 #define FLANGER_ENABLE                     (0)
 #define FREQ_SHIFTER_ENABLE                (1)
 #define FREQ_SHIFTER_FINE_ENABLE           (0)
@@ -39,6 +41,7 @@ extern "C" {
 #define HOWLING_SUPPRESSOR_ENABLE          (1)
 #define HOWLING_SUPPRESSOR_FINE_ENABLE     (1)
 #define LOW_LEVEL_COMPRESSOR_ENABLE        (1)
+#define LR_BALANCER_ENABLE                 (0)
 #define NOISE_GATE_ENABLE                  (1)
 #define NOISE_GENERATOR_ENABLE             (1)
 #define NOISE_SUPPRESSOR_BLUE_ENABLE       (1)
@@ -62,6 +65,7 @@ extern "C" {
 #define THREE_D_ENABLE                     (1)
 #define THREE_D_PLUS_ENABLE                (0)
 #define TREMOLO_ENABLE                     (0)
+#define VAD_ENABLE                         (0)
 #define VIRTUAL_BASS_ENABLE                (1)
 #define VIRTUAL_BASS_CLASSIC_ENABLE        (1)
 #define VIRTUAL_BASS_TD_ENABLE             (0)
@@ -128,6 +132,10 @@ extern "C" {
 #define ROBOEFFECT_NOISE_GENERATOR_PARAM_LEN          2
 #define ROBOEFFECT_NOISE_SUPPRESSOR_BLUE_DUAL_PARAM_LEN 1
 #define ROBOEFFECT_PHASE_INVERTER_PARAM_LEN           1
+#define ROBOEFFECT_FILTER_BUTTERWORTH_PARAM_LEN       3
+#define ROBOEFFECT_DYNAMIC_EQ_PARAM_LEN               7
+#define ROBOEFFECT_VAD_PARAM_LEN                      2
+#define ROBOEFFECT_LR_BALANCER_PARAM_LEN              1
 #define ROBOEFFECT_FADER_PARAM_LEN                    3
 #define ROBOEFFECT_DOWNMIX_2TO1_PARAM_LEN             0
 #define ROBOEFFECT_UPMIX_1TO2_PARAM_LEN               0
@@ -477,6 +485,30 @@ bool roboeffect_phase_inverter_init_if(void *node);
 bool roboeffect_phase_inverter_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
 bool roboeffect_phase_inverter_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
 int32_t roboeffect_phase_inverter_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
+
+//filter_butterworth interface
+bool roboeffect_filter_butterworth_init_if(void *node);
+bool roboeffect_filter_butterworth_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
+bool roboeffect_filter_butterworth_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
+int32_t roboeffect_filter_butterworth_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
+
+//dynamic_eq interface
+bool roboeffect_dynamic_eq_init_if(void *node);
+bool roboeffect_dynamic_eq_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
+bool roboeffect_dynamic_eq_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
+int32_t roboeffect_dynamic_eq_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
+
+//vad interface
+bool roboeffect_vad_init_if(void *node);
+bool roboeffect_vad_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
+bool roboeffect_vad_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
+int32_t roboeffect_vad_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
+
+//lr_balancer interface
+bool roboeffect_lr_balancer_init_if(void *node);
+bool roboeffect_lr_balancer_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
+bool roboeffect_lr_balancer_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
+int32_t roboeffect_lr_balancer_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
 
 //fader interface
 bool roboeffect_fader_init_if(void *node);

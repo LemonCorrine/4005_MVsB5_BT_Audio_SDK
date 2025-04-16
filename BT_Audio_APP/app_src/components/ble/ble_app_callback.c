@@ -48,7 +48,7 @@ void AppEventCallBack(LE_CB_EVENT event, LE_CB_PARAMS *param)
 #ifdef DUOBLE_ROLE
     case LE_ADV_REPORT_EVENT:
     {
-    	printf("LE_ADV_REPORT_EVENT\n");
+    	APP_DBG("LE_ADV_REPORT_EVENT\n");
         if (!prase_adv_data("BP15_BLE_LYM", param->adv_report.buf, param->adv_report.data_len))
             break;
         le_scan_stop();
@@ -91,24 +91,24 @@ void AppEventCallBack(LE_CB_EVENT event, LE_CB_PARAMS *param)
     break;
 #endif
     case LE_CONNECTED:
-        printf("\n***********LE_CONNECTED************\n");
+        APP_DBG("\n***********LE_CONNECTED************\n");
         BLE_INFO("connect handle: 0x%04x\n", param->con_params.conhdl);
         btAddrToString(&param->con_params.peer_addr.addr[0], addr);
         BLE_INFO("Address: %s", addr);
         break;
     case LE_DISCONNECT:
-        printf("\n***********LE_DISCONNECT************\n");
+        APP_DBG("\n***********LE_DISCONNECT************\n");
         BLE_INFO("disconnect reson: 0x%02x\ndisconnect handle: 0x%04x\nindex: 0x%04x\n",
                  param->dis_params.reason, param->dis_params.conhdl, param->dis_params.conidx);
         break;
     case LE_CONNECT_PARAMS_UPDATE:
-        printf("\n*****LE_CONNECT_PARAMS_UPDATE*****\n");
+        APP_DBG("\n*****LE_CONNECT_PARAMS_UPDATE*****\n");
         BLE_INFO("con_interval: %d\ncon_latency: %d\nSupervision timeout: %d\n",
                  param->con_update_param.con_interval, param->con_update_param.con_latency, param->con_update_param.sup_to);
         break;
     case LE_MTU_EXCHANGE_RESULT:
     {
-        printf("\n*****LE_MTU_EXCHANGE_RESULT*****\n");
+        APP_DBG("\n*****LE_MTU_EXCHANGE_RESULT*****\n");
 //		le_connection_param_t par;
 //		par.intv_max = 25;
 //		par.intv_min = 25;
@@ -121,21 +121,21 @@ void AppEventCallBack(LE_CB_EVENT event, LE_CB_PARAMS *param)
     case LE_RCV_DATA_EVENT:
     {
         uint8_t i;
-        printf("\n*****LE_RCV_DATA_EVENT*****\n");
+        APP_DBG("\n*****LE_RCV_DATA_EVENT*****\n");
         BLE_INFO("connect handle: 0x%04x,att_handle: 0x%04x\n", param->rcv_data.conhdl, param->rcv_data.handle);
         BLE_INFO("RCV DATA: ");
         for (i = 0; i < param->rcv_data.len; i++)
         {
-            printf("0x%02x,", param->rcv_data.data[i]);
+            APP_DBG("0x%02x,", param->rcv_data.data[i]);
         }
-        printf("\n");
+        APP_DBG("\n");
         //·¢ËÍÊ¾Àý
         ble_send_data(param->rcv_data.conhdl,0,0,0x0e,test_buff,sizeof(test_buff),0);
         break;
     }
     case LE_APP_READ_DATA_EVENT:
     {
-        printf("\n*****LE_APP_READ_DATA_EVENT*****\n");
+        APP_DBG("\n*****LE_APP_READ_DATA_EVENT*****\n");
         switch (param->read_data.handle)
         {
         case 0:

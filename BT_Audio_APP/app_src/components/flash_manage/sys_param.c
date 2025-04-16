@@ -138,3 +138,47 @@ void sys_parameter_init(void)
 		osPortFree(buf);
 }
 
+void sys_parameter_update(SYS_PARAMETER_ID id,void *dest_para,uint8_t lenght)
+{
+	uint8_t * buf;
+
+	if(flash_table_is_valid())
+	{
+		buf = osPortMalloc(4096);
+		if(buf)
+		{
+			uint32_t  offset;
+			SYS_PARAMETER_ID read_id;
+			uint8_t  len;
+			uint32_t addr = get_sys_parameter_addr();
+
+			//读取所有4K数据
+			SpiFlashRead(addr,buf,4096,10);
+
+			for(offset=0,len=0; offset<4096; offset += (2 + 1 + len))
+			{
+				read_id = buf[offset + 1];
+				read_id <<= 8;
+				read_id |= buf[offset + 0];
+				len = buf[offset + 2];
+
+				if(read_id == 0xffff && len == 0xff)
+					break;
+				//找到对应ID，并且长度相等，更新数据
+				if(read_id == id && lenght == len)
+				{
+					//更新对应位置的数据
+					memcpy(buf + offset + 3,dest_para,lenght);
+
+					SpiFlashErase(SECTOR_ERASE, (addr/4096), 1);
+					SpiFlashWrite(addr, buf, 4096, 1);
+
+					DBG("sys_parameter_update: %x %d\n",id,lenght);
+					break;
+				}
+			}
+			osPortFree(buf);
+		}
+	}
+}
+

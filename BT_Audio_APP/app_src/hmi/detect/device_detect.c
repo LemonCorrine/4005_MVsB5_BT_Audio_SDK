@@ -48,12 +48,10 @@ uint8_t UsbHostPortFlag = 0;
 #endif
 #ifdef CFG_FUNC_USB_DEVICE_DETECT
 static DETECT_STATE UsbDeviceState = DETECT_STATE_IDLE;
+static uint32_t sDevice_Init_state=0;// 1:inited    0:not init
 #endif
 #ifdef CFG_LINEIN_DET_EN
 static DETECT_STATE LineInState = DETECT_STATE_IDLE;
-#endif
-#ifdef CFG_COMMUNICATION_BY_USB
-static uint32_t sDevice_Init_state=0;// 1:inited    0:not init
 #endif
 
 extern uint32_t SysemMipsPercent;
@@ -214,7 +212,7 @@ bool IsUDiskLink(void)
 #endif
 
 
-#ifdef CFG_COMMUNICATION_BY_USB
+#ifdef CFG_FUNC_USB_DEVICE_DETECT
 bool GetUSBDeviceInitState(void)
 {
 	return sDevice_Init_state; 	
@@ -225,7 +223,6 @@ void SetUSBDeviceInitState(bool state)
 {
 	 sDevice_Init_state = state; 	
 }
-
 
 #endif
 
@@ -693,7 +690,7 @@ void BreakPointSave(uint16_t device_msgId)
 			pBpSysInfo = (BP_SYS_INFO *)BP_GetInfo(BP_SYS_INFO_TYPE);
 			memcpy(&sys_info,pBpSysInfo,sizeof(BP_SYS_INFO));
 			pBpSysInfo->CurModuleId  = GetSystemMode();
-			pBpSysInfo->MusicVolume  = mainAppCt.MusicVolume;
+			pBpSysInfo->MusicVolume  = MusicVolume;
 #ifdef CFG_APP_BT_MODE_EN
 			pBpSysInfo->HfVolume     = mainAppCt.HfVolume;
 #endif
@@ -701,19 +698,18 @@ void BreakPointSave(uint16_t device_msgId)
 			{
 				pBpSysInfo->EffectMode   = mainAppCt.EffectMode;
 			}
-			pBpSysInfo->MicVolume    = mainAppCt.MicVolume;
+			pBpSysInfo->MicVolume    = MicVolume;
 #ifdef CFG_FUNC_MUSIC_EQ_MODE_EN
-			pBpSysInfo->EqMode		 = mainAppCt.EqMode;
+			pBpSysInfo->EqMode		 = EqMode;
 #endif	
-			pBpSysInfo->MicEffectDelayStep   = mainAppCt.MicEffectDelayStep;
-			pBpSysInfo->ReverbStep   = mainAppCt.ReverbStep;
+			pBpSysInfo->ReverbStep   = ReverbStep;
 #ifdef CFG_FUNC_MIC_TREB_BASS_EN
-			pBpSysInfo->MicBassStep     = mainAppCt.MicBassStep;
-			pBpSysInfo->MicTrebStep     = mainAppCt.MicTrebStep;
+			pBpSysInfo->MicBassStep     = MicBassStep;
+			pBpSysInfo->MicTrebStep     = MicTrebStep;
 #endif
 #ifdef CFG_FUNC_MUSIC_TREB_BASS_EN
-			pBpSysInfo->MusicBassStep     = mainAppCt.MusicBassStep;
-			pBpSysInfo->MusicTrebStep     = mainAppCt.MusicTrebStep;
+			pBpSysInfo->MusicBassStep     = MusicBassStep;
+			pBpSysInfo->MusicTrebStep     = MusicTrebStep;
 #endif
 #ifdef CFG_FUNC_SOUND_REMIND
 			//pBpSysInfo->SoundRemindOn = mainAppCt.SoundRemindOn;

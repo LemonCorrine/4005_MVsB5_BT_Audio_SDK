@@ -9,6 +9,7 @@
 #include "bt_config.h"
 #include "app_config.h"
 #include "bt_app_ddb_info.h"
+#include "flash_param.h"
 
 #ifdef CFG_FUNC_FLASH_PARAM_ONLINE_TUNING_EN
 
@@ -434,9 +435,9 @@ void FlashSn_Rx(uint8_t *buf,uint16_t buf_len)
 				p_tx_buf[10] = 0;
 				p_tx_buf[11] = BT_ADDR_SIZE;
 				if(offset == MAGIC_NUMBER_BT_ADDR)
-					memcpy(&p_tx_buf[12],BTDB_CONFIG_ADDR, BT_ADDR_SIZE);
+					memcpy(&p_tx_buf[12],(uint32_t *)BTDB_CONFIG_ADDR, BT_ADDR_SIZE);
 				else
-					memcpy(&p_tx_buf[12],BTDB_CONFIG_ADDR + BT_ADDR_SIZE, BT_ADDR_SIZE);
+					memcpy(&p_tx_buf[12],(uint32_t *)(BTDB_CONFIG_ADDR + BT_ADDR_SIZE), BT_ADDR_SIZE);
 			}
 			else if(offset == MAGIC_NUMBER_BT_NAME)
 			{
@@ -454,7 +455,7 @@ void FlashSn_Rx(uint8_t *buf,uint16_t buf_len)
 			{
 				extern char __data_lmastart;
 
-				if(offset < &__data_lmastart || len > (256-12))
+				if(offset < (uint32_t)&__data_lmastart || len > (256-12))
 				{
 					osPortFree(p_tx_buf);
 					PcOnlineReadWriteAck(PC_ONLINE_READ_DATA_ACK,buf,0,PC_ONLINE_READ_OFFSET_ERROR);
@@ -462,7 +463,7 @@ void FlashSn_Rx(uint8_t *buf,uint16_t buf_len)
 				}
 				p_tx_buf[10] = 0;
 				p_tx_buf[11] = len;
-				memcpy(&p_tx_buf[12],offset,len);
+				memcpy(&p_tx_buf[12],(uint32_t *)offset,len);
 			}
 
 			p_tx_buf[5] += p_tx_buf[11];
@@ -509,6 +510,7 @@ void FlashSn_Rx(uint8_t *buf,uint16_t buf_len)
 			else if(offset == MAGIC_NUMBER_BT_NAME || offset == MAGIC_NUMBER_BLE_NAME)
 			{
 				uint32_t addr = get_sys_parameter_addr();
+				extern void sys_parameter_update(SYS_PARAMETER_ID id,void *dest_para,uint8_t lenght);
 
 				if(addr == 0)
 				{
@@ -521,6 +523,7 @@ void FlashSn_Rx(uint8_t *buf,uint16_t buf_len)
 						len = BT_NAME_SIZE;
 					memset(sys_parameter.bt_LocalDeviceName,0,BT_NAME_SIZE);
 					memcpy(sys_parameter.bt_LocalDeviceName,&buf[9],len);
+					sys_parameter_update(BT_PARA_BT_NAME_ID,sys_parameter.bt_LocalDeviceName,BT_NAME_SIZE);
 				}
 				else
 				{
@@ -528,10 +531,8 @@ void FlashSn_Rx(uint8_t *buf,uint16_t buf_len)
 						len = BLE_NAME_SIZE;
 					memset(sys_parameter.ble_LocalDeviceName,0,BLE_NAME_SIZE);
 					memcpy(sys_parameter.ble_LocalDeviceName,&buf[9],len);
+					sys_parameter_update(BT_PARA_BLE_NAME_ID,sys_parameter.ble_LocalDeviceName,BLE_NAME_SIZE);
 				}
-
-				SpiFlashErase(SECTOR_ERASE, (addr/4096), 1);
-				SpiFlashWrite(addr, (uint8_t*)&sys_parameter, sizeof(SYS_PARAMETER), 1);
 				PcOnlineReadWriteAck(PC_ONLINE_WRITE_ACK,buf,len,PC_ONLINE_READ_WRITE_SUCCESS);
 			}
 			else
@@ -540,7 +541,7 @@ void FlashSn_Rx(uint8_t *buf,uint16_t buf_len)
 				uint8_t *p_buf;
 
 				//offset…Ÿ”⁄codeŒª÷√
-				if(offset < &__data_lmastart || len > (256-12))
+				if(offset < (uint32_t)&__data_lmastart || len > (256-12))
 				{
 					PcOnlineReadWriteAck(PC_ONLINE_READ_DATA_ACK,buf,0,PC_ONLINE_WRITE_OFFSET_ERROR);
 					break;

@@ -75,7 +75,11 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 		{
 			for(s = 0; s < n; s++)
 			{
+#ifdef CFG_AUDIO_WIDTH_24BIT
 				usb_out[s] = __nds32__clips(((int32_t)usb_out[2*s] + (int32_t)usb_out[2*s + 1] +1 ) >>1, 24-1);
+#else
+				usb_out[s] = __nds32__clips(((int32_t)usb_out[2*s] + (int32_t)usb_out[2*s + 1] +1 ) >>1, 16-1);
+#endif
 			}
 		}
 	}
@@ -256,7 +260,11 @@ void AudioBypassProcess(AudioCoreContext *pAudioCore)
 		{
 			for(s = 0; s < n; s++)
 			{
+#ifdef CFG_AUDIO_WIDTH_24BIT
 				usb_out[s] = __nds32__clips(((int32_t)mic_pcm[2 * s] + (int32_t)mic_pcm[2 * s + 1] +1 ) >>1, 24-1);
+#else
+				usb_out[s] = __nds32__clips(((int32_t)mic_pcm[2 * s] + (int32_t)mic_pcm[2 * s + 1] +1 ) >>1, 16-1);
+#endif
 			}
 		}
 		else

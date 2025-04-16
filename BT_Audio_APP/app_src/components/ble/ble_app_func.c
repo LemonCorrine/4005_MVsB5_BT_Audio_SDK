@@ -128,7 +128,7 @@ static uint8_t rsp_adv_len = sizeof(ble_app_rsp_adv_data);
 uint8_t LeInitConfigParams(void)
 {
 
-	printf("RD_P: 0x%04x,WR_P: 0x%04x,NTF_P: 0x%04x,IND_P: 0x%04x",RD_P,WR_P,NTF_P,IND_P);
+	APP_DBG("RD_P: 0x%04x,WR_P: 0x%04x,NTF_P: 0x%04x,IND_P: 0x%04x",RD_P,WR_P,NTF_P,IND_P);
     LeAppRegCB(AppEventCallBack); // 注册应用层事件回调函数
     user_set_ble_bd_addr(btStackConfigParams->ble_LocalDeviceAddr);
     // BLE广播数据内容填充
@@ -171,23 +171,23 @@ uint8_t LeInitConfigParams(void)
 static void gatt_client_discover_cmp_cb(uint8_t conidx, uint8_t user_lid, uint16_t metainfo, uint16_t status)
 
 {
-    printf("Discover complete, status = %x,metainfo: %x\n", status,metainfo);
+    APP_DBG("Discover complete, status = %x,metainfo: %x\n", status,metainfo);
 }
 
 static void gatt_client_read_cmp_cb(uint8_t conidx, uint8_t user_lid, uint16_t metainfo, uint16_t status, uint16_t hdl, uint16_t offset,const char *p_info)
 {
     // Inform application about read name
-    printf("Read complete, hdl = %x, name = %s\n", hdl, p_info);
+    APP_DBG("Read complete, hdl = %x, name = %s\n", hdl, p_info);
 }
 
 static void gatt_client_write_cmp_cb(uint8_t conidx, uint8_t user_lid, uint16_t metainfo, uint16_t status)
 {
-    printf("Write Name complete, metainfo = %x\n", metainfo);
+    APP_DBG("Write Name complete, metainfo = %x\n", metainfo);
 }
 
 static void gatt_client_info_recv_cb(uint8_t conidx,  uint8_t event_type, uint16_t hdl, uint8_t info_len, const uint8_t *p_info)
 {
-	  printf("gatt_client_info_recv_cb, hdl = %x\n", hdl);
+	  APP_DBG("gatt_client_info_recv_cb, hdl = %x\n", hdl);
 }
 gatt_client_appli_itf_t le_appli_itf_t = {
     .cb_discover_cmp = gatt_client_discover_cmp_cb,

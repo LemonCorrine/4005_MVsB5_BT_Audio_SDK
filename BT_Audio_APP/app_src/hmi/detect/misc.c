@@ -80,9 +80,19 @@ void HWDeviceDected_Init(void)
 #ifdef CFG_FUNC_SILENCE_AUTO_POWER_OFF_EN
 void SilenceDectorProcess(void)
 {
+	extern int16_t * AudioEffectGetAllParameter(AUDIOEFFECT_EFFECT_CONTROL effect);
 	//根据实际情况进行修改和配置（MIC + MUSIC）
-	int32_t mic_level = AudioEffect_SilenceDetector_Get(SILENCE_DETECTOR);
-	int32_t music_level = AudioEffect_SilenceDetector_Get(SILENCE_DETECTOR_MUSIC);
+	int32_t mic_level = -1;
+	int32_t music_level = -1;
+	SilenceDetectorUnit *Param = NULL;
+
+	Param = AudioEffectGetAllParameter(MUSIC_SILENCE_DETECTOR_PARAM);
+	if(Param)
+		music_level = Param->level;
+
+	Param = AudioEffectGetAllParameter(MIC_SILENCE_DETECTOR_PARAM);
+	if(Param)
+		mic_level = Param->level;
 
 	if(mic_level < 0)	//没有检测到MIC通道信号，不做关机处理
 		mic_level = SILENCE_THRESHOLD + 1;
@@ -151,6 +161,10 @@ void ShunningModeProcess(void)
 	static uint16_t shnning_down_dly    = 0;
 	uint16_t music_pregain = mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM];
 
+	extern int16_t * AudioEffectGetAllParameter(AUDIOEFFECT_EFFECT_CONTROL effect);
+	int32_t mic_level = -1;
+	SilenceDetectorUnit *Param = NULL;
+
 	if(mainAppCt.ShunningMode == 0)
 	{
 	    if(shnning_up_dly)
@@ -172,11 +186,15 @@ void ShunningModeProcess(void)
 			}
 		}
 
-		AudioEffect_GainControl_Set(APP_SOURCE_GAIN, get_audioeffectVolArr(mainAppCt.aux_out_dyn_gain));
+		AudioMusicVolSet(mainAppCt.aux_out_dyn_gain);
 		return;
 	}
 
-	if(AudioEffect_SilenceDetector_Get(SILENCE_DETECTOR) > SHNNIN_VALID_DATA)///vol----
+	Param = AudioEffectGetAllParameter(MIC_SILENCE_DETECTOR_PARAM);
+	if(Param)
+		mic_level = Param->level;
+
+	if(mic_level > SHNNIN_VALID_DATA)///vol----
 	{
 		shnning_recover_dly = SHNNIN_VOL_RECOVER_TIME;
 		if(shnning_down_dly)
@@ -192,7 +210,7 @@ void ShunningModeProcess(void)
 			APP_DBG("Aux Shunning start\n");
 		}
 
-		AudioEffect_GainControl_Set(APP_SOURCE_GAIN, get_audioeffectVolArr(mainAppCt.aux_out_dyn_gain));
+		AudioMusicVolSet(mainAppCt.aux_out_dyn_gain);
 	}
 	else
 	{
@@ -221,7 +239,7 @@ void ShunningModeProcess(void)
 			}
 		}
 
-		AudioEffect_GainControl_Set(APP_SOURCE_GAIN, get_audioeffectVolArr(mainAppCt.aux_out_dyn_gain));
+		AudioMusicVolSet(mainAppCt.aux_out_dyn_gain);
 	}
 }
 #endif

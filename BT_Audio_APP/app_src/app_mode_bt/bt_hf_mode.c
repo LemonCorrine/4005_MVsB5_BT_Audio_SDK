@@ -29,9 +29,7 @@
 #include "audio_effect.h"
 #include "bt_app_hfp_deal.h"
 #include "bt_stack_service.h"
-#ifdef CFG_FUNC_REMIND_SOUND_EN
 #include "remind_sound.h"
-#endif
 
 /*******************************************************************************************************************************************************************
 *           		SaveScoData	 			   		   InAdapter	  	    CoreProcess			   OutAdapter			SaveScoData
@@ -900,8 +898,7 @@ bool BtHfDeinit(void)
 #endif	
 
 	//恢复其他模式的音量值
-	//AudioMusicVolSet(mainAppCt.MusicVolume);
-	AudioMusicVol(mainAppCt.MusicVolume);
+	AudioMusicVolSet(MusicVolume);
 
 	//通话模式退出完成，清除标志
 	BtHfModeExitFlag = 0;

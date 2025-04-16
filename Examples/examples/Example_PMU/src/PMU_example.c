@@ -103,9 +103,13 @@ void PowerKeyExample(void)
 	}
 
 	//display current mode setting 显示当前设置模式
-	if (SystemPowerKeyGetMode() == E_PWRKEY_MODE_SLIDESWITCH)
+	if (SystemPowerKeyGetMode() == E_PWRKEY_MODE_SLIDESWITCH_HON)
 	{
-		DBG("Current setting is SLIDESWITCH MODE\r\n");
+		DBG("Current setting is SLIDESWITCH HIGH ON MODE\r\n");
+	}
+	else if (SystemPowerKeyGetMode() == E_PWRKEY_MODE_SLIDESWITCH_LON)
+	{
+		DBG("Current setting is SLIDESWITCH LOW ON MODE\r\n");
 	}
 	else if (SystemPowerKeyGetMode() == E_PWRKEY_MODE_PUSHBUTTON)
 	{

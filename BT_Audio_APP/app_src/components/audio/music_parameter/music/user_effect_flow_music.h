@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_music.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.9.1                 
- * @version V1.1.0                                  
- * @Created 2024-03-01T14:06:39                                      
+ * @author  ACPWorkbench: 3.10.1                 
+ * @version V1.2.0                                  
+ * @Created 2024-07-10T09:33:58                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define MUSIC_ROBOEFFECT_LIB_VER "2.17.7"
+#define MUSIC_ROBOEFFECT_LIB_VER "2.21.1"
 
 typedef enum _MUSIC_roboeffect_io_enum
 {

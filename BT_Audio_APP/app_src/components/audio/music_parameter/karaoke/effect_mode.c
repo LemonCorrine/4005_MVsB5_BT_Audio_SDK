@@ -1,124 +1,115 @@
 #include "user_effect_flow_karaoke.h"
 #include "user_effect_parameter.h"
 
-static const AUDIOEFFECT_EFFECT_PARA effect_para[] =
+const AUDIOEFFECT_EFFECT_PARA HunXiang_effect_para =
 {
-	 //HUNXIANG
-	{
-		.user_effect_name = (uint8_t *)"HunXiang",
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
-		.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_Karaoke_HunXiang,
-		.user_module_parameters = (uint8_t *)user_module_parameters_Karaoke_HunXiang,
-		.get_user_effects_script_len = get_user_effects_script_len_Karaoke
-	},
-	//DIANYIN
-	{
-		.user_effect_name = (uint8_t *)"DianYin",
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
-		.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_Karaoke_DianYin,
-		.user_module_parameters = (uint8_t *)user_module_parameters_Karaoke_DianYin,
-		.get_user_effects_script_len = get_user_effects_script_len_Karaoke
-	},
-	//MOYIN
-	{
-		.user_effect_name = (uint8_t *)"MoYin",
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
-		.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_Karaoke_MoYin,
-		.user_module_parameters = (uint8_t *)user_module_parameters_Karaoke_MoYin,
-		.get_user_effects_script_len = get_user_effects_script_len_Karaoke
-	},
-	//HANMAI
-	{
-		.user_effect_name = (uint8_t *)"HanMai",
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
-		.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_Karaoke_HanMai,
-		.user_module_parameters = (uint8_t *)user_module_parameters_Karaoke_HanMai,
-		.get_user_effects_script_len = get_user_effects_script_len_Karaoke
-	},
-	//NANBIANNV
-	{
-		.user_effect_name = (uint8_t *)"NanBianNv",
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
-		.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_Karaoke_NanBianNv,
-		.user_module_parameters = (uint8_t *)user_module_parameters_Karaoke_NanBianNv,
-		.get_user_effects_script_len = get_user_effects_script_len_Karaoke
-	},
-	//NVBIANNAN
-	{
-		.user_effect_name = (uint8_t *)"NvBianNan",
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
-		.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_Karaoke_NvBianNan,
-		.user_module_parameters = (uint8_t *)user_module_parameters_Karaoke_NvBianNan,
-		.get_user_effects_script_len = get_user_effects_script_len_Karaoke
-	},
-	//WAWAYIN
-	{
-		.user_effect_name = (uint8_t *)"WaWaYin",
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
-		.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_Karaoke_WaWaYin,
-		.user_module_parameters = (uint8_t *)user_module_parameters_Karaoke_WaWaYin,
-		.get_user_effects_script_len = get_user_effects_script_len_Karaoke
-	}
+	.user_effect_name = (uint8_t *)"HunXiang",
+	.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
+	.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
+	.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
+	.user_effect_parameters = (uint8_t *)user_effect_parameters_Karaoke_HunXiang,
+	.user_module_parameters = (uint8_t *)user_module_parameters_Karaoke_HunXiang,
+	.get_user_effects_script_len = get_user_effects_script_len_Karaoke
 };
 
-const AUDIOEFFECT_EFFECT_PARA_TABLE karaoke_mode =
+const AUDIOEFFECT_EFFECT_PARA DianYin_effect_para =
 {
-	//ROBOEFFECT effect ID 通过这个ID来搜索匹配
-	.effect_id    = EFFECT_MODE_HunXiang ,
-	//该框图下面有7个音效
-	.effect_id_count = EFFECT_MODE_WaWaYin - EFFECT_MODE_HunXiang + 1,
+	.user_effect_name = (uint8_t *)"DianYin",
+	.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
+	.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
+	.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
+	.user_effect_parameters = (uint8_t *)user_effect_parameters_Karaoke_DianYin,
+	.user_module_parameters = (uint8_t *)user_module_parameters_Karaoke_DianYin,
+	.get_user_effects_script_len = get_user_effects_script_len_Karaoke
+};
 
-	//ROBOEFFECT effect 音效地址映射
-	.effect_addr =
-	{
-		.REVERB_ADDR = KARAOKE_reverb0_ADDR,
-		.REVERBPLATE_ADDR = KARAOKE_reverb_plate0_ADDR,
-		.ECHO_ADDR = KARAOKE_echo0_ADDR,
-		.SILENCE_DETECTOR_ADDR = KARAOKE_silence_detector0_ADDR,
-		.SILENCE_DETECTOR_MUSIC_ADDR = KARAOKE_silence_detector_music_ADDR,
-		.VOICE_CHANGER_ADDR = KARAOKE_voice_changer0_ADDR,
-		.APP_SOURCE_GAIN_ADDR = KARAOKE_gain_control0_ADDR,
-		.MIC_SOURCE_GAIN_ADDR = KARAOKE_gain_control1_ADDR,
-		.REMIND_SOURCE_GAIN_ADDR = KARAOKE_gain_control13_ADDR,
-	},
+const AUDIOEFFECT_EFFECT_PARA MoYin_effect_para =
+{
+	.user_effect_name = (uint8_t *)"MoYin",
+	.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
+	.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
+	.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
+	.user_effect_parameters = (uint8_t *)user_effect_parameters_Karaoke_MoYin,
+	.user_module_parameters = (uint8_t *)user_module_parameters_Karaoke_MoYin,
+	.get_user_effects_script_len = get_user_effects_script_len_Karaoke
+};
+
+const AUDIOEFFECT_EFFECT_PARA HanMai_effect_para =
+{
+	.user_effect_name = (uint8_t *)"HanMai",
+	.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
+	.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
+	.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
+	.user_effect_parameters = (uint8_t *)user_effect_parameters_Karaoke_HanMai,
+	.user_module_parameters = (uint8_t *)user_module_parameters_Karaoke_HanMai,
+	.get_user_effects_script_len = get_user_effects_script_len_Karaoke
+};
+
+const AUDIOEFFECT_EFFECT_PARA NanBianNv_effect_para =
+{
+	.user_effect_name = (uint8_t *)"NanBianNv",
+	.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
+	.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
+	.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
+	.user_effect_parameters = (uint8_t *)user_effect_parameters_Karaoke_NanBianNv,
+	.user_module_parameters = (uint8_t *)user_module_parameters_Karaoke_NanBianNv,
+	.get_user_effects_script_len = get_user_effects_script_len_Karaoke
+};
+
+const AUDIOEFFECT_EFFECT_PARA NvBianNan_effect_para =
+{
+	.user_effect_name = (uint8_t *)"NvBianNan",
+	.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
+	.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
+	.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
+	.user_effect_parameters = (uint8_t *)user_effect_parameters_Karaoke_NvBianNan,
+	.user_module_parameters = (uint8_t *)user_module_parameters_Karaoke_NvBianNan,
+	.get_user_effects_script_len = get_user_effects_script_len_Karaoke
+};
+
+const AUDIOEFFECT_EFFECT_PARA WaWaYin_effect_para =
+{
+	.user_effect_name = (uint8_t *)"WaWaYin",
+	.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_Karaoke,
+	.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_Karaoke,
+	.user_effects_script = (uint8_t *)user_effects_script_Karaoke,
+	.user_effect_parameters = (uint8_t *)user_effect_parameters_Karaoke_WaWaYin,
+	.user_module_parameters = (uint8_t *)user_module_parameters_Karaoke_WaWaYin,
+	.get_user_effects_script_len = get_user_effects_script_len_Karaoke
+};
+
+const AUDIOEFFECT_SOURCE_SINK_NUM karaoke_mode =
+{
+	//不要删除，source/sink默认值
+	AUDIOEFFECT_SOURCE_SINK_DEFAULT_INIT,
 
 	//ROBOEFFECT effect SOURCE映射
-	.audioeffect_source =
-	{
-		.mic_source = KARAOKE_SOURCE_MIC_SOURCE,
-		.app_source = KARAOKE_SOURCE_APP_SOURCE,
-		.remind_source = KARAOKE_SOURCE_REMIND_SOURCE,
-		.rec_source = KARAOKE_SOURCE_REC_SOURCE,
-		.usb_source = KARAOKE_SOURCE_USB_SOURCE,
-		.i2s_mix_source = KARAOKE_SOURCE_I2S_MIX_SOURCE,
-		.linein_mix_source = KARAOKE_SOURCE_LINEIN_MIX_SOURCE,
-	},
+	.mic_source = KARAOKE_SOURCE_MIC_SOURCE,
+	.app_source = KARAOKE_SOURCE_APP_SOURCE,
+	.remind_source = KARAOKE_SOURCE_REMIND_SOURCE,
+	.rec_source = KARAOKE_SOURCE_REC_SOURCE,
+	.usb_source = KARAOKE_SOURCE_USB_SOURCE,
+	.i2s_mix_source = KARAOKE_SOURCE_I2S_MIX_SOURCE,
+	.i2s_mix2_source = KARAOKE_SOURCE_I2S_MIX2_SOURCE,
+	.linein_mix_source = KARAOKE_SOURCE_LINEIN_MIX_SOURCE,
+
 
 	//ROBOEFFECT effect SINK映射
-	.audioeffect_sink =
-	{
-		.dac0_sink = KARAOKE_SINK_DAC0_SINK,
-		.app_sink = KARAOKE_SINK_APP_SINK,
-		.stereo_sink = KARAOKE_SINK_STEREO_SINK,
-		.rec_sink = KARAOKE_SINK_REC_SINK,
-		.i2s_mix_sink = KARAOKE_SINK_I2S_MIX_SINK,
-		.spdif_sink = KARAOKE_SINK_SPDIF_SINK,
-	},
+	.dac0_sink = KARAOKE_SINK_DAC0_SINK,
+	.app_sink = KARAOKE_SINK_APP_SINK,
+	.stereo_sink = KARAOKE_SINK_STEREO_SINK,
+	.rec_sink = KARAOKE_SINK_REC_SINK,
+	.i2s_mix_sink = KARAOKE_SINK_I2S_MIX_SINK,
+	.spdif_sink = KARAOKE_SINK_SPDIF_SINK,
+};
 
-	//ROBOEFFECT effect 参数
-	.audioeffect_para = (AUDIOEFFECT_EFFECT_PARA *)&effect_para[0],
+const uint8_t karaoke_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX] =
+{
+	[EQ_MODE_ADJUST] = KARAOKE_eq0_ADDR,
+	[_3D_ENABLE] = KARAOKE_3D_ADDR,
+	[ECHO_PARAM] = KARAOKE_echo0_ADDR,
+	[MUSIC_VOLUME_ADJUST] = KARAOKE_gain_control0_ADDR,
+	[MIC_VOLUME_ADJUST] = KARAOKE_gain_control1_ADDR,
+	[MIC_SILENCE_DETECTOR_PARAM] = KARAOKE_silence_detector0_ADDR,
+	[MUSIC_SILENCE_DETECTOR_PARAM] = KARAOKE_silence_detector_music_ADDR,
 };

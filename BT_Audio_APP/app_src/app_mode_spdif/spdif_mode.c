@@ -416,12 +416,12 @@ void SpdifPlayRun(uint16_t msgId)
 				SPDIF_DpllLockDeInit();
 				if(!SPDIF_FlagStatusGet(CFG_SPDIF_MODULE,LOCK_FLAG_STATUS))
 				{
-					printf("unlock return\n");
+					APP_DBG("unlock return\n");
 					return ;
 				}
 				else
 				{
-					printf("reinit dpll lock\n");
+					APP_DBG("reinit dpll lock\n");
 					SPDIF_DpllLockInit();//dpll lock mode
 					SPDIF_DpllLockStart();
 				}

@@ -217,8 +217,8 @@ void UsbDevicePlayHardwareInit(void)
 		//不清除FIFO,只清除usb声卡相关配置
 		memset(&UsbAudioSpeaker,0,sizeof(UsbAudio)-sizeof(MCU_CIRCULAR_CONTEXT)-sizeof(int16_t*));
 		UsbAudioSpeaker.Channels   = PACKET_CHANNELS_NUM;
-		UsbAudioSpeaker.LeftVol    = AUDIO_MAX_VOLUME;
-		UsbAudioSpeaker.RightVol   = AUDIO_MAX_VOLUME;
+		UsbAudioSpeaker.LeftGain    = UsbValToMcuGain(AUDIO_MAX_VOLUME);
+		UsbAudioSpeaker.RightGain   = UsbValToMcuGain(AUDIO_MAX_VOLUME);
 	}
 #endif
 
@@ -228,8 +228,8 @@ void UsbDevicePlayHardwareInit(void)
 		//不清除FIFO,只清除usb声卡相关配置
 		memset(&UsbAudioMic,0,sizeof(UsbAudio)-sizeof(MCU_CIRCULAR_CONTEXT)-sizeof(int16_t*));
 		UsbAudioMic.Channels       = MIC_CHANNELS_NUM;
-		UsbAudioMic.LeftVol        = AUDIO_MAX_VOLUME;
-		UsbAudioMic.RightVol       = AUDIO_MAX_VOLUME;
+		UsbAudioMic.LeftGain        = UsbValToMcuGain(AUDIO_MAX_VOLUME);
+		UsbAudioMic.RightGain       = UsbValToMcuGain(AUDIO_MAX_VOLUME);
 	}
 #endif
 

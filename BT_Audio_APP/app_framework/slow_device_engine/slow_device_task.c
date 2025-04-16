@@ -34,7 +34,7 @@ static void SlowDeviceEntrance(void * param)
 	while(1)
 	{
 		MessageRecv(SlowDeviceMsgHandle, &msg, 0xffffffff);
-		printf("slow device task\n");
+		APP_DBG("slow device task\n");
 		SlowDeviceEventProcess(msg.msgId);
 	}
 }

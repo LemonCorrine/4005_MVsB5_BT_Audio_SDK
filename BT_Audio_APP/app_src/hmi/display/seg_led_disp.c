@@ -122,7 +122,7 @@ void LedDispDevSymbol(void)
 #endif
 
 #ifdef CFG_APP_HDMIIN_MODE_EN
-			case AppModeHdmiAudioPlay:
+			case ModeHdmiAudioPlay:
 				DispString(" ARC");
 				DispIcon(ICON_USB, LIGHT_OFF);
 				DispIcon(ICON_SD, LIGHT_OFF);

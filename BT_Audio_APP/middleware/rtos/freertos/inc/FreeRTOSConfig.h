@@ -184,7 +184,7 @@ standard names. */
 #define traceTASK_SWITCHED_OUT() trace_TASK_SWITCHED_OUT()
 #endif
 
-#define configHSP_ENABLE 0
+#define configHSP_ENABLE 1
 #if (configHSP_ENABLE==1)
 /*Set the bytes of stack's offset in TCB. Unit: 1 byte*/
 #define StackOffset_TCB			48 /*The offset of pxCurrentTCB->pxStack in TCB structure*/

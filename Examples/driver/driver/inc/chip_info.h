@@ -28,6 +28,8 @@ extern "C" {
 
 #include "type.h"
 
+//Ð¾Æ¬ECO±àºÅ
+uint16_t Chip_Version(void);
 
 //LDOVol: 0: µÍÑ¹(3.6V)£» 1£º¸ßÑ¹(´óÓÚ3.6V)
 void Chip_Init(uint32_t LDOVol);
