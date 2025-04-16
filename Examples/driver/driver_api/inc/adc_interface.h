@@ -39,6 +39,8 @@ uint16_t AudioADC1_DataGet(void* Buf, uint16_t Len);
 
 void AudioADC_SampleRateChange(ADC_MODULE Module,uint32_t SampleRate);
 
+void AudioADC_MclkFreqSet(ADC_MODULE Module,uint32_t Div);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus 

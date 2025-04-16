@@ -217,7 +217,7 @@ bool UsbDevicePlayResInit(void)
 void UsbDevicePlayHardwareInit(void)
 {
 #ifdef CFG_OTG_MODE_AUDIO_EN
-	if(UsbAudioSpeaker.InitOk != 1)
+	if(UsbAudioSpeaker.InitOk != 1 || UsbAudioSpeaker.Channels == 0)
 	{
 		//不清除FIFO,只清除usb声卡相关配置
 		memset(&UsbAudioSpeaker,0,sizeof(UsbAudio)-sizeof(MCU_CIRCULAR_CONTEXT)-sizeof(int16_t*));
@@ -228,7 +228,7 @@ void UsbDevicePlayHardwareInit(void)
 #endif
 
 #ifdef CFG_OTG_MODE_MIC_EN
-	if(UsbAudioMic.InitOk != 1)
+	if(UsbAudioMic.InitOk != 1 || UsbAudioMic.Channels == 0)
 	{
 		//不清除FIFO,只清除usb声卡相关配置
 		memset(&UsbAudioMic,0,sizeof(UsbAudio)-sizeof(MCU_CIRCULAR_CONTEXT)-sizeof(int16_t*));

@@ -345,6 +345,36 @@ void Clock_OSCClkDivSet(uint32_t DivVal);
 uint32_t Clock_OSCClkDivGet(void);
 
 /**
+ * @brief   设置ADC0工作时钟分频系数，基于Mclk时钟分频
+ * @param   DivVal 分频系数[0-3]
+ * @return  无
+ * @note	//mclk_frequency/(N+1)
+ */
+void Clock_ADC0ClkDivSet(uint32_t DivVal);
+
+/**
+ * @brief  获取ADC1工作时钟分频系数，基于Mclk时钟分频
+ * @param  无
+ * @return  分频系数[0-3]
+ */
+uint32_t Clock_ADC1ClkDivGet(void);
+
+/**
+ * @brief   设置ADC1工作时钟分频系数，基于Mclk时钟分频
+ * @param   DivVal 分频系数[0-3]
+ * @return  无
+ * @note	//mclk_frequency/(N+1)
+ */
+void Clock_ADC1ClkDivSet(uint32_t DivVal);
+
+/**
+ * @brief  获取ADC0工作时钟分频系数，基于Mclk时钟分频
+ * @param  无
+ * @return  分频系数[0-3]
+ */
+uint32_t Clock_ADC0ClkDivGet(void);
+
+/**
  * @brief	设置pll工作频率,等待pll lock
  * @param	PllFreq pll频率,单位KHz[120000K-240000K]
  * @return  PLL锁定情况  TRUE:按设定目标频率锁定

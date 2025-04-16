@@ -261,6 +261,13 @@ void DeepSleeping(void)
 	KeyInit();//Init keys
 #endif	
 
+#ifdef CFG_FUNC_UDISK_DETECT
+    if(OTG_PortHostIsLink())
+    {
+        OTG_HostInit();
+    }
+#endif
+
 #ifdef CFG_FUNC_LED_REFRESH
 	//默认优先级为0，旨在提高刷新速率，特别是断点记忆等写flash操作有影响刷屏，必须严格遵守所有timer6中断调用都是TCM代码，含调用的driver库代码
 	//已确认GPIO_RegOneBitSet、GPIO_RegOneBitClear在TCM区，其他api请先确认。

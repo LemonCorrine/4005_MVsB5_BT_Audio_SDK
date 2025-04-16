@@ -306,6 +306,68 @@ uint8_t BtDdb_Open(const uint8_t * localBdAddr)
 	return 0;
 }
 
+#ifdef FLASH_SAVE_REMOTE_BT_NAME
+void BtDdb_PrintRecord(void)
+{
+	uint32_t i;
+	uint8_t k;
+	uint8_t cnt;	//表示这张表存储了几个设备
+	uint8_t Tmp[4];
+	uint32_t Step = (4 + BT_REC_INFO_LEN * MAX_BT_DEVICE_NUM + 1);
+	uint32_t StartOffset = BTDB_TOTAL_RECORD_ADDR;	// 保存的时候是从高到低，读出的时候从低到高
+	BT_LINK_DEVICE_INFO info[8];
+
+	APP_DBG("print the remote name: 0x%x\n", StartOffset);
+	for(i = StartOffset; i < (BTDB_TOTAL_RECORD_ADDR + BTDB_TOTAL_RECORD_MEM_SIZE - 4); i += Step)
+	{
+		SpiFlashRead(i, Tmp, 4, 0);
+		if((Tmp[0] == 'M') && (Tmp[1] == 'V') && (Tmp[2] == 'B') && (Tmp[3] == 'T'))
+		{
+			SpiFlashRead(i + 4, &cnt, 1, 0);
+			APP_DBG("%d remote devices are saved\n", cnt);
+			for(k = 0; k < cnt; k++)
+			{
+				SpiFlashRead((i + 5 + k * BT_REC_INFO_LEN), info[k].device.bdAddr, 6, 0);
+				
+#ifdef FLASH_SAVE_REMOTE_BT_NAME
+#ifdef BT_TWS_SUPPORT
+				SpiFlashRead((i + 30 + k * BT_REC_INFO_LEN), info[k].device.bdName, 40, 0);
+#else
+				SpiFlashRead((i + 28 + k * BT_REC_INFO_LEN), info[k].device.bdName, 40, 0);
+#endif
+#endif
+
+#ifdef FLASH_SAVE_REMOTE_BT_NAME
+				APP_DBG("%x:  Remote device [%d] name: %s  addr:%02X:%02X:%02X:%02X:%02X:%02X\n", i, k, info[k].device.bdName, 
+					info[k].device.bdAddr[0],
+					info[k].device.bdAddr[1],
+					info[k].device.bdAddr[2],
+					info[k].device.bdAddr[3],
+					info[k].device.bdAddr[4],
+					info[k].device.bdAddr[5]);
+#else
+				APP_DBG("%x:  Remote device [%d]  addr:%02X:%02X:%02X:%02X:%02X:%02X\n", i, k, 
+					info[k].device.bdAddr[0],
+					info[k].device.bdAddr[1],
+					info[k].device.bdAddr[2],
+					info[k].device.bdAddr[3],
+					info[k].device.bdAddr[4],
+					info[k].device.bdAddr[5]);
+#endif
+			}
+			break;
+		}
+		else if((Tmp[0] != 0xFF) || (Tmp[1] != 0xFF) || (Tmp[2] != 0xFF) || (Tmp[3] != 0xFF)) //some error data found, then skip it
+		{
+			APP_DBG("some error data found, then skip it\n");
+			continue;	// 不需要跳出循环，继续寻找下一个509B的数据
+		}
+	}
+
+	return;
+}
+#endif
+
 /**********************************************************************************************
  * 新增新的蓝牙配对信息
  * input: record
@@ -313,6 +375,11 @@ uint8_t BtDdb_Open(const uint8_t * localBdAddr)
 bool BtDdb_AddOneRecord(const BT_DB_RECORD * record)
 {
 	uint32_t count;
+
+#ifdef FLASH_SAVE_REMOTE_BT_NAME
+	memset(record->bdName, 0, 40);
+	memcpy(record->bdName, btManager.remoteName, btManager.remoteNameLen);
+#endif
 
 	uint32_t totalCount;
 	
@@ -529,7 +596,31 @@ bool BtDdb_UpgradeLastBtProfile(uint8_t *BtLastAddr, uint8_t BtLastProfile)
 	}
 	return 0;
 }
-
+#ifdef FLASH_SAVE_REMOTE_BT_NAME
+/****************************************************************************
+ *  获取蓝牙名之后再更新一下flash中的设备信息
+ ****************************************************************************/
+void BtDdb_UpdateDeviceName(uint8_t *bdAddr, uint8_t *bdName)
+{
+	uint32_t count;
+	bool need_save = FALSE;
+	
+	for (count = 0; count < MAX_BT_DEVICE_NUM; count++) 
+	{
+		if(btManager.btLinkDeviceInfo[count].UsedFlag == 0)continue;
+		if (memcmp(bdAddr, btManager.btLinkDeviceInfo[count].device.bdAddr, 6) == 0 && memcmp(&btManager.btLinkDeviceInfo[count].device.bdName[0],bdName,40)!= 0)
+		{
+            memcpy(&btManager.btLinkDeviceInfo[count].device.bdName[0],bdName,40);
+			need_save = TRUE;
+        }
+    }
+	if(need_save)
+	{
+		SaveTotalDevRec2Flash(1 + BT_REC_INFO_LEN * MAX_BT_DEVICE_NUM/*one total rec block size*/,
+							 	GetCurTotaBtRecNum());
+	}
+}
+#endif
 /**********************************************************************************************
  * 加载最后一次连接过的蓝牙设备地址
  * input:  BtLastAddr - 蓝牙地址
@@ -848,6 +939,13 @@ static uint32_t Get1of8RecInfo(uint8_t RecIdx/*from 0*/, uint8_t *Data/*size mus
 	Data[23] = 0;
 	Data[24] = btManager.btLinkDeviceInfo[RecIdx].remote_profile;
 
+#ifdef FLASH_SAVE_REMOTE_BT_NAME
+#ifdef BT_TWS_SUPPORT
+	memcpy(Data + 25, btManager.btLinkDeviceInfo[RecIdx].device.bdName, 40);
+#else
+	memcpy(Data + 23, btManager.btLinkDeviceInfo[RecIdx].device.bdName, 40);
+#endif
+#endif
     return 1;
 }
 

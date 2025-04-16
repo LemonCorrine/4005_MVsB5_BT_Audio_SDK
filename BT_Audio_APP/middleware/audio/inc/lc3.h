@@ -4,7 +4,7 @@
  * @brief	LC3 codec
  *
  * @author	
- * @version	v1.0.0
+ * @version	v1.2.1
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************
@@ -62,7 +62,7 @@
  *
  * --- How to encode / decode ---
  *
- * An encoder / decoder context need to be setup. This context keep states
+ * An encoder / decoder context needs to be setup. This context keep states
  * on the current stream to proceed, and samples that overlapped across
  * frames.
  *
@@ -84,7 +84,7 @@
  *   | free(enc);
  *
  *   Note :
- *   - A NULL memory adress as input, will return a NULL encoder context.
+ *   - A NULL memory address as input, will return a NULL encoder context.
  *   - The returned encoder handle is set at the address of the allocated
  *     memory space, you can directly free the handle.
  *
@@ -108,7 +108,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "lc3_private.h"
+// #include "lc3_private.h"
 
 
 /**
@@ -117,12 +117,16 @@ extern "C" {
  * - On the size of the frames in bytes
  */
 
-#define LC3_MIN_BITRATE    16000
-#define LC3_MAX_BITRATE   320000
+#define LC3_MIN_BITRATE         16000
+#define LC3_MAX_BITRATE        320000
+#define LC3_HR_MAX_BITRATE     672000
 
-#define LC3_MIN_FRAME_BYTES   20
-#define LC3_MAX_FRAME_BYTES  400
+#define LC3_MIN_FRAME_BYTES        20
+#define LC3_MAX_FRAME_BYTES       400
+#define LC3_HR_MAX_FRAME_BYTES    625
 
+#define LC3_MAX_FRAME_SAMPLES       480 // 10ms @ 48000Hz
+#define LC3_HR_MAX_FRAME_SAMPLES    960 // 10ms @ 96000Hz
 
 /**
  * Parameters check
@@ -148,6 +152,8 @@ extern "C" {
 enum lc3_pcm_format {
     LC3_PCM_FORMAT_S16,
     LC3_PCM_FORMAT_S24,
+    LC3_PCM_FORMAT_S24_3LE,
+    LC3_PCM_FORMAT_FLOAT,
 };
 
 
@@ -168,11 +174,11 @@ typedef struct lc3_decoder *lc3_decoder_t;
  * `LC3_DECODER_MEM_T` macro.
  */
 
-typedef LC3_ENCODER_MEM_T(10000, 16000) lc3_encoder_mem_16k_t;
-typedef LC3_ENCODER_MEM_T(10000, 48000) lc3_encoder_mem_48k_t;
+// typedef LC3_ENCODER_MEM_T(10000, 16000) lc3_encoder_mem_16k_t;
+// typedef LC3_ENCODER_MEM_T(10000, 48000) lc3_encoder_mem_48k_t;
 
-typedef LC3_DECODER_MEM_T(10000, 16000) lc3_decoder_mem_16k_t;
-typedef LC3_DECODER_MEM_T(10000, 48000) lc3_decoder_mem_48k_t;
+// typedef LC3_DECODER_MEM_T(10000, 16000) lc3_decoder_mem_16k_t;
+// typedef LC3_DECODER_MEM_T(10000, 48000) lc3_decoder_mem_48k_t;
 
 
 /**
@@ -190,6 +196,17 @@ int lc3_frame_samples(int dt_us, int sr_hz);
  * return          The floor size in bytes of the frames, -1 on bad parameters
  */
 int lc3_frame_bytes(int dt_us, int bitrate);
+
+/**
+ * Return the size of frame blocks, from bitrate
+ * A frame block contains the frame data from all channels.
+ * dt_us           Frame duration in us, 7500 or 10000
+ * nchannels       The number of channels (or frames) in the block (<= 8)
+ * bitrate         Target bitrate in bit per second, 0 or `INT_MAX` returns
+ *                 respectively the minimum and maximum allowed size.
+ * return          The floor size in bytes of the frames, -1 on bad parameters
+ */
+int lc3_frame_block_bytes(int dt_us, int nchannels, int bitrate);
 
 /**
  * Resolve the bitrate, from the size of frames
@@ -246,6 +263,20 @@ lc3_encoder_t lc3_setup_encoder(
  */
 int lc3_encode(lc3_encoder_t encoder, enum lc3_pcm_format fmt,
     const void *pcm, int stride, int nbytes, void *out);
+
+/**
+ * Encode a frame of 2 channels.
+ * encoder_l       Handle of the encoder for left channel
+ * encoder_r       Handle of the encoder for right channel
+ * fmt             PCM input format
+ * pcm             Input PCM samples (left & right samples are in interleaved format, i.e. L,R,L,R,...)
+ * nbytes_l        Target size, in bytes, of the left channel frame (20 to 400)
+ * nbytes_r        Target size, in bytes, of the right channel frame (20 to 400)
+ * out             Output buffer of (`nbytes_l`+`nbytes_r`) size
+ * return          0: On success  -1: Wrong parameters
+ */
+int lc3_encode_2ch(struct lc3_encoder *encoder_l, struct lc3_encoder *encoder_r,
+    enum lc3_pcm_format fmt, const void *pcm, int nbytes_l, int nbytes_r, void *out);
 
 /**
  * Return size needed for an decoder

@@ -42,7 +42,11 @@
 
 //保存的连接过的设备信息
 #define MAX_BT_DEVICE_NUM					9 //(Source1+device8)
+#ifdef FLASH_SAVE_REMOTE_BT_NAME
+#define BT_REC_INFO_LEN						65//(6+16+1+1+1) + 40 = (addr+linkkey+flag+role+profile) + remotename
+#else
 #define BT_REC_INFO_LEN						25//(6+16+1+1+1) = (addr+linkkey+flag+role+profile)
+#endif
 #define BT_DEVICE_LIST_START				1//
 
 /*extern uint8_t KeyEnc;*/
@@ -97,7 +101,9 @@ void DdbDeleteRecord(uint8_t index);
 uint32_t DdbFindRecord(const uint8_t *bdAddr);
 
 bool BtDdb_GetLastBtAddr(uint8_t *BtLastAddr, uint8_t* profile);
-
+#if (BT_SIMPLEPAIRING_FLAG == DISABLE)
+void BtDdb_UpdateDeviceName(uint8_t *bdAddr, uint8_t *bdName);
+#endif
 bool BtDdb_ClearTwsDeviceAddrList(void);
 
 void BtDdb_ClrTwsDevInfor(void);

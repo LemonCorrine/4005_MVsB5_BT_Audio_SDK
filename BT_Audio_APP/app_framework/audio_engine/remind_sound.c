@@ -426,6 +426,10 @@ void RemindSoundAudioDecoderStop(void)
 	RemindSoundAudioPlayEnd();
 	REMIND_DBG("remind play end!\n");
 	RemindSoundPlayEndNotify();
+	RemindSoundCt.Request[0].Attr |= REMIND_ATTR_CLEAR;
+	RemindSoundCt.ItemState = REMIND_ITEM_IDLE;
+	RemindSoundCt.RequestUpdate = TRUE;
+	AudioCoreSourceDisable(REMIND_SOURCE_NUM);
 }
 #endif
 

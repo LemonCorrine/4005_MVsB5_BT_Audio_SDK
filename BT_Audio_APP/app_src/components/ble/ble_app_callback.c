@@ -45,7 +45,7 @@ void AppEventCallBack(LE_CB_EVENT event, LE_CB_PARAMS *param)
             BLE_INFO("\n----> LE INIT FAILED <-----\n status: 0x%02x\n", param->le_init_status);
         }
         break;
-#ifdef DUOBLE_ROLE
+#if (BLE_DUAL_ROLE == ENABLE)
     case LE_ADV_REPORT_EVENT:
     {
     	APP_DBG("LE_ADV_REPORT_EVENT\n");

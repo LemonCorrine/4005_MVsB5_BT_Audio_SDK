@@ -30,6 +30,9 @@ typedef struct _mediaPlayContext
 	//QueueHandle_t 		audioMutex;
 	//QueueHandle_t		pcmBufMutex;
 	uint8_t				SourceNum;//播放器和回放使用不同通道，前者有音效
+#ifdef CFG_FUNC_APP_USB_CARD_IDLE
+	uint8_t				IdleStep;
+#endif
 }MediaPlayContext;
 static MediaPlayContext*	sMediaPlayCt = NULL;
 static uint32_t sPlugOutTimeOutCount = 0; 
@@ -377,6 +380,7 @@ bool MediaPlayInit(void)
 	{
 		return FALSE;
 	}
+#ifndef CFG_FUNC_APP_USB_CARD_IDLE
 	if(gInsertEventDelayActTimer)
 	{
 #ifdef CFG_FUNC_UDISK_DETECT
@@ -402,6 +406,7 @@ bool MediaPlayInit(void)
 		}
 #endif
 	}
+#endif
 	//DMA channel
 	DMA_ChannelAllocTableSet((uint8_t*)DmaChannelMap);
 	if(!ModeCommonInit())
@@ -522,6 +527,10 @@ bool MediaPlayInit(void)
 	}
 #endif
 	
+#ifdef CFG_FUNC_APP_USB_CARD_IDLE
+	sMediaPlayCt->IdleStep = 1;
+#endif
+
 #ifndef CFG_FUNC_REMIND_SOUND_EN
 	if(IsAudioPlayerMute() == TRUE)
 	{
@@ -541,6 +550,54 @@ bool MediaPlayInit(void)
 	return TRUE;
 }
 
+#ifdef CFG_FUNC_APP_USB_CARD_IDLE
+bool MediaPlayRunIdleWait(uint16_t msgId)
+{
+
+	if((GetUdiscState() != DETECT_STATE_IN && GetSystemMode() == ModeUDiskAudioPlay) ||
+		(GetCardState() != DETECT_STATE_IN && GetSystemMode() == ModeCardAudioPlay))
+
+	{
+		sMediaPlayCt->IdleStep = 0;
+		if((GetSystemMode() == ModeUDiskAudioPlay && msgId == MSG_DEVICE_SERVICE_U_DISK_OUT)||
+	   		(GetSystemMode() == ModeCardAudioPlay && msgId == MSG_DEVICE_SERVICE_CARD_OUT))
+		{
+
+			AudioCoreSourceDisable(sMediaPlayCt->SourceNum);
+			DecoderServiceStop(DECODER_MODE_CHANNEL);
+			MediaPlayerCloseSongFile();
+			if(GetSystemMode() == ModeUDiskAudioPlay)
+				f_unmount(MEDIA_VOLUME_STR_U);
+			else
+				f_unmount(MEDIA_VOLUME_STR_C);
+			SoftFlagDeregister(SoftFlagUpgradeOK);
+			APP_DBG("unmount device!!!\n");
+			//PortFree
+			ffpresearch_deinit();
+			CmdErrCnt = 0;
+			SoftFlagDeregister(SoftFlagMediaDevicePlutOut);
+		}
+
+		return TRUE;
+	}
+
+	if(sMediaPlayCt->IdleStep == 0)
+	{
+		if((GetSystemMode() == ModeUDiskAudioPlay && msgId == MSG_DEVICE_SERVICE_U_DISK_IN)||
+		   (GetSystemMode() == ModeCardAudioPlay && msgId == MSG_DEVICE_SERVICE_CARD_IN))
+		{
+			sMediaPlayCt->IdleStep = 1;
+			SoftFlagRegister(SoftFlagMediaModeRead);
+			CmdErrCnt = 0;
+			SoftFlagDeregister(SoftFlagMediaDevicePlutOut);
+		}
+		return TRUE;
+	}
+
+	return FALSE;
+}
+#endif
+
 void MediaPlayRun(uint16_t msgId)
 {
 #ifdef CFG_FUNC_REMIND_SOUND_EN
@@ -552,6 +609,10 @@ void MediaPlayRun(uint16_t msgId)
 		}
 		return;
 	}
+#endif
+#ifdef CFG_FUNC_APP_USB_CARD_IDLE
+	if(MediaPlayRunIdleWait(msgId))
+		return;
 #endif
 	if(SoftFlagGet(SoftFlagMediaModeRead))
 	{
@@ -587,12 +648,6 @@ void MediaPlayRun(uint16_t msgId)
 		DecoderPlay(DECODER_MODE_CHANNEL);//  decode step 3
 		APP_DBG("Media Play run\n");
 	}
-#if FLASH_BOOT_EN
-	if(!SoftFlagGet(SoftFlagUpgradeOK)&&(SoftFlagGet(SoftFlagMvaInUDisk)||SoftFlagGet(SoftFlagMvaInCard)))
-	{
-		return;
-	}
-#endif
 	if(SoftFlagGet(SoftFlagMediaDevicePlutOut))
 	{
 		sPlugOutTimeOutCount++;
@@ -650,12 +705,6 @@ bool MediaPlayDeinit(void)
 #ifdef	CFG_APP_USB_PLAY_MODE_EN
 		f_unmount(MEDIA_VOLUME_STR_U);
 		osMutexUnlock(UDiskMutex);
-#ifdef CFG_FUNC_UDISK_DETECT
-		if(!IsUDiskLink())
-		{
-			SoftFlagDeregister(SoftFlagUpgradeOK);
-		}
-#endif
 		APP_DBG("unmount u disk\n");
 #endif
 	}
@@ -669,12 +718,6 @@ bool MediaPlayDeinit(void)
 		f_unmount(MEDIA_VOLUME_STR_C);
 		SDCardDeinit(CFG_RES_CARD_GPIO);
 		osMutexUnlock(SDIOMutex);
-#ifdef CFG_FUNC_CARD_DETECT
-		if(GetCardState() == DETECT_STATE_OUT)
-#endif
-		{
-			SoftFlagDeregister(SoftFlagUpgradeOK);
-		}
 		APP_DBG("unmount sd card\n");
 #endif
 	}

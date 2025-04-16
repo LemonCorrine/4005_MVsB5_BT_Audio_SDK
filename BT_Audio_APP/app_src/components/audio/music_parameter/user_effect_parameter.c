@@ -399,6 +399,35 @@ bool AudioEffect_GetFlashEffectParam(uint8_t effectMode,  uint8_t *effect_param)
 	DBG("flash read EffectParam err\n");
 	return FALSE;
 }
+
+bool AudioEffect_CheckFlashEffectParam(void)
+{
+	uint16_t flashParam[EFFECT_MODE_COUNT * 2];
+	AUDIOEFFECT_EFFECT_PARA *para;
+	uint8_t i, index;
+
+	if ((SpiFlashRead(get_effect_data_addr(), (uint8_t*)flashParam, EFFECT_MODE_COUNT * 4 ,1) == FLASH_NONE_ERR))
+	{
+		for(i = 0; i < EFFECT_MODE_COUNT;)
+		{
+//			DBG("### %d - Hwcfg:%d, param:%d\n", i, flashParam[i], flashParam[i + 1]);
+			para = get_user_effect_parameters(i);
+			if((flashParam[i] != 0xffff) && (flashParam[i + 1] != 0xffff)
+				&& (flashParam[i] - flashParam[i + 1] != get_user_effect_parameters_len(para->user_effect_parameters)))
+			{
+//				DBG("flash read effect_mode(%d)EffectParam err %d\n", i, get_user_effect_parameters_len(para->user_effect_parameters));
+				DBG("EffectParam in flash changed, erase all\n");
+				for(index = 0; index < ((1024 * CFG_EFFECT_PARAM_IN_FLASH_SIZE) / CFG_FLASH_SECTOR_SIZE); index++)
+				{
+					SpiFlashErase(SECTOR_ERASE, (get_effect_data_addr() + index * CFG_FLASH_SECTOR_SIZE) /4096 , 1);
+				}
+				return FALSE;
+			}
+			i += 2;
+		}
+	}
+	return TRUE;
+}
 #endif
 
 //total data length  	---- 2 Bytes

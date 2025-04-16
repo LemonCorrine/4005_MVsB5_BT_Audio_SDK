@@ -197,6 +197,12 @@ bool AudioEffect_GetFlashHwCfg(uint8_t effectMode, HardwareConfigContext *hw_ct)
  */
 bool AudioEffect_GetFlashEffectParam(uint8_t effectMode,  uint8_t *effect_param);
 
+/**
+ * @brief  Check if effect parameters in flash is right
+ * @return bool : TRUE or FALSE
+ */
+bool AudioEffect_CheckFlashEffectParam(void);
+
 //ACPWorkbench V3.8.15以后版本导出的参数增加了Roboeffect Version + 3rd part data
 //使用的时候注意参数的版本，修改对应的偏移
 typedef struct __EffectValidParamUnit

@@ -77,11 +77,20 @@ volatile SysModeStruct SysMode[]=
 #ifdef CFG_APP_BT_MODE_EN
 	{ModeBtAudioPlay,			BtPlayInit, 			BtPlayDeinit,			BtPlayRun,			ModeStateInit  },//BT
 #endif
+#ifdef CFG_FUNC_APP_USB_CARD_IDLE
+#ifdef CFG_APP_USB_PLAY_MODE_EN
+	{ModeUDiskAudioPlay,		MediaPlayInit,			MediaPlayDeinit,		MediaPlayRun,		ModeStateReady },//USB
+#endif
+#ifdef CFG_APP_CARD_PLAY_MODE_EN
+	{ModeCardAudioPlay,			MediaPlayInit,			MediaPlayDeinit,		MediaPlayRun,		ModeStateReady  },//SD
+#endif
+#else
 #ifdef CFG_APP_USB_PLAY_MODE_EN
 	{ModeUDiskAudioPlay,		MediaPlayInit,			MediaPlayDeinit,		MediaPlayRun,		ModeStateSusend },//USB
 #endif
 #ifdef CFG_APP_CARD_PLAY_MODE_EN
 	{ModeCardAudioPlay,			MediaPlayInit,			MediaPlayDeinit,		MediaPlayRun,		ModeStateSusend  },//SD
+#endif
 #endif
 #ifdef CFG_FUNC_RECORDER_EN
 #ifdef CFG_APP_USB_PLAY_MODE_EN
@@ -137,11 +146,13 @@ const DeviceEventMsgTable DeviceEventMsgTableArray[]=
 {MSG_DEVICE_SERVICE_BTHF_IN,        			~(BIT(ModeBtHfPlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),					        		ModeBtHfPlay},
 {MSG_DEVICE_SERVICE_BTHF_OUT,					BIT(ModeBtHfPlay),																			ENTERR_PREV_MODE},
 
+#ifndef CFG_FUNC_APP_USB_CARD_IDLE
 {MSG_DEVICE_SERVICE_U_DISK_IN,					~(BIT(ModeBtHfPlay)|BIT(ModeUDiskAudioPlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),			ModeUDiskAudioPlay},
 {MSG_DEVICE_SERVICE_U_DISK_OUT,					BIT(ModeUDiskAudioPlay),																	ENTERR_PREV_MODE},
 
 {MSG_DEVICE_SERVICE_CARD_IN, 					~(BIT(ModeBtHfPlay)|BIT(ModeCardAudioPlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),			ModeCardAudioPlay},
 {MSG_DEVICE_SERVICE_CARD_OUT, 					BIT(ModeCardAudioPlay),																		ENTERR_PREV_MODE},
+#endif
 
 {MSG_DEVICE_SERVICE_USB_DEVICE_IN,				~(BIT(ModeBtHfPlay)|BIT(ModeUsbDevicePlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),			ModeUsbDevicePlay},
 {MSG_DEVICE_SERVICE_USB_DEVICE_OUT,				BIT(ModeUsbDevicePlay), 																	ENTERR_PREV_MODE},
