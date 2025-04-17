@@ -71,7 +71,9 @@
 							</tool>
 							<tool id="tool.nds32le-elf-mculib-v3s.nm.exe.debug.448363505" name="NM (symbol listing)" superClass="tool.nds32le-elf-mculib-v3s.nm.exe.debug"/>
 							<tool id="tool.nds32le-elf-mculib-v3s.readelf.exe.debug.1880701617" name="Readelf (ELF info listing)" superClass="tool.nds32le-elf-mculib-v3s.readelf.exe.debug"/>
-							<tool id="tool.nds32le-elf-mculib-v3s.objdump.exe.debug.2123758658" name="Objdump (disassembly)" superClass="tool.nds32le-elf-mculib-v3s.objdump.exe.debug"/>
+							<tool id="tool.nds32le-elf-mculib-v3s.objdump.exe.debug.2123758658" name="Objdump (disassembly)" superClass="tool.nds32le-elf-mculib-v3s.objdump.exe.debug">
+								<option id="nds.objdump.option.disable.736497502" superClass="nds.objdump.option.disable" value="false" valueType="boolean"/>
+							</tool>
 							<tool id="tool.nds32le-elf-mculib-v3s.objcopy.exe.debug.1243140527" name="Objcopy (object content copy)" superClass="tool.nds32le-elf-mculib-v3s.objcopy.exe.debug">
 								<option id="nds.objcopy.option.disable.1087960376" name="Disable. (Do not auto-generate output file.)" superClass="nds.objcopy.option.disable" value="false" valueType="boolean"/>
 							</tool>
@@ -79,6 +81,7 @@
 							<tool id="tool.nds32le-elf-mculib-v3s.ldsag.exe.debug.1814874198" name="LdSaG Tool" superClass="tool.nds32le-elf-mculib-v3s.ldsag.exe.debug"/>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="config.nds32le-elf-mculib-v3s.exe.debug.1519929465.1698878260" name="otg_host_audio.h" rcbsApplicability="disable" resourcePath="otg/host/inc/otg_host_audio.h" toolsToInvoke=""/>
 					<fileInfo id="config.nds32le-elf-mculib-v3s.exe.debug.1519929465.240312347" name="uarts_interface.h" rcbsApplicability="disable" resourcePath="driver/driver_api/inc/uarts_interface.h" toolsToInvoke="">
 						<tool customBuildStep="true" id="org.eclipse.cdt.managedbuilder.ui.rcbs.442637715" name="Resource Custom Build Step">
 							<inputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.inputtype.1099381741" name="Resource Custom Build Step Input Type">
@@ -88,7 +91,7 @@
 						</tool>
 					</fileInfo>
 					<sourceEntries>
-						<entry excluding="src/uarts_interface.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="otg/host/src/otg_host_audio.c|otg/host/inc/otg_host_audio.h|src/uarts_interface.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
