@@ -30,7 +30,7 @@ typedef struct _BT_STACK_MEM_ALLOC_
 	uint8_t	BtA2DPMem[15500];
 #endif
 
-#if (BLE_SUPPORT)
+#if 1//(BLE_SUPPORT)
 	uint8_t	BtBleMem[2400];
 #endif
 

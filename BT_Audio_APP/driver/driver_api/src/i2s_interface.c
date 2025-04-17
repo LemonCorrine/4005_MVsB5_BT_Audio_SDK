@@ -76,7 +76,7 @@ void AudioI2S_Init(I2S_MODULE Module, I2SParamCt *ct)
 		I2s1_MasterMode = ct->IsMasterMode;
 		I2s1_WordLength = ct->I2sBits;
     }
-
+	I2S_AlignModeSet(Module, I2S_LOW_BITS_ACTIVE);
 	I2S_SampleRateSet(Module, ct->SampleRate);
 
 	if(ct->IsMasterMode == 0)

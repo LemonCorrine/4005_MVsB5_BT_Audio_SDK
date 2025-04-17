@@ -65,8 +65,8 @@ typedef struct _CLK_ADJUST_ADAPTER
 	uint8_t						HighLevelCent;
 	uint8_t						LowLevelCent;
 	uint32_t					LastLevel;//前一次平均水位
-	int8_t						RiseTimes;//连续上涨次数或下跌次数
-	int8_t						AdjustVal;//分频寄存器小数部分
+	int32_t						RiseTimes;//连续上涨次数或下跌次数
+	int32_t						AdjustVal;//分频寄存器小数部分
 } CLK_ADJUST_ADAPTER;
 
 typedef struct _AudioCoreIO_
@@ -107,7 +107,7 @@ typedef struct _AudioCoreIO_
 
 #define	ADJUST_PERIOD				(512*3)		//以采样点计数 监测消抖周期，平衡波动和速度，SRA:增减一点的周期,对应频繁幅度
 #define ADJUST_APLL_PERIOD			(512*10)	//以采样点监测消抖周期，用于硬件微调。
-#define ADJUST_DIV_MAX				6			//硬件微调限幅度对应万分之五的频偏，源于div的小数分频调整。
+#define ADJUST_DIV_MAX				100			//硬件微调限幅度对应万分之五的频偏，源于div的小数分频调整。
 #define	ADJUST_SHRESHOLD			2			//2~4 Low～high之间 抑制硬件微调的震荡，连续单向水位变化，反向抑制。
 
 #define SRC_INPUT_MAX		128 //即 MAX_FRAME_SAMPLES @resampler_polyphase.h

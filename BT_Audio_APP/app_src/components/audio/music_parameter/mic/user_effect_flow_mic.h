@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_mic.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.13.1                 
+ * @author  ACPWorkbench: 3.16.6                 
  * @version V1.2.0                                  
- * @Created 2024-11-04T15:13:31                                      
+ * @Created 2025-03-11T17:06:25                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define MIC_ROBOEFFECT_LIB_VER "2.25.5"
+#define MIC_ROBOEFFECT_LIB_VER "2.28.0"
 
 typedef enum _MIC_roboeffect_io_enum
 {
@@ -35,14 +35,16 @@ typedef enum _MIC_roboeffect_io_enum
 
 typedef enum _MIC_roboeffect_effect_list_enum{
 
-    MIC_silence_detector_mic_ADDR = 0x81,
+    MIC_upmix_1to2_0_ADDR = 0x81,
+    MIC_silence_detector_mic_ADDR,
+    MIC_preGain_ADDR,
+    MIC_silence_detector_music_ADDR,
+    MIC_remind_gain_control_ADDR,
     MIC_mic_eq0_ADDR,
     MIC_mic_ns_ADDR,
     MIC_mic_EQ_ADDR,
     MIC_mic_drc_ADDR,
     MIC_mic_gain_ADDR,
-    MIC_preGain_ADDR,
-    MIC_silence_detector_music_ADDR,
     MIC_gain_control0_ADDR,
     MIC_noise_suppressor_expander0_ADDR,
     MIC_gain_control2_ADDR,
@@ -58,10 +60,11 @@ typedef enum _MIC_roboeffect_effect_list_enum{
     MIC_gain_control1_ADDR,
     MIC_eq0_ADDR,
     MIC_low_level_compressor0_ADDR,
-    MIC_remind_gain_control_ADDR,
     MIC_COUNT_ADDR,
 
 } MIC_roboeffect_effect_list_enum;
+
+extern const char chart_name_mic[];
 
 extern const unsigned char user_effects_script_mic[];
 

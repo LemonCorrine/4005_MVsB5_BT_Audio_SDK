@@ -46,6 +46,7 @@ MEDIA_PLAYER* gMediaPlayer = NULL;
 FileType SongFileType;
 
 extern uint32_t CmdErrCnt;
+extern void start_up_grate(ResourceType UpdateResource);
 
 //跳过下列文件夹
 #define SYS_FOLDER_NAME "System Volume Information"

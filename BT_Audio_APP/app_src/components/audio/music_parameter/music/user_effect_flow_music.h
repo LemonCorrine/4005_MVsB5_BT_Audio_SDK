@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_music.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.13.1                 
+ * @author  ACPWorkbench: 3.16.6                 
  * @version V1.2.0                                  
- * @Created 2024-11-04T15:13:33                                      
+ * @Created 2025-03-11T17:06:26                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define MUSIC_ROBOEFFECT_LIB_VER "2.25.5"
+#define MUSIC_ROBOEFFECT_LIB_VER "2.28.0"
 
 typedef enum _MUSIC_roboeffect_io_enum
 {
@@ -35,14 +35,16 @@ typedef enum _MUSIC_roboeffect_io_enum
 
 typedef enum _MUSIC_roboeffect_effect_list_enum{
 
-    MUSIC_silence_detector_mic_ADDR = 0x81,
+    MUSIC_upmix_1to2_0_ADDR = 0x81,
+    MUSIC_silence_detector_mic_ADDR,
+    MUSIC_preGain_ADDR,
+    MUSIC_silence_detector_music_ADDR,
+    MUSIC_gain_control3_ADDR,
     MUSIC_mic_eq0_ADDR,
     MUSIC_mic_ns_ADDR,
     MUSIC_mic_EQ_ADDR,
     MUSIC_mic_drc_ADDR,
     MUSIC_mic_gain_ADDR,
-    MUSIC_preGain_ADDR,
-    MUSIC_silence_detector_music_ADDR,
     MUSIC_gain_control0_ADDR,
     MUSIC_noise_suppressor_expander0_ADDR,
     MUSIC_gain_control2_ADDR,
@@ -58,10 +60,11 @@ typedef enum _MUSIC_roboeffect_effect_list_enum{
     MUSIC_gain_control1_ADDR,
     MUSIC_eq0_ADDR,
     MUSIC_low_level_compressor0_ADDR,
-    MUSIC_gain_control3_ADDR,
     MUSIC_COUNT_ADDR,
 
 } MUSIC_roboeffect_effect_list_enum;
+
+extern const char chart_name_music[];
 
 extern const unsigned char user_effects_script_music[];
 

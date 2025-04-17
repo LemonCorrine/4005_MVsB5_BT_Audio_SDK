@@ -99,6 +99,10 @@ int32_t sbc_decoder_apply(SBCFrameDecoderContext *ct,uint8_t *sbc_buf,uint8_t sb
 				out[2*i+1] = in[i];
 			}
 		}
+		else
+		{
+			memcpy(pcm_buf,ct->pcm,ct->num_channels*ct->pcm_length*2);
+		}
 	}
 	//else
 	//{

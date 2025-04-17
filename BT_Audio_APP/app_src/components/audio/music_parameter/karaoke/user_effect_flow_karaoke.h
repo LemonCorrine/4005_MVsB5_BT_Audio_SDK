@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_Karaoke.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.13.1                 
+ * @author  ACPWorkbench: 3.16.5                 
  * @version V1.2.0                                  
- * @Created 2024-11-04T15:13:30                                      
+ * @Created 2025-02-27T15:26:58                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define KARAOKE_ROBOEFFECT_LIB_VER "2.25.5"
+#define KARAOKE_ROBOEFFECT_LIB_VER "2.27.1"
 
 typedef enum _KARAOKE_roboeffect_io_enum
 {
@@ -42,6 +42,11 @@ typedef enum _KARAOKE_roboeffect_effect_list_enum{
 
     KARAOKE_preGain_ADDR = 0x81,
     KARAOKE_silence_detector_music_ADDR,
+    KARAOKE_gain_control13_ADDR,
+    KARAOKE_downmix_2to10_ADDR,
+    KARAOKE_gain_control1_ADDR,
+    KARAOKE_noise_suppressor_expander1_ADDR,
+    KARAOKE_silence_detector0_ADDR,
     KARAOKE_gain_control0_ADDR,
     KARAOKE_noise_suppressor_expander0_ADDR,
     KARAOKE_compander0_ADDR,
@@ -53,10 +58,6 @@ typedef enum _KARAOKE_roboeffect_effect_list_enum{
     KARAOKE_eq0_ADDR,
     KARAOKE_drc1_ADDR,
     KARAOKE_eq1_ADDR,
-    KARAOKE_downmix_2to10_ADDR,
-    KARAOKE_gain_control1_ADDR,
-    KARAOKE_noise_suppressor_expander1_ADDR,
-    KARAOKE_silence_detector0_ADDR,
     KARAOKE_freq_shifter0_ADDR,
     KARAOKE_howling_suppressor0_ADDR,
     KARAOKE_howling_suppressor_fine0_ADDR,
@@ -69,7 +70,6 @@ typedef enum _KARAOKE_roboeffect_effect_list_enum{
     KARAOKE_eq4_ADDR,
     KARAOKE_gain_control5_ADDR,
     KARAOKE_drc0_ADDR,
-    KARAOKE_gain_control13_ADDR,
     KARAOKE_gain_control8_ADDR,
     KARAOKE_voice_changer0_ADDR,
     KARAOKE_voice_changer_pro0_ADDR,
@@ -92,6 +92,8 @@ typedef enum _KARAOKE_roboeffect_effect_list_enum{
     KARAOKE_COUNT_ADDR,
 
 } KARAOKE_roboeffect_effect_list_enum;
+
+extern const char chart_name_Karaoke[];
 
 extern const unsigned char user_effects_script_Karaoke[];
 

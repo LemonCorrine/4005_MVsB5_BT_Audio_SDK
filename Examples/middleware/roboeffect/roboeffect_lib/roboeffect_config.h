@@ -52,6 +52,7 @@ extern "C" {
 #define OVER_DRIVE_ENABLE                       (1)
 #define OVER_DRIVE_PLOY_ENABLE                  (1)
 #define PCM_DELAY_ENABLE                        (1)
+#define PCM_DELAY_MS_ENABLE                     (1)
 #define PHASE_CONTROL_ENABLE                    (1)
 #define PHASE_INVERTER_ENABLE                   (1)
 #define PINGPONG_ENABLE                         (1)
@@ -140,6 +141,7 @@ extern "C" {
 #define ROBOEFFECT_LR_BALANCER_PARAM_LEN              1
 #define ROBOEFFECT_HOWLING_SUPPRESSOR_SPECIFIED_PARAM_LEN 24
 #define ROBOEFFECT_DRC_LEGACY_PARAM_LEN               18
+#define ROBOEFFECT_PCM_DELAY_MS_PARAM_LEN             3
 #define ROBOEFFECT_FADER_PARAM_LEN                    3
 #define ROBOEFFECT_DOWNMIX_2TO1_PARAM_LEN             0
 #define ROBOEFFECT_UPMIX_1TO2_PARAM_LEN               0
@@ -525,6 +527,12 @@ bool roboeffect_drc_legacy_init_if(void *node);
 bool roboeffect_drc_legacy_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
 bool roboeffect_drc_legacy_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
 int32_t roboeffect_drc_legacy_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
+
+//pcm_delay_ms interface
+bool roboeffect_pcm_delay_ms_init_if(void *node);
+bool roboeffect_pcm_delay_ms_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
+bool roboeffect_pcm_delay_ms_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
+int32_t roboeffect_pcm_delay_ms_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
 
 //fader interface
 bool roboeffect_fader_init_if(void *node);

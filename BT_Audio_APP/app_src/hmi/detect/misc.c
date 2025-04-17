@@ -163,7 +163,7 @@ void ShunningModeProcess(void)
 
 	extern int16_t * AudioEffectGetAllParameter(AUDIOEFFECT_EFFECT_CONTROL effect);
 	int32_t mic_level = -1;
-	SilenceDetectorUnit *Param = NULL;
+	param_silence_detector *Param = NULL;
 
 	if(mainAppCt.ShunningMode == 0)
 	{
@@ -186,13 +186,13 @@ void ShunningModeProcess(void)
 			}
 		}
 
-		AudioMusicVolSet(mainAppCt.aux_out_dyn_gain);
+		AudioEffect_SourceGain_Update(APP_SOURCE_NUM, mainAppCt.aux_out_dyn_gain);
 		return;
 	}
 
 	Param = AudioEffectGetAllParameter(MIC_SILENCE_DETECTOR_PARAM);
 	if(Param)
-		mic_level = Param->level;
+		mic_level = Param->pcm_amplitude;
 
 	if(mic_level > SHNNIN_VALID_DATA)///vol----
 	{
@@ -210,7 +210,7 @@ void ShunningModeProcess(void)
 			APP_DBG("Aux Shunning start\n");
 		}
 
-		AudioMusicVolSet(mainAppCt.aux_out_dyn_gain);
+		AudioEffect_SourceGain_Update(APP_SOURCE_NUM, mainAppCt.aux_out_dyn_gain);
 	}
 	else
 	{
@@ -239,7 +239,7 @@ void ShunningModeProcess(void)
 			}
 		}
 
-		AudioMusicVolSet(mainAppCt.aux_out_dyn_gain);
+		AudioEffect_SourceGain_Update(APP_SOURCE_NUM, mainAppCt.aux_out_dyn_gain);
 	}
 }
 #endif
@@ -416,7 +416,7 @@ void MicVolSmoothProcess(void)
 			MicVolume++;
 		}
 		mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM] = MicVolume;
-		AudioEffect_SourceGain_Update(MIC_SOURCE_NUM);
+		AudioEffect_SourceGain_Update(MIC_SOURCE_NUM, mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]);
 		APP_DBG("MicVolume = %d\n",MicVolume);
 	}
 //    //-------------bass 电位器渐变调节-----------------------------------------//

@@ -236,7 +236,15 @@ static void DecoderProcess(DecoderChannels DecoderChannel)
 
 					DecoderErrCode = audio_decoder_get_error_code(gAudioDecoders[DecoderChannel]);
 					
-
+					if(gAudioDecoders[DecoderChannel]->decoder_type == WMA_DECODER && DecoderErrCode == -127)
+					{
+						MessageContext		msgSend;
+						msgSend.msgId		= MSG_SOFT_NEXT;
+						MessageSend(DecoderServiceCt[DecoderChannel].ParentMsgHandle, &msgSend);
+						APP_DBG("decoder err, can not continue %ld\n",DecoderErrCode);
+						return;
+					}
+					
 					if(DecoderErrCode != 0 && DecoderServiceCt[DecoderChannel].StreamEmptyErr == DecoderErrCode)
 					{
 						MessageContext		msgSend;

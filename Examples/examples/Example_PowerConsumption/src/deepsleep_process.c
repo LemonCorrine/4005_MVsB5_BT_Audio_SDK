@@ -62,7 +62,7 @@ typedef enum
 #define GPIOA_CNT 32
 #define GPIOB_CNT 10
 #define GPIOC_CNT 1
-#define ENTER_DEEPSLEEP_TEST_SECS (1)
+// #define ENTER_DEEPSLEEP_TEST_SECS (1)
 
 static uint32_t sources;
 extern volatile uint32_t gSysTick;
@@ -104,6 +104,11 @@ __attribute__((section(".driver.isr"))) void Timer5Interrupt(void)
 void StartTimer5(uint32_t msec)
 {
     uint32_t usec = 1000 * msec;
+    if(usec > 1926000000 )
+    {
+        usec = 1926000000; //避免溢出
+    }
+    usec = usec / 9 * 20; // TIMER5选择RC时钟校准系数
     NVIC_SetPriority(Timer5_IRQn, 2);
     NVIC_EnableIRQ(Timer5_IRQn);
 
@@ -592,6 +597,11 @@ void SleepMain(uint8_t wakeup_src)
 
     // 切换到RC时钟
     Clock_DeepSleepSysClkSelect(RC_CLK_MODE, FSHC_RC_CLK_MODE, 1);
+    if (WAKEUP_TEST_TIMER5 == wakeup_src)
+    {
+        /*切换RC后再启动定时器*/
+        StartTimer5(3000);
+    }
     // 关闭PLL
     Clock_PllClose();
 
@@ -696,7 +706,7 @@ void WakeupMain(void)
 
 void Power_GotoDeepsleeping(uint8_t wakeup_src)
 {
-    DelayMs(ENTER_DEEPSLEEP_TEST_SECS*1000);
+    // DelayMs(ENTER_DEEPSLEEP_TEST_SECS*1000);
     DBG("\r\n  %s!!!  \r\n", __FUNCTION__);
     
     SleepMain(wakeup_src);
@@ -712,8 +722,8 @@ void DeepSleep_Wakeup_Test(uint8_t WakeupSourceSel)
     switch(WakeupSourceSel)
 	{
     case WAKEUP_TEST_GPIO:
-		DBG("\n        Wait for %d sec,then Enter DeepSleep_GPIOWakeup_Test                   \n"
-				"A3/B9 NEGETRIG, A4/C0 POSE TRIG\n", ENTER_DEEPSLEEP_TEST_SECS);
+		DBG("\n Enter DeepSleep_GPIOWakeup_Test                   \n"
+				"A3/B9 NEGETRIG, A4/C0 POSE TRIG\n");
         SystermGPIOWakeupConfig(SYSWAKEUP_SOURCE2_GPIO, WAKEUP_GPIOA3, SYSWAKEUP_SOURCE_NEGE_TRIG); // 此处配置GPIO唤醒源GPIOA3,下降沿唤醒，
         SystermGPIOWakeupConfig(SYSWAKEUP_SOURCE3_GPIO, WAKEUP_GPIOA4, SYSWAKEUP_SOURCE_POSE_TRIG); // 此处配置GPIO唤醒源GPIOA4,上升沿唤醒，
         SystermGPIOWakeupConfig(SYSWAKEUP_SOURCE4_GPIO, WAKEUP_GPIOB9, SYSWAKEUP_SOURCE_NEGE_TRIG); // 此处配置GPIO唤醒源GPIOB9,下降沿唤醒，
@@ -721,52 +731,52 @@ void DeepSleep_Wakeup_Test(uint8_t WakeupSourceSel)
         break;
 
     case WAKEUP_TEST_ONKEY:
-        DBG("\n        Wait for %d sec,then Enter DeepSleep_ONKEYWakeup_Test                   \n", ENTER_DEEPSLEEP_TEST_SECS);
+        DBG("\n Enter DeepSleep_ONKEYWakeup_Test                   \n");
         SystemWakeupConfig(SYSWAKEUP_SOURCE6_POWERKEY, SYSWAKEUP_SOURCE_POSE_TRIG);
         break;
 
     case WAKEUP_TEST_LVD:
-        DBG("\n        Wait for %d sec,then Enter DeepSleep_LVDWakeup_Test                   \n", ENTER_DEEPSLEEP_TEST_SECS);
+        DBG("\n Enter DeepSleep_LVDWakeup_Test                   \n");
         LVD_WakeupTestConfig();
         SystemWakeupConfig(SYSWAKEUP_SOURCE8_LVD, SYSWAKEUP_SOURCE_NEGE_TRIG);
         break;
     
     case WAKEUP_TEST_UART0RX:
-        DBG("\n        Wait for %d sec,then Enter DeepSleep_UART0_RX_Wakeup_Test                   \n", ENTER_DEEPSLEEP_TEST_SECS);
+        DBG("\n Enter DeepSleep_UART0_RX_Wakeup_Test                   \n");
         SystermUART_RXWakeupConfig(UART_PORT0);
         break;
 
     case WAKEUP_TEST_RTC:
-        DBG("\n        Wait for %d sec,then Enter DeepSleep_RTCWakeup_Test                   \n", ENTER_DEEPSLEEP_TEST_SECS);
+        DBG("\n  Enter DeepSleep_RTCWakeup_Test                   \n");
         RTC_WakeupTestConfig();
         SystemWakeupConfig(SYSWAKEUP_SOURCE10_RTC, SYSWAKEUP_SOURCE_NEGE_TRIG);
         break;
 
     case WAKEUP_TEST_IR_CMD:
-        DBG("\n        Wait for %d sec,then Enter DeepSleep_IRWakeup_Test                   \n", ENTER_DEEPSLEEP_TEST_SECS);
+        DBG("\n Enter DeepSleep_IRWakeup_Test                   \n");
         IR_WakeupTestConfig();
         SystemWakeupConfig(SYSWAKEUP_SOURCE11_IR, SYSWAKEUP_SOURCE_NEGE_TRIG);
         break;
 
     case WAKEUP_TEST_TIMER5:
-        DBG("\n        Wait for %d sec,then Enter DeepSleep_TIMER5Wakeup_Test                  \n", ENTER_DEEPSLEEP_TEST_SECS);
-        StartTimer5(3000);
+        DBG("\n  Enter DeepSleep_TIMER5Wakeup_Test                  \n");
+//        StartTimer5(3000);
         SystemWakeupConfig(SYSWAKEUP_SOURCE12_TIMER5, SYSWAKEUP_SOURCE_NEGE_TRIG);
         break;
 
     case WAKEUP_TEST_TIMER5_PWC:
-        DBG("\n        Wait for %d sec,then Enter DeepSleep_TIMER5 PWC Wakeup_Test                  \n", ENTER_DEEPSLEEP_TEST_SECS);
+        DBG("\n  Enter DeepSleep_TIMER5 PWC Wakeup_Test                  \n");
         StartTimer5PWCTest();
         SystemWakeupConfig(SYSWAKEUP_SOURCE12_TIMER5, SYSWAKEUP_SOURCE_NEGE_TRIG);
         break;
 
     case WAKEUP_TEST_UART1RX:
-        DBG("\n        Wait for %d sec,then Enter DeepSleep_UART1_RX_Wakeup_Test                  \n", ENTER_DEEPSLEEP_TEST_SECS);
+        DBG("\n   Enter DeepSleep_UART1_RX_Wakeup_Test                  \n");
         SystermUART_RXWakeupConfig(UART_PORT1);
         break;
 
     case WAKEUP_TEST_CAN:
-        DBG("\n        Wait for %d sec,then Enter DeepSleep_CANWakeup_Test                  \n", ENTER_DEEPSLEEP_TEST_SECS);
+        DBG("\n   Enter DeepSleep_CANWakeup_Test                  \n");
         CAN_WakeupTestConfig();
         SystemWakeupConfig(SYSWAKEUP_SOURCE14_CAN, SYSWAKEUP_SOURCE_NEGE_TRIG);
         break;

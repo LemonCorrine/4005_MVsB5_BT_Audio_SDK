@@ -7,19 +7,23 @@
 
 #include "type.h"
 #include "otg_device_hcd.h"
+#include "otg_device_audio.h"
 #include "otg_host_hcd.h"
-#include "otg_device_standard_request.h"
 #include "chip_info.h"
 
 #define  HOST_EP0_DEPTH    64
-#define  HOST_EP1_TX_DEPTH 128
+#define  HOST_EP1_TX_DEPTH 64
 #define  HOST_EP1_RX_DEPTH 1024
-#define  HOST_EP2_TX_DEPTH 128
-#define  HOST_EP2_RX_DEPTH 128
+#define  HOST_EP2_TX_DEPTH HOST_FS_ISO_OUT_MPS
+#define  HOST_EP2_RX_DEPTH HOST_FS_ISO_IN_MPS
 
 #define  DEVICE_EP0_DEPTH    64
 #define  DEVICE_EP1_TX_DEPTH DEVICE_FS_BULK_IN_MPS
+#ifdef CFG_OTG_MODE_AUDIO1_EN
+#define  DEVICE_EP1_RX_DEPTH DEVICE_FS_ISO_OUT1_MPS
+#else
 #define  DEVICE_EP1_RX_DEPTH DEVICE_FS_BULK_OUT_MPS
+#endif
 #define  DEVICE_EP2_TX_DEPTH DEVICE_FS_ISO_IN_MPS
 #define  DEVICE_EP2_RX_DEPTH DEVICE_FS_ISO_OUT_MPS
 

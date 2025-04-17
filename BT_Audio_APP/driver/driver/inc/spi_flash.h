@@ -278,6 +278,9 @@ uint8_t IsFlashBusy(void);
  */
 SPI_FLASH_ERR_CODE SpiFlashReadUniqueID(uint8_t* Buffer, uint8_t BufLen);
 
+
+typedef void (*FshcClkSwitch_t)(FSHC_CLK_MODE ClkSrc, uint32_t flash_clk);
+void FshcClkSwitchCallBackSet(FshcClkSwitch_t callback);
 #ifdef __cplusplus
 }
 #endif // __cplusplus 

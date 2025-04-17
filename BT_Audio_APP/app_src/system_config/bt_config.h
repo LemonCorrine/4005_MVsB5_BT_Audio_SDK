@@ -127,6 +127,7 @@ enum
 #define BT_SPP_SUPPORT				(0)		//数据传输
 #define BT_OBEX_SUPPORT				(0)		//文件传输(适用于安卓手机通过文件推送进行OTA升级)
 #define BT_PBAP_SUPPORT				(0)		//电话本
+#define BT_HID_SUPPORT				(0)		
 
 #if BT_SOURCE_SUPPORT && BT_HFP_SUPPORT
 #define BT_HFG_SUPPORT				(1)		//语音发射(暂只支持CVSD格式--8KHz)

@@ -26,6 +26,7 @@ extern "C" {
 #endif//__cplusplus
 
 #include<stdint.h>
+#include<stdbool.h>
 
 #ifndef NULL	
 #define	NULL			((void*)0)

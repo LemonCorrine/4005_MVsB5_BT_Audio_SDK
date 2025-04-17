@@ -22,6 +22,13 @@ extern "C" {
 #include "mode_task.h"
 
 void AudioAPPDigitalGianProcess(SysModeNumber AppMode);
+/**
+ * @brief  Set source gain
+ * @param  source : AudioCore source enum less than AUDIO_CORE_SOURCE_MAX_NUM
+ * @param  vol : 0 ~ CFG_PARA_MAX_VOLUME_NUM
+ * @return None
+ */
+void AudioEffect_SourceGain_Update(uint8_t source, uint8_t vol);
 bool IsAudioPlayerMute(void);
 void AudioPlayerMenu(void);
 void AudioPlayerMenuCheck(void);

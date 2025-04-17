@@ -20,6 +20,7 @@
 #include "misc.h"
 #include "otg_host_standard_enum.h"
 #include "otg_device_standard_request.h"
+#include "otg_device_audio.h"
 #include "otg_device_hcd.h"
 #include "otg_host_hcd.h"
 #include "irqn.h"
@@ -390,6 +391,11 @@ DetectCardExit:
 					case 1:	//u盘
 						Ret |= UDISK_OUT_EVENT_BIT;
 						break;
+#ifdef CFG_FUNC_USB_HOST_AUDIO_MIX_MODE
+					case 2: //声卡设备
+						UsbHostPlayMixDeinit();
+						break;
+#endif
 					default :
 						break;
 				}
@@ -405,6 +411,12 @@ DetectCardExit:
 					case 1: //u盘
 						Ret |= UDISK_IN_EVENT_BIT;
 						break;
+#ifdef CFG_FUNC_USB_HOST_AUDIO_MIX_MODE
+					case 2: //声卡设备
+						UsbHostPlayMixInit();
+						UsbHostPlayStart();
+						break;
+#endif
 					default :
 						break;
 				}

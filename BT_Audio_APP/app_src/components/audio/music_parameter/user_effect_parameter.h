@@ -50,6 +50,7 @@ typedef struct _AUDIOEFFECT_SOURCE_SINK_NUM
 	uint8_t		remind_source;		/**< REMIND_SOURCE_NUM  	                 */
 	uint8_t		rec_source;			/**< PLAYBACK_SOURCE_NUM                     */
 	uint8_t		usb_source;			/**< USB_SOURCE                              */
+	uint8_t		usb_host_source;	/**< USB_HOST_SOURCE_NUM                     */
 	uint8_t		i2s_mix_source;		/**< I2S_MIX_SOURCE                          */
 	uint8_t		i2s_mix2_source;	/**< I2S_MIX2_SOURCE                         */
 	uint8_t		linein_mix_source;	/**< LINEIN_MIX_SOURCE_NUM                   */
@@ -60,6 +61,7 @@ typedef struct _AUDIOEFFECT_SOURCE_SINK_NUM
 	uint8_t		rec_sink;			/**< AUDIO_RECORDER_SINK_NUM                 */
 	uint8_t		i2s_mix_sink;		/**< AUDIO_I2S_MIX_OUT_SINK_NUM              */
 	uint8_t		spdif_sink;			/**< AUDIO_SPDIF_SINK_NUM                    */
+	uint8_t		usb_host_mix_sink;	/**< AUDIO_USB_HOST_SINK_NUM            	 */
 } AUDIOEFFECT_SOURCE_SINK_NUM;
 
 //默认配置为不使用,effect_mode需要默认加在开始的位置
@@ -68,6 +70,7 @@ typedef struct _AUDIOEFFECT_SOURCE_SINK_NUM
 												.remind_source = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.rec_source = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.usb_source = AUDIOCORE_SOURCE_SINK_ERROR,\
+												.usb_host_source = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.i2s_mix_source = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.i2s_mix2_source = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.linein_mix_source = AUDIOCORE_SOURCE_SINK_ERROR,\
@@ -76,7 +79,8 @@ typedef struct _AUDIOEFFECT_SOURCE_SINK_NUM
 												.stereo_sink = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.rec_sink = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.i2s_mix_sink = AUDIOCORE_SOURCE_SINK_ERROR,\
-												.spdif_sink = AUDIOCORE_SOURCE_SINK_ERROR
+												.spdif_sink = AUDIOCORE_SOURCE_SINK_ERROR,\
+												.usb_host_mix_sink = AUDIOCORE_SOURCE_SINK_ERROR
 
 /**
  * @brief  Get some default parameters
@@ -84,13 +88,6 @@ typedef struct _AUDIOEFFECT_SOURCE_SINK_NUM
  * @return None
  */
 void AudioEffect_GetAudioEffectValue(void);
-
-/**
- * @brief  Set source gain
- * @param  source : AudioCore source enum less than AUDIO_CORE_SOURCE_MAX_NUM
- * @return None
- */
-void AudioEffect_SourceGain_Update(uint8_t source);
 
 /**
  * @brief  Sync some effect parameters when change effect mode

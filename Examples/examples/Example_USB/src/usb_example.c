@@ -3,10 +3,10 @@
  * @file    usb_example.c
  * @brief   usb example
  *
- * @author  owen
+ * @author  Shanks
  * @version V1.0.0
  *
- * $Created: 2018-6-7 10:16:10$
+ * $Created: 2025-1-22 10:16:10$
  *
  * &copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  **************************************************************************************
@@ -15,36 +15,29 @@
 #include <stdio.h>
 #include <string.h>
 #include <nds32_intrinsic.h>
-#include "gpio.h"
-#include "uarts.h"
+#include "chip_info.h"
 #include "uarts_interface.h"
+#include "gpio.h"
 #include "type.h"
-#include "debug.h"
-#include "spi_flash.h"
-#include "timeout.h"
-#include "clk.h"
-#include "pwm.h"
-#include "delay.h"
-#include "rtc.h"
-#include "sd_card.h"
-#include "watchdog.h"
 #include "irqn.h"
+#include "debug.h"
+#include "clk.h"
+#include "sys.h"
+#include "sd_card.h"
 #include "spi_flash.h"
-#include "remap.h"
+#include "watchdog.h"
+#include "otg_detect.h"
 #include "otg_host_udisk.h"
 #include "otg_device_hcd.h"
 #include "otg_device_standard_request.h"
 #include "otg_device_stor.h"
-#include "chip_info.h"
-#include "otg_detect.h"
 #include "otg_device_audio.h"
-#include "dac.h"
 #include "usb_audio_api.h"
 
-extern void SysTickInit(void);
-extern void UsbAudioMicDacInit(void);
-extern void OTG_DeviceAudioInit();
-extern void UsbAudioTimer1msProcess(void);
+extern void __c_init_rom();
+extern void audio_init(uint32_t SampleRate);
+extern uint8_t OtgPortLinkState;
+
 static uint8_t DmaChannelMap[] =
 {
     PERIPHERAL_ID_AUDIO_ADC0_RX,
@@ -58,21 +51,26 @@ static uint8_t DmaChannelMap[] =
 void Timer2Interrupt(void)
 {
 	Timer_InterruptFlagClear(TIMER2, UPDATE_INTERRUPT_SRC);
-#ifdef CFG_APP_USB_AUDIO_MODE_EN
-	UsbAudioTimer1msProcess(); //1msÖÐ¶Ï¼à¿Ø
-#endif
+	UsbAudioTimer1msProcess(); //Éù¿¨1msÖÐ¶Ï¼à¿Ø
+}
+
+void Timer6Interrupt(void)
+{
+	Timer_InterruptFlagClear(TIMER6, UPDATE_INTERRUPT_SRC);
+	OTG_PortLinkCheck();	//¼ì²âº¯Êý
 }
 
 uint8_t read_buf[4096];
 uint8_t write_buf[4096];
-extern uint8_t OtgPortLinkState;
-
 void usb_host_example(void)
 {
 	DBG("usb host example\n");
-	OtgPortLinkState = 0;
+
+	//1£ºhostÄ£Ê½ÅäÖÃ
 	OTG_HostFifoInit();
 	OTG_HostControlInit();
+
+	//2£ºhostÃ¶¾ÙÉè±¸
 	OTG_HostEnumDevice();
 	if(UDiskInit() == 1)
 	{
@@ -93,12 +91,12 @@ void usb_host_example(void)
 	{
 		DBG("UDisk Init err\n");
 	}
+	while(1);
 }
 
-extern void audio_init(uint32_t SampleRate);
 void usb_device_example(void)
 {
-	printf("OTG_DeviceInit\n");
+	printf("usb_device_example\n");
 	DMA_ChannelAllocTableSet(DmaChannelMap);
 #if (CFG_PARA_USB_MODE >= READER)
 	CardPortInit(SDIO_A15_A16_A17);
@@ -117,21 +115,105 @@ void usb_device_example(void)
 	OTG_DeviceInit();
 	NVIC_EnableIRQ(Usb_IRQn);
 
+#if (CFG_PARA_USB_MODE < READER)
+ 	Timer_Config(TIMER2,1000,0);
+ 	Timer_Start(TIMER2);
+ 	NVIC_EnableIRQ(Timer2_IRQn);
+#endif
+
 	while(1)
 	{
 		OTG_DeviceRequestProcess();
 #if (CFG_PARA_USB_MODE >= READER)
 		OTG_DeviceStorProcess();
-#endif
+#else
 		UsbAudioSpeakerStreamProcess();
 		UsbAudioMicStreamProcess();
+#endif
 	}
 }
 
-extern void USB_DelayLine(void);
-extern void __c_init_rom();
+
+void OTG_DeviceSuspendProcess(void)
+{
+	printf("Suspend\n");
+}
+void OTG_DeviceResumeProcess(void)
+{
+	printf("Resume\n");
+}
+void OTG_DeviceResetProcess(void)
+{
+	printf("Reset\n");
+}
+
+void usb_device_Interrupt_example(void)
+{
+	DBG("usb_device_Interrupt_example\n");
+	DMA_ChannelAllocTableSet(DmaChannelMap);
+#if (CFG_PARA_USB_MODE >= READER)
+	CardPortInit(SDIO_A15_A16_A17);
+	if(SDCard_Init() != NONE_ERR)
+	{
+		DBG("sd card error\n");
+		while(1);
+	}
+#else
+	audio_init(CFG_PARA_SAMPLE_RATE);
+	UsbDevicePlayInit();
+	UsbDevicePlayResMalloc();
+#endif
+	OTG_DeviceModeSel(CFG_PARA_USB_MODE,USB_VID,USB_PID_BASE);
+	OTG_DeviceFifoInit();
+	OTG_DeviceInit();
+
+	OTG_EndpointInterruptEnable(DEVICE_CONTROL_EP,OTG_DeviceRequestProcess);
+	OTG_BusEventInterruptEnable(0,OTG_DeviceSuspendProcess);
+	OTG_BusEventInterruptEnable(1,OTG_DeviceResumeProcess);
+	OTG_BusEventInterruptEnable(2,OTG_DeviceResetProcess);
+
+	NVIC_EnableIRQ(Usb_IRQn);
+
+#if (CFG_PARA_USB_MODE < READER)
+ 	Timer_Config(TIMER2,1000,0);
+ 	Timer_Start(TIMER2);
+ 	NVIC_EnableIRQ(Timer2_IRQn);
+#endif
+
+	while(1)
+	{
+#if (CFG_PARA_USB_MODE >= READER)
+		OTG_DeviceStorProcess();
+#else
+		UsbAudioSpeakerStreamProcess();
+		UsbAudioMicStreamProcess();
+#endif
+	}
+}
+
+void usb_otg_example(void)
+{
+ 	Timer_Config(TIMER6,1000,0);
+ 	Timer_Start(TIMER6);
+ 	NVIC_EnableIRQ(Timer6_IRQn);
+ 	OTG_PortSetDetectMode(1,1);
+ 	while(1)
+ 	{
+ 		if(OTG_PortHostIsLink())
+ 		{
+ 			usb_host_example();
+ 		}
+ 		else if(OTG_PortDeviceIsLink())
+ 		{
+ 			usb_device_example();
+ 		}
+ 	}
+}
+
 int main(void)
 {
+    uint8_t Key = 0;
+
 	Chip_Init(1);
 	WDG_Disable();
 	__c_init_rom();
@@ -157,17 +239,45 @@ int main(void)
 	SysTickInit();
 
 	DBG("\n");
-    DBG("/-----------------------------------------------------\\\n");
-    DBG("|                    USB Example                      |\n");
-    DBG("|      Mountain View Silicon Technology Co.,Ltd.      |\n");
-    DBG("\\-----------------------------------------------------/\n");
-    DBG("\n");
+	DBG("/-----------------------------------------------------\\\n");
+	DBG("|                     USB Example                     |\n");
+	DBG("|      Mountain View Silicon Technology Co.,Ltd.      |\n");
+	DBG("\\-----------------------------------------------------/\n");
+	DBG("\n");
 
- 	Timer_Config(TIMER2,1000,0);
- 	Timer_Start(TIMER2);
- 	NVIC_EnableIRQ(Timer2_IRQn);
+	DBG("Select an example:\n");
+	DBG("0: USB OTG link check\n");
+	DBG("1: USB Only host mode no link check\n");
+	DBG("2: USB Only device mode no link check\n");
+	DBG("3: USB Only device Interrupt mode no link check\n");
+	while(1)
+	{
+		if(UARTS_RecvByte(UART_PORT1, &Key))
+		{
+			switch(Key)
+			{
+			case '0':
+				DBG("USB OTG link check\n");
+				usb_otg_example();
+				break;
+			case '1':
+				DBG("USB Only host mode\n");
+				OtgPortLinkState = 0;
+				usb_host_example();
+				break;
+			case '2':
+				DBG("USB Only device mode\n");
+				usb_device_example();
+				break;
+			case '3':
+				DBG("USB Only device Interrupt mode\n");
+				usb_device_Interrupt_example();
+				break;
 
- 	usb_device_example();
-// 	usb_host_example();
+			default:
+				break;
+			}
+		}
+	}
 	while(1);
 }

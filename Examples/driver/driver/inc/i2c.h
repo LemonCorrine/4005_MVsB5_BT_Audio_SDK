@@ -60,6 +60,7 @@ typedef enum
 	I2C_PORT_A5_A6			= 1,
 	I2C_PORT_A28_A29		= 2,
 	I2C_PORT_A30_A31		= 3,
+	I2C_PORT_USER_DEFINED,		//用户自定义GPIO，需要在应用层配置GPIO复用属性
 }I2C_PORT_MODE;
 
 /**

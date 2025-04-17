@@ -76,6 +76,7 @@ uint32_t GetSourceSupportProfiles(void)
  **********************************************************************************/
 static bool GetBtDefaultAddr(uint8_t *devAddr)
 {
+	extern char __sdk_code_start;
 	if(devAddr == NULL)
 		return FALSE;
 
@@ -103,8 +104,8 @@ static bool GetBtDefaultAddr(uint8_t *devAddr)
 			tcm_addr_1k = (tcm_addr_1k/1024 + 1)*1024;
 			
 			Remap_AddrRemapDisable(3);
-			memcpy((void *)tcm_addr_1k, (void *)0x10000, 1*1024);
-			Remap_AddrRemapSet(3, 0x10000, tcm_addr_1k, 1);
+			memcpy((void *)tcm_addr_1k, (void *)&__sdk_code_start, 1*1024);
+			Remap_AddrRemapSet(3, &__sdk_code_start, tcm_addr_1k, 1);
 			{
 				uint8_t u8a_tmpBuf[16];
 				int j;
@@ -640,7 +641,7 @@ bool BtStackInit(void)
 	}
 #endif
 
-#if ( BT_OBEX_SUPPORT )
+#if (BT_OBEX_SUPPORT)
 	retInit = ObexAppInit(BtObexCallback);
 	if(retInit == 0)
 	{
@@ -657,7 +658,7 @@ bool BtStackInit(void)
 	}
 #endif
 	
-#if ( BT_PBAP_SUPPORT )
+#if (BT_PBAP_SUPPORT)
 	retInit = PbapAppInit(BtPbapCallback);
 	if(retInit == 0)
 	{
@@ -684,6 +685,15 @@ bool BtStackInit(void)
 	}
 #endif
 
+#if (BT_HID_SUPPORT)
+#include "bt_hid_api.h"
+	retInit = HidAppInit(BtHidCallback);
+	if(retInit == 0)
+	{
+		APP_DBG("Hid Init Error!\n");
+		return FALSE;
+	}
+#endif
 	return TRUE;
 }
 

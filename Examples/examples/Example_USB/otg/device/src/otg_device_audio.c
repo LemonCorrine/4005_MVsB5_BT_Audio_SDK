@@ -10,7 +10,7 @@
  *
  * <h2><center>&copy; COPYRIGHT 2013 MVSilicon </center></h2>
  */
-
+#include <stdio.h>
 #include <string.h>
 #include "otg_device_hcd.h"
 #include "otg_device_standard_request.h"

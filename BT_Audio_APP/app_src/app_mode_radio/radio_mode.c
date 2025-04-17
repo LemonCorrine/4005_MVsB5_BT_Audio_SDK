@@ -67,24 +67,45 @@ typedef struct _RadioPlayContext
 
 /**根据appconfig缺省配置:DMA 6个通道配置**/
 static uint8_t sDmaChannelMap[6] = {
-	PERIPHERAL_ID_AUDIO_ADC0_RX,
-	PERIPHERAL_ID_AUDIO_ADC1_RX,
+	//DMA默认配置不要删除，DMA数量不足6个的时候作为填充用
+	DMA_CFG_TABLE_DEFAULT_INIT
+
+#ifdef CFG_RES_AUDIO_DAC0_EN
 	PERIPHERAL_ID_AUDIO_DAC0_TX,
-#ifdef CFG_RES_AUDIO_I2S_MIX_IN_EN
-	PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX_I2S_MODULE,
-#else
+#endif
+
+#if CFG_RES_MIC_SELECT
+	PERIPHERAL_ID_AUDIO_ADC1_RX,
+#endif
+
+#ifdef CFG_RES_AUDIO_SPDIFOUT_EN
+	SPDIF_OUT_DMA_ID,
+#endif
+
+#if (I2S_ALL_DMA_CH_CFG & I2S0_TX_NEED_ENABLE)
+	PERIPHERAL_ID_I2S0_TX,
+#endif
+#if (I2S_ALL_DMA_CH_CFG & I2S1_TX_NEED_ENABLE)
+	PERIPHERAL_ID_I2S1_TX,
+#endif
+#if (I2S_ALL_DMA_CH_CFG & I2S0_RX_NEED_ENABLE)
+	PERIPHERAL_ID_I2S0_RX,
+#endif
+#if (I2S_ALL_DMA_CH_CFG & I2S1_RX_NEED_ENABLE)
+	PERIPHERAL_ID_I2S1_RX,
+#endif
+
+#ifdef CFG_COMMUNICATION_BY_UART
+	CFG_FUNC_COMMUNICATION_TX_DMA_PORT,
+	CFG_FUNC_COMMUNICATION_RX_DMA_PORT,
+#endif
+
+#ifdef CFG_DUMP_DEBUG_EN
+	CFG_DUMP_UART_TX_DMA_CHANNEL,
+#endif
+
+	PERIPHERAL_ID_AUDIO_ADC0_RX,
 	PERIPHERAL_ID_SDIO_RX,
-#endif
-#ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
-	PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX_I2S_MODULE,
-#else
-	255,
-#endif
-#ifdef CFG_RES_AUDIO_I2SOUT_EN
-	PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE,
-#else
-	255
-#endif
 };
 
 
@@ -475,7 +496,7 @@ void RadioPlayResInit(void)
 
 	AudioADC_DigitalInit(ADC0_MODULE, AudioCoreMixSampleRateGet(DefaultNet),BitWidth, (void*)sRadioPlayCt->ADCFIFO, sRadioPlayCt->ADCFIFO_len);
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
-	Clock_AudioMclkSel(AUDIO_ADC0, gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source);
+    Clock_AudioMclkSel(AUDIO_ADC0, gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source);
 #else
 	gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source = Clock_AudioMclkGet(AUDIO_ADC0);
 #endif
@@ -505,6 +526,8 @@ void RadioPlayResInit(void)
 	AudioADC_AnaInit(ADC0_MODULE,CHANNEL_RIGHT,LINEIN2_RIGHT,Single,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC0PGACt.pga_aux_r_gain);
 #endif // CFG_ADCDAC_SEL_LOWPOWERMODE
 #endif
+
+	gCtrlVars.HwCt.ADC0DigitalCt.adc_sample_rate = SampleRateIndexGet(AudioADC_SampleRateGet(ADC0_MODULE));
 }
 
 //Radio模式参数配置，资源初始化

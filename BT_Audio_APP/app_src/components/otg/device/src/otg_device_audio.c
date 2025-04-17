@@ -19,12 +19,6 @@
 #include "otg_device_audio.h"
 
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
-#define PCM_LEN_SIZE(a,b,c) (FRQ_MAX_SZE(a)*b*c)
-#define PCM_LEN_MAX MAX(PCM_LEN_SIZE(USBD_AUDIO_FREQ,PCM24BIT,PACKET_CHANNELS_NUM),PCM_LEN_SIZE(USBD_AUDIO_MIC_FREQ,PCM24BIT,MIC_CHANNELS_NUM))
-#define OUT_PCM_LEN FRQ_MAX_SZE(USBD_AUDIO_FREQ)*PACKET_CHANNELS_NUM*PCM24BIT
-extern uint8_t Setup[];
-extern uint8_t Request[];
-extern void OTG_DeviceSendResp(uint16_t Resp, uint8_t n);
 
 #ifdef CFG_AUDIO_WIDTH_24BIT
 #define USB_AUDIO_WIDTH	24
@@ -36,8 +30,15 @@ typedef int16_t pcm_int;
 typedef int32_t gain_int;
 #endif
 
+#ifdef CFG_OTG_MODE_AUDIO1_EN
+UsbAudio UsbAudioSpeaker1;
+#endif
+#ifdef CFG_OTG_MODE_AUDIO_EN
 UsbAudio UsbAudioSpeaker;
+#endif
+#ifdef CFG_OTG_MODE_MIC_EN
 UsbAudio UsbAudioMic;
+#endif
 
 uint8_t iso_buf[PCM_LEN_MAX*4/3];
 uint8_t AudioCmd[3] = {1,0,0};
@@ -112,7 +113,61 @@ void UsbAudioGainApply(uint8_t *pcm_buf,uint32_t sample,int16_t left_pregain,int
 		}
 	}
 }
+#ifdef CFG_OTG_MODE_AUDIO1_EN
+//pc->chip 从缓存区获取数据
+uint16_t UsbAudioSpeaker1DataGet(void *Buffer, uint16_t Len)
+{
+	uint16_t Length = 0;
+	int16_t left_pregain = UsbAudioSpeaker1.LeftGain;
+	int16_t rigth_pregain = UsbAudioSpeaker1.RightGain;
+	uint8_t channel = UsbAudioSpeaker1.Channels;
+	
+	if(!UsbAudioSpeaker1.PCMBuffer)
+	{
+		return 0;
+	}
+	Length = Len * sizeof(PCM_DATA_TYPE) * channel;
+	Length = MCUCircular_GetData(&UsbAudioSpeaker1.CircularBuf, Buffer, Length);
 
+	Length = Length/(sizeof(PCM_DATA_TYPE)*channel);
+
+#ifdef CFG_RES_AUDIO_USB_VOL_SET_EN
+	if(UsbAudioSpeaker1.Mute)
+	{
+		left_pregain = 0;
+		rigth_pregain = 0;
+	}
+	MixerFadeVolume(UsbAudioSpeaker1.LeftCurGain,left_pregain,100);
+	MixerFadeVolume(UsbAudioSpeaker1.RightCurGain,rigth_pregain,100);
+
+	UsbAudioGainApply(Buffer,Length,UsbAudioSpeaker1.LeftCurGain,UsbAudioSpeaker1.RightCurGain,channel);
+#endif
+	return Length;
+}
+
+//pc->chip 获取缓存区数据长度
+uint16_t UsbAudioSpeaker1DataLenGet(void)
+{
+	uint16_t Len;
+
+	if(!UsbAudioSpeaker1.PCMBuffer)
+	{
+		return 0;
+	}
+	Len = MCUCircular_GetDataLen(&UsbAudioSpeaker1.CircularBuf);
+	Len = Len / (sizeof(PCM_DATA_TYPE) * PACKET1_CHANNELS_NUM);
+	return Len;
+}
+uint16_t UsbAudioSpeaker1DepthGet(void)
+{
+	uint16_t Len;
+	Len = UsbAudioSpeaker1.CircularBuf.BufDepth;
+	Len = Len / (sizeof(PCM_DATA_TYPE) * PACKET1_CHANNELS_NUM);
+	return Len;
+}
+#endif
+
+#ifdef CFG_OTG_MODE_AUDIO_EN
 //pc->chip 从缓存区获取数据
 uint16_t UsbAudioSpeakerDataGet(void *Buffer, uint16_t Len)
 {
@@ -166,7 +221,9 @@ uint16_t UsbAudioSpeakerDepthGet(void)
 //	APP_DBG(" UsbAudioSpeaker BufDepth: %d\r\n",Len);
 	return Len;
 }
+#endif
 
+#ifdef CFG_OTG_MODE_MIC_EN
 //chip->pc 保存数据到缓存区
 uint16_t UsbAudioMicDataSet(void *Buffer, uint16_t Len)
 {
@@ -217,14 +274,81 @@ uint16_t UsbAudioMicDepthGet(void)
 //	APP_DBG(" UsbAudioMic BufDepth: %d\r\n",Len);
 	return Len;
 }
+#endif
 
-
-
-//转采样直接在中断中处理，转采样时间大约是180us。
+#ifdef CFG_OTG_MODE_AUDIO1_EN
 //注意一下需要4字节对齐
+void OnDeviceAudioRcvIsoPacket1(void)
+{
+
+	uint32_t Len;
+	int32_t s;
+	uint32_t sample = 0;
+	OTG_DeviceISOReceive(DEVICE_ISO_OUT_EP1, (uint8_t*)iso_buf, OUT1_PCM_LEN, &Len);
+
+	UsbAudioSpeaker1.FramCount++;
+
+	if(UsbAudioSpeaker1.ByteSet == PCM16BIT)
+	{
+		sample = Len/PCM16BIT;
+#ifdef CFG_AUDIO_WIDTH_24BIT
+		for(s = sample-1; s >= 0; s--)
+		{
+//			memcpy(&iso_buf[s*4+1],&iso_buf[s*2],4);
+			iso_buf[s*4+2] = iso_buf[s*2+1];
+			iso_buf[s*4+1] = iso_buf[s*2];
+
+			if(iso_buf[s*4+2] & 0x80)
+			{
+				iso_buf[s*4+3] = 0xff;
+			}else{
+				iso_buf[s*4+3] = 0x00;
+			}
+			iso_buf[s*4] = 0x00;
+		}
+#endif
+	}
+	else if(UsbAudioSpeaker1.ByteSet == PCM24BIT)
+	{
+		sample = Len/PCM24BIT;
+#ifdef CFG_AUDIO_WIDTH_24BIT
+		for(s = sample-1; s >= 0; s--)
+		{
+//			memcpy(&iso_buf[s*4],&iso_buf[s*3],4);
+			iso_buf[s*4+2] = iso_buf[s*3+2];
+			iso_buf[s*4+1] = iso_buf[s*3+1];
+			iso_buf[s*4] = iso_buf[s*3];
+
+			if(iso_buf[s*4+2] & 0x80)
+			{
+				iso_buf[s*4+3] = 0xff;
+			}else{
+				iso_buf[s*4+3] = 0x00;
+			}
+		}
+#else
+		for(s = 0; s < sample; s++)
+		{
+			iso_buf[s*2] = iso_buf[s*3+1];
+			iso_buf[s*2+1] = iso_buf[s*3+2];
+		}
+#endif
+	}
+
+	if(UsbAudioSpeaker1.PCMBuffer == NULL)
+	{
+		return;
+	}
+
+	MCUCircular_PutData(&UsbAudioSpeaker1.CircularBuf, (uint8_t*)iso_buf, sample*sizeof(PCM_DATA_TYPE));
+}
+#endif
+
+//注意一下需要4字节对齐
+#ifdef CFG_OTG_MODE_AUDIO_EN
 void OnDeviceAudioRcvIsoPacket(void)
 {
-#ifdef CFG_OTG_MODE_AUDIO_EN
+
 	uint32_t Len;
 	int32_t s;
 	uint32_t sample = 0;
@@ -285,12 +409,12 @@ void OnDeviceAudioRcvIsoPacket(void)
 	}
 
 	MCUCircular_PutData(&UsbAudioSpeaker.CircularBuf, (uint8_t*)iso_buf, sample*sizeof(PCM_DATA_TYPE));
-#endif
 }
+#endif
 
+#ifdef CFG_OTG_MODE_MIC_EN
 void OnDeviceAudioSendIsoPacket(void)
 {
-#ifdef CFG_OTG_MODE_MIC_EN
 	int32_t s;
 	uint32_t RealLen = 0;
 	uint8_t channel = UsbAudioMic.Channels;
@@ -347,533 +471,406 @@ void OnDeviceAudioSendIsoPacket(void)
 #endif
 	}
 	OTG_DeviceISOSend(DEVICE_ISO_IN_EP,(uint8_t*)iso_buf,RealLen*UsbAudioMic.ByteSet*channel);
+}
+#endif
+
+//USB设备软件复位-声卡
+void OTG_DeviceAudioSoftwareReset(void)
+{
+#ifdef CFG_OTG_MODE_AUDIO1_EN
+	//不清除FIFO,只清除usb声卡相关配置
+	memset(&UsbAudioSpeaker1,0,sizeof(UsbAudio)-sizeof(MCU_CIRCULAR_CONTEXT)-sizeof(int16_t*));
+	UsbAudioSpeaker1.Channels   = PACKET1_CHANNELS_NUM;
+	UsbAudioSpeaker1.LeftGain    = UsbValToMcuGain(AUDIO_MAX_VOLUME);
+	UsbAudioSpeaker1.RightGain   = UsbValToMcuGain(AUDIO_MAX_VOLUME);
+#endif
+
+#ifdef CFG_OTG_MODE_AUDIO_EN
+	//不清除FIFO,只清除usb声卡相关配置
+	memset(&UsbAudioSpeaker,0,sizeof(UsbAudio)-sizeof(MCU_CIRCULAR_CONTEXT)-sizeof(int16_t*));
+	UsbAudioSpeaker.Channels   = PACKET_CHANNELS_NUM;
+	UsbAudioSpeaker.LeftGain    = UsbValToMcuGain(AUDIO_MAX_VOLUME);
+	UsbAudioSpeaker.RightGain   = UsbValToMcuGain(AUDIO_MAX_VOLUME);
+#endif
+
+#ifdef CFG_OTG_MODE_MIC_EN
+	//不清除FIFO,只清除usb声卡相关配置
+	memset(&UsbAudioMic,0,sizeof(UsbAudio)-sizeof(MCU_CIRCULAR_CONTEXT)-sizeof(int16_t*));
+	UsbAudioMic.Channels       = MIC_CHANNELS_NUM;
+	UsbAudioMic.LeftGain        = UsbValToMcuGain(AUDIO_MAX_VOLUME);
+	UsbAudioMic.RightGain       = UsbValToMcuGain(AUDIO_MAX_VOLUME);
 #endif
 }
 
-void OTG_DeviceAudioInit()
-{
 
-}
+#define RequestCmd	((Setup[0] << 8) | Setup[1])
+#define Channel		Setup[2]
+#define Control		Setup[3]
+#define Entity		Setup[5]
+#define wLength		((Setup[7] << 8) | Setup[6])
 
 #if (USB_AUDIO_PROTOCOL == AUDIO_UAC_10)
-void OTG_DeviceAudioRequest(void)
+//声卡音量相关请求处理
+static void AudioVolumeRequest(UsbAudio *Stream)
 {
-	//AUDIO控制接口组件ID号定义（必须与device_stor_audio_request.c中的定义保持一致！）
-	#define AUDIO_SPEAKER_IT_ID		1
-	#define AUDIO_SPEAKER_FU_ID		2	//控制MUTE、VOLUME
-	#define AUDIO_SPEAKER_OT_ID		3
-
-	#define AUDIO_SPEAKER1_IT_ID		9
-	#define AUDIO_SPEAKER1_FU_ID		10	//控制MUTE、VOLUME
-	#define AUDIO_SPEAKER1_OT_ID		11
-//	#define AUDIO_MIC_IT_ID			4
-//	#define AUDIO_MIC_FU_ID			5
-//	#define AUDIO_MIC_SL_ID			6
-//	#define AUDIO_MIC_OT_ID			7
-	
-	#define AudioCmd	((Setup[0] << 8) | Setup[1])
-	#define Channel		Setup[2]
-	#define Control		Setup[3]
-	#define Entity		Setup[5]
-	
-	#define SET_CUR		0x2101
-	#define SET_IDLE	0x210A
-	#define GET_CUR		0xA181
-	#define GET_MIN		0xA182
-	#define GET_MAX		0xA183
-	#define GET_RES		0xA184
-	
-	#define SET_CUR_EP	0x2201
-	#define GET_CUR_EP	0xA281
-
-	//AUDIO类请求处理
-	if(AudioCmd == SET_CUR_EP)
+	if(Control == AUDIO_CONTROL_MUTE)
 	{
-		if(Setup[4] == DEVICE_ISO_IN_EP)
+		if(RequestCmd == GET_CUR)
 		{
-			if(UsbAudioMic.AudioSampleRate != SWAP_BUF_TO_U32(Request))
-			{
-				UsbAudioMic.AudioSampleRate = SWAP_BUF_TO_U32(Request);
-				APP_DBG("UsbAudioMic.AudioSampleRate:%u\n",(unsigned int)UsbAudioMic.AudioSampleRate);
-				AudioCoreSinkChange(USB_AUDIO_SINK_NUM, UsbAudioMic.Channels, UsbAudioMic.AudioSampleRate);
-			}
-		}
-		else if(Setup[4] == DEVICE_ISO_OUT_EP)
-		{
-			if(UsbAudioSpeaker.AudioSampleRate != SWAP_BUF_TO_U32(Request))
-			{
-				UsbAudioSpeaker.AudioSampleRate = SWAP_BUF_TO_U32(Request);
-				APP_DBG("UsbAudioSpeaker.AudioSampleRate:%u\n",(unsigned int)UsbAudioSpeaker.AudioSampleRate);
-			#ifdef CFG_AUDIO_OUT_AUTO_SAMPLE_RATE_44100_48000
-				 AudioOutSampleRateSet(UsbAudioSpeaker.AudioSampleRate);
-			#endif
-				AudioCoreSourceChange(USB_AUDIO_SOURCE_NUM, UsbAudioSpeaker.Channels, UsbAudioSpeaker.AudioSampleRate);
-			}
-		}
-		return;
-	}
-	if(AudioCmd == GET_CUR_EP)
-	{
-		uint32_t Temp = 0;
-		if(Setup[4] == DEVICE_ISO_IN_EP)
-		{
-			Temp = UsbAudioMic.AudioSampleRate;
-		}
-		else if(Setup[4] == DEVICE_ISO_OUT_EP)
-		{
-			Temp = UsbAudioSpeaker.AudioSampleRate;
-		}
-		Setup[0] = (Temp>>0 ) & 0x000000FF;
-		Setup[1] = (Temp>>8 ) & 0x000000FF;
-		Setup[2] = (Temp>>16) & 0x000000FF;
-		OTG_DeviceControlSend(Setup,3,3);
-		return;
-	}
-
-	if((Entity == AUDIO_SPEAKER_FU_ID) && (Control == AUDIO_CONTROL_MUTE))
-	{
-		//Speaker mute的操作
-		if(AudioCmd == GET_CUR)
-		{
-			Setup[0] = UsbAudioSpeaker.Mute;
+			Setup[0] = Stream->Mute;
 			OTG_DeviceControlSend(Setup,1,3);
 		}
-		else if(AudioCmd == SET_CUR)
+		else if(RequestCmd == SET_CUR)
 		{
-			//APP_DBG("Set speaker mute: %d\n", Request[0]);
-			UsbAudioSpeaker.Mute=Request[0];
+			Stream->Mute=Request[0];
 		}
 		else
 		{
 			//APP_DBG("%s %d\n",__FILE__,__LINE__);
 		}
 	}
-	else if((Entity == AUDIO_SPEAKER_FU_ID) && (Control == AUDIO_CONTROL_VOLUME))
+	else if(Control == AUDIO_CONTROL_VOLUME)
 	{
-		//Speaker volume的操作
-		if(AudioCmd == GET_MIN)
+		if(RequestCmd == GET_MIN)
 		{
-			//APP_DBG("Get speaker min volume\n");
 			OTG_DeviceSendResp(AUDIO_MIN_VOLUME, 2);
 		}
-		else if(AudioCmd == GET_MAX)
+		else if(RequestCmd == GET_MAX)
 		{
-			//APP_DBG("Get speaker max volume\n");
 			OTG_DeviceSendResp(AUDIO_MAX_VOLUME, 2);
 		}
-		else if(AudioCmd == GET_RES)
+		else if(RequestCmd == GET_RES)
 		{
-			//APP_DBG("Get speaker res volume\n");
 			OTG_DeviceSendResp(AUDIO_RES_VOLUME, 2);
 		}
-		else if(AudioCmd == GET_CUR)
+		else if(RequestCmd == GET_CUR)
 		{
 			int16_t Vol = 0;
 			if(Channel == 0x01)
 			{
-				Vol = UsbAudioSpeaker.LeftVol;//UsbAudioSpeaker.FuncLeftVolGet();
+				Vol = Stream->LeftVol;
 			}
 			else
 			{
-				Vol = UsbAudioSpeaker.RightVol;//UsbAudioSpeaker.FuncRightVolGet();
+				Vol = Stream->RightVol;
 			}
 			OTG_DeviceSendResp(Vol, 2);
 		}
-		else if(AudioCmd == SET_CUR)
+		else if(RequestCmd == SET_CUR)
 		{
 			int16_t Temp = 0;
 			Temp = Request[1]* 256 + Request[0];
 			if(Setup[2] == 0x01)
 			{
-				UsbAudioSpeaker.LeftVol = Temp;
-				UsbAudioSpeaker.LeftGain = UsbValToMcuGain(Temp);
+				Stream->LeftVol = Temp;
+				Stream->LeftGain = UsbValToMcuGain(Temp);
 			}
 			else
 			{
-				UsbAudioSpeaker.RightVol = Temp;
-				UsbAudioSpeaker.RightGain = UsbValToMcuGain(Temp);
+				Stream->RightVol = Temp;
+				Stream->RightGain = UsbValToMcuGain(Temp);
 			}
 		}
 		else
 		{
 			//APP_DBG("%s %d\n",__FILE__,__LINE__);
 		}
-	}
-	else if((Entity == AUDIO_MIC_FU_ID) && (Control == AUDIO_CONTROL_MUTE))
-	{
-		//Mic mute的操作
-		if(AudioCmd == GET_CUR)
-		{
-			OTG_DeviceSendResp(UsbAudioMic.Mute, 1);
-		}
-		else if(AudioCmd == SET_CUR)
-		{
-			UsbAudioMic.Mute = Request[0];
-		}
-		else
-		{
-			//APP_DBG("%s %d\n",__FILE__,__LINE__);
-		}
-	}
-	else if((Entity == AUDIO_MIC_FU_ID) && (Control == AUDIO_CONTROL_VOLUME))
-	{
-		//Mic volume的操作
-		if(AudioCmd == GET_MIN)
-		{
-			//APP_DBG("Get mic min volume\n");
-			OTG_DeviceSendResp(AUDIO_MIN_VOLUME, 2);
-		}
-		else if(AudioCmd == GET_MAX)
-		{
-			OTG_DeviceSendResp(AUDIO_MAX_VOLUME, 2);	//此处乘以4的原因请看本文件开头的注释说明
-		}
-		else if(AudioCmd == GET_RES)
-		{
-			//APP_DBG("Get mic res volume\n");
-			OTG_DeviceSendResp(AUDIO_RES_VOLUME, 2);
-		}
-		else if(AudioCmd == GET_CUR)
-		{
-			int16_t Temp = 0;
-			if(Channel == 0x01)
-			{
-				Temp = UsbAudioMic.LeftVol;
-			}
-			else
-			{
-				Temp = UsbAudioMic.RightVol;
-			}
-			OTG_DeviceSendResp(Temp, 2);
-		}
-		else if(AudioCmd == SET_CUR)
-		{
-			int16_t Temp = Request[1] * 256 + Request[0];
-			if(Setup[2] == 0x01)
-			{
-				UsbAudioMic.LeftVol = Temp;
-				UsbAudioMic.LeftGain = UsbValToMcuGain(Temp);
-			}
-			else
-			{
-				UsbAudioMic.RightVol = Temp;
-				UsbAudioMic.RightGain = UsbValToMcuGain(Temp);
-			}
-		}
-		else
-		{
-			//APP_DBG("%s %d\n",__FILE__,__LINE__);
-		}
-	}
-	else if(Entity == AUDIO_MIC_SL_ID)
-	{
-		//Selector的操作
-		if(AudioCmd == GET_CUR)
-		{
-			//APP_DBG("Get selector: 1\n");
-			OTG_DeviceSendResp(0x01, 1);
-		}
-		else
-		{
-			//APP_DBG("%s %d\n",__FILE__,__LINE__);
-		}
-	}
-	else if(AudioCmd == SET_IDLE)
-	{
-		//APP_DBG("Set idle\n");
-	}	
-	else
-	{
-		//其他AUDIO类的输入请求
-		OTG_DeviceSendResp(0x0000, 1);
 	}
 }
-#elif(USB_AUDIO_PROTOCOL == AUDIO_UAC_20)
-void OTG_DeviceAudioRequest(void)
+//声卡采样率相关请求处理
+static void AudioSampleRateRequest(UsbAudio *Stream,uint8_t Num,uint8_t AudioCoreNum)
 {
-	//AUDIO控制接口组件ID号定义（必须与device_stor_audio_request.c中的定义保持一致！）
-	#define SET_CUR		0x2101
-	#define SET_IDLE	0x210A
-	#define GET_CUR		0xA181
-	#define GET_MIN		0xA182
-	#define GET_MAX		0xA183
-	#define GET_RES		0xA184
-
-	#define SET_CUR_EP	0x2201
-	#define GET_CUR_EP	0xA281
-	//uac 2.0
-	#define GET_RANGE	0xA102
-	#define GET_CUR_2	0xA101
-
-	#define AudioCmd	((Setup[0] << 8) | Setup[1])
-	#define Channel		Setup[2]
-	#define Control		Setup[3]
-	#define Entity		Setup[5]
-	#define wLength		((Setup[7] << 8) | Setup[6])
-	/*
-	 * uac2.0  指令解析开始
-	 */
-	if((Entity == AUDIO_FU_ID))
+	uint32_t Temp = 0;
+	if(RequestCmd == SET_CUR_EP)
 	{
-		if(Control == 0x01)
+		if(Stream->AudioSampleRate != SWAP_BUF_TO_U32(Request))
 		{
-			//Speaker mute的操作
-			if(AudioCmd == GET_CUR_2)
+			Stream->AudioSampleRate = SWAP_BUF_TO_U32(Request);
+			APP_DBG("Stream->AudioSampleRate:%u\n",(unsigned int)Stream->AudioSampleRate);
+			if(Num)
 			{
-				Setup[0] = UsbAudioSpeaker.Mute;
-				OTG_DeviceControlSend(Setup,1,3);
-			}
-			else if(AudioCmd == SET_CUR)
-			{
-				APP_DBG("Set speaker mute: %d\n", Request[0]);
-				UsbAudioSpeaker.Mute=Request[0];
+				AudioCoreSinkChange(AudioCoreNum, Stream->Channels, Stream->AudioSampleRate);
 			}
 			else
 			{
-				//APP_DBG("%s %d\n",__FILE__,__LINE__);
+				AudioCoreSourceChange(AudioCoreNum, Stream->Channels, Stream->AudioSampleRate);
 			}
 		}
-		else if(Control == 0x02)
+	}
+	if(RequestCmd == GET_CUR_EP)
+	{
+		Temp = Stream->AudioSampleRate;
+		Setup[0] = (Temp>>0 ) & 0x000000FF;
+		Setup[1] = (Temp>>8 ) & 0x000000FF;
+		Setup[2] = (Temp>>16) & 0x000000FF;
+		OTG_DeviceControlSend(Setup,3,3);
+	}
+}
+//usb声卡接口相关请求处理
+void OTG_DeviceAudioInterfaceRequest(void)
+{
+#ifdef CFG_OTG_MODE_MIC_EN
+	if(Entity == AUDIO_MIC_FU_ID)
+	{
+//		APP_DBG("Mic\n");
+		return AudioVolumeRequest(&UsbAudioMic);
+	}
+#endif
+#ifdef CFG_OTG_MODE_AUDIO_EN
+	if(Entity == AUDIO_SPEAKER_FU_ID)
+	{
+//		APP_DBG("Speaker\n");
+		return AudioVolumeRequest(&UsbAudioSpeaker);
+	}
+#endif
+#ifdef CFG_OTG_MODE_AUDIO1_EN
+	if(Entity == AUDIO_SPEAKER1_FU_ID)
+	{
+//		APP_DBG("Speaker1\n");
+		return AudioVolumeRequest(&UsbAudioSpeaker1);
+	}
+#endif
+}
+//usb声卡端点相关请求处理
+void OTG_DeviceAudioEpRequest(void)
+{
+#ifdef CFG_OTG_MODE_MIC_EN
+	if(Setup[4] == DEVICE_ISO_IN_EP)
+	{
+//		APP_DBG("Mic\n");
+		return AudioSampleRateRequest(&UsbAudioMic,1,USB_AUDIO_SINK_NUM);
+	}
+#endif
+#ifdef CFG_OTG_MODE_AUDIO_EN
+	if(Setup[4] == DEVICE_ISO_OUT_EP)
+	{
+//		APP_DBG("Speaker\n");
+		return AudioSampleRateRequest(&UsbAudioSpeaker,0,USB_AUDIO_SOURCE_NUM);
+	}
+#endif
+#ifdef CFG_OTG_MODE_AUDIO1_EN
+	if(Setup[4] == DEVICE_ISO_OUT_EP1)
+	{
+//		APP_DBG("Speaker1\n");
+		return AudioSampleRateRequest(&UsbAudioSpeaker1,0,USB_AUDIO_SOURCE1_NUM);
+	}
+#endif
+}
+
+#elif(USB_AUDIO_PROTOCOL == AUDIO_UAC_20)
+//声卡音量相关请求处理
+static void AudioVolumeRequest(UsbAudio *Stream)
+{
+	if(Control == AUDIO_CONTROL_MUTE)
+	{
+		//Speaker mute的操作
+		if(RequestCmd == GET_CUR_2)
 		{
-			if(AudioCmd == GET_RANGE)
+			Setup[0] = Stream->Mute;
+			OTG_DeviceControlSend(Setup,1,3);
+		}
+		else if(RequestCmd == SET_CUR)
+		{
+			APP_DBG("mute: %d\n", Request[0]);
+			Stream->Mute=Request[0];
+		}
+		else
+		{
+			//APP_DBG("%s %d\n",__FILE__,__LINE__);
+		}
+	}
+	else if(Control == AUDIO_CONTROL_VOLUME)
+	{
+		if(RequestCmd == GET_RANGE)
+		{
+			uint8_t AudioCtl[8];
+			AudioCtl[0] = 1;    //wNumSubRanges
+			AudioCtl[1] = 0;
+			AudioCtl[2] = (uint8_t)(AUDIO_MIN_VOLUME);    //wMIN(1)
+			AudioCtl[3] = (uint8_t)(AUDIO_MIN_VOLUME >> 8);
+			AudioCtl[4] = (uint8_t)(AUDIO_MAX_VOLUME);  //wMAX(1)
+			AudioCtl[5] = (uint8_t)(AUDIO_MAX_VOLUME >> 8);
+			AudioCtl[6] = (uint8_t)(AUDIO_RES_VOLUME);    //wRES(1)
+			AudioCtl[7] = (uint8_t)(AUDIO_RES_VOLUME >> 8);
+			OTG_DeviceControlSend(AudioCtl, sizeof(AudioCtl),3);
+		}
+		else if(RequestCmd == GET_CUR_2)
+		{
+			int16_t Vol = 0;
+			if(Channel == 0x01)
 			{
-				uint8_t AudioCtl[8];
-				AudioCtl[0] = 1;    //wNumSubRanges
-				AudioCtl[1] = 0;
-				AudioCtl[2] = (uint8_t)(AUDIO_MIN_VOLUME);    //wMIN(1)
-				AudioCtl[3] = (uint8_t)(AUDIO_MIN_VOLUME >> 8);
-				AudioCtl[4] = (uint8_t)(AUDIO_MAX_VOLUME);  //wMAX(1)
-				AudioCtl[5] = (uint8_t)(AUDIO_MAX_VOLUME >> 8);
-				AudioCtl[6] = (uint8_t)(AUDIO_RES_VOLUME);    //wRES(1)
-				AudioCtl[7] = (uint8_t)(AUDIO_RES_VOLUME >> 8);
-				OTG_DeviceControlSend(AudioCtl, sizeof(AudioCtl),3);
+				Vol = Stream->LeftVol;
 			}
-			else if(AudioCmd == GET_CUR_2)
+			else
 			{
-				int16_t Vol = 0;
-				if(Channel == 0x01)
-				{
-					Vol = UsbAudioSpeaker.LeftVol;//UsbAudioSpeaker.FuncLeftVolGet();
-				}
-				else
-				{
-					Vol = UsbAudioSpeaker.RightVol;//UsbAudioSpeaker.FuncRightVolGet();
-				}
-				OTG_DeviceSendResp(Vol, 2);
+				Vol = Stream->RightVol;
 			}
-			else if(AudioCmd == SET_CUR)
+			OTG_DeviceSendResp(Vol, 2);
+		}
+		else if(RequestCmd == SET_CUR)
+		{
+			uint16_t Temp = 0;
+			Temp = Request[1]* 256 + Request[0];
+			if(Setup[2] == 0x01)
 			{
-				uint16_t Temp = 0;
-				Temp = Request[1]* 256 + Request[0];
-				if(Setup[2] == 0x01)
-				{
-					UsbAudioSpeaker.LeftVol = Temp;
-					UsbAudioSpeaker.LeftGain = UsbValToMcuGain(Temp);
-				}
-				else
-				{
-					UsbAudioSpeaker.RightVol = Temp;
-					UsbAudioSpeaker.RightGain = UsbValToMcuGain(Temp);
-				}
+				Stream->LeftVol = Temp;
+				Stream->LeftGain = UsbValToMcuGain(Temp);
+			}
+			else
+			{
+				Stream->RightVol = Temp;
+				Stream->RightGain = UsbValToMcuGain(Temp);
 			}
 		}
-		return ;
+	}
+}
+
+//Get Layout 3 parameter block
+const uint8_t para_block_Mic[] = {
+	SAMPLE_FREQ_NUM(MIC_FREQ_NUM),           /* wNumSubRanges */
+#if (MIC_FREQ_NUM >= 6)
+    SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ5),        /* dMIN(1) */
+    SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ5),        /* dMAX(1) */
+    SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
+#endif
+#if (MIC_FREQ_NUM >= 5)
+    SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ4),        /* dMIN(1) */
+    SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ4),        /* dMAX(1) */
+    SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
+#endif
+#if (MIC_FREQ_NUM >= 4)
+    SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ3),        /* dMIN(1) */
+    SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ3),        /* dMAX(1) */
+    SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
+#endif
+#if (MIC_FREQ_NUM >= 3)
+    SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ2),        /* dMIN(1) */
+    SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ2),        /* dMAX(1) */
+    SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
+#endif
+#if (MIC_FREQ_NUM >= 2)
+    SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ1),        /* dMIN(1) */
+    SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ1),        /* dMAX(1) */
+    SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
+#endif
+#if (MIC_FREQ_NUM >= 1)
+    SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ),        /* dMIN(2) */
+    SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ),        /* dMAX(2) */
+    SAMPLE_FREQ_4B(0x00),         /* dRES(2) */
+#endif
+};
+
+//Get Layout 3 parameter block
+const uint8_t para_block_Speaker[] = {
+	SAMPLE_FREQ_NUM(SPEAKER_FREQ_NUM),           /* wNumSubRanges */
+#if (SPEAKER_FREQ_NUM >= 6)
+    SAMPLE_FREQ_4B(USBD_AUDIO_FREQ5),        /* dMIN(1) */
+    SAMPLE_FREQ_4B(USBD_AUDIO_FREQ5),        /* dMAX(1) */
+    SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
+#endif
+#if (SPEAKER_FREQ_NUM >= 5)
+    SAMPLE_FREQ_4B(USBD_AUDIO_FREQ4),        /* dMIN(1) */
+    SAMPLE_FREQ_4B(USBD_AUDIO_FREQ4),        /* dMAX(1) */
+    SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
+#endif
+#if (SPEAKER_FREQ_NUM >= 4)
+    SAMPLE_FREQ_4B(USBD_AUDIO_FREQ3),        /* dMIN(1) */
+    SAMPLE_FREQ_4B(USBD_AUDIO_FREQ3),        /* dMAX(1) */
+    SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
+#endif
+#if (SPEAKER_FREQ_NUM >= 3)
+    SAMPLE_FREQ_4B(USBD_AUDIO_FREQ2),        /* dMIN(1) */
+    SAMPLE_FREQ_4B(USBD_AUDIO_FREQ2),        /* dMAX(1) */
+    SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
+#endif
+#if (SPEAKER_FREQ_NUM >= 2)
+    SAMPLE_FREQ_4B(USBD_AUDIO_FREQ1),        /* dMIN(1) */
+    SAMPLE_FREQ_4B(USBD_AUDIO_FREQ1),        /* dMAX(1) */
+    SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
+#endif
+#if (SPEAKER_FREQ_NUM >= 1)
+    SAMPLE_FREQ_4B(USBD_AUDIO_FREQ),        /* dMIN(2) */
+    SAMPLE_FREQ_4B(USBD_AUDIO_FREQ),        /* dMAX(2) */
+    SAMPLE_FREQ_4B(0x00),         /* dRES(2) */
+#endif
+};
+
+//声卡采样率相关请求处理
+static void AudioSampleRateRequest(UsbAudio *Stream,uint8_t Num,uint8_t AudioCoreNum)
+{
+	uint8_t *para_block;
+	uint16_t block_size;
+	if(RequestCmd == SET_CUR)
+	{
+		if(Stream->AudioSampleRate != SWAP_BUF_TO_U32(Request))
+		{
+			Stream->AudioSampleRate = SWAP_BUF_TO_U32(Request);
+			APP_DBG("Stream->AudioSampleRate:%u\n",(unsigned int)Stream->AudioSampleRate);
+			if(Num)
+			{
+				AudioCoreSinkChange(AudioCoreNum, Stream->Channels, Stream->AudioSampleRate);
+			}
+			else
+			{
+				AudioCoreSourceChange(AudioCoreNum, Stream->Channels, Stream->AudioSampleRate);
+			}
+		}
+	}
+	else if(RequestCmd == GET_CUR_2)
+	{
+		OTG_DeviceControlSend((uint8_t*)&Stream->AudioSampleRate, wLength,3);
+	}
+	else if(RequestCmd == GET_RANGE)
+	{
+		if(Num)
+		{
+			para_block = (uint8_t*)para_block_Mic;
+			block_size = sizeof(para_block_Mic);
+		}
+		else
+		{
+			para_block = (uint8_t*)para_block_Speaker;
+			block_size = sizeof(para_block_Speaker);
+		}
+
+        if(wLength > block_size)
+        {
+            OTG_DeviceControlSend(para_block, block_size,3);
+        }
+        else
+        {
+        	OTG_DeviceControlSend(para_block, wLength,3);
+        }
+	}
+}
+//usb声卡接口相关请求处理
+void OTG_DeviceAudioInterfaceRequest(void)
+{
+	if((Entity == AUDIO_FU_ID))
+	{
+//		APP_DBG("Speaker\n");
+		return AudioVolumeRequest(&UsbAudioSpeaker);
 	}
 	else if((Entity == AUDIO_MIC_FU_ID))
 	{
-		if(Control == 0x01)
-		{
-			//Speaker mute的操作
-			if(AudioCmd == GET_CUR_2)
-			{
-				Setup[0] = UsbAudioMic.Mute;
-				OTG_DeviceControlSend(Setup,1,3);
-			}
-			else if(AudioCmd == SET_CUR)
-			{
-				APP_DBG("Set UsbAudioMic mute: %d\n", Request[0]);
-				UsbAudioMic.Mute=Request[0];
-			}
-			else
-			{
-				//APP_DBG("%s %d\n",__FILE__,__LINE__);
-			}
-		}
-		else if(Control == 0x02)
-		{
-			if(AudioCmd == GET_RANGE)
-			{
-				uint8_t AudioCtl[8];
-				AudioCtl[0] = 1;    //wNumSubRanges
-				AudioCtl[1] = 0;
-				AudioCtl[2] = (uint8_t)(AUDIO_MIN_VOLUME);    //wMIN(1)
-				AudioCtl[3] = (uint8_t)(AUDIO_MIN_VOLUME >> 8);
-				AudioCtl[4] = (uint8_t)(AUDIO_MAX_VOLUME);  //wMAX(1)
-				AudioCtl[5] = (uint8_t)(AUDIO_MAX_VOLUME >> 8);
-				AudioCtl[6] = (uint8_t)(AUDIO_RES_VOLUME);    //wRES(1)
-				AudioCtl[7] = (uint8_t)(AUDIO_RES_VOLUME >> 8);
-				OTG_DeviceControlSend(AudioCtl, sizeof(AudioCtl),3);
-			}
-			else if(AudioCmd == GET_CUR_2)
-			{
-				int16_t Vol = 0;
-				if(Channel == 0x01)
-				{
-					Vol = UsbAudioMic.LeftVol;
-				}
-				else
-				{
-					Vol = UsbAudioMic.RightVol;
-				}
-				OTG_DeviceSendResp(Vol, 2);
-			}
-			else if(AudioCmd == SET_CUR)
-			{
-				int16_t Temp = 0;
-				Temp = Request[1]* 256 + Request[0];
-				if(Setup[2] == 0x01)
-				{
-					UsbAudioMic.LeftVol = Temp;
-					UsbAudioMic.LeftGain = UsbValToMcuGain(Temp);
-				}
-				else
-				{
-					UsbAudioMic.RightVol = Temp;
-					UsbAudioMic.RightGain = UsbValToMcuGain(Temp);
-				}
-			}
-		}
-		return ;
+//		APP_DBG("Mic\n");
+		return AudioVolumeRequest(&UsbAudioMic);
 	}
 	else if(Entity == AUDIO_MIC_CLK_ID)
 	{
-		if(AudioCmd == 0x2101)
-		{
-			UsbAudioMic.AudioSampleRate = SWAP_BUF_TO_U32(Request);//Request[1]*256 + Request[0];
-			APP_DBG("UsbAudioMic.AudioSampleRate:%u\n",(unsigned int)UsbAudioMic.AudioSampleRate);
-			AudioCoreSinkChange(USB_AUDIO_SINK_NUM, UsbAudioMic.Channels, UsbAudioMic.AudioSampleRate);
-		}
-		else if(AudioCmd == GET_CUR_2)
-		{
-			if(UsbAudioMic.AudioSampleRate == 0)
-			{
-				UsbAudioMic.AudioSampleRate = USBD_AUDIO_MIC_FREQ;
-			}
-			OTG_DeviceControlSend((uint8_t*)&UsbAudioMic.AudioSampleRate, wLength,3);
-		}
-		else if(AudioCmd == GET_RANGE)
-		{
-			//Get Layout 3 parameter block
-			uint8_t para_block[] = {
-				SAMPLE_FREQ_NUM(MIC_FREQ_NUM),           /* wNumSubRanges */
-#if (MIC_FREQ_NUM >= 6)
-                SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ5),        /* dMIN(1) */
-                SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ5),        /* dMAX(1) */
-                SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
-#endif
-#if (MIC_FREQ_NUM >= 5)
-                SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ4),        /* dMIN(1) */
-                SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ4),        /* dMAX(1) */
-                SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
-#endif
-#if (MIC_FREQ_NUM >= 4)
-                SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ3),        /* dMIN(1) */
-                SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ3),        /* dMAX(1) */
-                SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
-#endif
-#if (MIC_FREQ_NUM >= 3)
-                SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ2),        /* dMIN(1) */
-                SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ2),        /* dMAX(1) */
-                SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
-#endif
-#if (MIC_FREQ_NUM >= 2)
-                SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ1),        /* dMIN(1) */
-                SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ1),        /* dMAX(1) */
-                SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
-#endif
-#if (MIC_FREQ_NUM >= 1)
-                SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ),        /* dMIN(2) */
-                SAMPLE_FREQ_4B(USBD_AUDIO_MIC_FREQ),        /* dMAX(2) */
-                SAMPLE_FREQ_4B(0x00),         /* dRES(2) */
-#endif
-			};
-            if(wLength > sizeof(para_block))
-            {
-                OTG_DeviceControlSend(para_block, sizeof(para_block),3);
-            }
-            else
-            {
-            	OTG_DeviceControlSend(para_block, wLength,3);
-            }
-		}
-
-		return ;
+//		APP_DBG("Mic\n");
+		return AudioSampleRateRequest(&UsbAudioMic,1,USB_AUDIO_SINK_NUM);
 	}
 	else if(Entity == AUDIO_CLK_ID)
 	{
-		if(AudioCmd == 0x2101)
-		{
-			UsbAudioSpeaker.AudioSampleRate = SWAP_BUF_TO_U32(Request);//Request[1]*256 + Request[0];
-			APP_DBG("UsbAudioSpeaker.AudioSampleRate:%u\n",(unsigned int)UsbAudioSpeaker.AudioSampleRate);
-		#ifdef CFG_AUDIO_OUT_AUTO_SAMPLE_RATE_44100_48000
-			AudioOutSampleRateSet(UsbAudioSpeaker.AudioSampleRate);
-		#endif
-			AudioCoreSourceChange(USB_AUDIO_SOURCE_NUM, UsbAudioSpeaker.Channels, UsbAudioSpeaker.AudioSampleRate);
-		}
-		else if(AudioCmd == GET_CUR_2)
-		{
-			if(UsbAudioSpeaker.AudioSampleRate == 0)
-			{
-				UsbAudioSpeaker.AudioSampleRate = USBD_AUDIO_FREQ;
-			}
-			OTG_DeviceControlSend((uint8_t*)&UsbAudioSpeaker.AudioSampleRate, wLength,3);
-		}
-		else if(AudioCmd == GET_RANGE)
-		{
-            //Get Layout 3 parameter block
-            uint8_t para_block[] = {
-				SAMPLE_FREQ_NUM(SPEAKER_FREQ_NUM),           /* wNumSubRanges */
-#if (SPEAKER_FREQ_NUM >= 6)
-                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ5),        /* dMIN(1) */
-                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ5),        /* dMAX(1) */
-                SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
-#endif
-#if (SPEAKER_FREQ_NUM >= 5)
-                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ4),        /* dMIN(1) */
-                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ4),        /* dMAX(1) */
-                SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
-#endif
-#if (SPEAKER_FREQ_NUM >= 4)
-                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ3),        /* dMIN(1) */
-                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ3),        /* dMAX(1) */
-                SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
-#endif
-#if (SPEAKER_FREQ_NUM >= 3)
-                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ2),        /* dMIN(1) */
-                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ2),        /* dMAX(1) */
-                SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
-#endif
-#if (SPEAKER_FREQ_NUM >= 2)
-                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ1),        /* dMIN(1) */
-                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ1),        /* dMAX(1) */
-                SAMPLE_FREQ_4B(0x00),         /* dRES(1) */
-#endif
-#if (SPEAKER_FREQ_NUM >= 1)
-                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ),        /* dMIN(2) */
-                SAMPLE_FREQ_4B(USBD_AUDIO_FREQ),        /* dMAX(2) */
-                SAMPLE_FREQ_4B(0x00),         /* dRES(2) */
-#endif
-            };
-            if(wLength > sizeof(para_block))
-            {
-                OTG_DeviceControlSend(para_block, sizeof(para_block),3);
-            }else{
-            	OTG_DeviceControlSend(para_block, wLength,3);
-            }
-
-		}
-
-		return ;
+//		APP_DBG("Speaker\n");
+		return AudioSampleRateRequest(&UsbAudioSpeaker,0,USB_AUDIO_SOURCE_NUM);
 	}
+}
+//usb声卡端点相关请求处理
+void OTG_DeviceAudioEpRequest(void)
+{
+	//usb声卡2.0协议暂无端点指令
 }
 #endif
 
@@ -897,6 +894,45 @@ void UsbAudioTimer1msProcess(void)
 	{
 		return;
 	}
+#ifdef CFG_OTG_MODE_AUDIO1_EN
+	if(UsbAudioSpeaker1.AltSet)//open stream
+	{
+		if(UsbAudioSpeaker1.FramCount)//正在传数据 1-2帧数据
+		{
+			if(UsbAudioSpeaker1.FramCount != UsbAudioSpeaker1.TempFramCount)
+			{
+				UsbAudioSpeaker1.TempFramCount = UsbAudioSpeaker1.FramCount;
+				if(!AudioCoreSourceIsEnable(USB_AUDIO_SOURCE1_NUM))
+				{
+					AudioCoreSourceEnable(USB_AUDIO_SOURCE1_NUM);
+				}
+			}
+			else
+			{
+				AudioCoreSourceDisable(USB_AUDIO_SOURCE1_NUM);
+			}
+		}
+	}
+	else
+	{
+		UsbAudioSpeaker1.FramCount = 0;
+		UsbAudioSpeaker1.TempFramCount = 0;
+		AudioCoreSourceDisable(USB_AUDIO_SOURCE1_NUM);
+	}
+	if(UsbAudioSpeaker1.AltSlow)
+	{
+		if(UsbAudioSpeaker1.FramCount > 100)
+		{
+			AudioCoreSourceUnmute(USB_AUDIO_SOURCE1_NUM,1,1);
+			UsbAudioSpeaker1.AltSlow = 0;
+		}
+		else
+		{
+			AudioCoreSourceMute(USB_AUDIO_SOURCE1_NUM,1,1);
+		}
+	}
+#endif
+
 #ifdef CFG_OTG_MODE_AUDIO_EN
 	if(UsbAudioSpeaker.AltSet)//open stream
 	{

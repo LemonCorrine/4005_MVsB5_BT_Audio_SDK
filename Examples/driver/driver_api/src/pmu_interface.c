@@ -2,6 +2,7 @@
 #include "pmu_interface.h"
 #include "efuse.h"
 #include "debug.h"
+#include "clk.h"
 
 /**
  * @brief     Powerkey 参数设置
@@ -81,7 +82,7 @@ static TE_PWRKEYINIT_RET SystemPowerKeySetting(TE_PWRKEY_MODE eMode, uint8_t u8_
 	else
 	{
 		PMU_PowerKeyModeSet(HARD_MODE);								//hard mode
-		PMU_PowerKeyHardModeSet(EDGE_TRIGGER);						//edge trigger
+		PMU_PowerKeyHardModeSet(LEVEL_TRIGGER);						//edge trigger
 		if (E_PWRKEY_MODE_SLIDESWITCH_HON == eMode)
 		{
 			PMU_PowerKeyActiveLevelSet(HIGH_INDICATE_POWERON);			//high level power on
@@ -229,6 +230,8 @@ TE_PWRKEYINIT_RET SystemPowerKeyInit(TE_PWRKEY_MODE eMode, TE_KEYDET_TIME eTime)
 	uint8_t  lpTime = 0;
 	uint8_t  spTime = 0;
 
+	uint32_t RC32KFreq = 0;
+
 	if (Read_ChipECO_Version() == 0)
 	{
 		//eco1 chip not support powerkey function
@@ -277,6 +280,17 @@ TE_PWRKEYINIT_RET SystemPowerKeyInit(TE_PWRKEY_MODE eMode, TE_KEYDET_TIME eTime)
 		spTime = 9;  //72ms
 	}
 
+	RC32KFreq = Clock_RC32KFreqGet(1, 1);
+	//DBG("RC32KFreq = %d'\n", RC32KFreq);
+	if(RC32KFreq != 0)
+	{
+		lpTime = lpTime *  RC32KFreq/ (float)32768;
+		if(lpTime > 64)
+		{
+			lpTime = 64;
+		}
+	}
+	//DBG("lpTime = %d\n", lpTime);
 	//parameter settings 参数设置
 	//short press time: lpTime * 8ms
 	//long presstime:   spTime * 64ms

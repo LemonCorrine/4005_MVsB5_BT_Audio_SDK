@@ -11,8 +11,6 @@
 #include "auto_gen_msg_process.h"
 
 extern AUDIOEFFECT_SOURCE_SINK_NUM * get_user_effect_source_sink(void);
-extern uint8_t AudioMicVolSync(void);
-extern uint8_t AudioMusicVolSync(void);
 extern uint8_t GetEffectControlIndex(AUDIOEFFECT_EFFECT_CONTROL type);
 
 int16_t * AudioEffectGetAllParameter(AUDIOEFFECT_EFFECT_CONTROL effect)
@@ -41,52 +39,6 @@ void AudioEffect_GetAudioEffectValue(void)
 		APP_DBG("echo quality_mode:0x%x\n", Echoparam->high_quality_enable);
 		APP_DBG("echo wet:0x%x\n", Echoparam->wet);
 	}
-#endif
-}
-
-void AudioEffect_SourceGain_Update(uint8_t source)
-{
-	if(AudioEffect.context_memory == NULL)
-		return;
-
-	switch(source)
-	{
-		case APP_SOURCE_NUM:
-			gCtrlVars.AutoRefresh = AudioMusicVolSync();
-			break;
-#ifdef CFG_FUNC_REMIND_SOUND_EN
-		case REMIND_SOURCE_NUM:
-			gCtrlVars.AutoRefresh = AudioRemindVolSync();
-			break;
-#endif
-		case MIC_SOURCE_NUM:
-			gCtrlVars.AutoRefresh = AudioMicVolSync();
-			break;
-
-#ifdef CFG_FUNC_RECORDER_EN
-		case PLAYBACK_SOURCE_NUM:
-
-			break;
-#endif
-#ifdef CFG_FUNC_MIC_KARAOKE_EN
-#ifdef CFG_RES_AUDIO_I2S_MIX_IN_EN
-		case I2S_MIX_SOURCE_NUM:
-			break;
-#endif
-#ifdef CFG_FUNC_USB_AUDIO_MIX_MODE
-			case USB_SOURCE_NUM:
-				break;
-#endif
-#ifdef CFG_FUNC_LINEIN_MIX_MODE
-			case LINEIN_MIX_SOURCE_NUM:
-				break;
-#endif
-#endif
-			default:
-				break;
-	}
-#ifdef CFG_FUNC_BREAKPOINT_EN
-	BackupInfoUpdata(BACKUP_SYS_INFO);
 #endif
 }
 
@@ -130,6 +82,8 @@ uint8_t AudioCoreSourceToRoboeffect(int8_t source)
 			return param->i2s_mix2_source;
 		case USB_SOURCE_NUM:
 			return param->usb_source;
+		case USB_HOST_SOURCE_NUM:
+			return param->usb_host_source;
 		case LINEIN_MIX_SOURCE_NUM:
 			return param->linein_mix_source;
 		default:
@@ -166,6 +120,10 @@ uint8_t AudioCoreSinkToRoboeffect(int8_t sink)
 #ifdef CFG_RES_AUDIO_SPDIFOUT_EN
 		case AUDIO_SPDIF_SINK_NUM:
 			return param->spdif_sink;
+#endif
+#ifdef CFG_FUNC_USB_HOST_AUDIO_MIX_MODE
+		case AUDIO_USB_HOST_SINK_NUM:
+			return param->usb_host_mix_sink;
 #endif
 		default:
 			// handle error

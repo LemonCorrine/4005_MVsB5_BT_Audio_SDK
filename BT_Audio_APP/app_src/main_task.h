@@ -128,6 +128,12 @@ typedef struct _MainAppContext
 #ifdef CFG_ADC_LEVEL_KEY_EN
 	int16_t MicVolumeBak;
 #endif
+
+#if BT_SOURCE_SUPPORT
+	uint32_t 				*sbc_encode_pcm_buf;
+	uint32_t				sbc_encode_pcm_buf_len;
+	MCU_CIRCULAR_CONTEXT 	sbc_encode_pcm_context;
+#endif
 }MainAppContext;
 
 extern MainAppContext	mainAppCt;
@@ -163,6 +169,9 @@ enum _SYS_SOFTWARE_FLAG_
 	SoftFlagWakeUpSouceIsCEC 		= 	BIT(22),
 	//标记进入SoftPower
 	SoftFlagIdleModeEnterSoftPower 	=	BIT(23),
+
+	//标记切换音效需要重启当前模式
+	SoftFlagSysCurModeReboot 		=	BIT(24),
 };
 
 #define SoftFlagRegister(SoftEvent)			(mainAppCt.SoftwareFlag |= SoftEvent)

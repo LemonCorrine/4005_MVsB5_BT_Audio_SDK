@@ -13,6 +13,7 @@
 #include "remap.h"
 #include "otg_detect.h"
 #include "remind_sound.h"
+#include "sw_uart.h"
 #ifdef CFG_APP_BT_MODE_EN
 #include "bt_common_api.h"
 #endif
@@ -47,7 +48,9 @@
 volatile uint32_t gInsertEventDelayActTimer = 2000; // ms
 volatile uint32_t gChangeModeTimeOutTimer = CHANGE_MODE_TIMEOUT_COUNT;
 volatile uint32_t gDeviceCheckTimer = DEVICE_DETECT_TIMER; //ms
-//volatile uint32_t gDeviceUSBDeviceTimer = DEVICE_USB_DEVICE_DETECT_TIMER ;//ms
+#ifdef CFG_FUNC_USB_HOST_AUDIO_MIX_MODE
+volatile uint32_t gHostUsbMicUnMuteTimer;//ms
+#endif
 #ifdef CFG_FUNC_CARD_DETECT	
 volatile uint32_t gDeviceCardTimer = DEVICE_CARD_DETECT_TIMER ;//ms
 #endif
@@ -75,7 +78,6 @@ extern char *effect_lib_version_return(void);
 //{
 //
 //}
-
 void OneMSTimer(void)
 {
 	if(gInsertEventDelayActTimer)gInsertEventDelayActTimer--;
@@ -90,7 +92,9 @@ void OneMSTimer(void)
 #ifdef HDMI_HPD_CHECK_DETECT_EN
 	if(gDevicehdmiTimer > 1)gDevicehdmiTimer--;
 #endif
-//	if(gDeviceUSBDeviceTimer > 1)gDeviceUSBDeviceTimer--;
+#ifdef CFG_FUNC_USB_HOST_AUDIO_MIX_MODE
+	if(gHostUsbMicUnMuteTimer > 1)gHostUsbMicUnMuteTimer--;
+#endif
 #ifdef CFG_FUNC_BREAKPOINT_EN	
 	if(gBreakPointTimer > 1)gBreakPointTimer--;
 #endif
@@ -177,6 +181,7 @@ void SystemClockInit(bool FristPoweron)
 	Clock_UARTClkSelect(SYS_UART_CLK_SELECT);
 
 	Clock_SpdifClkSelect(SYS_SPDIF_CLK_SELECT);
+	Clock_Timer5ClkSelect(RC_CLK_MODE);//for cec rc clk
 	//模块时钟使能配置
 	Clock_Module1Enable(ALL_MODULE1_CLK_SWITCH);
 	Clock_Module2Enable(ALL_MODULE2_CLK_SWITCH);
@@ -205,7 +210,18 @@ void SystemClockInit(bool FristPoweron)
 void LogUartConfig(bool InitBandRate)
 {
 #ifdef CFG_FUNC_DEBUG_EN
-
+#ifdef CFG_USE_SW_UART
+	#if (SW_UART_IO_PORT == GPIO_A_IN)	
+		GPIO_PortAModeSet(1<<SW_UART_IO_PORT_PIN_INDEX, 0);
+	#else
+		GPIO_PortBModeSet(1<<SW_UART_IO_PORT_PIN_INDEX, 0);
+	#endif
+	if(InitBandRate)
+	{
+		EnableSwUartAsFuart(1);
+	}
+	SwUartTxInit(SW_UART_IO_PORT, SW_UART_IO_PORT_PIN_INDEX, CFG_SW_UART_BANDRATE);
+#else
 	if(GET_DEBUG_GPIO_PORT(CFG_UART_TX_PORT) == DEBUG_GPIO_PORT_A)
 		GPIO_PortAModeSet(GET_DEBUG_GPIO_PIN(CFG_UART_TX_PORT), GET_DEBUG_GPIO_MODE(CFG_UART_TX_PORT));
 	else
@@ -220,6 +236,7 @@ void LogUartConfig(bool InitBandRate)
 	{
 		DbgUartInit(GET_DEBUG_GPIO_UARTPORT(CFG_UART_TX_PORT), CFG_UART_BANDRATE, 8, 0, 1);
 	}
+#endif
 #endif
 }
 
@@ -384,7 +401,6 @@ void bt_em_size_init(void)
 int main(void)
 {
 	uint16_t RstFlag = 0;
-//	extern char __sdk_code_start;
 
 	Chip_Init(1);
 	Chip_MemInit();
@@ -492,6 +508,10 @@ int main(void)
 	APP_DBG("Fatfs presearch acc Lib Version: %s\n", (unsigned char *)GetLibVersionFatfsACC());
 #ifdef CFG_FUNC_ALARM_EN
 	APP_DBG("RTC Version: %s\n", GetLibVersionRTC());//bkd 
+#endif
+#ifdef CFG_FUNC_USB_HOST_AUDIO_MIX_MODE
+	extern const unsigned char *GetLibVersionOtgHost(void);
+	APP_DBG("OtgHost Version: %s\n",(unsigned char *) GetLibVersionOtgHost());
 #endif
 	APP_DBG("ECO Flag: %x\n",Read_ChipECO_Version());
 	APP_DBG("\n");

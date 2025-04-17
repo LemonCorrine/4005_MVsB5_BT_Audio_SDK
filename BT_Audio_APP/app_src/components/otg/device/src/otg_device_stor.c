@@ -13,23 +13,21 @@
 #include "app_config.h"
 #include <string.h>
 #include "type.h"
-#include "otg_device_hcd.h"
-#include "sd_card.h"
 #include "timeout.h"
 #include "debug.h"
 #include "delay.h"
 #include "otg_device_hcd.h"
-#include "otg_device_standard_request.h"
 #include "sd_card.h"
 #include "sdio.h"
 #include "dma.h"
 #include "gpio.h"
 #include "reset.h"
+#include "mvintrinsics.h"
 #ifdef FUNC_OS_EN
 #include "rtos_api.h" //add for mutex declare
 #endif
 
-#if(CFG_PARA_USB_MODE >= READER)
+#ifdef CFG_OTG_MODE_READER_EN
 // SCSI opcodes
 #define TEST_UNIT_READY				0x00
 #define REQUEST_SENSE				0x03
@@ -187,7 +185,10 @@ bool DeviceStorIsCardLink(void)
 		{
 			DeviceStorIsCardInitOK = TRUE;
 		}
-		return FALSE;
+		else
+		{
+			DeviceStorIsCardInitOK = FALSE;
+		}
 	}
 
 	return DeviceStorIsCardInitOK;
@@ -452,7 +453,7 @@ void DeviceStorModeSense(void)
 			break;
 
 		case 0x3F:		//mode sense, Return all pages
-			OTG_DeviceBulkSend(DEVICE_BULK_IN_EP, gModeSenseAllPage, sizeof(gModeSenseAllPage), 10000);
+			OTG_DeviceBulkSend(DEVICE_BULK_IN_EP, gModeSenseAllPage, MIN(sizeof(gModeSenseAllPage),gCBW[19]), 10000);
 			DeviceStorSendCSW(0);
 			break;
 

@@ -3,10 +3,10 @@
  * @file    usb_audio_api.h
  * @brief   usb audio api 
  *
- * @author  pi
+ * @author  Shanks
  * @version V1.0.0
  *
- * $Created: 2018-05-08 11:40:00$
+ * $Created: 2025-1-22 10:16:10$
  *
  * @Copyright (C) 2018, Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  **************************************************************************************
@@ -23,7 +23,7 @@ extern "C"{
 
 #define CFG_APP_USB_AUDIO_MODE_EN
 
-#define CFG_PARA_USB_MODE READER
+#define CFG_PARA_USB_MODE AUDIO_MIC
 
 #define CFG_AUDIO_WIDTH_24BIT
 
@@ -58,7 +58,8 @@ void UsbAudioMicStreamProcess(void);
 void UsbDeviceEnable(void);
 void UsbDeviceDisable(void);
 void UsbAudioTimer1msProcess(void);
-
+void AudioCoreSinkChange(uint8_t Channels,uint32_t SampleRate);
+void AudioCoreSourceChange(uint8_t Channels,uint32_t SampleRate);
 #ifdef __cplusplus
 }
 #endif // __cplusplus 

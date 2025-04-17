@@ -35,6 +35,10 @@
 #include "hdmi_in_api.h"
 #include "adc_interface.h"
 #include "dac_interface.h"
+
+#include "otg_detect.h"
+#include "otg_host_standard_enum.h"
+
 #ifdef CFG_IDLE_MODE_DEEP_SLEEP
 HDMIInfo  			 *gHdmiCt;
 void GIE_ENABLE(void);

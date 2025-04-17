@@ -284,6 +284,23 @@ void OTG_EndpointInterruptEnable(uint8_t EpNum, FPCALLBACK Func);
  */
 void OTG_EndpointInterruptDisable(uint8_t EpNum);
 
+
+/**
+ * @brief  DEVICE模式下使能某个事件中断
+ * @param  事件id
+ * @param  Func 中断回调函数指针
+ * @return NONE
+ */
+void OTG_BusEventInterruptEnable(uint8_t EventId, FPCALLBACK Func);
+
+
+/**
+ * @brief  DEVICE模式下禁止某个事件中断
+ * @param  事件id
+ * @return NONE
+ */
+void OTG_BusEventInterruptDisable(uint8_t EventId);
+
 /**
  * @brief  OTG PowerDown
  * @param  NONE

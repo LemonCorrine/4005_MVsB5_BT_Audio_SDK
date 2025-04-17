@@ -4,7 +4,7 @@
  * @brief   Definition of song information (metadata) related structures
  *
  * @author  Alfred Zhao
- * @version v1.2.0
+ * @version v1.3.0
  *
  * &copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  *
@@ -93,7 +93,7 @@ typedef enum _StreamType
 /**
  * Song Information
  */
-#define MAX_TAG_LEN 64				/**< 64 bytes,the last two bytes are 0x00 always */
+#define MAX_TAG_LEN 128				/**< 128 bytes,the last two bytes are 0x00 always */
 typedef struct _SongInfo
 {
 	/******************************** Stream information ********************************/
