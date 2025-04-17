@@ -26,6 +26,8 @@
 #include "clk.h"
 //app
 #include "bt_stack_service.h"
+#include "bt_app_ddb_info.h"
+
 #if (BT_AVRCP_VOLUME_SYNC)
 #include "bt_app_avrcp_deal.h"
 #endif
@@ -55,6 +57,8 @@ extern bool UsbDevicePlayMixDeinit(void);
 extern int32_t RemindMp3DecoderInit(void);
 extern int32_t RemindMp3DecoderDeinit(void);
 #endif
+
+extern uint16_t SampleRateIndexGet(uint32_t SampleRate);
 
 const DACParamCt DACDefaultParamCt =
 {
@@ -323,7 +327,7 @@ bool AudioEffectInit()
 		AudioEffect.cur_effect_para->user_effect_list->frame_size = roboeffect_estimate_frame_size(AudioEffect.cur_effect_para->user_effect_list, AudioEffect.user_effect_parameters);
 		AudioEffect.audioeffect_memory_size = roboeffect_estimate_memory_size(
 				AudioEffect.cur_effect_para->user_effect_steps, AudioEffect.cur_effect_para->user_effect_list, AudioEffect.user_effect_parameters);
-		DBG("Audio effect need malloc memory: %ld %lu\n", AudioEffect.audioeffect_memory_size,AudioEffect.cur_effect_para->user_effect_list->frame_size);
+		DBG("Audio effect need malloc memory: %ld, framesize:%lu\n", AudioEffect.audioeffect_memory_size,AudioEffect.cur_effect_para->user_effect_list->frame_size);
 	}
 	if(AudioEffect.audioeffect_memory_size < 0)
 	{
@@ -457,14 +461,13 @@ void AudioI2sOutParamsSet(void)
 	GPIO_PortAModeSet(GET_I2S_GPIO_PORT(I2S_BCLK_GPIO), GET_I2S_GPIO_MODE(I2S_BCLK_GPIO));//bclk
 	GPIO_PortAModeSet(GET_I2S_GPIO_PORT(I2S_DOUT_GPIO), GET_I2S_GPIO_MODE(I2S_DOUT_GPIO));//do
 
-	I2S_AlignModeSet(CFG_RES_I2S_MODULE, I2S_LOW_BITS_ACTIVE);
 	AudioI2S_Init(CFG_RES_I2S_MODULE, &i2s_set);//
 
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 	if(CFG_RES_I2S_MODULE == I2S0_MODULE)
-		Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
+		Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source > 2 ? (gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source - 1):gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
 	else
-		Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
+		Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source > 2 ? (gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source - 1):gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
 #else
 	if(CFG_RES_I2S_MODULE == I2S0_MODULE)
 		gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source = Clock_AudioMclkGet(AUDIO_I2S0);
@@ -550,7 +553,7 @@ bool ModeCommonInit(void)
 		AudioDAC_Init((DACParamCt *)&DACDefaultParamCt,sampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
 
 	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
-		Clock_AudioMclkSel(AUDIO_DAC0, gCtrlVars.HwCt.DAC0Ct.dac_mclk_source);
+        Clock_AudioMclkSel(AUDIO_DAC0, gCtrlVars.HwCt.DAC0Ct.dac_mclk_source > 2 ? (gCtrlVars.HwCt.DAC0Ct.dac_mclk_source - 1):gCtrlVars.HwCt.DAC0Ct.dac_mclk_source);
 	#else
 		gCtrlVars.HwCt.DAC0Ct.dac_mclk_source = Clock_AudioMclkGet(AUDIO_DAC0);
 	#endif
@@ -564,6 +567,7 @@ bool ModeCommonInit(void)
 		AudioCore.AudioSink[AUDIO_DAC0_SINK_NUM].BitWidthConvFlag = AudioIOSet.IOBitWidthConvFlag;
 	#endif
 	}
+	gCtrlVars.HwCt.DAC0Ct.dac_sample_rate = SampleRateIndexGet(AudioDAC_SampleRateGet(DAC0));
 	AudioCoreSinkEnable(AUDIO_DAC0_SINK_NUM);
 #endif
 
@@ -599,7 +603,7 @@ bool ModeCommonInit(void)
 	#endif
 
 	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
-		Clock_AudioMclkSel(AUDIO_ADC1, gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source);
+        Clock_AudioMclkSel(AUDIO_ADC1, gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source);
 	#else
 		gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source = Clock_AudioMclkGet(AUDIO_ADC1);
 	#endif
@@ -628,6 +632,7 @@ bool ModeCommonInit(void)
 	AudioADC_AnaInit(ADC1_MODULE,CHANNEL_LEFT,MIC_LEFT,gCtrlVars.HwCt.ADC1PGACt.pga_mic_mode,ADCCommonEnergy,31 - gCtrlVars.HwCt.ADC1PGACt.pga_mic_gain);
 #endif // CFG_ADCDAC_SEL_LOWPOWERMODE
 	//MADC_MIC_PowerUP(SingleEnded);
+	gCtrlVars.HwCt.ADC1DigitalCt.adc_sample_rate = SampleRateIndexGet(AudioADC_SampleRateGet(ADC1_MODULE));
 	AudioCoreSourceEnable(MIC_SOURCE_NUM);
 #endif
 
@@ -824,6 +829,20 @@ bool ModeCommonInit(void)
 #endif
 
 #if BT_SOURCE_SUPPORT
+	if(AudioCoreFrameSizeGet(DefaultNet) != 0 &&
+	   (AudioCoreFrameSizeGet(DefaultNet) % 128) != 0)
+	{
+		//帧长不是128的整数倍，SBC编码一次是128，需要加fifo
+		if(AudioCoreFrameSizeGet(DefaultNet) > 128)
+			mainAppCt.sbc_encode_pcm_buf_len = AudioCoreFrameSizeGet(DefaultNet) * 2 * 2 * 2 + 2;
+		else
+			mainAppCt.sbc_encode_pcm_buf_len = 128 * 2 * 2 * 2 + 2;
+		mainAppCt.sbc_encode_pcm_buf = (uint32_t*)osPortMalloc(mainAppCt.sbc_encode_pcm_buf_len);
+		if(mainAppCt.sbc_encode_pcm_buf)
+			MCUCircular_Config(&mainAppCt.sbc_encode_pcm_context, mainAppCt.sbc_encode_pcm_buf, mainAppCt.sbc_encode_pcm_buf_len);
+		DBG("BT_SOURCE: Sbc encode buf! %d %d\n",mainAppCt.sbc_encode_pcm_buf_len,AudioCoreFrameSizeGet(DefaultNet));
+	}
+
 	{
 		AudioCoreSink *Sink = &AudioCore.AudioSink[AUDIO_BT_SOURCE_SINK_NUM];
 
@@ -843,6 +862,7 @@ bool ModeCommonInit(void)
 		AudioCoreSinkEnable(AUDIO_BT_SOURCE_SINK_NUM);
 	}
 #endif
+	AudioDAC_SCFMute(DAC0, 0, 0);
 	AudioDAC_Enable(DAC0);
 #ifdef CFG_COMMUNICATION_BY_UART
 	uart_data_init();
@@ -856,6 +876,7 @@ void ModeCommonDeinit(void)
 	SoftFlagRegister(SoftFlagAudioCoreSourceIsDeInit);
 #ifdef CFG_RES_AUDIO_DAC0_EN
 //	AudioCoreSinkDisable(AUDIO_DAC0_SINK_NUM);
+	AudioDAC_SCFMute(DAC0, 1, 1);
 	AudioDAC_Disable(DAC0);
 	AudioDAC_FuncReset(DAC0);
 	DMA_InterruptFlagClear(PERIPHERAL_ID_AUDIO_DAC0_TX, DMA_DONE_INT);
@@ -946,6 +967,9 @@ void ModeCommonDeinit(void)
 	AudioEffect.context_memory = NULL;
 
 #if BT_SOURCE_SUPPORT
+	if(mainAppCt.sbc_encode_pcm_buf)
+		osPortFree(mainAppCt.sbc_encode_pcm_buf);
+	mainAppCt.sbc_encode_pcm_buf = NULL;
 	AudioCoreSinkDisable(AUDIO_BT_SOURCE_SINK_NUM);
 #endif
 }
@@ -967,117 +991,6 @@ bool AudioIoCommonForHfp(uint16_t gain)
 	FifoLenStereo = AudioCoreFrameSizeGet(DefaultNet) * 2 * 2 * 2;//立体声8倍大小于帧长，单位byte
 
 	DefaultParamgsInit();	//refresh local hardware config params(just storage not set)
-
-#if CFG_RES_MIC_SELECT
-	AudioCoreSourceDisable(MIC_SOURCE_NUM);
-
-	if(!AudioCoreSourceIsInit(MIC_SOURCE_NUM))
-	{
-		//Mic1 analog  = Soure0.
-//		AudioADC_AnaInit();
-		//AudioADC_VcomConfig(1);//MicBias en
-		// AudioADC_MicBias1Enable(1);
-		mainAppCt.ADCFIFO = (uint32_t*)osPortMalloc(FifoLenStereo);//ADC fifo
-		if(mainAppCt.ADCFIFO != NULL)
-		{
-			memset(mainAppCt.ADCFIFO, 0, FifoLenStereo);
-		}
-		else
-		{
-			APP_DBG("malloc ADCFIFO error\n");
-			return FALSE;
-		}
-
-		AudioADC_DynamicElementMatch(ADC1_MODULE, TRUE, TRUE);
-//		AudioADC_PGASel(ADC1_MODULE, CHANNEL_LEFT, LINEIN3_LEFT_OR_MIC1);
-//		AudioADC_PGASel(ADC1_MODULE, CHANNEL_RIGHT, LINEIN3_RIGHT_OR_MIC2);
-//		AudioADC_PGAGainSet(ADC1_MODULE, CHANNEL_LEFT, LINEIN3_LEFT_OR_MIC1, 15, 4);//0db bypass
-//		AudioADC_PGAGainSet(ADC1_MODULE, CHANNEL_RIGHT, LINEIN3_RIGHT_OR_MIC2, 15, 4);
-
-		//Mic1   digital
-		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_16BITS,(void*)mainAppCt.ADCFIFO,FifoLenStereo);
-
-	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
-		Clock_AudioMclkSel(AUDIO_ADC1, gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source);
-	#else
-		gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source = Clock_AudioMclkGet(AUDIO_ADC1);
-	#endif
-		//Soure0.
-		memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
-		AudioIOSet.Adapt = STD;
-		AudioIOSet.Sync = TRUE;
-		AudioIOSet.Channels = 1;
-		AudioIOSet.Net = DefaultNet;
-		AudioIOSet.DataIOFunc = AudioADC1_DataGet;
-		AudioIOSet.LenGetFunc = AudioADC1_DataLenGet;
-#ifdef CFG_AUDIO_WIDTH_24BIT
-		AudioIOSet.IOBitWidth = PCM_DATA_16BIT_WIDTH;			//0,16bit,1:24bit
-		AudioIOSet.IOBitWidthConvFlag = 0;	//需要数据位宽不扩展
-#endif
-		if(!AudioCoreSourceInit(&AudioIOSet, MIC_SOURCE_NUM))
-		{
-			DBG("mic Source error");
-			return FALSE;
-		}
-		//MADC_MIC_PowerUP(SingleEnded);
-#ifdef CFG_ADCDAC_SEL_LOWPOWERMODE
-		AudioADC_AnaInit(ADC1_MODULE,CHANNEL_LEFT,MIC_LEFT,gCtrlVars.HwCt.ADC1PGACt.pga_mic_mode,ADCLowEnergy,gain);
-#else
-		AudioADC_AnaInit(ADC1_MODULE,CHANNEL_LEFT,MIC_LEFT,gCtrlVars.HwCt.ADC1PGACt.pga_mic_mode,ADCCommonEnergy,gain);
-#endif // CFG_ADCDAC_SEL_LOWPOWERMODE
-		AudioCoreSourceEnable(MIC_SOURCE_NUM);
-	}
-	else //采样率等 重配
-	{
-		AudioCoreSourceDisable(MIC_SOURCE_NUM);
-//		AudioADC_AnaInit();
-		//AudioADC_VcomConfig(1);//MicBias en
-//		AudioADC_MicBias1Enable(1);
-
-		AudioADC_PGAGainSet(ADC1_MODULE, CHANNEL_LEFT, MIC_LEFT, gain);
-//		AudioADC_PGAGainSet(ADC1_MODULE, CHANNEL_RIGHT, LINEIN3_RIGHT_OR_MIC2, gain);
-
-		//Mic1	 digital
-		memset(mainAppCt.ADCFIFO, 0, FifoLenStereo);
-		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_16BITS, (void*)mainAppCt.ADCFIFO, FifoLenStereo);
-
-	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
-		Clock_AudioMclkSel(AUDIO_ADC1, gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source);
-	#else
-		gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source = Clock_AudioMclkGet(AUDIO_ADC1);
-	#endif
-	}
-#endif
-
-#ifdef CFG_FUNC_REMIND_SOUND_EN
-	if(!AudioCoreSourceIsInit(REMIND_SOURCE_NUM))
-	{
-		memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
-
-		AudioIOSet.Adapt = SRC_ONLY;
-		AudioIOSet.SampleRate = sampleRate;//初始值
-		AudioIOSet.Sync = FALSE;
-		AudioIOSet.Channels = 1;
-		AudioIOSet.Net = DefaultNet;
-		AudioIOSet.DataIOFunc = RemindDataGet;
-		AudioIOSet.LenGetFunc = RemindDataLenGet;
-
-#ifdef	CFG_AUDIO_WIDTH_24BIT
-		AudioIOSet.IOBitWidth = PCM_DATA_16BIT_WIDTH;//0,16bit,1:24bit
-		AudioIOSet.IOBitWidthConvFlag = 0;//需要数据进行位宽扩展
-#endif
-		if(!AudioCoreSourceInit(&AudioIOSet, REMIND_SOURCE_NUM))
-		{
-			DBG("remind source error!\n");
-			SoftFlagRegister(SoftFlagNoRemind);
-			return FALSE;
-		}
-#ifdef CFG_REMIND_SOUND_DECODING_USE_LIBRARY		
-		RemindMp3DecoderInit();
-#endif
-	}
-#endif
-
 
 #ifdef CFG_RES_AUDIO_DAC0_EN
 	AudioCoreSinkDisable(AUDIO_DAC0_SINK_NUM);
@@ -1124,7 +1037,7 @@ bool AudioIoCommonForHfp(uint16_t gain)
 		AudioDAC_Init((DACParamCt *)&DACDefaultParamCt,sampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
 
 	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
-		Clock_AudioMclkSel(AUDIO_DAC0, gCtrlVars.HwCt.DAC0Ct.dac_mclk_source);
+        Clock_AudioMclkSel(AUDIO_DAC0, gCtrlVars.HwCt.DAC0Ct.dac_mclk_source > 2 ? (gCtrlVars.HwCt.DAC0Ct.dac_mclk_source - 1):gCtrlVars.HwCt.DAC0Ct.dac_mclk_source);
 	#else
 		gCtrlVars.HwCt.DAC0Ct.dac_mclk_source = Clock_AudioMclkGet(AUDIO_DAC0);
 	#endif
@@ -1139,7 +1052,119 @@ bool AudioIoCommonForHfp(uint16_t gain)
 		AudioCore.AudioSink[AUDIO_DAC0_SINK_NUM].BitWidthConvFlag = AudioIOSet.IOBitWidthConvFlag;
 #endif
 	}
+	gCtrlVars.HwCt.DAC0Ct.dac_sample_rate = SampleRateIndexGet(AudioDAC_SampleRateGet(DAC0));
 	AudioCoreSinkEnable(AUDIO_DAC0_SINK_NUM);
+#endif
+
+#if CFG_RES_MIC_SELECT
+	AudioCoreSourceDisable(MIC_SOURCE_NUM);
+
+	if(!AudioCoreSourceIsInit(MIC_SOURCE_NUM))
+	{
+		//Mic1 analog  = Soure0.
+//		AudioADC_AnaInit();
+		//AudioADC_VcomConfig(1);//MicBias en
+		// AudioADC_MicBias1Enable(1);
+		mainAppCt.ADCFIFO = (uint32_t*)osPortMalloc(FifoLenStereo);//ADC fifo
+		if(mainAppCt.ADCFIFO != NULL)
+		{
+			memset(mainAppCt.ADCFIFO, 0, FifoLenStereo);
+		}
+		else
+		{
+			APP_DBG("malloc ADCFIFO error\n");
+			return FALSE;
+		}
+
+		AudioADC_DynamicElementMatch(ADC1_MODULE, TRUE, TRUE);
+//		AudioADC_PGASel(ADC1_MODULE, CHANNEL_LEFT, LINEIN3_LEFT_OR_MIC1);
+//		AudioADC_PGASel(ADC1_MODULE, CHANNEL_RIGHT, LINEIN3_RIGHT_OR_MIC2);
+//		AudioADC_PGAGainSet(ADC1_MODULE, CHANNEL_LEFT, LINEIN3_LEFT_OR_MIC1, 15, 4);//0db bypass
+//		AudioADC_PGAGainSet(ADC1_MODULE, CHANNEL_RIGHT, LINEIN3_RIGHT_OR_MIC2, 15, 4);
+
+		//Mic1   digital
+		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_16BITS,(void*)mainAppCt.ADCFIFO,FifoLenStereo);
+
+	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+        Clock_AudioMclkSel(AUDIO_ADC1, gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source);
+	#else
+		gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source = Clock_AudioMclkGet(AUDIO_ADC1);
+	#endif
+		//Soure0.
+		memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
+		AudioIOSet.Adapt = STD;
+		AudioIOSet.Sync = TRUE;
+		AudioIOSet.Channels = 1;
+		AudioIOSet.Net = DefaultNet;
+		AudioIOSet.DataIOFunc = AudioADC1_DataGet;
+		AudioIOSet.LenGetFunc = AudioADC1_DataLenGet;
+#ifdef CFG_AUDIO_WIDTH_24BIT
+		AudioIOSet.IOBitWidth = PCM_DATA_16BIT_WIDTH;			//0,16bit,1:24bit
+		AudioIOSet.IOBitWidthConvFlag = 0;	//需要数据位宽不扩展
+#endif
+		if(!AudioCoreSourceInit(&AudioIOSet, MIC_SOURCE_NUM))
+		{
+			DBG("mic Source error");
+			return FALSE;
+		}
+		//MADC_MIC_PowerUP(SingleEnded);
+#ifdef CFG_ADCDAC_SEL_LOWPOWERMODE
+		AudioADC_AnaInit(ADC1_MODULE,CHANNEL_LEFT,MIC_LEFT,gCtrlVars.HwCt.ADC1PGACt.pga_mic_mode,ADCLowEnergy,gain);
+#else
+		AudioADC_AnaInit(ADC1_MODULE,CHANNEL_LEFT,MIC_LEFT,gCtrlVars.HwCt.ADC1PGACt.pga_mic_mode,ADCCommonEnergy,gain);
+#endif // CFG_ADCDAC_SEL_LOWPOWERMODE
+		AudioCoreSourceEnable(MIC_SOURCE_NUM);
+	}
+	else //采样率等 重配
+	{
+		AudioCoreSourceDisable(MIC_SOURCE_NUM);
+//		AudioADC_AnaInit();
+		//AudioADC_VcomConfig(1);//MicBias en
+//		AudioADC_MicBias1Enable(1);
+
+		AudioADC_PGAGainSet(ADC1_MODULE, CHANNEL_LEFT, MIC_LEFT, gain);
+//		AudioADC_PGAGainSet(ADC1_MODULE, CHANNEL_RIGHT, LINEIN3_RIGHT_OR_MIC2, gain);
+
+		//Mic1	 digital
+		memset(mainAppCt.ADCFIFO, 0, FifoLenStereo);
+		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_16BITS, (void*)mainAppCt.ADCFIFO, FifoLenStereo);
+
+	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+        Clock_AudioMclkSel(AUDIO_ADC1, gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source);
+	#else
+		gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source = Clock_AudioMclkGet(AUDIO_ADC1);
+	#endif
+	}
+	gCtrlVars.HwCt.ADC1DigitalCt.adc_sample_rate = SampleRateIndexGet(AudioADC_SampleRateGet(ADC1_MODULE));
+#endif
+
+#ifdef CFG_FUNC_REMIND_SOUND_EN
+	if(!AudioCoreSourceIsInit(REMIND_SOURCE_NUM))
+	{
+		memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
+
+		AudioIOSet.Adapt = SRC_ONLY;
+		AudioIOSet.SampleRate = sampleRate;//初始值
+		AudioIOSet.Sync = FALSE;
+		AudioIOSet.Channels = 1;
+		AudioIOSet.Net = DefaultNet;
+		AudioIOSet.DataIOFunc = RemindDataGet;
+		AudioIOSet.LenGetFunc = RemindDataLenGet;
+
+#ifdef	CFG_AUDIO_WIDTH_24BIT
+		AudioIOSet.IOBitWidth = PCM_DATA_16BIT_WIDTH;//0,16bit,1:24bit
+		AudioIOSet.IOBitWidthConvFlag = 0;//需要数据进行位宽扩展
+#endif
+		if(!AudioCoreSourceInit(&AudioIOSet, REMIND_SOURCE_NUM))
+		{
+			DBG("remind source error!\n");
+			SoftFlagRegister(SoftFlagNoRemind);
+			return FALSE;
+		}
+#ifdef CFG_REMIND_SOUND_DECODING_USE_LIBRARY		
+		RemindMp3DecoderInit();
+#endif
+	}
 #endif
 
 #ifdef CFG_FUNC_I2S_MIX_MODE
@@ -1228,7 +1253,7 @@ bool AudioIoCommonForHfp(uint16_t gain)
 	#endif
 	}
 #endif
-
+	AudioDAC_SCFMute(DAC0, 0, 0);
 	AudioDAC_Enable(DAC0);
 #ifdef CFG_COMMUNICATION_BY_UART
 	uart_data_init();
@@ -1256,6 +1281,13 @@ void AudioCoreSourceSinkPcmBufReinit(void)
 							AudioEffect.context_memory, AudioCoreSinkToRoboeffect(i));
 		}
 	}
+
+#if BT_SOURCE_SUPPORT
+    {
+        AudioCoreSink *Sink = &AudioCore.AudioSink[AUDIO_BT_SOURCE_SINK_NUM];
+        Sink->PcmOutBuf = AudioCore.AudioSink[AUDIO_DAC0_SINK_NUM].PcmOutBuf; // 复用DAC的PcmOutBuf
+    }
+#endif
 }
 //sel: 0 = init hw, 1 = effect, 2 = hw + effect
 bool AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
@@ -1286,6 +1318,7 @@ bool AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 		AudioADC_Disable(ADC1_MODULE);
 		DMA_ChannelDisable(PERIPHERAL_ID_AUDIO_ADC1_RX);
 		DMA_CircularFIFOClear(PERIPHERAL_ID_AUDIO_ADC1_RX);
+		AudioADC_FuncReset(ADC1_MODULE);
 		AudioADC_Enable(ADC1_MODULE);
 		AudioADC_LREnable(ADC1_MODULE, 1, 1);
 		DMA_ChannelEnable(PERIPHERAL_ID_AUDIO_ADC1_RX);

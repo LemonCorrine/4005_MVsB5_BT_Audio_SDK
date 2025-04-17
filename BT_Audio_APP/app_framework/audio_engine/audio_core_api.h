@@ -28,6 +28,7 @@ enum
 	I2S_MIX_SOURCE_NUM,         //I2S MIX通道
 	I2S_MIX2_SOURCE_NUM,        //I2S MIX2通道
 	USB_SOURCE_NUM,             //USB MIX通道
+	USB_HOST_SOURCE_NUM,		//USB HOST MIX通道
 	LINEIN_MIX_SOURCE_NUM,      //Line in MIX通道
 	AUDIO_CORE_SOURCE_MAX_NUM,
 };
@@ -39,7 +40,7 @@ enum
 #else
 	#define USB_AUDIO_SOURCE_NUM	APP_SOURCE_NUM
 #endif
-
+	#define USB_AUDIO_SOURCE1_NUM	USB_SOURCE_NUM
 enum
 {
 	AUDIO_DAC0_SINK_NUM,		//主音频输出在audiocore Sink中的通道，必须配置，audiocore借用此通道buf处理数据	
@@ -60,6 +61,9 @@ enum
 #endif
 #if BT_SOURCE_SUPPORT
 	AUDIO_BT_SOURCE_SINK_NUM,
+#endif
+#ifdef CFG_FUNC_USB_HOST_AUDIO_MIX_MODE
+	AUDIO_USB_HOST_SINK_NUM, //USB HOST MIX OUT通道
 #endif
 	AUDIO_CORE_SINK_MAX_NUM,
 };

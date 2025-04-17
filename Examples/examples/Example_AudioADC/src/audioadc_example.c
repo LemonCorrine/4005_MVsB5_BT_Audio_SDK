@@ -89,12 +89,12 @@ static void AudioMicExample(void)
 	GPIO_RegBitsClear(GPIO_B_IE,GPIOB8);
 	GPIO_RegBitsClear(GPIO_B_OE,GPIOB8);
 
+    // DAC init
+    AudioDAC_Init(&ct, SampleRate, DACBitWidth, (void *)AudioDACBuf, sizeof(AudioDACBuf), NULL, 0);
+
     //PGAGain设置为22是按照BP1564全功能demo板为平台来设置的(BP1564全功能demo板MIC端有放大器，放大20dB)。如果使用其他没有放大器的平台可以调大MIC PGAGain
     AudioADC_AnaInit(ADC1_MODULE, CHANNEL_LEFT, MIC_LEFT, Diff, ADCCommonEnergy, 22);  
     AudioADC_DigitalInit(ADC1_MODULE, SampleRate, ADCBitWidth, (void *)AudioADC1Buf, sizeof(AudioADC1Buf));
-
-    // DAC init
-    AudioDAC_Init(&ct, SampleRate, DACBitWidth, (void *)AudioDACBuf, sizeof(AudioDACBuf), NULL, 0);
 
     while(1)
     {
@@ -135,12 +135,12 @@ static void AudioLineIn1Example()
 	GPIO_RegBitsClear(GPIO_B_IE,GPIOB3);
 	GPIO_RegBitsClear(GPIO_B_OE,GPIOB3);
 
+    // DAC init
+    AudioDAC_Init(&ct, SampleRate, DACBitWidth, (void *)AudioDACBuf, sizeof(AudioDACBuf), NULL, 0);
+
     AudioADC_AnaInit(ADC0_MODULE, CHANNEL_LEFT, LINEIN1_LEFT, Single, ADCCommonEnergy, 17);
     AudioADC_AnaInit(ADC0_MODULE, CHANNEL_RIGHT, LINEIN1_RIGHT, Single, ADCCommonEnergy, 17);
     AudioADC_DigitalInit(ADC0_MODULE, SampleRate, ADCBitWidth, (void *)AudioADC2Buf, sizeof(AudioADC2Buf));
-
-    // DAC init
-    AudioDAC_Init(&ct, SampleRate, DACBitWidth, (void *)AudioDACBuf, sizeof(AudioDACBuf), NULL, 0);
 
     while(1)
     {
@@ -180,12 +180,12 @@ static void AudioLineIn2Example()
 	GPIO_RegBitsClear(GPIO_B_IE,GPIOB1);
 	GPIO_RegBitsClear(GPIO_B_OE,GPIOB1);
 
+    // DAC init
+    AudioDAC_Init(&ct, SampleRate, DACBitWidth, (void *)AudioDACBuf, sizeof(AudioDACBuf), NULL, 0);
+
     AudioADC_AnaInit(ADC0_MODULE, CHANNEL_LEFT, LINEIN2_LEFT, Single, ADCCommonEnergy, 17);
     AudioADC_AnaInit(ADC0_MODULE, CHANNEL_RIGHT, LINEIN2_RIGHT, Single, ADCCommonEnergy, 17);
     AudioADC_DigitalInit(ADC0_MODULE, SampleRate, ADCBitWidth, (void *)AudioADC2Buf, sizeof(AudioADC2Buf));
-
-    // DAC init
-    AudioDAC_Init(&ct, SampleRate, DACBitWidth, (void *)AudioDACBuf, sizeof(AudioDACBuf), NULL, 0);
 
     while(1)
     {

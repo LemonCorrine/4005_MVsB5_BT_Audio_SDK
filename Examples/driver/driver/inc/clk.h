@@ -160,7 +160,7 @@ typedef enum __CLOCK_GPIO_Port//输出时钟观测端口
 	GPIO_CLK_OUT_A0,		//GPIO A0   clk1_out_0
 	GPIO_CLK_OUT_A1,		//GPIO A1   clk0_out_0
 	GPIO_CLK_OUT_A29,		//GPIO A29  clk0_out_1
-	GPIO_CLK_OUT_B6,		//GPIO AB6  clk0_out_2
+	GPIO_CLK_OUT_B6,		//GPIO B6  	clk0_out_2
 }CLK_GPIO_Port;
 
 typedef enum __CLOCK_OUT_MODE
@@ -207,6 +207,13 @@ typedef enum __CLOCK_CLK_CNT_MODULE{
 	MDAC_MCLK_CNT0,
 	MDAC_MCLK_CNT1,
 }CLOCK_CLK_CNT_MODULE;
+
+typedef enum __CLOCK_RC32K_MODULE{
+	BT_32K_CLK,
+	PMU_32K_CLK,
+	reserve,
+	LOSC_32K_CLK,//RTC
+}CLOCK_RC32K_MODULE;
 
 //建议MCLK0 配置为11.2896M，MCLK1配置为12.288M
 #define		AUDIO_PLL_CLK1_FREQ		11289600//PLL1,11.2896MHz
@@ -397,6 +404,13 @@ bool Clock_APllLock_Pro(uint32_t ApllLockFreq,uint8_t DIVMODE,uint8_t VCO_ISEL,u
  * @return  rc频率，单位Hz
  */	
 uint32_t Clock_RcFreqGet(bool IsReCount);
+
+/**
+ * @brief	获取RC132k频率
+ * @param	IsReCount 是否再次获取硬件计数器值。TRUE：再次启动硬件计数器。FALSE：获取上次记录值。
+ * @return  rc频率，单位Hz
+ */
+uint32_t Clock_RC32KFreqGet(bool IsReCount, CLOCK_RC32K_MODULE clk);
 
 /**
  * @brief	获取pll频率

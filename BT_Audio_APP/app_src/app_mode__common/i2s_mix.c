@@ -51,14 +51,13 @@ static void AudioI2sOutParamsSet(void)
 	GPIO_PortAModeSet(GET_I2S_GPIO_PORT(I2S_MIX_BCLK_GPIO), GET_I2S_GPIO_MODE(I2S_MIX_BCLK_GPIO));//bclk
 	GPIO_PortAModeSet(GET_I2S_GPIO_PORT(I2S_MIX_DOUT_GPIO), GET_I2S_GPIO_MODE(I2S_MIX_DOUT_GPIO));//do
 
-	I2S_AlignModeSet(CFG_RES_MIX_I2S_MODULE, I2S_LOW_BITS_ACTIVE);
 	AudioI2S_Init(CFG_RES_MIX_I2S_MODULE, &i2s_set);//
 
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 	if(CFG_RES_MIX_I2S_MODULE == I2S0_MODULE)
-		Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
+		Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source > 2 ? (gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source - 1):gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
 	else
-		Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
+		Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source > 2 ? (gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source - 1):gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
 #else
 	if(CFG_RES_MIX_I2S_MODULE == I2S0_MODULE)
 		gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source = Clock_AudioMclkGet(AUDIO_I2S0);
@@ -115,14 +114,13 @@ bool I2S_MixInit(bool hf_mode_flag)
 	#endif
 
 		I2S_ModuleDisable(CFG_RES_MIX_I2S_MODULE);
-		I2S_AlignModeSet(CFG_RES_MIX_I2S_MODULE, I2S_LOW_BITS_ACTIVE);
 		AudioI2S_Init(CFG_RES_MIX_I2S_MODULE,&i2s_set);
 
 	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 		if(CFG_RES_MIX_I2S_MODULE == I2S0_MODULE)
-			Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
+			Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source > 2 ? (gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source - 1):gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
 		else
-			Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
+			Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source > 2 ? (gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source - 1):gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
 	#else
 		if(CFG_RES_MIX_I2S_MODULE == I2S0_MODULE)
 			gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source = Clock_AudioMclkGet(AUDIO_I2S0);
@@ -330,14 +328,13 @@ static void AudioI2sMix2OutParamsSet(void)
 	GPIO_PortAModeSet(GET_I2S_GPIO_PORT(I2S_MIX2_BCLK_GPIO), GET_I2S_GPIO_MODE(I2S_MIX2_BCLK_GPIO));//bclk
 	GPIO_PortAModeSet(GET_I2S_GPIO_PORT(I2S_MIX2_DOUT_GPIO), GET_I2S_GPIO_MODE(I2S_MIX2_DOUT_GPIO));//do
 
-	I2S_AlignModeSet(CFG_RES_MIX2_I2S_MODULE, I2S_LOW_BITS_ACTIVE);
 	AudioI2S_Init(CFG_RES_MIX2_I2S_MODULE, &i2s_set);//
 
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 	if(CFG_RES_MIX_I2S_MODULE == I2S0_MODULE)
-		Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
+		Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source > 2 ? (gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source - 1):gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
 	else
-		Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
+		Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source > 2 ? (gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source - 1):gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
 #else
 	if(CFG_RES_MIX2_I2S_MODULE == I2S0_MODULE)
 		gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source = Clock_AudioMclkGet(AUDIO_I2S0);
@@ -394,14 +391,13 @@ bool I2S_Mix2Init(bool hf_mode_flag)
 	#endif
 
 		I2S_ModuleDisable(CFG_RES_MIX2_I2S_MODULE);
-		I2S_AlignModeSet(CFG_RES_MIX2_I2S_MODULE, I2S_LOW_BITS_ACTIVE);
 		AudioI2S_Init(CFG_RES_MIX2_I2S_MODULE,&i2s_set);
 
 	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 		if(CFG_RES_MIX2_I2S_MODULE == I2S0_MODULE)
-			Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
+			Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source > 2 ? (gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source - 1):gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
 		else
-			Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
+			Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source > 2 ? (gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source - 1):gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
 	#else
 		if(CFG_RES_MIX2_I2S_MODULE == I2S0_MODULE)
 			gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source = Clock_AudioMclkGet(AUDIO_I2S0);

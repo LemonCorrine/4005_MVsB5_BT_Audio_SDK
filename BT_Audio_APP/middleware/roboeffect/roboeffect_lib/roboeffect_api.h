@@ -13,7 +13,7 @@
 #define __ROBOEFFECT_API_H__
 
 /*Roboeffect Library version*/
-#define ROBOEFFECT_LIB_VER "2.25.5"
+#define ROBOEFFECT_LIB_VER "2.28.0"
 
 #include <stdio.h>
 #include <nds32_intrinsic.h>
@@ -30,7 +30,7 @@
 #define ROBOEFFECT_IO_TYPE_DES 2
 
 
-
+#define ROBOEFFECT_CH_NA						0
 #define ROBOEFFECT_CH_MONO          1
 #define ROBOEFFECT_CH_STEREO        2
 #define ROBOEFFECT_CH_MONO_STEREO   3
@@ -114,6 +114,7 @@ typedef enum _roboeffect_effect_type_enum
 	ROBOEFFECT_LR_BALANCER,
 	ROBOEFFECT_HOWLING_SUPPRESSOR_SPECIFIED,
 	ROBOEFFECT_DRC_LEGACY,
+	ROBOEFFECT_PCM_DELAY_MS,
 
 	/*node type below*/
 	ROBOEFFECT_FADER,//
@@ -146,8 +147,10 @@ typedef enum _ROBOEFFECT_ERROR_CODE
 	ROBOEFFECT_LIB_VER_NOT_MATCH_ERROR,//roboeffect lib version in parameters not match
 	ROBOEFFECT_3RD_PARTY_LIB_NOT_MATCH_ERROR,//third party library not match
 
-	ROBOEFFECT_FLASH_BIN_ERROR,//Invalid format for flash bin
+	ROBOEFFECT_PARAMBIN_ERROR,//Invalid format for parameter bin
 	ROBOEFFECT_CONTEXT_MEMORY_ERROR,//roboeffect context memory error, maybe a NULL
+	ROBOEFFECT_PARAMBIN_DATA_NOT_FOUND,//
+	ROBOEFFECT_PARAMBIN_DATA_VER_ERROR,//
 
 	// No Error
 	ROBOEFFECT_ERROR_OK = 0,					/**< no error */
@@ -265,7 +268,7 @@ typedef struct _roboeffect_effect_steps_table
 	const roboeffect_io_unit *src_unit;
 	const roboeffect_io_unit *des_unit;
 	const uint32_t *step;
-	const char *io_name_table;
+	
 } roboeffect_effect_steps_table;
 
 typedef struct _roboeffect_exec_effect_info
@@ -305,37 +308,45 @@ typedef bool (*roboeffect_effect_init_func)(void *node);
 typedef bool (*roboeffect_effect_config_func)(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);//can be all param(param_num=0xff) or only ONE param(param_num=1)
 typedef int32_t (*roboeffect_effect_memory_size_func)(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
 
-/*********************************************rodata start*********************************************************/
-#define RODATA_LEN_WIDTH (4)
-#define RODATA_SUBTYPE_WIDTH (4)
-#define RODATA_NAME_WIDTH (32)
+/*********************************************parambin start*********************************************************/
+#define PARAMBIN_LEN_WIDTH (4)
+#define PARAMBIN_SUBTYPE_WIDTH (4)
+#define PARAMBIN_NAME_WIDTH (32)
 
-#define PARAM_SUB_TYPE(index) ((0x01 << 8) | (index))
-#define PRESET_SUB_TYPE(index) ((0x02 << 8) | (index))
+#define PARAMBIN_MAGIC_NUM (0xA55AB44B)
 
-#define RODATA_MAGIC_NUM (0xA55AB44B)
+#define PARAMBIN_VER_H 0
+#define PARAMBIN_VER_M 5
+#define PARAMBIN_VER_L 0
 
-#define RODATA_VER_H 0
-#define RODATA_VER_M 3
-#define RODATA_VER_L 0
-
-typedef enum _roboeffect_rodata_sub_type
+typedef enum _roboeffect_parambin_sub_type
 {
-	ROBO_FB_SUBTYPE_SCRIPT = 0x00,
-	ROBO_FB_SUBTYPE_EFFECTS_LIST,
-	ROBO_FB_SUBTYPE_EFFECTS_INFO,
-	ROBO_FB_SUBTYPE_SOURCE,
-	ROBO_FB_SUBTYPE_SINK,
-	ROBO_FB_SUBTYPE_STEPS,
-	ROBO_FB_SUBTYPE_FLOW_INFO,
-	ROBO_FB_SUBTYPE_PARAMS_MODE_INFO,
-	ROBO_FB_SUBTYPE_PRESET_INFO,
-	ROBO_FB_SUBTYPE_IO_NAME,
+	ROBO_PB_SUBTYPE_SCRIPT = 0x00,
+	ROBO_PB_SUBTYPE_EFFECTS_LIST,
+	ROBO_PB_SUBTYPE_EFFECTS_INFO,
+	ROBO_PB_SUBTYPE_SOURCE,
+	ROBO_PB_SUBTYPE_SINK,
+	ROBO_PB_SUBTYPE_STEPS,
+	ROBO_PB_SUBTYPE_FLOW_INFO,
+	ROBO_PB_SUBTYPE_PARAMS_MODE_INFO,
+	ROBO_PB_SUBTYPE_PRESET_INFO,
+	ROBO_PB_SUBTYPE_IO_NAME,
+	ROBO_PB_SUBTYPE_MODE_PARAMS,
+	ROBO_PB_SUBTYPE_MAX,
 
-} roboeffect_rodata_sub_type;
+
+} roboeffect_parambin_sub_type;
+
+typedef enum _roboeffect_mode_params_type
+{
+	ROBO_PB_MP_TYPE_BRIEF = 0x01,
+	ROBO_PB_MP_TYPE_MODE_DATA,
+	ROBO_PB_MP_TYPE_PRESET_DATA,
+
+} roboeffect_mode_params_type;
 
 #pragma pack(1)
-typedef struct _roboeffect_rodata_header
+typedef struct _roboeffect_parambin_header
 {
 	char id_char[4];
 	uint32_t total_length;
@@ -343,43 +354,21 @@ typedef struct _roboeffect_rodata_header
 	uint8_t robo_version[4];
 	uint16_t flow_cnt;
 	uint16_t flow_name_len;
-#if 0
-	uint16_t current_flow_index;
-	uint16_t current_mode_index;
-	uint32_t reverse;
-	char flow_name_ptr[];
-#else
 	uint16_t current_flow_cnt;
-	uint16_t reverse;
+	uint16_t chip_id;//
 	char flow_name_ptr[];
-#endif
-} roboeffect_rodata_header;
 
-typedef struct _roboeffect_rodata_flow_pair
+} roboeffect_parambin_header;
+
+typedef struct _roboeffect_parambin_flow_pair
 {
 	uint16_t flow_index;
 	uint16_t param_mode_index;
-} roboeffect_rodata_flow_pair;
-
-typedef struct _roboeffect_rodata_param_header
-{
-	uint32_t effect_param_len;
-	uint32_t codec_param_len;
-	uint32_t name_len;
-
-	char name[];
-} roboeffect_rodata_param_header;
+} roboeffect_parambin_flow_pair;
 
 #pragma pack()
 
-#define GET_EFFECT_PARAM_RAW(v) \
-	((uint8_t*)v + sizeof(roboeffect_rodata_param_header) + (v->name_len))
-
-#define GET_CODEC_PARAM_RAW(v) \
-	((uint8_t*)v + sizeof(roboeffect_rodata_param_header) + (v->name_len) + (v->effect_param_len))
-
-
-/*********************************************rodata end*********************************************************/
+/*********************************************parambin end*********************************************************/
 
 typedef struct _roboeffect_effect_property_struct
 {
@@ -588,10 +577,11 @@ uint32_t roboeffect_recommend_frame_size_upon_effect_change(void *main_contex, u
  * 
  * @param main_context : context memory allocated by user  
  * @param address : effect node's address, start from 0x81  
- * @param type_output : name string, user need send a block of memory to hold it.
+ * @param type_output : [output]name string, user need send a block of memory to hold it.
+ * @param type_code : [output]effect type code, refer to roboeffect_effect_type_enum.
  * @return ROBOEFFECT_ERROR_CODE 
  */
-ROBOEFFECT_ERROR_CODE roboeffect_get_effect_type(void *main_context, uint8_t address, char *type_output);
+ROBOEFFECT_ERROR_CODE roboeffect_get_effect_type(void *main_context, uint8_t address, char *type_output, uint8_t *type_code);
 
 /**
  * @brief Get effect class version number.
@@ -653,5 +643,209 @@ void* roboeffect_user_defined_malloc(void *node, uint32_t size);
 ROBOEFFECT_ERROR_CODE roboeffect_user_defined_get_info(void *node, roboeffect_user_defined_effect_info *info);
 
 
-#endif/*__ROBOEFFECT_API_H__*/
+/*********************************************parambin start*********************************************************/
 
+/**
+ * @brief Check if the parambin is valid and obtain the length of the parambin
+ * 
+ * @param parambin_addr : parambin address
+ * @param *parambin_size : output, parambin size in bytes; can be NULL if not needed
+ * @return ROBOEFFECT_ERROR_CODE : ROBOEFFECT_ERROR_OK for parambin is valid, others for parambin if invalid.
+ */
+ROBOEFFECT_ERROR_CODE roboeffect_parambin_check_whole_bin(const uint8_t *parambin_addr, uint32_t *parambin_size);
+
+
+/**
+ * @brief Get information of current flows in pairs
+ * 
+ * @param parambin_addr : parambin address
+ * @param *item_cnt : output, number of flow pairs; can be NULL if not needed
+ * @return roboeffect_parambin_flow_pair * : a table of roboeffect_parambin_flow_pair
+ */
+roboeffect_parambin_flow_pair *roboeffect_parambin_get_current_flow(const uint8_t *parambin_addr, uint32_t *item_cnt);
+
+/**
+ * @brief Get flow data by index
+ * 
+ * @param parambin_addr : parambin address
+ * @param flow_index : flow index
+ * @param *data_size : output, flow data size in bytes; can be NULL if not needed
+ * @return uint8_t * : flow data address, NULL for error
+ */
+uint8_t *roboeffect_parambin_get_flow_by_index(const uint8_t *parambin_addr, uint32_t flow_index, uint32_t *data_size);
+
+/**
+ * @brief Get flow data by name string
+ * 
+ * @param parambin_addr : parambin address
+ * @param name : flow name string
+ * @param *data_size : output, flow data size in bytes; can be NULL if not needed
+ * @return uint8_t * : flow data address, NULL for error
+ */
+uint8_t *roboeffect_parambin_get_flow_by_name(const uint8_t *parambin_addr, char *name, uint32_t *data_size);
+
+
+/**
+ * @brief Get sub-package data by type id
+ * 
+ * @param flow_data : flow data address, maybe returned by roboeffect_parambin_get_flow_by_index() or roboeffect_parambin_get_flow_by_name()
+ * @param flow_size : flow data size, maybe returned by roboeffect_parambin_get_flow_by_index() or roboeffect_parambin_get_flow_by_name()
+ * @param sub_type : sub type, refer to roboeffect_parambin_sub_type
+ * @param is_raw: if is_raw, just return raw data, if not is_raw, return whole sub-package.
+ * @param *data_size : output, sub-package data size in bytes; can be NULL if not needed
+ * @return uint8_t* : sub-package address, NULL for error
+ */
+uint8_t *roboeffect_parambin_get_sub_type(const uint8_t *flow_data, uint32_t flow_size, uint32_t sub_type, bool is_raw, uint32_t *data_size);
+
+
+
+/**
+ * @brief Get context current size for roboeffect, it can be considered the parambin version of the roboeffect_estimate_memory_size() function
+ * 
+ * @param flow_data : flow data address, maybe returned by roboeffect_parambin_get_flow_by_index() or roboeffect_parambin_get_flow_by_name()
+ * @param param_index : the index of parameter, it can be obtained from the roboeffect_parambin_get_current_flow() function return, or specified by the user.
+ * @param effect_list : execution effect list
+ * @return int32_t : memory size in Bytes; if < 0, check ROBOEFFECT_ERROR_CODE
+ */
+int32_t roboeffect_parambin_estimate_memory_size(const uint8_t *flow_data, uint32_t param_index, const roboeffect_effect_list_info *effect_list);
+
+
+/**
+ * @brief Estimate frame size of the flow chart based on parameters, it can be considered the parambin version of the roboeffect_estimate_frame_size() function
+ * 
+ * @param flow_data : flow data address, maybe returned by roboeffect_parambin_get_flow_by_index() or roboeffect_parambin_get_flow_by_name()
+ * @param param_index : the index of parameter, it can be obtained from the roboeffect_parambin_get_current_flow() function return, or specified by the user.
+ * @param effect_list : execution effect list
+ *@return uint32_t : 0 for error
+ */
+uint32_t roboeffect_parambin_estimate_frame_size(const uint8_t *flow_data, uint32_t param_index, const roboeffect_effect_list_info *effect_list);
+
+
+
+/**
+ * @brief Get context memory size of ONE effect according to address, can be called BEFORE roboeffect_init().
+ * 				it can be considered the parambin version of the roboeffect_estimate_effect_size() function
+ * 
+ * @param flow_data : flow data address, maybe returned by roboeffect_parambin_get_flow_by_index() or roboeffect_parambin_get_flow_by_name()
+ * @param param_index : the index of parameter, it can be obtained from the roboeffect_parambin_get_current_flow() function return, or specified by the user.
+ * @param addr: effect's address, start from 0x81
+ * @param effect_list : execution effect list
+ *@return uint32_t : 0 for error
+ */
+int32_t roboeffect_parambin_estimate_effect_size(const uint8_t *flow_data, uint32_t param_index, uint8_t address, const roboeffect_effect_list_info *effect_list);
+
+
+/**
+ * @brief initial context for roboeffect, it can be considered the parambin version of the roboeffect_init() function
+ * 
+ * @param main_context : main context memory allocated by user
+ * @param context_size : context memory size
+ * @param flow_data : flow data address, maybe returned by roboeffect_parambin_get_flow_by_index() or roboeffect_parambin_get_flow_by_name()
+ * @param param_index : the index of parameter, it can be obtained from the roboeffect_parambin_get_current_flow() function return, or specified by the user.
+ * @param effect_list : execution effect list
+ * @return int32_t : memory size in Bytes; if < 0, check ROBOEFFECT_ERROR_CODE
+ */
+ROBOEFFECT_ERROR_CODE roboeffect_parambin_init(void *main_context, uint32_t context_size, const uint8_t *flow_data, uint32_t param_index, const roboeffect_effect_list_info *effect_list);
+
+
+/**
+ * @brief Get source/sink name string by id.
+ * 
+ * @param main_context : main context memory allocated by user
+ * @param id: source/sink id
+ * @return const char * : name string of source/sink, NULL for error.
+ */
+const char *roboeffect_parambin_get_io_name(void *main_context, uint8_t id);
+
+
+/**
+ * @brief Get source/sink unit by name string.
+ * 
+ * @param main_context : main context memory allocated by user
+ * @param name: name string of source/sink, NULL for error.
+ * @return const roboeffect_io_unit * : roboeffect_io_unit struct, NULL for error.
+ */
+const roboeffect_io_unit *roboeffect_parambin_get_io_by_name(void *main_context, const char *name);
+
+/**
+ * @brief Checks if the specified IO name matches the device node.
+ *
+ * This macro compares the given IO name with the name obtained from a device node
+ * and checks if the device node is valid.
+ *
+ * @param io_name The name of the IO to be matched.
+ * @param device_node A pointer to the roboeffect_io_unit structure representing the device node.
+ * @return Returns true if the IO name matches and the device node is valid, false otherwise.
+ */
+#define IS_IO_MATCH(io_name, device_node) \
+    (strcmp((io_name), roboeffect_parambin_get_io_name(context_memory, IO_UNIT_ID(device_node))) == 0 && IO_UNIT_VALID(device_node))
+
+
+/**
+ * @brief Checks if the specified IO name exists and is valid.
+ *
+ * This macro retrieves the IO node by name and checks if it is valid.
+ * It assigns the found IO node to the io_node variable.
+ *
+ * @param io_name The name of the IO to be checked.
+ * @param io_node A pointer to be assigned to the found roboeffect_io_unit structure if it exists.
+ * @return Returns true if the IO node exists and is valid, false otherwise.
+ */
+#define IS_IO_EXISTED(io_name, io_node) \
+		((io_node = roboeffect_parambin_get_io_by_name(context_memory, io_name)) != NULL && IO_UNIT_VALID(io_node))
+
+
+/**
+ * @brief Get mode data by index, mode data including mode parameter data and mode codec parameter data
+ * 
+ * @param sub_type_data : sub type data address, maybe returned by roboeffect_parambin_get_sub_type()
+ * @param mode_index : mode index number, a valid mode index
+ * @param **mode_data_out : output pointer, point to mode parameter data
+ * @param *mode_data_size: output, the mode parameter data size in bytes
+ * @param **codec_data_out : output pointer, point to codec parameter data
+ * @param *codec_data_size: output, the codec parameter data size in bytes
+ * @return ROBOEFFECT_ERROR_CODE
+ */
+ROBOEFFECT_ERROR_CODE roboeffect_parambin_get_mode_data_by_index(const uint8_t *sub_type_data, uint32_t mode_index, uint8_t **mode_data_out, uint32_t *mode_data_size, uint8_t **codec_data_out, uint32_t *codec_data_size);
+
+
+/**
+ * @brief Get mode parameter data by name string
+ * 
+ * @param sub_type_data : sub type data address, maybe returned by roboeffect_parambin_get_sub_type()
+ * @param mode_name : name string to be searched
+ * @param **mode_param_out : output pointer, point to mode parameter data
+ * @param *mode_param_size: output, the mode parameter data size in bytes
+ * @return ROBOEFFECT_ERROR_CODE
+ */
+ROBOEFFECT_ERROR_CODE roboeffect_parambin_get_mode_param_by_name(const uint8_t *sub_type_data, const char *mode_name, uint8_t **mode_param_out, uint32_t *mode_param_size);
+
+/**
+ * @brief Get mode parameter data by name string
+ * 
+ * @param sub_type_data : sub type data address, maybe returned by roboeffect_parambin_get_sub_type()
+ * @param mode_name : name string to be searched
+ * @param **codec_param_out : output pointer, point to codec parameter data
+ * @param *codec_param_size: output, the codec parameter data size in bytes
+ * @return ROBOEFFECT_ERROR_CODE
+ */
+ROBOEFFECT_ERROR_CODE roboeffect_parambin_get_codec_param_by_name(const uint8_t *sub_type_data, const char *mode_name, uint8_t **codec_param_out, uint32_t *codec_param_size);
+
+/**
+ * @brief Get preset parameter data by name string
+ * 
+ * @param sub_type_data : sub type data address, maybe returned by roboeffect_parambin_get_sub_type()
+ * @param effect_addr : address of the effect to be searched
+ * @param param_index : parameter index to be searched
+ * @param mode_name : preset name string to be searched
+ * @param **preset_param_out : output pointer, point to preset parameter data
+ * @param *preset_param_size: output, the preset parameter data size in bytes
+ * @return ROBOEFFECT_ERROR_CODE
+ */
+ROBOEFFECT_ERROR_CODE roboeffect_parambin_get_preset_param_by_name(const uint8_t *sub_type_data, uint8_t effect_addr, uint8_t param_index, const char *preset_name, uint8_t **preset_param_out, uint32_t *preset_param_size);
+
+
+/*********************************************parambin end*********************************************************/
+
+
+#endif/*__ROBOEFFECT_API_H__*/

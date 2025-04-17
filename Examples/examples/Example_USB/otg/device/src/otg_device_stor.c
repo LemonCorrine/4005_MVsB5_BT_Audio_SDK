@@ -187,7 +187,10 @@ bool DeviceStorIsCardLink(void)
 		{
 			DeviceStorIsCardInitOK = TRUE;
 		}
-		return FALSE;
+		else
+		{
+			DeviceStorIsCardInitOK = FALSE;
+		}
 	}
 
 	return DeviceStorIsCardInitOK;

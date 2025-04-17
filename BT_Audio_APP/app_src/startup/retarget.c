@@ -9,7 +9,7 @@
 #include "uarts_interface.h"
 #include "type.h"
 #include "remap.h"
-#ifdef CFG_APP_CONFIG
+#if 1//def CFG_APP_CONFIG
 #include "app_config.h"
 #endif
 uint8_t DebugPrintPort = UART_PORT0;
@@ -53,11 +53,26 @@ void usb_hid_printf_init(void)
 	MCUCircular_Config(&usb_fifo,usb_buffer,sizeof(usb_buffer));
 }
 #endif
-
+extern uint8_t IsSwUartActedAsUARTFlag;
 __attribute__((used))
 int putchar(int c)
 {
 #ifdef CFG_FUNC_DEBUG_EN
+#ifdef CFG_USE_SW_UART
+	if(IsSwUartActedAsUARTFlag)
+	{
+		if((unsigned char)c == '\n')
+		{
+			const char lfca[2] = "\r\n";
+			SwUartSend((unsigned char*)lfca, 2);
+		}
+		else
+		{
+			SwUartSend((unsigned char*)&c, 1);
+		}
+	}
+	return c;
+#endif
 #ifdef CFG_FUNC_DEBUG_USE_TIMER
 	if(uart_switch)
 	{

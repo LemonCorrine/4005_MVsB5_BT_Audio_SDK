@@ -14,11 +14,6 @@
 
 uint8_t BleConnectFlag = 0;
 
-static void btAddrToString(unsigned char addr[6], char *str)
-{
-    sprintf(str, "%02x:%02x:%02x:%02x:%02x:%02x", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
-}
-
 uint8_t GetBLEConnState(void)
 {
     return BleConnectFlag;
@@ -32,7 +27,6 @@ void LeAppRegCB(LeParamCB LeCBFunc)
 uint8_t test_buff[] = {0x01,0x02,0x66};
 void AppEventCallBack(LE_CB_EVENT event, LE_CB_PARAMS *param)
 {
-    char addr[12];
     switch (event)
     {
     case LE_INIT_STATUS:
@@ -93,8 +87,9 @@ void AppEventCallBack(LE_CB_EVENT event, LE_CB_PARAMS *param)
     case LE_CONNECTED:
         APP_DBG("\n***********LE_CONNECTED************\n");
         BLE_INFO("connect handle: 0x%04x\n", param->con_params.conhdl);
-        btAddrToString(&param->con_params.peer_addr.addr[0], addr);
-        BLE_INFO("Address: %s", addr);
+        BLE_INFO("Address: %02x:%02x:%02x:%02x:%02x:%02x\n", param->con_params.peer_addr.addr[0],
+        		param->con_params.peer_addr.addr[1],param->con_params.peer_addr.addr[2],param->con_params.peer_addr.addr[3],
+				param->con_params.peer_addr.addr[4],param->con_params.peer_addr.addr[5]);
         break;
     case LE_DISCONNECT:
         APP_DBG("\n***********LE_DISCONNECT************\n");

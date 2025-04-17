@@ -3,10 +3,10 @@
  * @file    usb_audio_mode.c
  * @brief
  *
- * @author  Owen
+ * @author  Shanks
  * @version V1.0.0
  *
- * $Created: 2018-04-27 13:06:47$
+ * $Created: 2025-1-22 10:16:10$
  *
  * @Copyright (C) 2016, Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  **************************************************************************************

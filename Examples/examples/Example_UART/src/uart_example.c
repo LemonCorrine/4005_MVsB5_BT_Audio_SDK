@@ -695,6 +695,43 @@ void Example_UART_DMA_Circular_Int_Send(void)
 	while(1);
 }
 
+__attribute__((section(".driver.isr")))
+void UART1_Interrupt(void)
+{
+    if(UARTS_IOCTL(1,UART_IOCTL_RXSTAT_GET, 1) & 0x01)
+    {
+    	UARTS_RecvByte(1,&rxdata);
+        UARTS_IOCTL(1,UART_IOCTL_RXINT_CLR, 1);
+        flag = rxdata;
+
+        //演示：接收到的发送
+        //DBG("\n[Recieved data]:\n");
+        UARTS_SendByte(1,rxdata); //DBG("%c",rxdata);
+
+		//实际使用中，要在中断处理函数外面处理数据，否则可能影响效率。
+		//（注意:RX FIFO为4Bytes）这种模式下，由于Cache的存在，第一次执行中断入口函数中的代码效率会比后面低
+	}
+
+	if( UARTS_IOCTL(1,UART_IOCTL_RX_ERR_INT_GET, 0)
+		&& (UARTS_IOCTL(1,UART_IOCTL_RXSTAT_GET, 0) & 0x1C))//ERROR INT
+	{
+		UARTS_IOCTL(1,UART_IOCTL_RX_ERR_CLR, 1);
+//		UARTS_IOCTL(0,UART_IOCTL_TXFIFO_CLR, 1);
+		UARTS_IOCTL(1,UART_IOCTL_RXFIFO_CLR, 1);
+		DBG("\nUART_IOCTL_RX_ERR_INT_GET\n");
+    }
+
+//    if(UARTS_IOCTL(0,UART_IOCTL_TXSTAT_GET, 0)) { //TX Finished INT
+//    	UARTS_IOCTL(0,UART_IOCTL_TXINT_CLR, 1);
+//    	//DBG("\nUART_IOCTL_TXSTAT_GET\n");
+//    }
+
+    if(UARTS_IOCTL(1,UART_IOCTL_RXSTAT_GET, 0) & 0x02) { //OVERTIME INT
+    	UARTS_IOCTL(1,UART_IOCTL_OVERTIME_CLR, 1);
+    	DBG("\nUART_IOCTL_OVERTIME_GET\n");
+    }
+}
+
 int main(void)
 {
   	uint8_t Key;
@@ -725,6 +762,8 @@ int main(void)
 	DBG("               UART Example MVSilicon  \n");
 	DBG("****************************************************************\n");
 
+	APP_DBG("Driver Version: %s\n", GetLibVersionDriver());
+
 	DBG("Select an example:\n");
 	DBG("0:: MCU with no interrupt\n");
 	DBG("1:: MCU with interrupt\n");
@@ -733,6 +772,7 @@ int main(void)
 	DBG("4:: DMA Circular receive with interrupt\n");
 	DBG("5:: DMA Circular receive with no interrupt\n");
 	DBG("6:: DMA Block send\n");
+	DBG("7:: OVERTIME example\n");
 	Key = WaitDatum1Ever();//Key = 1;
 
 	switch(Key)
@@ -772,11 +812,23 @@ int main(void)
 		DBG("DMA Block send example\n");
 		Example_UART_DMA_Block_Send();
 		break;
-
+	case 7:
+		DBG("OVERTIME example\n");
+		NVIC_EnableIRQ(UART1_IRQn);//注意中断入口函数是否设置
+		UARTS_IOCTL(1,UART_IOCTL_RXINT_SET, 1);
+		UARTS_IOCTL(1,UART_IOCTL_RXINT_CLR, 1);
+		UARTS_IOCTL(1,UART_IOCTL_RXFIFO_CLR, 1);
+		UARTS_IOCTL(1,UART_IOCTL_OVERTIME_SET, 1);
+		//配置over time的时间。默认是0x1000，可以根据实际需求进行配置。
+		//rx overtime timing cnt value, its unit is baud_rate.
+		//eg. overtime_nume is 1000, if during the 1000 baud_rate time, has no new data received, an overtime interrput will generate.
+		UARTS_IOCTL(1,UART_IOCTL_OVERTIME_NUM, 0x10);
+		break;
 	default:
 		break;
 	}
 
+	while(1);
 	return -1;
 }
 

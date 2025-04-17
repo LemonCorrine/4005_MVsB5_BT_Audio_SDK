@@ -88,14 +88,14 @@
 #include "beamforming.h"
 
 // audio effect library version
-#define AUDIO_EFFECT_LIBRARY_VERSION "2.45.5"
+#define AUDIO_EFFECT_LIBRARY_VERSION "2.45.6"
 
 // audio effect versions (Info below is for convenience only. In case of any inconsistency, the version info in the respective file header shall prevail.)
 #define EFFECT_VERSION_ADPCM_CODEC                  "2.0.1"
 #define EFFECT_VERSION_AUTO_TUNE                    "1.4.0"
 #define EFFECT_VERSION_AUTO_WAH                     "1.2.0"
 #define EFFECT_VERSION_BEAT_TRACKER                 "1.1.1"
-#define EFFECT_VERSION_BLUE_AEC                     "6.6.1"
+#define EFFECT_VERSION_BLUE_AEC                     "6.7.0"
 #define EFFECT_VERSION_BLUE_NS                      "3.0.0"
 #define EFFECT_VERSION_BLUE_NS_DUAL                 "1.4.1"
 #define EFFECT_VERSION_CHORUS                       "1.2.1"

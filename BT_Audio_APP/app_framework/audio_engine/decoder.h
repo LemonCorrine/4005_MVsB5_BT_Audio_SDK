@@ -57,7 +57,7 @@ typedef enum
 #ifdef LOSSLESS_DECODER_HIGH_RESOLUTION
 	#define DECODER_BUF_SIZE   					(1024 * 42)	//解码器开销，Unit:  BYTE，需充分测试。
 #else
-	#define DECODER_BUF_SIZE   					(1024 * 28)	//解码器开销，Unit:  BYTE，需充分测试。
+	#define DECODER_BUF_SIZE   					(1024 * 29)	//解码器开销，Unit:  BYTE，需充分测试。
 #endif
 
 #define DECODER_BUF_SIZE_MP3				(1024 * 19)

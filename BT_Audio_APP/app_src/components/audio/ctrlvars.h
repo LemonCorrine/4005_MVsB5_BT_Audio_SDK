@@ -44,6 +44,10 @@ extern int16_t ReverbStep;
 typedef enum _EFFECT_MODE
 {
 	EFFECT_MODE_DEFAULT = 0,
+	/**********uac mode****************/
+	EFFECT_MODE_UAC,
+	/**********two audio mode****************/
+	EFFECT_MODE_TWO_AUDIO,
 	/**********mic mode****************/
 	EFFECT_MODE_MIC,
 	/**********music mode**************/

@@ -269,7 +269,6 @@ void OTG_DeviceStandardRequest()
 
 				OTG_DeviceEndpointPacketSizeSet(DEVICE_ISO_OUT_EP,DEVICE_FS_ISO_OUT_MPS);
 				OTG_DeviceEndpointPacketSizeSet(DEVICE_ISO_IN_EP,DEVICE_FS_ISO_IN_MPS);
-
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
 				OTG_EndpointInterruptEnable(DEVICE_ISO_OUT_EP,OnDeviceAudioRcvIsoPacket);
 				OTG_EndpointInterruptEnable(DEVICE_ISO_IN_EP,OnDeviceAudioSendIsoPacket);
@@ -486,25 +485,17 @@ void OTG_DeviceOtherRequest()
  * @param  NONE
  * @return NONE
  */
-//#define	otg_CommonUSB_Frame				((volatile uint16_t*)(0x4000000c))
-//uint16_t Frame;
 void OTG_DeviceRequestProcess(void)
 {
 	uint8_t BusEvent = OTG_DeviceBusEventGet();
 	uint32_t DataLeng;
 	uint8_t ReqType;
-	if(BusEvent != 0)
+	if(BusEvent)
 	{
-		DBG("BusEvent %d\n",BusEvent);
+		DBG("BusEvent %02x\n",BusEvent);
 	}
-//	if(Frame != *otg_CommonUSB_Frame)
-//	{
-//		DBG("Frame %d\n",Frame);
-//	}
-//	Frame = *otg_CommonUSB_Frame;
 	if(BusEvent & 0x04)
 	{
-		OTG_DeviceAddressSet(0);
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
 		UsbAudioMic.InitOk = 0;
 		UsbAudioSpeaker.InitOk = 0;

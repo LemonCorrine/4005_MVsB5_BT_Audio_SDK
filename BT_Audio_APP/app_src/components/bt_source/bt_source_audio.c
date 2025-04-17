@@ -114,22 +114,49 @@ uint16_t SbcSourceEncode(void* InBuf, uint16_t InLen)
 	}
 	
 	s_operate_only=1;
-	//APP_DBG("sampe=%d\n",InLen);
-	for(sample_count=0;sample_count<InLen/128;sample_count++)
-	{
-	
-		//__nds32__mtsr(0,NDS32_SR_PFMC0);
-		//__nds32__mtsr(1,NDS32_SR_PFM_CTL);
-		if(sbc_encoder_encode(sbc_source_encode_ct,((int16_t *)InBuf)+sample_count*256, (uint8_t *)&sbc_encode_buffer, &sbc_encoded_data_length)==SBC_ENC_ERROR_OK)
-		{
-			//__nds32__mtsr(0,NDS32_SR_PFM_CTL);
-			//cycle_value=__nds32__mfsr(NDS32_SR_PFMC0);
-			 //APP_DBG("%d\n",sbc_encoded_data_length);//*1000/288000000
-			 if(MCUCircular_GetSpaceLen(&sAudioSbcCircularBuf) > sbc_encoded_data_length)
-			 {
-				 MCUCircular_PutData(&sAudioSbcCircularBuf,sbc_encode_buffer,sbc_encoded_data_length);//SBC_NUMBER_PER_FRAME BYTE
-			 }
 
+	if(mainAppCt.sbc_encode_pcm_buf)
+	{
+		MCUCircular_PutData(&mainAppCt.sbc_encode_pcm_context,InBuf,InLen*4);
+		InLen = MCUCircular_GetDataLen(&mainAppCt.sbc_encode_pcm_context)/4;
+		for(sample_count=0;sample_count<InLen/128;sample_count++)
+		{
+			//__nds32__mtsr(0,NDS32_SR_PFMC0);
+			//__nds32__mtsr(1,NDS32_SR_PFM_CTL);
+			if(mainAppCt.sbc_encode_pcm_buf)
+			{
+				MCUCircular_GetData(&mainAppCt.sbc_encode_pcm_context,InBuf,128*2*2);
+				if(sbc_encoder_encode(sbc_source_encode_ct,((int16_t *)InBuf), (uint8_t *)&sbc_encode_buffer, &sbc_encoded_data_length)==SBC_ENC_ERROR_OK)
+				{
+					//__nds32__mtsr(0,NDS32_SR_PFM_CTL);
+					//cycle_value=__nds32__mfsr(NDS32_SR_PFMC0);
+					 //APP_DBG("%d\n",sbc_encoded_data_length);//*1000/288000000
+					 if(MCUCircular_GetSpaceLen(&sAudioSbcCircularBuf) > sbc_encoded_data_length)
+					 {
+						 MCUCircular_PutData(&sAudioSbcCircularBuf,sbc_encode_buffer,sbc_encoded_data_length);//SBC_NUMBER_PER_FRAME BYTE
+					 }
+					 else
+						 break;
+				}
+			}
+		}
+	}
+	else
+	{
+		for(sample_count=0;sample_count<InLen/128;sample_count++)
+		{
+			//__nds32__mtsr(0,NDS32_SR_PFMC0);
+			//__nds32__mtsr(1,NDS32_SR_PFM_CTL);
+			if(sbc_encoder_encode(sbc_source_encode_ct,((int16_t *)InBuf)+sample_count*256, (uint8_t *)&sbc_encode_buffer, &sbc_encoded_data_length)==SBC_ENC_ERROR_OK)
+			{
+				//__nds32__mtsr(0,NDS32_SR_PFM_CTL);
+				//cycle_value=__nds32__mfsr(NDS32_SR_PFMC0);
+				 //APP_DBG("%d\n",sbc_encoded_data_length);//*1000/288000000
+				 if(MCUCircular_GetSpaceLen(&sAudioSbcCircularBuf) > sbc_encoded_data_length)
+				 {
+					 MCUCircular_PutData(&sAudioSbcCircularBuf,sbc_encode_buffer,sbc_encoded_data_length);//SBC_NUMBER_PER_FRAME BYTE
+				 }
+			}
 		}
 	}
 	s_operate_only=0;

@@ -52,6 +52,8 @@ extern uint8_t GetCurSameEffectModeID(uint8_t index);
 extern AUDIOEFFECT_EFFECT_PARA * GetCurSameEffectModeAudioPara(uint8_t index);
 extern uint8_t GetCurEffectModeNum(void);
 extern void AudioEffect_effect_enable(uint8_t effect_addr, uint8_t enable);
+extern void GetEffectNameCurPackageforCommunication(uint32_t done_len, uint8_t *p);
+extern uint32_t GetEffectNameTotalLen(void);
 
 static const uint32_t SupportSampleRateList[]={
 	8000,
@@ -698,8 +700,7 @@ void Comm_ADC0_0x04(uint8_t * buf)
 		case 8://adc0 mclk src
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 			memcpy(&gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source, &buf[1], 2);
-	        gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source = gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source;
-	        Clock_AudioMclkSel(AUDIO_ADC0, gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source);
+	        Clock_AudioMclkSel(AUDIO_ADC0, gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source);
 #endif
 		    break;
 		case 9://hpc0 en
@@ -725,7 +726,7 @@ void Communication_Effect_0x04(uint8_t *buf, uint32_t len)////ADC0 DIGITAL
 		memcpy(&tx_buf[7], &gCtrlVars.HwCt.ADC0DigitalCt.adc_mute, 2);
 		memcpy(&tx_buf[9], &gCtrlVars.HwCt.ADC0DigitalCt.adc_dig_l_vol, 2);
 		memcpy(&tx_buf[11], &gCtrlVars.HwCt.ADC0DigitalCt.adc_dig_r_vol, 2);
-		memcpy(&tx_buf[13], &gCtrlVars.sample_rate_index, 2);//定义一个全局结构体，用于上传PC
+		memcpy(&tx_buf[13], &gCtrlVars.HwCt.ADC0DigitalCt.adc_sample_rate, 2);
 		memcpy(&tx_buf[15], &gCtrlVars.HwCt.ADC0DigitalCt.adc_lr_swap,2);
 		memcpy(&tx_buf[17], &gCtrlVars.HwCt.ADC0DigitalCt.adc_hpc, 2);
 		tx_buf[19] = 5;
@@ -881,8 +882,7 @@ void Comm_ADC1_0x07(uint8_t * buf)
 		case 8://adc1 mclk src
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 			memcpy(&gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source, &buf[1], 2);
-	        gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source = gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source;
-	        Clock_AudioMclkSel(AUDIO_ADC1, gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source);
+	        Clock_AudioMclkSel(AUDIO_ADC1, gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source);
 #endif
 		    break;
 		case 9://hpc1 en
@@ -911,7 +911,7 @@ void Communication_Effect_0x07(uint8_t *buf, uint32_t len)///ADC1 DIGITAL
 		memcpy(&tx_buf[7], &gCtrlVars.HwCt.ADC1DigitalCt.adc_mute, 2);
 		memcpy(&tx_buf[9], &gCtrlVars.HwCt.ADC1DigitalCt.adc_dig_l_vol, 2);
 		memcpy(&tx_buf[11], &gCtrlVars.HwCt.ADC1DigitalCt.adc_dig_r_vol, 2);
-		memcpy(&tx_buf[13], &gCtrlVars.sample_rate_index, 2);
+		memcpy(&tx_buf[13], &gCtrlVars.HwCt.ADC1DigitalCt.adc_sample_rate, 2);
 		memcpy(&tx_buf[15],  &gCtrlVars.HwCt.ADC1DigitalCt.adc_lr_swap,2);
 		memcpy(&tx_buf[17], &gCtrlVars.HwCt.ADC1DigitalCt.adc_hpc, 2);
 		tx_buf[19] = 5;
@@ -1145,8 +1145,7 @@ void Comm_DAC0_0x09(uint8_t * buf)
         case 13:///dac0 mclk source
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 			memcpy(&gCtrlVars.HwCt.DAC0Ct.dac_mclk_source, &buf[1], 2);
-	        gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source = gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source;
-	        Clock_AudioMclkSel(DAC0, gCtrlVars.HwCt.DAC0Ct.dac_mclk_source);
+	        Clock_AudioMclkSel(AUDIO_DAC0, gCtrlVars.HwCt.DAC0Ct.dac_mclk_source > 2 ? (gCtrlVars.HwCt.DAC0Ct.dac_mclk_source - 1):gCtrlVars.HwCt.DAC0Ct.dac_mclk_source);
 #endif
 		default:
 			break;
@@ -1166,7 +1165,7 @@ void Communication_Effect_0x09(uint8_t *buf, uint32_t len)///DAC0
 		tx_buf[3]  = 1 + 14*2;///1 + len * sizeof(int16)
 		tx_buf[4]  = 0xff;
  	    tx_buf[5] = 3;		//L+R enable
-		memcpy(&tx_buf[7], &gCtrlVars.sample_rate_index, 2);
+		memcpy(&tx_buf[7], &gCtrlVars.HwCt.DAC0Ct.dac_sample_rate, 2);
         memcpy(&tx_buf[9], &gCtrlVars.HwCt.DAC0Ct.dac_dig_mute, 2);
 		memcpy(&tx_buf[11], &gCtrlVars.HwCt.DAC0Ct.dac_dig_l_vol, 2);
 		memcpy(&tx_buf[13], &gCtrlVars.HwCt.DAC0Ct.dac_dig_r_vol, 2);
@@ -1210,8 +1209,7 @@ void Comm_I2S0_0x0B(uint8_t * buf)
 		case 3:///I2S0 mclk source
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 			memcpy(&gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source, &buf[1], 2);
-	        gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source = gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source;
-			Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
+			Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source > 2 ? (gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source - 1):gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
 #endif
 			break;
 		default:
@@ -1283,8 +1281,7 @@ void Comm_I2S1_0x0C(uint8_t * buf)
 		case 3:///I2S1 mclk source
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 			memcpy(&gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source, &buf[1], 2);
-	        gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source = gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source;
-			Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
+			Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source > 2 ? (gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source - 1):gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
 #endif
 			break;
 		default:
@@ -1479,10 +1476,6 @@ void Communication_Effect_0xfc(uint8_t *buf, uint8_t len)//user define tag
 #endif
 }
 
-#ifdef CFG_EFFECT_PARAM_UPDATA_BY_ACPWORKBENCH
-bool EffectParamFlashUpdataFlag = FALSE;
-#endif
-
 void Communication_Effect_0xfd(uint8_t *buf, uint8_t len)//user define tag
 {
 #ifdef CFG_EFFECT_PARAM_UPDATA_BY_ACPWORKBENCH
@@ -1491,8 +1484,8 @@ void Communication_Effect_0xfd(uint8_t *buf, uint8_t len)//user define tag
 	tx_buf[1]  = 0x5a;
 	tx_buf[2]  = 0xfd;//control
 	tx_buf[3]  = 0x16;
+	EffectParamFlashUpdata();
 	Communication_Effect_Send(&tx_buf[2], 1);//返回控制字
-	EffectParamFlashUpdataFlag = TRUE;
 #endif
 }
 

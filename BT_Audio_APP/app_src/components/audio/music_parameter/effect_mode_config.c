@@ -55,6 +55,14 @@ extern const AUDIOEFFECT_EFFECT_PARA hfp_effect_para;
 extern const AUDIOEFFECT_SOURCE_SINK_NUM hfp_mode;
 extern const uint8_t hfp_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX];
 
+extern const AUDIOEFFECT_EFFECT_PARA uac_effect_para;
+extern const AUDIOEFFECT_SOURCE_SINK_NUM uac_mode;
+extern const uint8_t uac_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX];
+
+extern const AUDIOEFFECT_EFFECT_PARA TwoAudio_effect_para;
+extern const AUDIOEFFECT_SOURCE_SINK_NUM TwoAudio_mode;
+extern const uint8_t TwoAudio_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX];
+
 #ifndef CFG_FLOWCHART_KARAOKE_ENABLE
 uint8_t msg_process_Karaoke(int msg)
 {
@@ -66,6 +74,11 @@ uint8_t msg_process_Karaoke(int msg)
 //包含音效参数节点，MSG消息处理
 static const UserEffectModeValidConfig EffectModeToggleMap[] =
 {
+#if(CFG_FUNC_EFFECT_DEMO == EFFECT_USB_HOST_AUDIO_DEMO) 		//host uac 音效框图DEMO
+	{EFFECT_MODE_UAC,		EffectModeStateReady,	&uac_mode,		&uac_effect_para,		uac_effect_ctrl,	NULL	},
+#elif(CFG_FUNC_EFFECT_DEMO == EFFECT_USB_DEVICE_TWO_AUDIO_DEMO)
+	{EFFECT_MODE_TWO_AUDIO,	EffectModeStateReady,	&TwoAudio_mode,	&TwoAudio_effect_para,	TwoAudio_effect_ctrl,	NULL	},
+#else
 #ifdef CFG_AI_DENOISE_EN
 	{EFFECT_MODE_MICUSBAI,	EffectModeStateReady,	&micusbAI_mode,	&micusbAI_effect_para,	NULL,	NULL},
 #endif
@@ -87,6 +100,7 @@ static const UserEffectModeValidConfig EffectModeToggleMap[] =
 #endif
 #if defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT)
 	{EFFECT_MODE_HFP_AEC,	EffectModeStateSuspend,	&hfp_mode,		&hfp_effect_para,	hfp_effect_ctrl,	NULL},
+#endif
 #endif
 };
 
@@ -338,58 +352,70 @@ uint32_t GetEffectNameTotalLen()
 
 void GetEffectNameCurPackageforCommunication(uint32_t done_len, uint8_t *p)
 {
-	uint8_t index, name_len = 0;
-	uint32_t data_len = 0;
-	AUDIOEFFECT_EFFECT_PARA *para;
-	for (index = 0; index < GetEffectModeParaCount(); index++)
-	{
-		para = GetCurSameEffectModeAudioPara(index);
-		data_len += strlen((char *)para->user_effect_name);
-		if(data_len >= done_len)
-		{
-			//Get the ParaIndex and len which no send in previous package
-			name_len = (data_len - done_len);
-			data_len = 0;
-			break;
-		}
-		data_len += 1;
-	}
-	for (; index < GetEffectModeParaCount(); index++)
-	{
-		para = GetCurSameEffectModeAudioPara(index);
-		name_len = name_len ? name_len:strlen((char *)para->user_effect_name);
-		if(index == (GetEffectModeParaCount() - 1))
-		{
-			//final name no need ';'
-			if((data_len + name_len) <= STREAM_CLIPS_LEN)
-			{
-				memcpy(p + data_len, (char *)(para->user_effect_name) + (strlen((char *)para->user_effect_name) - name_len), name_len);
-				data_len += name_len;
-			}
-			else
-			{
-				memcpy(p + data_len, (char *)(para->user_effect_name), (STREAM_CLIPS_LEN - data_len));
-				data_len += (STREAM_CLIPS_LEN - data_len);
-				return;
-			}
-		}
-		else
-		{
-			if((data_len + name_len) <= STREAM_CLIPS_LEN)
-			{
-				memcpy(p + data_len, (char *)(para->user_effect_name) + (strlen((char *)para->user_effect_name) - name_len), name_len);
-				data_len += name_len;
-				memset(p + data_len, ';', 1);
-				data_len += 1;
-			}
-			else
-			{
-				memcpy(p + data_len, (char *)(para->user_effect_name), (STREAM_CLIPS_LEN - data_len));
-				data_len += (STREAM_CLIPS_LEN - data_len);
-				return;
-			}
-		}
-		name_len = 0;
-	}
-	return;
+    uint8_t index, name_len = 0;
+    uint32_t data_len = 0;
+    AUDIOEFFECT_EFFECT_PARA *para;
+
+    for (index = 0; index < GetEffectModeParaCount(); index++)
+    {
+        para = GetCurSameEffectModeAudioPara(index);
+        uint32_t name_length = strlen((char *)para->user_effect_name);
+
+        if (data_len + name_length >= done_len)
+        {
+            name_len = (data_len + name_length) - done_len;
+            if (name_len == 0)
+            {
+                name_len = name_length;
+                if (done_len > 0)
+                {
+                    *p = ';';
+                    data_len = 1;
+                    index++;     // current effect name have already in last package, skip it
+                }
+            }
+            else
+            {
+            	data_len = 0;
+            }
+            break;
+        }
+        data_len += (name_length + 1); // +1 for ';'
+    }
+
+    for (; index < GetEffectModeParaCount(); index++)
+    {
+        para = GetCurSameEffectModeAudioPara(index);
+        uint32_t total_name_len = strlen((char *)para->user_effect_name);
+        name_len = name_len ? name_len : total_name_len;
+
+        uint32_t available = STREAM_CLIPS_LEN - data_len;
+
+        if (index == (GetEffectModeParaCount() - 1))
+        {
+            uint32_t copy_len = (available >= name_len) ? name_len : available;
+            memcpy(p + data_len, para->user_effect_name + (total_name_len - name_len), copy_len);
+            data_len += copy_len;
+            if (copy_len < name_len)
+            	return;
+        }
+        else
+        {
+            uint32_t required = name_len + 1; // name + ';'
+
+            if (available >= required)
+            {
+                memcpy(p + data_len, para->user_effect_name + (total_name_len - name_len), name_len);
+                data_len += name_len;
+                p[data_len++] = ';';
+            }
+            else if	(available > 0)
+            {
+                memcpy(p + data_len, para->user_effect_name + (total_name_len - name_len), available);
+                data_len += available;
+                return;
+            }
+        }
+        name_len = 0; // Reset for next iteration
+    }
 }

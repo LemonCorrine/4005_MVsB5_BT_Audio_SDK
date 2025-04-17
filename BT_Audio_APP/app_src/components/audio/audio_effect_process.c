@@ -29,7 +29,7 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 	int16_t  s;
 	uint16_t n = AudioCoreFrameSizeGet(AudioCore.CurrentMix);
 //	PCM_DATA_TYPE *monitor_out	= NULL;
-	PCM_DATA_TYPE *mic_in	= NULL;
+//	PCM_DATA_TYPE *mic_in	= NULL;
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
 	PCM_DATA_TYPE *usb_out	= NULL;
 #endif
@@ -52,19 +52,6 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 		usb_out = pAudioCore->AudioSink[USB_AUDIO_SINK_NUM].PcmOutBuf;
 	}
 #endif
-
-	if(pAudioCore->AudioSource[MIC_SOURCE_NUM].Active)
-	{
-		mic_in = pAudioCore->AudioSource[MIC_SOURCE_NUM].PcmInBuf;
-		if(mic_in)
-		{
-			for(s = n-1; s >= 0; s--)
-			{
-				mic_in[s*2 + 0] = mic_in[s];
-				mic_in[s*2 + 1] = mic_in[s];
-			}
-		}
-	}
 
 	roboeffect_apply(AudioEffect.context_memory);
 

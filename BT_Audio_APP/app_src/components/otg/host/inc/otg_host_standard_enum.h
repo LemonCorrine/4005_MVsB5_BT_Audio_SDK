@@ -177,7 +177,7 @@ typedef struct _USB_FUN
 
 
 #define		MAX_USB_SN_LEN			50
-#define 	MAX_DESCRIPTOR_LEN		64	//512
+#define 	MAX_DESCRIPTOR_LEN		512	//512
 #define 	MAXINTERFACE			6
 #define		MAX_USB_STRING_LEN		50
 typedef struct _OTG_HOST_INFO

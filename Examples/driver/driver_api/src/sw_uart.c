@@ -27,35 +27,57 @@ osMutexId SwUARTMutex = NULL;
 #endif
 
 #ifdef SW_UART_IO_PORT
-
-#if (CFG_SW_UART_BANDRATE == 38400)
-#define SW_DELAY	144
-#elif(CFG_SW_UART_BANDRATE == 57600)
-#define SW_DELAY	95
-#elif(CFG_SW_UART_BANDRATE == 115200)
-#define SW_DELAY	45
-#elif(CFG_SW_UART_BANDRATE == 256000)
-#define SW_DELAY	22
+#if (CFG_SW_UART_BANDRATE == 115200)
+#if SYS_CORE_SET_MODE == CORE_USER_MODE
+#define SW_DELAY	40
+#else
+#define SW_DELAY	47
+#endif
 #elif(CFG_SW_UART_BANDRATE == 512000)
-#define SW_DELAY	11
-#elif(CFG_SW_UART_BANDRATE == 1000000)
-#define SW_DELAY	5
+#if SYS_CORE_SET_MODE == CORE_USER_MODE
+#define SW_DELAY	9
 #else
 #define SW_DELAY	11
+#endif
+#else
+#if SYS_CORE_SET_MODE == CORE_USER_MODE
+#define SW_DELAY	9
+#else
+#define SW_DELAY	11
+#endif
 #endif
 
 
 #if (SW_UART_IO_PORT == GPIO_A_IN)
 #define SW_PORT			GPIO_A_IN
-#define SW_OUT_REG		0x40010004
+#define SW_OUT_REG		0x40040004
 #else
 #define SW_PORT			GPIO_B_IN
-#define SW_OUT_REG		0x40010034
+#define SW_OUT_REG		0x40040034
 #endif
 
 #define SW_PIN_MASK		(1<<SW_UART_IO_PORT_PIN_INDEX)
 
+#include "remap.h"
+#define	SW_UART_TCM_SIZE		4
+uint8_t IsSwUartActedAsUARTFlag = 0;
+static	uint8_t tcm_buf[(SW_UART_TCM_SIZE+1)*1024];
 
+void SwUartDelay(unsigned int us);
+void SwUartTxTcmInit(void)
+{
+	uint32_t StartAddr;
+	uint32_t TCMStartAddr;
+
+	TCMStartAddr = (((uint32_t)tcm_buf + 1024) / 1024) * 1024;
+	StartAddr = (((uint32_t)SwUartDelay - 1024)/ 1024) *1024;
+
+	Remap_AddrRemapDisable(ADDR_REMAP2);
+	memcpy((void*)TCMStartAddr, (void*)StartAddr, SW_UART_TCM_SIZE*1024);
+	Remap_AddrRemapSet(ADDR_REMAP2, StartAddr, TCMStartAddr, SW_UART_TCM_SIZE);
+
+	printf("Tcm_Swdelay: %x-%x ,%x-%x\n",StartAddr,SwUartDelay, TCMStartAddr,tcm_buf);
+}
 /**
  * @brief  Init specified IO as software uart's TX.
  *
@@ -75,6 +97,8 @@ void SwUartTxInit(uint8_t PortIndex, uint8_t PinIndex, uint32_t BaudRate)
 	GPIO_RegOneBitSet(SW_PORT + 1, SW_PIN_MASK);//Must output high as default!
 	GPIO_RegOneBitClear(SW_PORT + 5, SW_PIN_MASK);//Input disable
 	GPIO_RegOneBitSet(SW_PORT + 6, SW_PIN_MASK);//Output enable
+
+	SwUartTxTcmInit();
 }
 
  /**
@@ -110,7 +134,7 @@ void SWUartBuadRateAutoAdap(char PreFq, char CurFq)
  * @return None.
  */
 uint32_t Clock_SysClockFreqGet(void); //clk.h
-__attribute__((section(".tcm_section"), optimize("Og")))
+//__attribute__((section(".tcm_section"), optimize("Og")))
 void SwUartDelay(unsigned int us)//200ns
 {
 	int i;
@@ -146,7 +170,7 @@ inline void GIE_ENABLE(void);
 * @param  c: byte to be send
 * @return None
 */
-__attribute__((section(".tcm_section"), optimize("Og")))
+//__attribute__((section(".tcm_section"), optimize("Og")))
 void SwUartSendByte(uint8_t c)
 {
 	uint8_t i;
@@ -160,8 +184,19 @@ void SwUartSendByte(uint8_t c)
 	InterruptLevelSet(1);
 #endif
 	(*(volatile unsigned long *) SW_OUT_REG) &= ~(SW_PIN_MASK);
-	SwUartDelay(SW_DELAY);
+	
+		// *((unsigned long *)(0x40040000 + (GPIO_A_IE << 2))) &= ~GPIOA2;
 
+		// *((unsigned long *)(0x40040000 + (GPIO_A_OE << 2))) |= GPIOA2;
+
+		// *((unsigned long *)(0x40040000 + (GPIO_A_OUT << 2))) |= GPIOA2;
+		SwUartDelay(SW_DELAY);
+
+		// *((unsigned long *)(0x40040000 + (GPIO_A_IE << 2))) &= ~GPIOA2;
+
+		// *((unsigned long *)(0x40040000 + (GPIO_A_OE << 2))) |= GPIOA2;
+
+		// *((unsigned long *)(0x40040000 + (GPIO_A_OUT << 2))) &= ~GPIOA2;
 	for(i=0; i<8; i++)
 	{
 		if(c & 0x01)
@@ -214,5 +249,11 @@ void SwUartSend(uint8_t* Buf, uint32_t BufLen)
 		SwUartSendByte(*Buf++);
 	}
 }
+
+void EnableSwUartAsFuart(bool EnableFlag)
+{
+	IsSwUartActedAsUARTFlag = EnableFlag;
+}
+
 #endif
 

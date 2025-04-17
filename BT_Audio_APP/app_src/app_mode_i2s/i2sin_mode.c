@@ -63,26 +63,54 @@ typedef struct _I2SInPlayContext
 
 }I2SInPlayContext;
 
+static const uint8_t DmaChannelMap[6] =
+{
+	//DMA默认配置不要删除，DMA数量不足6个的时候作为填充用
+	DMA_CFG_TABLE_DEFAULT_INIT
 
-static const uint8_t DmaChannelMap[6] = {
-	PERIPHERAL_ID_AUDIO_ADC0_RX,
-	PERIPHERAL_ID_AUDIO_ADC1_RX,
+#ifdef CFG_RES_AUDIO_DAC0_EN
 	PERIPHERAL_ID_AUDIO_DAC0_TX,
-	PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_I2S_MODULE,
-#ifdef CFG_RES_AUDIO_I2SOUT_EN
-	PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE,
-#else
+#endif
+
+#if CFG_RES_MIC_SELECT
+	PERIPHERAL_ID_AUDIO_ADC1_RX,
+#endif
+
 #ifdef CFG_RES_AUDIO_SPDIFOUT_EN
 	SPDIF_OUT_DMA_ID,
-#else
-	255,
 #endif
+
+#if (I2S_ALL_DMA_CH_CFG & I2S0_TX_NEED_ENABLE)
+	PERIPHERAL_ID_I2S0_TX,
 #endif
-#ifdef CFG_RES_AUDIO_I2S_MIX_IN_EN
-	PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX_I2S_MODULE,
-#else
+#if (I2S_ALL_DMA_CH_CFG & I2S1_TX_NEED_ENABLE)
+	PERIPHERAL_ID_I2S1_TX,
+#endif
+#if (I2S_ALL_DMA_CH_CFG & I2S0_RX_NEED_ENABLE)
+	PERIPHERAL_ID_I2S0_RX,
+#endif
+#if (I2S_ALL_DMA_CH_CFG & I2S1_RX_NEED_ENABLE)
+	PERIPHERAL_ID_I2S1_RX,
+#endif
+
+#ifdef CFG_COMMUNICATION_BY_UART
+	CFG_FUNC_COMMUNICATION_TX_DMA_PORT,
+	CFG_FUNC_COMMUNICATION_RX_DMA_PORT,
+#endif
+
+#ifdef CFG_FUNC_LINEIN_MIX_MODE
+	PERIPHERAL_ID_AUDIO_ADC0_RX,
+#endif
+
+#if ((I2S_ALL_DMA_CH_CFG & I2SIN_MODE_I2S_DMA_CH) == 0)
+	PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_I2S_MODULE,
+#endif
+
+#ifdef CFG_DUMP_DEBUG_EN
+	CFG_DUMP_UART_TX_DMA_CHANNEL,
+#endif
+
 	PERIPHERAL_ID_SDIO_RX,
-#endif
 };
 
 static  I2SInPlayContext*		sI2SInPlayCt;
@@ -183,14 +211,13 @@ bool I2SInPlayResInit(void)
 #endif
 
 	I2S_ModuleDisable(CFG_RES_I2S_MODULE);
-	I2S_AlignModeSet(CFG_RES_I2S_MODULE, I2S_LOW_BITS_ACTIVE);
 	AudioI2S_Init(CFG_RES_I2S_MODULE,&i2s_set);
 
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 	if(CFG_RES_I2S_MODULE == I2S0_MODULE)
-		Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
+		Clock_AudioMclkSel(AUDIO_I2S0, gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source > 2 ? (gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source - 1):gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source);
 	else
-		Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
+		Clock_AudioMclkSel(AUDIO_I2S1, gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source > 2 ? (gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source - 1):gCtrlVars.HwCt.I2S1Ct.i2s_mclk_source);
 #else
 	if(CFG_RES_I2S_MODULE == I2S0_MODULE)
 		gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source = Clock_AudioMclkGet(AUDIO_I2S0);
@@ -336,7 +363,7 @@ void I2SInPlayRun(uint16_t msgId)
 {
 #if (CFG_RES_I2S_MODE == 1)
 	extern void AudioSpdifOut_SampleRateChange(uint32_t SampleRate);
-	if (I2S_SampleRateCheckInterruptGet(CFG_RES_I2S_MODULE))
+	if (I2S_SampleRateCheckInterruptGet(CFG_RES_I2S_MODULE) && (gCtrlVars.HwCt.I2S0Ct.i2s_mclk_source < 2))
 	{
 #if defined (CFG_RES_AUDIO_SPDIFOUT_EN) && defined (CFG_I2S_SLAVE_TO_SPDIFOUT_EN)
 		{

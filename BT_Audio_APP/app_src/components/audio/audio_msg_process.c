@@ -25,63 +25,6 @@ int16_t EqMode;
 int16_t MicVolume = CFG_PARA_SYS_VOLUME_DEFAULT;
 int16_t MusicVolume = CFG_PARA_SYS_VOLUME_DEFAULT;
 
-#if (CFG_PARA_MAX_VOLUME_NUM == 32)
-static const int16_t VolumeTable[CFG_PARA_MAX_VOLUME_NUM + 1] = {
-	-7200, -6300, -5600, -4900, -4400, -4000, -3600, -3200, -2900, -2600,
-	-2400, -2200, -2000, -1900, -1800, -1700, -1600, -1500, -1400, -1300,
-	-1200, -1100, -1000, -900, -800, -700, -600, -500, -400, -300,
-	-200,  -100, 0
-};
-#elif (CFG_PARA_MAX_VOLUME_NUM == 16)
-static const int16_t VolumeTable[CFG_PARA_MAX_VOLUME_NUM + 1] = {
-	-7200, -5600, -4400, -3600, -2900, -2400, -2000, -1600, -1300, -1000,
-	-800, -600, -400, -200, -100, 0
-};
-#endif
-
-
-uint8_t AudioMusicVolSync(void)
-{
-	uint8_t 	refresh_addr = GetEffectControlIndex(MUSIC_VOLUME_ADJUST);
-	uint8_t     vol = mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM];
-
-	if(vol > CFG_PARA_MAX_VOLUME_NUM)
-		vol = CFG_PARA_MAX_VOLUME_NUM;
-
-	if(refresh_addr != 0)
-		roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 1, (int16_t *)&VolumeTable[vol]);
-
-	return refresh_addr;
-}
-
-uint8_t AudioMicVolSync(void)
-{
-	uint8_t 	refresh_addr = GetEffectControlIndex(MIC_VOLUME_ADJUST);
-	uint8_t     vol = mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM];
-
-	if(vol > CFG_PARA_MAX_VOLUME_NUM)
-		vol = CFG_PARA_MAX_VOLUME_NUM;
-
-	if(refresh_addr != 0)
-		roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 1, (int16_t *)&VolumeTable[vol]);
-
-	return refresh_addr;
-}
-
-uint8_t AudioRemindVolSync(void)
-{
-	uint8_t 	refresh_addr = GetEffectControlIndex(REMIND_VOLUME_ADJUST);
-	uint8_t     vol = mainAppCt.gSysVol.AudioSourceVol[REMIND_SOURCE_NUM];
-
-	if(vol > CFG_PARA_MAX_VOLUME_NUM)
-		vol = CFG_PARA_MAX_VOLUME_NUM;
-
-	if(refresh_addr != 0)
-		roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 1, (int16_t *)&VolumeTable[vol]);
-
-	return refresh_addr;
-}
-
 uint8_t AudioEqSync(void)
 {
 	uint8_t refresh_addr = GetEffectControlIndex(EQ_MODE_ADJUST);
@@ -112,8 +55,8 @@ void AudioEffectParamSync(void)
 	if(AudioEffect.context_memory == NULL)
 		return;
 
-	AudioMusicVolSync();
-	AudioMicVolSync();
+	AudioEffect_SourceGain_Update(APP_SOURCE_NUM, mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
+	AudioEffect_SourceGain_Update(MIC_SOURCE_NUM, mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]);
 #ifdef CFG_FUNC_MUSIC_EQ_MODE_EN
 	AudioEqSync();
 #endif
@@ -149,21 +92,33 @@ uint8_t AudioCommonMsgProcess(uint16_t Msg)
 		}
 		break;
 	case MSG_MUSIC_VOLUP:
-		AudioMusicVolUp();
-		refresh_addr = AudioMusicVolSync();
+		refresh_addr = GetEffectControlIndex(MUSIC_VOLUME_ADJUST);
+		if(refresh_addr)
+		{
+			AudioMusicVolUp();
+		}
 		break;
 	case MSG_MUSIC_VOLDOWN:
-		AudioMusicVolDown();
-		refresh_addr = AudioMusicVolSync();
+		refresh_addr = GetEffectControlIndex(MUSIC_VOLUME_ADJUST);
+		if(refresh_addr)
+		{
+			AudioMusicVolDown();
+		}
 		break;
 #if CFG_RES_MIC_SELECT
 	case MSG_MIC_VOLUP:
-		AudioMicVolUp();
-		refresh_addr = AudioMicVolSync();
+		refresh_addr = GetEffectControlIndex(MIC_VOLUME_ADJUST);
+		if(refresh_addr)
+		{
+			AudioMicVolUp();
+		}
 		break;
 	case MSG_MIC_VOLDOWN:
-		AudioMicVolDown();
-		refresh_addr = AudioMicVolSync();
+		refresh_addr = GetEffectControlIndex(MIC_VOLUME_ADJUST);
+		if(refresh_addr)
+		{
+			AudioMicVolDown();
+		}
 		break;
 #endif
 	}

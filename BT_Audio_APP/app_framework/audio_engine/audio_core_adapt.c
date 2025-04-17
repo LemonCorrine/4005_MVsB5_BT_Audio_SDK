@@ -154,10 +154,10 @@ uint32_t Min3(uint32_t x, uint32_t y, uint32_t z)
 //sign 1:正向微调; -1:反向微调
 void ClkAdjust(CLK_ADJUST_ADAPTER * AdjAdapter, uint32_t ValidDepth, int8_t sign)
 {
-	uint16_t AverageLevel = AdjAdapter->TotalNum / AdjAdapter->Count;
+	uint32_t AverageLevel = AdjAdapter->TotalNum / AdjAdapter->Count;
 
 	//水位超 mix要加快 div要降低
-	int16_t	AdjustVal = ADJLEVEL(AdjAdapter->TotalNum / AdjAdapter->Count,
+	int32_t	AdjustVal = ADJLEVEL(AdjAdapter->TotalNum / AdjAdapter->Count,
 							(ValidDepth * AdjAdapter->LowLevelCent) / 100,
 							(ValidDepth * AdjAdapter->HighLevelCent) / 100);
 	if(!AdjustVal)//
@@ -1740,6 +1740,7 @@ void AudioCoreSourceGet(uint8_t Index)
 					uint32_t ValidDepth = ((uint64_t)AudioCore.SampleRate[AudioCore.AudioSource[Index].Net] * AdjAdapter->Depth) / SrcAdapter->SampleRate
 											+ SrcAdapter->SrcBufHandler.BufDepth / PcmDataLen
 											- SOURCEFRAME(Index);
+//					printf("\n %d %d val %d\n",ValidDepth,AdjAdapter->TotalNum / AdjAdapter->Count,AdjAdapter->AdjustVal);
 					ClkAdjust(AdjAdapter, ValidDepth, 1);
 				}
 			}

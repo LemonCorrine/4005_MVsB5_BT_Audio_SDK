@@ -72,46 +72,49 @@ extern void	HDMI_CEC_DDC_Init(void);
 #define SHELL_TASK_PRIO					2
 
 
-/**根据appconfig缺省配置:DMA 8个通道配置**/
-/*1、cec需PERIPHERAL_ID_TIMER3*/
-/*2、SD卡录音需PERIPHERAL_ID_SDIO RX/TX*/
-/*3、在线串口调音需PERIPHERAL_ID_UART1 RX/TX,建议使用USB HID，节省DMA资源*/
-/*4、线路输入需PERIPHERAL_ID_AUDIO_ADC0_RX*/
-/*5、Mic开启需PERIPHERAL_ID_AUDIO_ADC1_RX，mode之间通道必须一致*/
-/*6、Dac0开启需PERIPHERAL_ID_AUDIO_DAC0_TX mode之间通道必须一致*/
-/*7、DacX需开启PERIPHERAL_ID_AUDIO_DAC1_TX mode之间通道必须一致*/
-/*注意DMA 8个通道配置冲突:*/
-/*a、默认在线调音使用USB HID*/
-
 static const uint8_t DmaChannelMap[6] = {
-	PERIPHERAL_ID_AUDIO_ADC0_RX,
-	PERIPHERAL_ID_AUDIO_ADC1_RX,
+	//DMA默认配置不要删除，DMA数量不足6个的时候作为填充用
+	DMA_CFG_TABLE_DEFAULT_INIT
+
+#ifdef CFG_RES_AUDIO_DAC0_EN
 	PERIPHERAL_ID_AUDIO_DAC0_TX,
-//#ifdef CFG_DUMP_DEBUG_EN
-//	CFG_DUMP_UART_TX_DMA_CHANNEL,
-//#else
-//	255,
-//#endif
-#ifdef CFG_RES_AUDIO_I2S_MIX_IN_EN
-	PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX_I2S_MODULE,
-#else
-	PERIPHERAL_ID_SDIO_RX,
 #endif
+
+#if CFG_RES_MIC_SELECT
+	PERIPHERAL_ID_AUDIO_ADC1_RX,
+#endif
+
+#ifdef CFG_RES_AUDIO_SPDIFOUT_EN
+	SPDIF_OUT_DMA_ID,
+#endif
+
+#if (I2S_ALL_DMA_CH_CFG & I2S0_TX_NEED_ENABLE)
+	PERIPHERAL_ID_I2S0_TX,
+#endif
+#if (I2S_ALL_DMA_CH_CFG & I2S1_TX_NEED_ENABLE)
+	PERIPHERAL_ID_I2S1_TX,
+#endif
+#if (I2S_ALL_DMA_CH_CFG & I2S0_RX_NEED_ENABLE)
+	PERIPHERAL_ID_I2S0_RX,
+#endif
+#if (I2S_ALL_DMA_CH_CFG & I2S1_RX_NEED_ENABLE)
+	PERIPHERAL_ID_I2S1_RX,
+#endif
+
 #ifdef CFG_COMMUNICATION_BY_UART
 	CFG_FUNC_COMMUNICATION_TX_DMA_PORT,
 	CFG_FUNC_COMMUNICATION_RX_DMA_PORT,
-#else
-	#ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
-		PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX_I2S_MODULE,
-	#else
-		255,
-	#endif
-	#ifdef CFG_RES_AUDIO_I2SOUT_EN
-		PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE,
-	#else
-		255
-	#endif
 #endif
+
+#ifdef CFG_FUNC_LINEIN_MIX_MODE
+	PERIPHERAL_ID_AUDIO_ADC0_RX,
+#endif
+
+#ifdef CFG_DUMP_DEBUG_EN
+	CFG_DUMP_UART_TX_DMA_CHANNEL,
+#endif
+
+	PERIPHERAL_ID_SDIO_RX,
 };
 
 static void MainAppInit(void)
@@ -613,7 +616,10 @@ static void MainAppTaskEntrance(void * param)
 		extern void AutoTestMain(uint16_t test_msg);
 		AutoTestMain(msg.msgId);
 		#endif
-
+#ifdef CFG_FUNC_USB_HOST_AUDIO_MIX_MODE
+		extern void UsbHostHidDateProcess(void);
+		UsbHostHidDateProcess();
+#endif
 		if(mainAppCt.state == TaskStateRunning)
 		{
 			DeviceServicePocess(msg.msgId);

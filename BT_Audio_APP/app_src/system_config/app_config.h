@@ -40,9 +40,9 @@
 /*开启flash_boot时，用flashboot升级usercode后，boot明码区和code明码(如0xB8和0xB8+0x10000)两个值会不同，
  * 前者是burner烧录时版本，后者是mva版本需关注*/
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
-#define  CFG_SDK_MAJOR_VERSION		(0)
-#define  CFG_SDK_MINOR_VERSION		(9)
-#define  CFG_SDK_PATCH_VERSION	    (1)
+#define  CFG_SDK_MAJOR_VERSION		(1)
+#define  CFG_SDK_MINOR_VERSION		(0)
+#define  CFG_SDK_PATCH_VERSION	    (0)
 
 
 //****************************************************************************************
@@ -78,6 +78,16 @@
 #endif
 
 /**USB声卡，读卡器，一线通功能 **/
+#define USB_VID				0x1238
+#define USB_PID_BASE		0x18B5//具体PID叠加下列功能值作为Offset
+
+#define HID					0
+#define AUDIO_ONLY			1
+#define MIC_ONLY			2
+#define AUDIO_MIC			3
+#define AUDIO_MIC_AUDIO		4
+#define READER				5
+
 #ifdef  CFG_APP_USB_AUDIO_MODE_EN
 	#define CFG_PARA_USB_MODE	AUDIO_MIC
 
@@ -87,6 +97,23 @@
 	#define CFG_PARA_AUDIO_USB_OUT_SYNC	//时钟偏差引起的 采样点同步
 	#define CFG_PARA_AUDIO_USB_OUT_SRC	//转采样准备
 	#define CFG_RES_AUDIO_USB_VOL_SET_EN
+
+	#if((CFG_PARA_USB_MODE == MIC_ONLY) || (CFG_PARA_USB_MODE == AUDIO_MIC) || (CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO))
+		#define	CFG_OTG_MODE_MIC_EN			//OTG声卡 MIC开启
+	#endif
+
+	#if((CFG_PARA_USB_MODE == AUDIO_ONLY) || (CFG_PARA_USB_MODE == AUDIO_MIC) || (CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO))
+		#define	CFG_OTG_MODE_AUDIO_EN		//OTG声卡 AUDIO开启
+	#endif
+
+	#if((CFG_PARA_USB_MODE == READER))
+		#define	CFG_OTG_MODE_READER_EN		//OTG声卡 READER开启
+	#endif
+
+	#if(CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
+		#define	CFG_OTG_MODE_AUDIO1_EN		//OTG声卡 AUDIO1开启
+	#endif
+
 #endif
 
 //IDLE模式(假待机),powerkey/deepsleep可以同时选中也可以单独配置
@@ -126,6 +153,7 @@
 #define CFG_RES_AUDIO_DAC0_EN
 
 /**I2S音频输出通道配置选择**/
+#include "i2s_interface.h"
 //#define CFG_RES_AUDIO_I2SOUT_EN
 
 /**光纤同轴音频输出通道配置选择**/
@@ -151,7 +179,6 @@
 //    3.谨慎开启I2S slave，I2S外设必须提供稳定时钟，如果外设连线工作不稳定，请设置AudioIOSet.Sync = FALSE；自行增加DetectLock调整Sync
 //****************************************************************************************
 #if defined(CFG_APP_I2SIN_MODE_EN) || defined(CFG_RES_AUDIO_I2SOUT_EN)
-#include"i2s.h"
 //i2s gpio配置，必须都配置成i2s1或者i2s0
 #ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
 	#define I2S_MCLK_GPIO					I2S1_MCLK_IN_A6 //选择MCLK_OUT/MCLK_IN脚，I2S自动配置成master/slave
@@ -216,6 +243,24 @@
 //	#define	CFG_FUNC_MIC_KARAOKE_EN      //MIC karaoke功能选择
 #endif
 
+//#define CFG_FUNC_USB_HOST_AUDIO_MIX_MODE	//usb host uac 后台
+
+//usb host uac 框图demo 在默认框图中增加了 USB_HOST_SOURCE_NUM 和 AUDIO_USB_HOST_SINK_NUM
+#define EFFECT_USB_HOST_AUDIO_DEMO				1
+//双声卡框图 demo 在默认框图中，使用USB_SOURCE_NUM 和 APP_SOURCE_NUM 分别作为两个usb下行通道
+#define EFFECT_USB_DEVICE_TWO_AUDIO_DEMO		2
+
+//音效DEMO配置说明：
+//	1.使用DEMO的方式配置音效主要是因为使用率低，切占用内存较多，暂时不加入到默认框图中。
+//	2.音效demo主要是以展示效果用，各demo功能之间切勿同时打开。因为音效框图并不一致。
+#ifdef CFG_FUNC_USB_HOST_AUDIO_MIX_MODE
+	#define CFG_FUNC_EFFECT_DEMO 				EFFECT_USB_HOST_AUDIO_DEMO
+#endif
+#if (CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
+	#define CFG_FUNC_EFFECT_DEMO 				EFFECT_USB_DEVICE_TWO_AUDIO_DEMO
+#endif
+
+
 #ifdef CFG_FUNC_MIC_KARAOKE_EN
 //Line in mix for Karaoke
 #ifndef CFG_APP_LINEIN_MODE_EN
@@ -232,7 +277,6 @@
 #endif
 #if defined(CFG_RES_AUDIO_I2S_MIX_IN_EN) || defined(CFG_RES_AUDIO_I2S_MIX_OUT_EN)
 	#define CFG_FUNC_I2S_MIX_MODE
-	#include"i2s.h"
 	#define I2S_MIX_MCLK_GPIO					I2S1_MCLK_OUT_A6 //选择MCLK_OUT/MCLK_IN脚，I2S自动配置成master/slave
 	#define I2S_MIX_LRCLK_GPIO					I2S1_LRCLK_A7
 	#define I2S_MIX_BCLK_GPIO					I2S1_BCLK_A9
@@ -254,7 +298,6 @@
 #if defined(CFG_RES_AUDIO_I2S_MIX2_IN_EN) || defined(CFG_RES_AUDIO_I2S_MIX2_OUT_EN)
 	#undef 	CFG_RES_AUDIO_I2SOUT_EN
 	#define CFG_FUNC_I2S_MIX2_MODE
-	#include"i2s.h"
 	#define I2S_MIX2_MCLK_GPIO					I2S0_MCLK_OUT_A24 //选择MCLK_OUT/MCLK_IN脚，I2S自动配置成master/slave
 	#define I2S_MIX2_LRCLK_GPIO					I2S0_LRCLK_A20
 	#define I2S_MIX2_BCLK_GPIO					I2S0_BCLK_A21
@@ -464,7 +507,7 @@
 #endif
 
 /**USB Host检测功能**/
-#if(defined(CFG_APP_USB_PLAY_MODE_EN))
+#if(defined(CFG_APP_USB_PLAY_MODE_EN)||defined(CFG_FUNC_USB_HOST_AUDIO_MIX_MODE))
 #define CFG_RES_UDISK_USE
 #define CFG_FUNC_UDISK_DETECT
 #endif
@@ -502,10 +545,16 @@
 #define CFG_FUNC_DEBUG_EN
 //#define CFG_FUNC_USBDEBUG_EN
 #ifdef CFG_FUNC_DEBUG_EN
-	#define CFG_UART_TX_PORT 				DEBUG_TX_A10
-	#define CFG_UART_BANDRATE   			DEBUG_BAUDRATE_2000000//DEBUG_BAUDRATE_115200
-	#define CFG_FLASHBOOT_DEBUG_EN          (1)
-
+//#define CFG_USE_SW_UART
+	#ifdef CFG_USE_SW_UART
+		#define SW_UART_IO_PORT					SWUART_GPIO_PORT_A//SWUART_GPIO_PORT_B
+		#define SW_UART_IO_PORT_PIN_INDEX		10//bit num
+		#define CFG_SW_UART_BANDRATE   			512000//software uart baud rate select:115200 512000 ,default 512000
+	#else
+		#define CFG_UART_TX_PORT 				DEBUG_TX_A10
+		#define CFG_UART_BANDRATE   			DEBUG_BAUDRATE_2000000//DEBUG_BAUDRATE_115200
+		#define CFG_FLASHBOOT_DEBUG_EN          (1)
+	#endif
 //	#define CFG_FUNC_DEBUG_USE_TIMER		//使用定时器进行打印
 //	#define CFG_FUNC_SHELL_EN				//SHELL功能配置
 	#ifdef	CFG_FUNC_SHELL_EN
@@ -647,5 +696,7 @@
 	#define CFG_DUMP_UART_BANDRATE 				(2000000)
 	#define CFG_DUMP_UART_TX_DMA_CHANNEL		(PERIPHERAL_ID_UART0_TX + 2*GET_DEBUG_GPIO_UARTPORT(CFG_DUMP_UART_TX_PORT))
 #endif
+
+#include "i2s_dma_cfg.h"
 
 #endif /* APP_CONFIG_H_ */

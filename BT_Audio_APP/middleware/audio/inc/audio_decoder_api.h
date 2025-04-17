@@ -27,7 +27,7 @@ extern "C" {
 #define	WAV_HIGH_RESOLUTION
 #endif
 
-#define AUDIO_DECODER_LIBRARY_VERSION   "8.10.4"     /**< audio decoder library version string        */
+#define AUDIO_DECODER_LIBRARY_VERSION   "8.12.0"     /**< audio decoder library version string        */
 
 
 /**

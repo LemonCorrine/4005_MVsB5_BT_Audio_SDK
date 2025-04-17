@@ -16,7 +16,7 @@
 #include "type.h"
 #include "debug.h"
 #include "delay.h"
-
+#include "app_config.h"
 //#include "otg_hal.h"
 #include "otg_host_hcd.h"
 #include "otg_host_standard_enum.h"
@@ -302,7 +302,12 @@ uint8_t OTG_HostInit(void)
 	{
 		FunFlage = FunFlage | 0x01;
 	}
-	
+#ifdef CFG_FUNC_USB_HOST_AUDIO_MIX_MODE
+	if(UsbHostPlayHardwareInit())
+	{
+		FunFlage = FunFlage | 0x02;
+	}
+#endif
 //	if(!HostEnumMouseDevice())////Ã¶¾ÙHID½Ó¿Ú
 //	{
 //		DBG("mouseStartDevice() false!\n");

@@ -197,7 +197,7 @@
 	/**CEC**/
 	//timer3可以使用rc时钟或者系统时钟，
 	//PWC可以复用所有GPIO口，而PWM只有指定GPIO口可以用，所以二者接口参数用法不一样，CEC接收IO无需设置RECV_IO和RECV_IO_PIN
-	#define HDMI_CEC_CLK_MODE				SYSTEM_CLK_MODE//SYSTEM_CLK_MODE//RC_CLK_MODE /*启用cec唤醒功能时，只能用rc*/
+	#define HDMI_CEC_CLK_MODE				RC_CLK_MODE//SYSTEM_CLK_MODE//RC_CLK_MODE /*启用cec唤醒功能时，只能用rc*/
 	#define HDMI_CEC_IO_TYPE				IO_TYPE_A
 	#define HDMI_CEC_IO_INDEX				0
 	//#define HDMI_CEC_RECV_IO	            28

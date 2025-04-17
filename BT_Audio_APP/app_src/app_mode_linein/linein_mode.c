@@ -47,45 +47,52 @@ typedef struct _LineInPlayContext
 	uint32_t 			SampleRate; //带提示音时，如果不重采样，要避免采样率配置冲突
 }LineInPlayContext;
 
-/**根据appconfig缺省配置:DMA 8个通道配置**/
-/*1、cec需PERIPHERAL_ID_TIMER3*/
-/*2、SD卡录音需PERIPHERAL_ID_SDIO RX/TX*/
-/*3、在线串口调音需PERIPHERAL_ID_UART1 RX/TX,建议使用USB HID，节省DMA资源*/
-/*4、线路输入需PERIPHERAL_ID_AUDIO_ADC0_RX*/
-/*5、Mic开启需PERIPHERAL_ID_AUDIO_ADC1_RX，mode之间通道必须一致*/
-/*6、Dac0开启需PERIPHERAL_ID_AUDIO_DAC0_TX mode之间通道必须一致*/
-/*7、DacX需开启PERIPHERAL_ID_AUDIO_DAC1_TX mode之间通道必须一致*/
-/*注意DMA 8个通道配置冲突:*/
-/*a、UART在线调音和DAC-X有冲突,默认在线调音使用USB HID*/
-/*b、UART在线调音与HDMI/SPDIF模式冲突*/
 
 static const uint8_t sDmaChannelMap[6] = {
-	PERIPHERAL_ID_AUDIO_ADC0_RX,
-	PERIPHERAL_ID_AUDIO_ADC1_RX,
+	//DMA默认配置不要删除，DMA数量不足6个的时候作为填充用
+	DMA_CFG_TABLE_DEFAULT_INIT
+
+#ifdef CFG_RES_AUDIO_DAC0_EN
 	PERIPHERAL_ID_AUDIO_DAC0_TX,
-#ifdef CFG_RES_AUDIO_I2S_MIX_IN_EN
-	PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX_I2S_MODULE,
-#else
-	PERIPHERAL_ID_SDIO_RX,
 #endif
+
+#if CFG_RES_MIC_SELECT
+	PERIPHERAL_ID_AUDIO_ADC1_RX,
+#endif
+
+#ifdef CFG_RES_AUDIO_SPDIFOUT_EN
+	SPDIF_OUT_DMA_ID,
+#endif
+
+#if (I2S_ALL_DMA_CH_CFG & I2S0_TX_NEED_ENABLE)
+	PERIPHERAL_ID_I2S0_TX,
+#endif
+#if (I2S_ALL_DMA_CH_CFG & I2S1_TX_NEED_ENABLE)
+	PERIPHERAL_ID_I2S1_TX,
+#endif
+#if (I2S_ALL_DMA_CH_CFG & I2S0_RX_NEED_ENABLE)
+	PERIPHERAL_ID_I2S0_RX,
+#endif
+#if (I2S_ALL_DMA_CH_CFG & I2S1_RX_NEED_ENABLE)
+	PERIPHERAL_ID_I2S1_RX,
+#endif
+
 #ifdef CFG_COMMUNICATION_BY_UART
 	CFG_FUNC_COMMUNICATION_TX_DMA_PORT,
 	CFG_FUNC_COMMUNICATION_RX_DMA_PORT,
-#else
-	#ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
-		PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX_I2S_MODULE,
-	#else
-		255,
-	#endif
-	#ifdef CFG_RES_AUDIO_I2SOUT_EN
-		PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_I2S_MODULE,
-	#else
-		255
-	#endif
 #endif
+
+#ifdef CFG_DUMP_DEBUG_EN
+	CFG_DUMP_UART_TX_DMA_CHANNEL,
+#endif
+
+	PERIPHERAL_ID_AUDIO_ADC0_RX,
+	PERIPHERAL_ID_SDIO_RX,
 };
 
 static  LineInPlayContext*		sLineInPlayCt;
+
+extern uint16_t SampleRateIndexGet(uint32_t SampleRate);
 
 void LineInPlayResFree(void)
 {
@@ -147,7 +154,7 @@ void LineinADCDigitalInit(void)
 	AudioADC_DigitalInit(ADC0_MODULE, sLineInPlayCt->SampleRate,BitWidth, (void*)sLineInPlayCt->ADCFIFO, sLineInPlayCt->ADCFIFO_len);
 
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
-	Clock_AudioMclkSel(AUDIO_ADC0, gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source);
+    Clock_AudioMclkSel(AUDIO_ADC0, gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source);
 #else
 	gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source = Clock_AudioMclkGet(AUDIO_ADC0);
 #endif
@@ -192,7 +199,7 @@ void LineInPlayResInit(void)
 	if(!AudioCoreSourceInit(&AudioIOSet, LINEIN_SOURCE_NUM))
 	{
 		DBG("Line source error!\n");
-		return FALSE;
+		return;
 	}
 
 	AudioCoreSourceEnable(LINEIN_SOURCE_NUM);
@@ -271,6 +278,7 @@ bool LineInPlayInit(void)
 	LineInPlayResInit();
 
 	LineInPlayHardwareInit();
+	gCtrlVars.HwCt.ADC0DigitalCt.adc_sample_rate = SampleRateIndexGet(AudioADC_SampleRateGet(ADC0_MODULE));
 
 #if 0
 #if defined(CFG_FUNC_REMIND_SBC)
@@ -281,6 +289,17 @@ bool LineInPlayInit(void)
 #endif
 
 	AudioCodecGainUpdata();//update hardware config
+
+	/*****************************************************************/
+	//reset ADC0 to fix linein LR channel reverse
+	AudioADC_Disable(ADC0_MODULE);
+	DMA_ChannelDisable(PERIPHERAL_ID_AUDIO_ADC0_RX);
+	DMA_CircularFIFOClear(PERIPHERAL_ID_AUDIO_ADC0_RX);
+	AudioADC_FuncReset(ADC0_MODULE);
+	AudioADC_Enable(ADC0_MODULE);
+	AudioADC_LREnable(ADC0_MODULE, 1, 1);
+	DMA_ChannelEnable(PERIPHERAL_ID_AUDIO_ADC0_RX);
+	/*****************************************************************/
 
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 	if(RemindSoundServiceItemRequest(SOUND_REMIND_XIANLUMO, REMIND_ATTR_NEED_MUTE_APP_SOURCE) == FALSE)
@@ -341,6 +360,7 @@ bool LineInMixPlayInit(void)
 	LineInPlayResInit();
 
 	LineInPlayHardwareInit();
+	gCtrlVars.HwCt.ADC0DigitalCt.adc_sample_rate = SampleRateIndexGet(AudioADC_SampleRateGet(ADC0_MODULE));
 
 //	AudioCodecGainUpdata();//update hardware config
 	AudioCoreSourceUnmute(LINEIN_SOURCE_NUM,TRUE,TRUE);
