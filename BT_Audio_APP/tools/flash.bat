@@ -9,7 +9,8 @@ for %%i in (remind_res//*.mp3) do (tools\remind_script\ffmpeg.exe -i remind_res/
 cd mp2
 ren *.mp2 *.
 cd ..
-tools\remind_script\MergeAudio2BinNew.exe -a 0x0 -i ..\..\mp2
+::tools\remind_script\MergeAudio2BinNew.exe -a 0x0 -i ..\..\mp2
+tools\remind_script\MergeAudio2BinNew.exe -a 0x0 -i mp2 -o tools\remind_script\
 rd /s /q mp2
 del ..\Release\output\*.img
 del ..\Release\output\main_merge.mva
