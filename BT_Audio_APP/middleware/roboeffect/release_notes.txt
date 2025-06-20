@@ -25,6 +25,20 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 联系山景的技术工程人员，谢谢！
 
 ------------------------------------------------------------------------------------------------
+date: 2025_04_30：v2.28.1
+1. parambin数据结构版本更新到v0.7.0，需配合Acpworkbench_v3.17.1及以上版本使用，有如下更新：
+  A: 增加通讯密码锁，新增接口roboeffect_parambin_get_password()。
+  B: 增加根据音效名，获取音效地址功能，新增接口roboeffect_parambin_get_addr_by_name()。
+  C：开放模式参数接口，和预设preset参数接口，请参考如下函数：
+    roboeffect_parambin_get_mode_data_by_index()
+    roboeffect_parambin_get_mode_param_by_name()
+    roboeffect_parambin_get_codec_param_by_name()
+    roboeffect_parambin_get_preset_param_by_name()
+2. 第三方音效重新整理文档，见《roboeffect_third_party_user_manual.release.html》；
+  同时优化third_party_effects_data_gen.exe脚本，增加一些异常报错。
+
+
+------------------------------------------------------------------------------------------------
 date: 2025_03_07：v2.28.0
 1. 音效库升级到v2.45.6，AEC模块升级到v6.7.0，改善在背景音乐（大量双工）情况下对底噪水平的评估准确度，避免生成过高的舒适噪底。
 2. roboeffect_get_effect_type()接口同时返回音效type code。

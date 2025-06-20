@@ -26,6 +26,19 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 --------------------------------------------------------------------------------------
 版本历史：（采用倒序排列，最新版置顶）
 
+2025-6-5【15_0.9.8_p3134】
+1) 修改deepsleep、bt32k配置异常问题
+
+2025-6-4【v15_0.9.8_p3131】
+1.增加sniff控制位
+2.提交解决Ceva 128bit uuid 自定义BUG
+3.增加DID服务
+4.增加API到应用层配置BtSource A2dp Sample 48k/44.1k
+5.修复Avrcp 重复注册Notify导致部分手机歌词不推送的问题
+6.解决bt sniff状态反馈异常问题
+7.将蓝牙发射功率范围从 16~23 改为 12~23 
+8.update RF_REAL_RX_GAIN_TBL for rssi more ok
+
 2025-2-8【v15_0.9.8】
 1）增加HID协议和应用，默认关闭
 
