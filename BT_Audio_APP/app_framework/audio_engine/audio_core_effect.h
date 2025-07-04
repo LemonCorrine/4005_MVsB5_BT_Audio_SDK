@@ -12,6 +12,7 @@ typedef struct _AUDIOEFFECT_EFFECT_PARA
 	roboeffect_effect_steps_table 	*user_effect_steps;
 	uint8_t 						*user_effects_script;
 	uint8_t 						*user_effect_name;
+	uint8_t 						*chart_name;
 
 	uint8_t 						*user_effect_parameters;
 	uint8_t 						*user_module_parameters;
@@ -41,6 +42,6 @@ typedef struct _AudioeffectContext
 	#define	EFFECT_FLASH_MODE_NAME	"Flash_"
 #endif
 
-extern 	AudioEffectContext 	AudioEffect;
+extern 	AudioEffectContext 	AudioEffect[MaxNet];
 
 #endif

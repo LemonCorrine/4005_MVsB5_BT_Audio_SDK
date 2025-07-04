@@ -33,10 +33,8 @@
 #include "flash_table.h"
 #include "delay.h"
 #include "recorder_service.h"
-
+#include "audio_vol.h"
 #ifdef CFG_FUNC_REMIND_SOUND_EN
-extern void HardWareMuteOrUnMute(void);
-extern bool IsAudioPlayerMute(void);
 
 #define CFG_DBUS_ACCESS_REMIND_SOUND_DATA  	//开启宏则使用DBUS从flash中获取提示音数据
 
@@ -229,7 +227,7 @@ static bool	RemindSoundReadItemInfo(uint16_t ItemRef)
 		RemindSoundCt.ConstDataOffset   = 0;//CFG_PARA_RECORDS_INFO_SIZE;
 		RemindSoundCt.ConstDataAddr 	= rec_addr_start + CFG_PARA_RECORDS_MAX_SIZE *(RemindSoundCt.Idflash - 1)+CFG_PARA_RECORDS_INFO_SIZE;
 		RemindSoundCt.ConstDataSize 	= rec_msg.RecSize;
-		APP_DBG("rec_msg.RecSize:%d\n",rec_msg.RecSize);
+		printf("rec_msg.RecSize:%d\n",rec_msg.RecSize);
 	}
 	else
 #endif
@@ -433,7 +431,6 @@ void RemindSoundAudioDecoderStop(void)
 }
 #endif
 
-#ifndef CFG_REMIND_SOUND_DECODING_USE_LIBRARY
 void RemindMp2Decode(void)
 {
 	if(RemindSoundCt.player_init == MP2_DECODE_HEADER)
@@ -533,7 +530,6 @@ void RemindMp2Decode(void)
 		}
 	}
 }
-#endif
 
 uint16_t RemindDataLenGet(void)
 {
@@ -549,16 +545,7 @@ uint16_t RemindDataLenGet(void)
 	}
 	if(RemindSoundCt.player_init != MP2_DECODE_IDLE)
 		RemindDecodeProcess();//  decode step 4
-
-	if(RemindSoundCt.NeedUnmute)
-	{
-		RemindSoundCt.NeedUnmute = FALSE;
-		if(IsAudioPlayerMute() == TRUE)
-		{
-			HardWareMuteOrUnMute();
-		}
-	}
-
+		
 	len = RemindDecoderPcmDataLenGet();
 	if(len == 0 && RemindSoundCt.player_init == MP2_DECODE_FRAME && mv_msize(&RemindDecoderInMemHandle) == 0)
 	{
@@ -796,7 +783,7 @@ void RemindRequestsRecast(void)
 
 	for(i = 0; i < RemindSoundCt.EmptyIndex; i++)
 	{
-		REMIND_DBG("Remind Item:%d %d\n", i, RemindSoundCt.Request[i].Attr & REMIND_ATTR_CLEAR);
+		REMIND_DBG("Remind Item:%d %d", i, RemindSoundCt.Request[i].Attr & REMIND_ATTR_CLEAR);
 
 		if((RemindSoundCt.Request[i].Attr & REMIND_ATTR_CLEAR) == 0)
 		{
@@ -904,17 +891,6 @@ bool RemindSoundRun(SysModeState ModeState)
 			break;
 
 		case REMIND_ITEM_PREPARE:
-#ifdef CFG_REMIND_SOUND_DECODING_USE_LIBRARY
-			if(GetDecoderState(DECODER_REMIND_CHANNEL) != DecoderStateNone)
-				DecoderStop(DECODER_REMIND_CHANNEL);
-			DecoderSourceNumSet(REMIND_SOURCE_NUM,DECODER_REMIND_CHANNEL);
-			if(RemindMp3DataRead())
-				RemindSoundCt.player_init = MP2_DECODE_FRAME;
-			DecoderInit(&RemindDecoderInMemHandle,DECODER_REMIND_CHANNEL, (int32_t)IO_TYPE_MEMORY, MP3_DECODER);
-			DecoderPlay(DECODER_REMIND_CHANNEL);
-			REMIND_DBG("remind play start!\n");
-			RemindSoundCt.NeedUnmute = TRUE;
-#endif
 //			if(!tws_local_audio_wait())
 			{
 				AudioCoreSourceEnable(REMIND_SOURCE_NUM);
@@ -991,9 +967,7 @@ bool RemindSoundRun(SysModeState ModeState)
 			break;
 
 		case REMIND_ITEM_MUTE:
-#ifndef CFG_REMIND_SOUND_DECODING_USE_LIBRARY
 			if(Mp2Decode->dec_last_len < AudioCoreFrameSizeGet(DefaultNet))
-#endif
 			{
 				RemindSoundCt.Request[0].Attr |= REMIND_ATTR_CLEAR;
 				RemindSoundCt.ItemState = REMIND_ITEM_IDLE;
@@ -1006,6 +980,17 @@ bool RemindSoundRun(SysModeState ModeState)
 			}
 			break;
 	}
+
+#ifdef CFG_REMIND_SOUND_DECODING_USE_LIBRARY	
+	if(GetDecoderState(DECODER_REMIND_CHANNEL) != DecoderStateNone)
+		DecoderStop(DECODER_REMIND_CHANNEL);
+	DecoderSourceNumSet(REMIND_SOURCE_NUM,DECODER_REMIND_CHANNEL);
+	if(RemindMp3DataRead()) 
+		RemindSoundCt.player_init = MP2_DECODE_FRAME;
+	DecoderInit(&RemindDecoderInMemHandle,DECODER_REMIND_CHANNEL, (int32_t)IO_TYPE_MEMORY, MP3_DECODER);
+	DecoderPlay(DECODER_REMIND_CHANNEL);
+	REMIND_DBG("remind play start!\n");
+#endif	
 
 	return TRUE;
 }

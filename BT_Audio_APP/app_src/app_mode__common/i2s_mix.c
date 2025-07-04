@@ -68,7 +68,7 @@ static void AudioI2sOutParamsSet(void)
 }
 #endif
 
-bool I2S_MixInit(bool hf_mode_flag)
+bool I2S_MixInit(void)
 {
 	AudioCoreIO	AudioIOSet;
 	uint32_t sampleRate  = AudioCoreMixSampleRateGet(DefaultNet);
@@ -82,16 +82,11 @@ bool I2S_MixInit(bool hf_mode_flag)
 		i2s_set.IsMasterMode=CFG_RES_MIX_I2S_MODE;// 0:master 1:slave
 		i2s_set.SampleRate=CFG_PARA_MIX_I2S_SAMPLERATE;
 		i2s_set.I2sFormat=I2S_FORMAT_I2S;
-		if(hf_mode_flag)
-			i2s_set.I2sBits = I2S_LENGTH_16BITS;
-		else
-		{
-		#ifdef	CFG_AUDIO_WIDTH_24BIT
-			i2s_set.I2sBits = I2S_LENGTH_24BITS;
-		#else
-			i2s_set.I2sBits = I2S_LENGTH_16BITS;
-		#endif
-		}
+	#ifdef	CFG_AUDIO_WIDTH_24BIT
+		i2s_set.I2sBits = I2S_LENGTH_24BITS;
+	#else
+		i2s_set.I2sBits = I2S_LENGTH_16BITS;
+	#endif
 		i2s_set.I2sTxRxEnable = 2;
 
 		i2s_set.RxPeripheralID = PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX_I2S_MODULE;
@@ -148,7 +143,7 @@ bool I2S_MixInit(bool hf_mode_flag)
 
 		AudioIOSet.Sync = FALSE;//
 		AudioIOSet.Channels = 2;
-		AudioIOSet.Net = DefaultNet;
+		AudioIOSet.Net = AudioEffect_getSourceNet(I2S_MIX_SOURCE_NUM);
 		AudioIOSet.Depth = AudioCoreFrameSizeGet(DefaultNet) * 2;//sI2SInPlayCt->I2SFIFO1 采样点深度
 	//	DBG("Depth:%d", AudioIOSet.Depth);
 		AudioIOSet.HighLevelCent = 60;
@@ -167,10 +162,7 @@ bool I2S_MixInit(bool hf_mode_flag)
 		}
 
 	#ifdef	CFG_AUDIO_WIDTH_24BIT
-		if(hf_mode_flag)
-			AudioIOSet.IOBitWidth = 0;//0,16bit,1:24bit
-		else
-			AudioIOSet.IOBitWidth = 1;//0,16bit,1:24bit
+		AudioIOSet.IOBitWidth = 1;//0,16bit,1:24bit
 		AudioIOSet.IOBitWidthConvFlag = 0;//需要数据进行位宽扩展
 	#endif
 		if(!AudioCoreSourceInit(&AudioIOSet, I2S_MIX_SOURCE_NUM))
@@ -220,7 +212,7 @@ bool I2S_MixInit(bool hf_mode_flag)
 		}
 		AudioIOSet.Sync = TRUE;//I2S slave 时候如果master没有接，有可能会导致DAC也不出声音。
 		AudioIOSet.Channels = 2;
-		AudioIOSet.Net = DefaultNet;
+		AudioIOSet.Net = AudioEffect_getSinkNet(AUDIO_I2S_MIX_OUT_SINK_NUM);
 		AudioIOSet.HighLevelCent = 60;
 		AudioIOSet.LowLevelCent = 40;
 		AudioIOSet.SampleRate = CFG_PARA_MIX_I2S_SAMPLERATE;//根据实际外设选择
@@ -347,7 +339,7 @@ static void AudioI2sMix2OutParamsSet(void)
 }
 #endif
 
-bool I2S_Mix2Init(bool hf_mode_flag)
+bool I2S_Mix2Init(void)
 {
 	AudioCoreIO	AudioIOSet;
 	uint32_t sampleRate  = AudioCoreMixSampleRateGet(DefaultNet);
@@ -361,16 +353,11 @@ bool I2S_Mix2Init(bool hf_mode_flag)
 		i2s_set.IsMasterMode=CFG_RES_MIX2_I2S_MODE;// 0:master 1:slave
 		i2s_set.SampleRate=CFG_PARA_MIX2_I2S_SAMPLERATE;
 		i2s_set.I2sFormat=I2S_FORMAT_I2S;
-		if(hf_mode_flag)
-			i2s_set.I2sBits = I2S_LENGTH_16BITS;
-		else
-		{
-		#ifdef	CFG_AUDIO_WIDTH_24BIT
-			i2s_set.I2sBits = I2S_LENGTH_24BITS;
-		#else
-			i2s_set.I2sBits = I2S_LENGTH_16BITS;
-		#endif
-		}
+	#ifdef	CFG_AUDIO_WIDTH_24BIT
+		i2s_set.I2sBits = I2S_LENGTH_24BITS;
+	#else
+		i2s_set.I2sBits = I2S_LENGTH_16BITS;
+	#endif
 		i2s_set.I2sTxRxEnable = 2;
 
 		i2s_set.RxPeripheralID = PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX2_I2S_MODULE;
@@ -427,7 +414,7 @@ bool I2S_Mix2Init(bool hf_mode_flag)
 
 		AudioIOSet.Sync = FALSE;//
 		AudioIOSet.Channels = 2;
-		AudioIOSet.Net = DefaultNet;
+		AudioIOSet.Net = AudioEffect_getSourceNet(I2S_MIX2_SOURCE_NUM);
 		AudioIOSet.Depth = AudioCoreFrameSizeGet(DefaultNet) * 2;//sI2SInPlayCt->I2SFIFO1 采样点深度
 	//	DBG("Depth:%d", AudioIOSet.Depth);
 		AudioIOSet.HighLevelCent = 60;
@@ -446,10 +433,7 @@ bool I2S_Mix2Init(bool hf_mode_flag)
 		}
 
 	#ifdef	CFG_AUDIO_WIDTH_24BIT
-		if(hf_mode_flag)
-			AudioIOSet.IOBitWidth = 0;//0,16bit,1:24bit
-		else
-			AudioIOSet.IOBitWidth = 1;//0,16bit,1:24bit
+		AudioIOSet.IOBitWidth = 1;//0,16bit,1:24bit
 		AudioIOSet.IOBitWidthConvFlag = 0;//需要数据进行位宽扩展
 	#endif
 		if(!AudioCoreSourceInit(&AudioIOSet, I2S_MIX2_SOURCE_NUM))
@@ -499,7 +483,7 @@ bool I2S_Mix2Init(bool hf_mode_flag)
 		}
 		AudioIOSet.Sync = TRUE;//I2S slave 时候如果master没有接，有可能会导致DAC也不出声音。
 		AudioIOSet.Channels = 2;
-		AudioIOSet.Net = DefaultNet;
+		AudioIOSet.Net = AudioEffect_getSinkNet(AUDIO_I2S_MIX2_OUT_SINK_NUM);
 		AudioIOSet.HighLevelCent = 60;
 		AudioIOSet.LowLevelCent = 40;
 		AudioIOSet.SampleRate = CFG_PARA_MIX2_I2S_SAMPLERATE;//根据实际外设选择

@@ -27,6 +27,7 @@
 #include "audio_effect.h"
 #include "bt_interface.h"
 #include "mode_task.h"
+#include "user_effect_parameter.h"
 
 
 #ifdef CFG_APP_BT_MODE_EN
@@ -147,7 +148,7 @@ static bool BtPlayInitRes(void)
 #endif
 	AudioIOSet.Sync = FALSE;
 	AudioIOSet.Channels = 2;
-	AudioIOSet.Net = DefaultNet;
+	AudioIOSet.Net = AudioEffect_getSourceNet(BT_PLAY_DECODER_SOURCE_NUM);
 	AudioIOSet.DataIOFunc = A2DPDataGet;
 	AudioIOSet.LenGetFunc = A2DPDataLenGet;
 	AudioIOSet.SampleRate =  AudioCoreMixSampleRateGet(DefaultNet);//初始值,待解码数据后更新
@@ -525,18 +526,6 @@ bool BtPlayInit(void)
 	return ret;
 }
 
-void BtDisconnectWaitComplete(void)
-{
-	uint8_t i = 0;
-	BtDisconnectCtrl(TRUE);
-	while(btManager.linkedNumber != 0)
-	{
-		//APP_DBG("...\n");
-		vTaskDelay(10);
-		if(i++ >= 200)
-			break;
-	}
-}
 /***********************************************************************************
  * Bt Play 反初始化
  **********************************************************************************/
@@ -585,7 +574,15 @@ bool BtPlayDeinit(void)
 	{
 		if(GetSysModeState(ModeBtHfPlay) != ModeStateInit)
 		{
-			BtDisconnectWaitComplete();
+			uint8_t i = 0;
+			BtDisconnectCtrl(TRUE);
+			while(btManager.linkedNumber != 0)
+			{
+				//APP_DBG("...\n");
+				vTaskDelay(10);
+				if(i++ >= 200)
+					break;
+			}
 
 			if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF)
 				BtFastPowerOff();
@@ -640,34 +637,6 @@ bool GetBtCurPlayState(void)
 		return (BtPlayCt->curPlayState == BT_PLAYER_STATE_PLAYING);
 }
 
-uint32_t gACBtMonitor = 0; //audio core检测:蓝牙模式下数据播空计数器
-void BtPlayACBtMonitor(uint16_t empty_flag)
-{
-	//每隔1ms查询一次,app_source 数据不足,进行登记
-//	if(SOURCE_BIT_GET(AudioCore.FrameReady, APP_SOURCE_NUM) == 0)
-	if(empty_flag == 0)
-	{
-		if((GetSystemMode() == ModeBtAudioPlay)//蓝牙模式
-			&&((GetA2dpState(0) == BT_A2DP_STATE_STREAMING)||(GetA2dpState(1) == BT_A2DP_STATE_STREAMING))//正在播放音乐
-			&&(gBtPlaySbcDecoderInitFlag)//decoder初始化已经完成
-			&&(AudioCoreSourceIsEnable(APP_SOURCE_NUM))//source通路已经开启
-			)
-		{
-			if(++gACBtMonitor>=80)//80ms播空,重置decoder
-			{
-				gACBtMonitor = 0;
-				a2dp_sbc_decoer_init();
-			}
-		}
-		else
-		{
-			gACBtMonitor = 0;
-		}
-	}
-	else//一旦收到数据就清寄存器
-	{
-		gACBtMonitor = 0;
-	}
-}
+
 
 #endif//#ifdef CFG_APP_BT_MODE_EN

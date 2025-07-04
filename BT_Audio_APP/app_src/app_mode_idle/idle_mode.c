@@ -106,7 +106,7 @@ void IdleModeConfig(void)
 {
 	IdleMode.AutoPowerOnState	= NEED_POWER_ON;
 #ifdef CFG_IDLE_MODE_POWER_KEY
-#if 0
+#if 0	//PowerKey8SReset function on-off
 	PMU_PowerKey8SResetSet();
 #else
 	PMU_PowerKeyDisable();

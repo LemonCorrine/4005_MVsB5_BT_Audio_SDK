@@ -23,6 +23,8 @@
 extern uint32_t get_user_effects_script_len(void);
 extern uint32_t get_user_effects_script_len_1(void);
 extern const uint8_t effect_property_for_display[];
+extern uint32_t GetEffectNameTotalLen();
+extern void GetEffectNameCurPackageforCommunication(uint32_t done_len, uint8_t *p);
 
 //v3 package 
 #define V3_PACKAGE_TYPE_LIB           	0
@@ -32,5 +34,11 @@ extern const uint8_t effect_property_for_display[];
 #define V3_PACKAGE_TYPE_STEP_TABLE      4
 #define V3_PACKAGE_TYPE_EFFECT_NAME     5
 #define V3_PACKAGE_TYPE_EFFECT_ID       6
+#define V3_PACKAGE_TYPE_FLOWCHART_NAME   7
+#define V3_PACKAGE_TYPE_FLOWCHART_ID	8
+#define V3_PACKAGE_TYPE_EFFECT_PARAM    9
+
+void Communication_Effect_Flow_Switch(MIX_NET net);
+MIX_NET Communication_Effect_Flow_Get();
 
 #endif/*__COMMUNICATION_H__*/

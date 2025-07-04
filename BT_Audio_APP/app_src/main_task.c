@@ -179,7 +179,8 @@ static void SysVarInit(void)
 	#endif
 	APP_DBG("EqMode:%d,%d\n", EqMode, pBpSysInfo->EqMode);
 #endif
-#ifdef CFG_FUNC_AUDIOEFFECT_AUTO_GEN_MSG_PROC
+
+#ifdef CFG_FUNC_MIC_KARAOKE_EN
 	ReverbStep = pBpSysInfo->ReverbStep;
     if((ReverbStep > MAX_MIC_DIG_STEP) || (ReverbStep <= 0))
 	{
@@ -187,6 +188,7 @@ static void SysVarInit(void)
 	}
 	APP_DBG("ReverbStep:%d,%d\n", ReverbStep, pBpSysInfo->ReverbStep);
 #endif
+
 #ifdef CFG_FUNC_MIC_TREB_BASS_EN
     MicBassStep = pBpSysInfo->MicBassStep;
     if((MicBassStep > MAX_MUSIC_DIG_STEP) || (MicBassStep <= 0))
@@ -244,12 +246,12 @@ static void SysVarInit(void)
 #endif
 	//mainAppCt.ReverbStep = MAX_MIC_DIG_STEP;
 #ifdef CFG_FUNC_MIC_TREB_BASS_EN
-	MicBassStep = 7;
-	MicTrebStep = 7;
+	mainAppCt.MicBassStep = 7;
+	mainAppCt.MicTrebStep = 7;
 #endif
 #ifdef CFG_FUNC_MUSIC_TREB_BASS_EN	
-	MusicBassStep = 7;
-	MusicTrebStep = 7;
+	mainAppCt.MusicBassStep = 7;
+	mainAppCt.MusicTrebStep = 7;
 #endif	
 
 #endif
@@ -428,8 +430,63 @@ static void PublicDetect(void)
 			PowerOffMessage();
         }
 #endif
-}
 
+#if FLASH_BOOT_EN
+		//设备经过播放，预搜索mva包登记，可升级。拔出时取消登记。
+		#ifndef FUNC_UPDATE_CONTROL
+		if(SoftFlagGet(SoftFlagMvaInCard) && GetSystemMode() == ModeCardAudioPlay && (!SoftFlagGet(SoftFlagUpgradeOK)))
+		{
+			APP_DBG("MainApp:updata file exist in Card\n");
+			#ifdef FUNC_OS_EN
+			if(SDIOMutex != NULL)
+			{
+				osMutexLock(SDIOMutex);
+			}
+			#endif
+			start_up_grate(SysResourceCard);
+			#ifdef FUNC_OS_EN
+			if(SDIOMutex != NULL)
+			{
+				osMutexUnlock(SDIOMutex);
+			}
+			#endif
+		}
+		else if(SoftFlagGet(SoftFlagMvaInUDisk) && GetSystemMode() == ModeUDiskAudioPlay&& (!SoftFlagGet(SoftFlagUpgradeOK)))
+		{
+			APP_DBG("MainApp:updata file exist in Udisk\n");
+			#ifdef FUNC_OS_EN
+			if(UDiskMutex != NULL)
+			{
+				//osMutexLock(UDiskMutex);
+				while(osMutexLock_1000ms(UDiskMutex) != 1)
+				{
+					WDG_Feed();
+				}
+			}
+			#endif
+			start_up_grate(SysResourceUDisk);
+			#ifdef FUNC_OS_EN
+			if(UDiskMutex != NULL)
+			{
+				osMutexUnlock(UDiskMutex);
+			}
+			#endif
+		}
+		#endif
+
+
+		/*uint8_t cmd = 0;
+		if(UART0_RecvByte(&cmd))
+		{
+			if(cmd == 'y')
+			{
+				start_up_grate(0xFFFFFFFF);
+			}
+		}
+		*/
+#endif
+
+}
 static void PublicMsgPross(MessageContext msg)
 {
 	switch(msg.msgId)
@@ -452,6 +509,16 @@ static void PublicMsgPross(MessageContext msg)
 			mainAppCt.state = TaskStateRunning;
 			break;
 #if FLASH_BOOT_EN
+		case MSG_DEVICE_SERVICE_CARD_OUT:
+//			SoftFlagDeregister(SoftFlagUpgradeOK);
+			SoftFlagDeregister(SoftFlagMvaInCard);//清理mva包标记
+			break;
+		
+		case MSG_DEVICE_SERVICE_U_DISK_OUT:
+//			SoftFlagDeregister(SoftFlagUpgradeOK);
+			SoftFlagDeregister(SoftFlagMvaInUDisk);
+			break;
+		
 		case MSG_UPDATE:
 			//if(SoftFlagGet(SoftFlagUpgradeOK))break;
 			#ifdef FUNC_UPDATE_CONTROL

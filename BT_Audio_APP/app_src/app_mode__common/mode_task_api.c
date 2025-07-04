@@ -24,6 +24,7 @@
 #include "roboeffect_api.h"
 #include "user_effect_parameter.h"
 #include "clk.h"
+#include "communication.h"
 //app
 #include "bt_stack_service.h"
 #if (BT_AVRCP_VOLUME_SYNC)
@@ -35,11 +36,11 @@
 #endif
 
 #ifdef CFG_FUNC_I2S_MIX_MODE
-extern bool I2S_MixInit(bool hf_mode_flag);
+extern bool I2S_MixInit(void);
 extern bool I2S_MixDeinit(void);
 #endif
 #ifdef CFG_FUNC_I2S_MIX2_MODE
-extern bool I2S_Mix2Init(bool hf_mode_flag);
+extern bool I2S_Mix2Init(void);
 extern bool I2S_Mix2Deinit(void);
 #endif
 #ifdef CFG_FUNC_LINEIN_MIX_MODE
@@ -82,6 +83,7 @@ const DACParamCt DACDefaultParamCt =
 extern bool EffectModeCmp(uint8_t mode1,uint8_t mode2);
 extern uint8_t EffectModeMsgProcess(uint16_t Msg);
 extern uint8_t AudioCommonMsgProcess(uint16_t Msg);
+extern bool isEffectModeforUSBAEC(uint8_t EffectMode);
 
 #ifdef CFG_FUNC_USB_AUDIO_MIX_MODE  //USB MIX通道，使用 USB_SOURCE_NUM
 	uint32_t	UsbAudioSourceNum = APP_SOURCE_NUM;
@@ -232,7 +234,7 @@ void AudioOutSampleRecover(void)
 	if(SampleRate && SampleRate != AudioCoreMixSampleRateGet(DefaultNet))
 	{
 		para->user_effect_list->sample_rate = SampleRate;
-		for(i = 0; i < MaxNet; i++)
+		for(i = DefaultNet; i < MaxNet; i++)
 		{
 			AudioCoreMixSampleRateSet(i, SampleRate);//默认系统采样率
 		}
@@ -249,86 +251,25 @@ void PauseAuidoCore(void)
 	}
 }
 
-bool AudioEffectInit()
+static void AudioEffectRoboeffectContextInit(uint8_t targetNet)
 {
-	uint16_t i;
+	AudioEffect[targetNet].audioeffect_memory_size = roboeffect_estimate_memory_size(
+			AudioEffect[targetNet].cur_effect_para->user_effect_steps, AudioEffect[targetNet].cur_effect_para->user_effect_list, AudioEffect[targetNet].user_effect_parameters);
+	DBG("Audio effect need malloc memory: %ld\n", AudioEffect[targetNet].audioeffect_memory_size);
 
-	if(AudioEffect.effect_addr)
-	{
-		AudioEffect_update_local_effect_status(AudioEffect.effect_addr, AudioEffect.effect_enable);
-		DBG("Audioeffect ReInit:0x%x\n", AudioEffect.effect_addr);
-	}
-	else
-	{
-		if(AudioEffect.user_effect_parameters)
-		{
-			//先释放资源
-			osPortFree(AudioEffect.user_effect_parameters);
-		}
-		
-		AUDIOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(mainAppCt.EffectMode);
-
-		AudioEffect.effect_count = para->user_effect_list->count + 0x80;
-		AudioEffect.cur_effect_para = para;
-		AudioEffect.user_effects_script_len = para->get_user_effects_script_len();
-		AudioEffect.user_effect_parameters = osPortMalloc(get_user_effect_parameters_len(para->user_effect_parameters) * sizeof(uint8_t));
-		memcpy(AudioEffect.user_effect_parameters, para->user_effect_parameters,get_user_effect_parameters_len(para->user_effect_parameters) * sizeof(uint8_t));
-		//数组中的值可能被切换帧长改变,获取初始化原始帧长(data段)
-		AudioEffect.audioeffect_frame_size = get_audioeffect_default_frame_info(para->user_effect_list,1);
-		if(AudioEffect.audioeffect_frame_size == 0)
-		{
-			AudioEffect.audioeffect_frame_size = para->user_effect_list->frame_size;
-		}
-		else
-		{
-			para->user_effect_list->frame_size = AudioEffect.audioeffect_frame_size;
-			DBG("audioeffect_default_frame_size: %lu\n",AudioEffect.audioeffect_frame_size);
-		}
-
-		for(i = 0; i < MaxNet; i++)
-		{
-			AudioCoreMixSampleRateSet(i, para->user_effect_list->sample_rate);//默认系统采样率
-		}
-		//para->user_effect_list->sample_rate = AudioCoreMixSampleRateGet(DefaultNet);
-
-#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
-		AudioEffect.EffectFlashUseFlag = FALSE;
-		if (AudioEffect_GetFlashEffectParam(mainAppCt.EffectMode, AudioEffect.user_effect_parameters))
-		{
-			AudioEffect.EffectFlashUseFlag = TRUE;
-			DBG("read effect parameters from flash ok\n");
-			DBG("EFFECT_MODE: %s%s\n", EFFECT_FLASH_MODE_NAME,AudioEffect.cur_effect_para->user_effect_name);
-		}
-		else
-#endif
-		{
-			DBG("EFFECT_MODE: %s\n", AudioEffect.cur_effect_para->user_effect_name);
-		}
-#ifdef CFG_FUNC_USB_AUDIO_MIX_MODE
-		if(AudioCoreSourceToRoboeffect(USB_SOURCE_NUM) != AUDIOCORE_SOURCE_SINK_ERROR || GetSystemMode() != ModeUsbDevicePlay)
-			UsbAudioSourceNum = USB_SOURCE_NUM;	//框图存在USB MIX通道，USB MIX开启的情况下使用该通道
-		else
-			UsbAudioSourceNum = APP_SOURCE_NUM;
-#endif
-	}
-
-	AudioEffect.audioeffect_memory_size = roboeffect_estimate_memory_size(
-			AudioEffect.cur_effect_para->user_effect_steps, AudioEffect.cur_effect_para->user_effect_list, AudioEffect.user_effect_parameters);
-	DBG("Audio effect need malloc memory: %ld\n", AudioEffect.audioeffect_memory_size);
-
-	if(AudioEffect.audioeffect_memory_size == ROBOEFFECT_FRAME_SIZE_ERROR
-		&& AudioEffect.cur_effect_para->user_effect_list->frame_size != roboeffect_estimate_frame_size(AudioEffect.cur_effect_para->user_effect_list, AudioEffect.user_effect_parameters))
+	if(AudioEffect[targetNet].audioeffect_memory_size == ROBOEFFECT_FRAME_SIZE_ERROR
+		&& AudioEffect[targetNet].cur_effect_para->user_effect_list->frame_size != roboeffect_estimate_frame_size(AudioEffect[targetNet].cur_effect_para->user_effect_list, AudioEffect[targetNet].user_effect_parameters))
 	{
 		//帧长错误  重新配置帧长
-		AudioEffect.cur_effect_para->user_effect_list->frame_size = roboeffect_estimate_frame_size(AudioEffect.cur_effect_para->user_effect_list, AudioEffect.user_effect_parameters);
-		AudioEffect.audioeffect_memory_size = roboeffect_estimate_memory_size(
-				AudioEffect.cur_effect_para->user_effect_steps, AudioEffect.cur_effect_para->user_effect_list, AudioEffect.user_effect_parameters);
-		DBG("Audio effect need malloc memory: %ld %lu\n", AudioEffect.audioeffect_memory_size,AudioEffect.cur_effect_para->user_effect_list->frame_size);
+		AudioEffect[targetNet].cur_effect_para->user_effect_list->frame_size = roboeffect_estimate_frame_size(AudioEffect[targetNet].cur_effect_para->user_effect_list, AudioEffect[targetNet].user_effect_parameters);
+		AudioEffect[targetNet].audioeffect_memory_size = roboeffect_estimate_memory_size(
+				AudioEffect[targetNet].cur_effect_para->user_effect_steps, AudioEffect[targetNet].cur_effect_para->user_effect_list, AudioEffect[targetNet].user_effect_parameters);
+		DBG("Audio effect need malloc memory: %ld, framesize:%lu\n", AudioEffect[targetNet].audioeffect_memory_size,AudioEffect[targetNet].cur_effect_para->user_effect_list->frame_size);
 	}
-	if(AudioEffect.audioeffect_memory_size < 0)
+	if(AudioEffect[targetNet].audioeffect_memory_size < 0)
 	{
 		DBG("**************************************\n!!!ERROR!!!\n");
-		switch(AudioEffect.audioeffect_memory_size)
+		switch(AudioEffect[targetNet].audioeffect_memory_size)
 		{
 			case ROBOEFFECT_EFFECT_NOT_EXISTED:
 			DBG("某个音效不存在 \n");
@@ -365,67 +306,152 @@ bool AudioEffectInit()
 			break;
 		}
 		DBG("**************************************\n");
-		return FALSE;
+		return;
 	}
 
-	if(AudioEffect.audioeffect_memory_size >= (xPortGetFreeHeapSize() - 5120))
+	if(AudioEffect[targetNet].audioeffect_memory_size >= (xPortGetFreeHeapSize() - 5120))
 	{
 		DBG("**************************************\n");
-		if(AudioEffect.effect_addr)
+		if(AudioEffect[targetNet].effect_addr)
 		{
-			DBG("Error:memory is not enough because effect 0x%x need too much!!!\nDon't open it.\n", AudioEffect.effect_addr);
+			DBG("Error:memory is not enough because effect 0x%x need too much!!!\nDon't open it.\n", AudioEffect[targetNet].effect_addr);
 		}
 		else
 		{
 			DBG("Error:memory is not enough!!! Please disable some effects.\n");
 			DBG("**************************************\n");
-			return FALSE;
+			return;
 		}
 		DBG("**************************************\n");
-		AudioEffect.effect_enable = 0;
-		AudioEffect_update_local_effect_status(AudioEffect.effect_addr, AudioEffect.effect_enable);
-		AudioEffect.cur_effect_para->user_effect_list->frame_size = AudioCoreFrameSizeGet(DefaultNet);
-		AudioEffect.audioeffect_memory_size = roboeffect_estimate_memory_size(
-				AudioEffect.cur_effect_para->user_effect_steps, AudioEffect.cur_effect_para->user_effect_list, AudioEffect.user_effect_parameters);
-		DBG("Finally malloc:%ld, leave:%ld\n", AudioEffect.audioeffect_memory_size, xPortGetFreeHeapSize());
+		AudioEffect[targetNet].effect_enable = 0;
+		AudioEffect_update_local_effect_status(targetNet, AudioEffect[targetNet].effect_addr, AudioEffect[targetNet].effect_enable);
+		AudioEffect[targetNet].cur_effect_para->user_effect_list->frame_size = AudioCoreFrameSizeGet(targetNet);
+		AudioEffect[targetNet].audioeffect_memory_size = roboeffect_estimate_memory_size(
+				AudioEffect[targetNet].cur_effect_para->user_effect_steps, AudioEffect[targetNet].cur_effect_para->user_effect_list, AudioEffect[targetNet].user_effect_parameters);
+		DBG("Finally malloc:%ld, leave:%ld\n", AudioEffect[targetNet].audioeffect_memory_size, xPortGetFreeHeapSize());
 	}
 	/**
 	 * malloc context memory
 	*/
-	if(AudioEffect.audioeffect_memory_size < xPortGetFreeHeapSize())
+	if(AudioEffect[targetNet].audioeffect_memory_size < xPortGetFreeHeapSize())
 	{
-		AudioEffect.context_memory = osPortMallocFromEnd(AudioEffect.audioeffect_memory_size);
-		if(AudioEffect.context_memory == NULL)
+		if(targetNet == DefaultNet)
 		{
-			return FALSE;
+			AudioEffect[targetNet].context_memory = osPortMallocFromEnd(AudioEffect[targetNet].audioeffect_memory_size);
+		}
+		else
+		{
+			AudioEffect[targetNet].context_memory = osPortMalloc(AudioEffect[targetNet].audioeffect_memory_size);
+		}
+		if(AudioEffect[targetNet].context_memory == NULL)
+		{
+			return;
 		}
 		/**
 		 * initial roboeffect context memory
 		*/
-		ROBOEFFECT_ERROR_CODE ret = roboeffect_init(AudioEffect.context_memory,
-				  AudioEffect.audioeffect_memory_size,
-				  AudioEffect.cur_effect_para->user_effect_steps,
-				  AudioEffect.cur_effect_para->user_effect_list,
-				  AudioEffect.user_effect_parameters);
+		ROBOEFFECT_ERROR_CODE ret = roboeffect_init(AudioEffect[targetNet].context_memory,
+				  AudioEffect[targetNet].audioeffect_memory_size,
+				  AudioEffect[targetNet].cur_effect_para->user_effect_steps,
+				  AudioEffect[targetNet].cur_effect_para->user_effect_list,
+				  AudioEffect[targetNet].user_effect_parameters);
 		if(ROBOEFFECT_ERROR_OK !=  ret)
 		{
 			DBG("roboeffect_init failed. %d \n",ret);
-			return FALSE;
+			return;
 		}
 		else
 		{
 			DBG("roboeffect_init ok.\n");
-			AudioEffect.effect_addr = 0;
+			AudioEffect[targetNet].effect_addr = 0;
+		}
+	}
+}
 
-			////Audio Core & Audioeffect音量配置
-			SystemVolSet();
-			AudioAPPDigitalGianProcess(mainAppCt.SysCurrentMode);
+bool AudioEffectInit()
+{
+	if(AudioEffect[Communication_Effect_Flow_Get()].effect_addr)
+	{
+		AudioEffect_update_local_effect_status(Communication_Effect_Flow_Get(), AudioEffect[Communication_Effect_Flow_Get()].effect_addr,
+												AudioEffect[Communication_Effect_Flow_Get()].effect_enable);
+		DBG("Audioeffect ReInit:0x%x\n", AudioEffect[Communication_Effect_Flow_Get()].effect_addr);
+
+		AudioEffectRoboeffectContextInit(Communication_Effect_Flow_Get());
+		AudioCoreFrameSizeSet(Communication_Effect_Flow_Get(),
+							  roboeffect_estimate_frame_size(AudioEffect[Communication_Effect_Flow_Get()].cur_effect_para->user_effect_list,
+							  AudioEffect[Communication_Effect_Flow_Get()].user_effect_parameters));
+	}
+	else
+	{
+		uint8_t net;
+		for(net = DefaultNet; net < MaxNet; net++)
+		{
+			if(AudioEffect[net].user_effect_parameters)
+			{
+				//先释放资源
+				osPortFree(AudioEffect[net].user_effect_parameters);
+			}
+
+			AUDIOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(mainAppCt.EffectMode);
+			para += net;
+			if(para->user_effect_list == NULL)
+			{
+				AudioEffect[net].effect_count = 0;
+				AudioEffect[net].cur_effect_para = NULL;
+				AudioEffect[net].user_effects_script_len = 0;
+				AudioEffect[net].user_effect_parameters = NULL;
+				AudioEffect[net].audioeffect_frame_size = 0;
+				AudioEffect[net].context_memory = NULL;
+				break;
+			}
+
+			AudioEffect[net].effect_count = para->user_effect_list->count + 0x80;
+			AudioEffect[net].cur_effect_para = para;
+			AudioEffect[net].user_effects_script_len = para->get_user_effects_script_len();
+			AudioEffect[net].user_effect_parameters = osPortMalloc(get_user_effect_parameters_len(para->user_effect_parameters) * sizeof(uint8_t));
+			memcpy(AudioEffect[net].user_effect_parameters, para->user_effect_parameters,get_user_effect_parameters_len(para->user_effect_parameters) * sizeof(uint8_t));
+			//数组中的值可能被切换帧长改变,获取初始化原始帧长(data段)
+			AudioEffect[net].audioeffect_frame_size = get_audioeffect_default_frame_info(para->user_effect_list,1);
+			if(AudioEffect[net].audioeffect_frame_size == 0)
+			{
+				AudioEffect[net].audioeffect_frame_size = para->user_effect_list->frame_size;
+			}
+			else
+			{
+				para->user_effect_list->frame_size = AudioEffect[net].audioeffect_frame_size;
+				DBG("audioeffect net:%d frame_size: %lu", net, AudioEffect[net].audioeffect_frame_size);
+			}
+
+			AudioCoreMixSampleRateSet(net, para->user_effect_list->sample_rate);//默认系统采样率
+			DBG(", samplerate: %lu\n", AudioCore.SampleRate[net]);
+
+	#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
+			AudioEffect[net].EffectFlashUseFlag = FALSE;
+			if (AudioEffect_GetFlashEffectParam(mainAppCt.EffectMode, net, AudioEffect[net].user_effect_parameters))
+			{
+				AudioEffect[net].EffectFlashUseFlag = TRUE;
+				DBG("read effect parameters net(%d) from flash ok\n", net);
+				DBG("EFFECT_MODE: %s%s\n", EFFECT_FLASH_MODE_NAME,AudioEffect[net].cur_effect_para->user_effect_name);
+			}
+			else
+	#endif
+			{
+				DBG("EFFECT_MODE: %s\n", AudioEffect[net].cur_effect_para->user_effect_name);
+			}
+	#ifdef CFG_FUNC_USB_AUDIO_MIX_MODE
+			if(AudioCoreSourceToRoboeffect(USB_SOURCE_NUM) != AUDIOCORE_SOURCE_SINK_ERROR || GetSystemMode() != ModeUsbDevicePlay)				UsbAudioSourceNum = USB_SOURCE_NUM;	//框图存在USB MIX通道，USB MIX开启的情况下使用该通道
+			else
+				UsbAudioSourceNum = APP_SOURCE_NUM;
+	#endif
+
+			AudioEffectRoboeffectContextInit(net);
+
+			//After effect init done, AudioCore know what frame size should be set.
+			AudioCoreFrameSizeSet(net,roboeffect_estimate_frame_size(AudioEffect[net].cur_effect_para->user_effect_list, AudioEffect[net].user_effect_parameters));
 		}
 	}
 
-	//After effect init done, AudioCore know what frame size should be set.
-	AudioCoreFrameSizeSet(DefaultNet, roboeffect_estimate_frame_size(AudioEffect.cur_effect_para->user_effect_list, AudioEffect.user_effect_parameters));
-
+	AudioAPPDigitalGianProcess(mainAppCt.SysCurrentMode);
 #ifdef  CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN
 	roboeffect_prot_init();
 #endif
@@ -533,7 +559,7 @@ bool ModeCommonInit(void)
 		AudioIOSet.Adapt = STD;
 		AudioIOSet.Sync = TRUE;
 		AudioIOSet.Channels = 2;
-		AudioIOSet.Net = DefaultNet;
+		AudioIOSet.Net = AudioEffect_getSinkNet(AUDIO_DAC0_SINK_NUM);
 		AudioIOSet.DataIOFunc = AudioDAC0_DataSet;
 		AudioIOSet.LenGetFunc = AudioDAC0_DataSpaceLenGet;
 		if(!AudioCoreSinkInit(&AudioIOSet, AUDIO_DAC0_SINK_NUM))
@@ -593,7 +619,14 @@ bool ModeCommonInit(void)
 
 		//Mic1   digital
 	#ifdef CFG_AUDIO_WIDTH_24BIT
-		AudioADC_DigitalInit(ADC1_MODULE, adc_sampleRate,ADC_WIDTH_24BITS,(void*)mainAppCt.ADCFIFO, FifoLenStereo);
+		if(isEffectModeforUSBAEC(mainAppCt.EffectMode))
+		{
+			AudioADC_DigitalInit(ADC1_MODULE, AudioCoreMixSampleRateGet(AudioEffect_getSourceNet(MIC_SOURCE_NUM)),ADC_WIDTH_24BITS,(void*)mainAppCt.ADCFIFO, FifoLenStereo);
+		}
+		else
+		{
+			AudioADC_DigitalInit(ADC1_MODULE, adc_sampleRate,ADC_WIDTH_24BITS,(void*)mainAppCt.ADCFIFO, FifoLenStereo);
+		}
 	#else
 		AudioADC_DigitalInit(ADC1_MODULE, adc_sampleRate,ADC_WIDTH_16BITS,(void*)mainAppCt.ADCFIFO, FifoLenStereo);
 	#endif
@@ -608,14 +641,21 @@ bool ModeCommonInit(void)
 		AudioIOSet.Adapt = SRC_ONLY;
 		AudioIOSet.Sync = TRUE;
 		AudioIOSet.Channels = 1;
-		AudioIOSet.Net = DefaultNet;
+		AudioIOSet.Net = AudioEffect_getSourceNet(MIC_SOURCE_NUM);
+		if(isEffectModeforUSBAEC(mainAppCt.EffectMode))
+		{
+			AudioIOSet.SampleRate = AudioCoreMixSampleRateGet(AudioIOSet.Net);
+		}
+		else
+		{
+			AudioIOSet.SampleRate = adc_sampleRate;
+		}
 		AudioIOSet.DataIOFunc = AudioADC1_DataGet;
 		AudioIOSet.LenGetFunc = AudioADC1_DataLenGet;
 	#ifdef	CFG_AUDIO_WIDTH_24BIT
 		AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
 		AudioIOSet.IOBitWidthConvFlag = 0;//需要数据进行位宽扩展
 	#endif
-		AudioIOSet.SampleRate = adc_sampleRate;
 		if(!AudioCoreSourceInit(&AudioIOSet, MIC_SOURCE_NUM))
 		{
 			DBG("mic Source error");
@@ -639,7 +679,7 @@ bool ModeCommonInit(void)
 		AudioIOSet.SampleRate = sampleRate;//初始值
 		AudioIOSet.Sync = FALSE;
 		AudioIOSet.Channels = 1;
-		AudioIOSet.Net = DefaultNet;
+		AudioIOSet.Net = AudioEffect_getSourceNet(REMIND_SOURCE_NUM);
 		AudioIOSet.DataIOFunc = RemindDataGet;
 		AudioIOSet.LenGetFunc = RemindDataLenGet;
 
@@ -694,7 +734,7 @@ bool ModeCommonInit(void)
 #endif
 		AudioIOSet.Sync = TRUE;//I2S slave 时候如果master没有接，有可能会导致DAC也不出声音。
 		AudioIOSet.Channels = 2;
-		AudioIOSet.Net = DefaultNet;
+		AudioIOSet.Net = AudioEffect_getSinkNet(AUDIO_I2SOUT_SINK_NUM);
 		AudioIOSet.HighLevelCent = 60;
 		AudioIOSet.LowLevelCent = 40;
 		AudioIOSet.SampleRate = CFG_PARA_I2S_SAMPLERATE;//根据实际外设选择
@@ -760,7 +800,7 @@ bool ModeCommonInit(void)
 #endif
 		AudioIOSet.Sync = TRUE;
 		AudioIOSet.Channels = 2;
-		AudioIOSet.Net = DefaultNet;
+		AudioIOSet.Net = AUDIO_I2SOUT_SINK_NUM(AUDIO_SPDIF_SINK_NUM);
 		AudioIOSet.HighLevelCent = 60;
 		AudioIOSet.LowLevelCent = 40;
 		AudioIOSet.SampleRate = sampleRate;//根据实际外设选择
@@ -799,13 +839,13 @@ bool ModeCommonInit(void)
 #endif
 
 #ifdef CFG_FUNC_I2S_MIX_MODE
-	if(!I2S_MixInit(FALSE))
+	if(!I2S_MixInit())
 	{
 		return FALSE;
 	}
 #endif
 #ifdef CFG_FUNC_I2S_MIX2_MODE
-	if(!I2S_Mix2Init(FALSE))
+	if(!I2S_Mix2Init())
 	{
 		return FALSE;
 	}
@@ -853,6 +893,7 @@ bool ModeCommonInit(void)
 //释放公共通路，
 void ModeCommonDeinit(void)
 {
+	uint8_t net;
 	SoftFlagRegister(SoftFlagAudioCoreSourceIsDeInit);
 #ifdef CFG_RES_AUDIO_DAC0_EN
 //	AudioCoreSinkDisable(AUDIO_DAC0_SINK_NUM);
@@ -942,8 +983,15 @@ void ModeCommonDeinit(void)
 #ifdef CFG_FUNC_USB_AUDIO_MIX_MODE
 	UsbDevicePlayMixDeinit();
 #endif
-	osPortFree(AudioEffect.context_memory);
-	AudioEffect.context_memory = NULL;
+	for(net = DefaultNet; net < MaxNet; net++)
+	{
+		if(AudioEffect[net].context_memory != NULL)
+		{
+			osPortFree(AudioEffect[net].context_memory);
+			AudioEffect[net].context_memory = NULL;
+		}
+	}
+	Communication_Effect_Flow_Switch(DefaultNet);
 
 #if BT_SOURCE_SUPPORT
 	AudioCoreSinkDisable(AUDIO_BT_SOURCE_SINK_NUM);
@@ -967,6 +1015,69 @@ bool AudioIoCommonForHfp(uint16_t gain)
 	FifoLenStereo = AudioCoreFrameSizeGet(DefaultNet) * 2 * 2 * 2;//立体声8倍大小于帧长，单位byte
 
 	DefaultParamgsInit();	//refresh local hardware config params(just storage not set)
+
+#ifdef CFG_RES_AUDIO_DAC0_EN
+	AudioCoreSinkDisable(AUDIO_DAC0_SINK_NUM);
+	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
+	AudioIOSet.Depth = AudioCore.FrameSize[DefaultNet] * 2 ;
+#ifdef	CFG_AUDIO_WIDTH_24BIT
+	AudioIOSet.IOBitWidth = PCM_DATA_16BIT_WIDTH;//0,16bit,1:24bit
+	AudioIOSet.IOBitWidthConvFlag = 1;//DAC 24bit ,sink最后一级输出时需要转变为24bi
+#endif
+	if(!AudioCoreSinkIsInit(AUDIO_DAC0_SINK_NUM))
+	{
+		mainAppCt.DACFIFO_LEN = AudioIOSet.Depth * sizeof(PCM_DATA_TYPE) * 2;
+		mainAppCt.DACFIFO = (uint32_t*)osPortMalloc(mainAppCt.DACFIFO_LEN);//DAC fifo
+		if(mainAppCt.DACFIFO != NULL)
+		{
+			memset(mainAppCt.DACFIFO, 0, mainAppCt.DACFIFO_LEN);
+		}
+		else
+		{
+			APP_DBG("malloc DACFIFO error\n");
+			return FALSE;
+		}
+		//sink0
+
+		AudioIOSet.Adapt = STD;
+		AudioIOSet.Sync = TRUE;
+		AudioIOSet.Channels = 2;
+		AudioIOSet.Net = AudioEffect_getSinkNet(AUDIO_DAC0_SINK_NUM);
+		AudioIOSet.DataIOFunc = AudioDAC0_DataSet;
+		AudioIOSet.LenGetFunc = AudioDAC0_DataSpaceLenGet;
+
+		if(!AudioCoreSinkInit(&AudioIOSet, AUDIO_DAC0_SINK_NUM))
+		{
+			DBG("Dac init error");
+			return FALSE;
+		}
+
+		uint16_t BitWidth;
+	#ifdef	CFG_AUDIO_WIDTH_24BIT
+		BitWidth = 24;
+	#else
+		BitWidth = 16;
+	#endif
+		AudioDAC_Init((DACParamCt *)&DACDefaultParamCt,sampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
+
+	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
+		Clock_AudioMclkSel(AUDIO_DAC0, gCtrlVars.HwCt.DAC0Ct.dac_mclk_source);
+	#else
+		gCtrlVars.HwCt.DAC0Ct.dac_mclk_source = Clock_AudioMclkGet(AUDIO_DAC0);
+	#endif
+	}
+	else
+	{
+		AudioDAC0_SampleRateChange(sampleRate);
+		gCtrlVars.HwCt.DAC0Ct.dac_mclk_source = Clock_AudioMclkGet(AUDIO_DAC0);
+		printf("mode task io set\n");
+#ifdef	CFG_AUDIO_WIDTH_24BIT
+		AudioCore.AudioSink[AUDIO_DAC0_SINK_NUM].BitWidth = AudioIOSet.IOBitWidth;
+		AudioCore.AudioSink[AUDIO_DAC0_SINK_NUM].BitWidthConvFlag = AudioIOSet.IOBitWidthConvFlag;
+#endif
+	}
+	AudioCoreSinkEnable(AUDIO_DAC0_SINK_NUM);
+#endif
 
 #if CFG_RES_MIC_SELECT
 	AudioCoreSourceDisable(MIC_SOURCE_NUM);
@@ -1007,7 +1118,7 @@ bool AudioIoCommonForHfp(uint16_t gain)
 		AudioIOSet.Adapt = STD;
 		AudioIOSet.Sync = TRUE;
 		AudioIOSet.Channels = 1;
-		AudioIOSet.Net = DefaultNet;
+		AudioIOSet.Net = AudioEffect_getSourceNet(MIC_SOURCE_NUM);
 		AudioIOSet.DataIOFunc = AudioADC1_DataGet;
 		AudioIOSet.LenGetFunc = AudioADC1_DataLenGet;
 #ifdef CFG_AUDIO_WIDTH_24BIT
@@ -1058,7 +1169,7 @@ bool AudioIoCommonForHfp(uint16_t gain)
 		AudioIOSet.SampleRate = sampleRate;//初始值
 		AudioIOSet.Sync = FALSE;
 		AudioIOSet.Channels = 1;
-		AudioIOSet.Net = DefaultNet;
+		AudioIOSet.Net = AudioEffect_getSourceNet(REMIND_SOURCE_NUM);
 		AudioIOSet.DataIOFunc = RemindDataGet;
 		AudioIOSet.LenGetFunc = RemindDataLenGet;
 
@@ -1075,85 +1186,6 @@ bool AudioIoCommonForHfp(uint16_t gain)
 #ifdef CFG_REMIND_SOUND_DECODING_USE_LIBRARY		
 		RemindMp3DecoderInit();
 #endif
-	}
-#endif
-
-
-#ifdef CFG_RES_AUDIO_DAC0_EN
-	AudioCoreSinkDisable(AUDIO_DAC0_SINK_NUM);
-	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
-	AudioIOSet.Depth = AudioCore.FrameSize[DefaultNet] * 2 ;
-#ifdef	CFG_AUDIO_WIDTH_24BIT
-	AudioIOSet.IOBitWidth = PCM_DATA_16BIT_WIDTH;//0,16bit,1:24bit
-	AudioIOSet.IOBitWidthConvFlag = 1;//DAC 24bit ,sink最后一级输出时需要转变为24bi
-#endif
-	if(!AudioCoreSinkIsInit(AUDIO_DAC0_SINK_NUM))
-	{
-		mainAppCt.DACFIFO_LEN = AudioIOSet.Depth * sizeof(PCM_DATA_TYPE) * 2;
-		mainAppCt.DACFIFO = (uint32_t*)osPortMalloc(mainAppCt.DACFIFO_LEN);//DAC fifo
-		if(mainAppCt.DACFIFO != NULL)
-		{
-			memset(mainAppCt.DACFIFO, 0, mainAppCt.DACFIFO_LEN);
-		}
-		else
-		{
-			APP_DBG("malloc DACFIFO error\n");
-			return FALSE;
-		}
-		//sink0
-
-		AudioIOSet.Adapt = STD;
-		AudioIOSet.Sync = TRUE;
-		AudioIOSet.Channels = 2;
-		AudioIOSet.Net = DefaultNet;
-		AudioIOSet.DataIOFunc = AudioDAC0_DataSet;
-		AudioIOSet.LenGetFunc = AudioDAC0_DataSpaceLenGet;
-
-		if(!AudioCoreSinkInit(&AudioIOSet, AUDIO_DAC0_SINK_NUM))
-		{
-			DBG("Dac init error");
-			return FALSE;
-		}
-
-		uint16_t BitWidth;
-	#ifdef	CFG_AUDIO_WIDTH_24BIT
-		BitWidth = 24;
-	#else
-		BitWidth = 16;
-	#endif
-		AudioDAC_Init((DACParamCt *)&DACDefaultParamCt,sampleRate,BitWidth, (void*)mainAppCt.DACFIFO, mainAppCt.DACFIFO_LEN, NULL, 0);
-
-	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
-		Clock_AudioMclkSel(AUDIO_DAC0, gCtrlVars.HwCt.DAC0Ct.dac_mclk_source);
-	#else
-		gCtrlVars.HwCt.DAC0Ct.dac_mclk_source = Clock_AudioMclkGet(AUDIO_DAC0);
-	#endif
-	}
-	else
-	{
-		AudioDAC0_SampleRateChange(sampleRate);
-		gCtrlVars.HwCt.DAC0Ct.dac_mclk_source = Clock_AudioMclkGet(AUDIO_DAC0);
-		APP_DBG("mode task io set\n");
-#ifdef	CFG_AUDIO_WIDTH_24BIT
-		AudioCore.AudioSink[AUDIO_DAC0_SINK_NUM].BitWidth = AudioIOSet.IOBitWidth;
-		AudioCore.AudioSink[AUDIO_DAC0_SINK_NUM].BitWidthConvFlag = AudioIOSet.IOBitWidthConvFlag;
-#endif
-	}
-	AudioCoreSinkEnable(AUDIO_DAC0_SINK_NUM);
-#endif
-
-#ifdef CFG_FUNC_I2S_MIX_MODE
-	if(!I2S_MixInit(TRUE))
-	{
-		return FALSE;
-	}
-#endif
-
-
-#ifdef CFG_FUNC_I2S_MIX2_MODE
-	if(!I2S_Mix2Init(TRUE))
-	{
-		return FALSE;
 	}
 #endif
 
@@ -1193,7 +1225,7 @@ bool AudioIoCommonForHfp(uint16_t gain)
 #endif
 		AudioIOSet.Sync = TRUE;//I2S slave 时候如果master没有接，有可能会导致DAC也不出声音。
 		AudioIOSet.Channels = 2;
-		AudioIOSet.Net = DefaultNet;
+		AudioIOSet.Net = AudioEffect_getSinkNet(AUDIO_I2SOUT_SINK_NUM);
 		AudioIOSet.HighLevelCent = 60;
 		AudioIOSet.LowLevelCent = 40;
 		AudioIOSet.SampleRate = CFG_PARA_I2S_SAMPLERATE;//根据实际外设选择
@@ -1230,41 +1262,30 @@ bool AudioIoCommonForHfp(uint16_t gain)
 #endif
 
 	AudioDAC_Enable(DAC0);
-#ifdef CFG_COMMUNICATION_BY_UART
-	uart_data_init();
-#endif
 	return TRUE;
 }
 
-void AudioCoreSourceSinkPcmBufReinit(void)
-{
-	uint8_t i;
-
-	for(i = 0; i < AUDIO_CORE_SOURCE_MAX_NUM; i++)
-	{
-		if(AudioCoreSourceToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
-		{
-			AudioCore.AudioSource[i].PcmInBuf = roboeffect_get_source_buffer(
-							AudioEffect.context_memory, AudioCoreSourceToRoboeffect(i));
-		}
-	}
-	for(i = 0; i < AUDIO_CORE_SINK_MAX_NUM; i++)
-	{
-		if(AudioCoreSinkToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
-		{
-			AudioCore.AudioSink[i].PcmOutBuf = roboeffect_get_sink_buffer(
-							AudioEffect.context_memory, AudioCoreSinkToRoboeffect(i));
-		}
-	}
-}
 //sel: 0 = init hw, 1 = effect, 2 = hw + effect
 bool AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 {
+	uint8_t i, net;
+
 	if(sel == 1 || sel == 2)
 	{
 		PauseAuidoCore();
-		osPortFree(AudioEffect.context_memory);
-		AudioEffect.context_memory = NULL;
+		if(AudioEffect[Communication_Effect_Flow_Get()].effect_addr)
+		{
+			osPortFree(AudioEffect[Communication_Effect_Flow_Get()].context_memory);
+			AudioEffect[Communication_Effect_Flow_Get()].context_memory = NULL;
+		}
+		else
+		{
+			for(net = 0; net < MaxNet; net++)
+			{
+				osPortFree(AudioEffect[net].context_memory);
+				AudioEffect[net].context_memory = NULL;
+			}
+		}
 
 		if(!AudioEffectInit())
 		{
@@ -1272,7 +1293,22 @@ bool AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 			return FALSE;
 		}
 
-		AudioCoreSourceSinkPcmBufReinit();
+		for(i = 0; i < AUDIO_CORE_SOURCE_MAX_NUM; i++)
+		{
+			if(AudioCoreSourceToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
+			{
+				AudioCore.AudioSource[i].PcmInBuf = roboeffect_get_source_buffer(
+								AudioEffect[AudioEffect_getSourceNet(i)].context_memory, AudioCoreSourceToRoboeffect(i));
+			}
+		}
+		for(i = 0; i < AUDIO_CORE_SINK_MAX_NUM; i++)
+		{
+			if(AudioCoreSinkToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
+			{
+				AudioCore.AudioSink[i].PcmOutBuf = roboeffect_get_sink_buffer(
+								AudioEffect[AudioEffect_getSinkNet(i)].context_memory, AudioCoreSinkToRoboeffect(i));
+			}
+		}
 
 #ifdef CFG_APP_LINEIN_MODE_EN
 		if(GetSystemMode() == ModeLineAudioPlay)
@@ -1282,10 +1318,12 @@ bool AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 			LineinADCDigitalInit();
 		}
 #endif
+
 #if CFG_RES_MIC_SELECT
 		AudioADC_Disable(ADC1_MODULE);
 		DMA_ChannelDisable(PERIPHERAL_ID_AUDIO_ADC1_RX);
 		DMA_CircularFIFOClear(PERIPHERAL_ID_AUDIO_ADC1_RX);
+		AudioADC_FuncReset(ADC1_MODULE);
 		AudioADC_Enable(ADC1_MODULE);
 		AudioADC_LREnable(ADC1_MODULE, 1, 1);
 		DMA_ChannelEnable(PERIPHERAL_ID_AUDIO_ADC1_RX);
@@ -1423,6 +1461,11 @@ void CommonMsgProccess(uint16_t Msg)
 			APP_DBG("ShunningMode = %d\n", mainAppCt.ShunningMode);
 			#endif
 			break;
+		case MSG_EFFECTFLOW_SWITCH:
+			APP_DBG("MSG_EFFECTFLOW_SWITCH\n");
+			Communication_Effect_Flow_Switch((Communication_Effect_Flow_Get() == DefaultNet) ? AECNet:DefaultNet);
+			gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
+			break;
 		case MSG_EFFECTMODE:
 			EffectMode = mainAppCt.EffectMode;
 #ifndef CFG_FUNC_EFFECT_BYPASS_EN
@@ -1439,11 +1482,10 @@ void CommonMsgProccess(uint16_t Msg)
 			{
 				HardWareMuteOrUnMute();
 			}
-			PauseAuidoCore();
-			if(AudioEffect.effect_mode_expected)
+			if(AudioEffect[Communication_Effect_Flow_Get()].effect_mode_expected)
 			{
-				mainAppCt.EffectMode = AudioEffect.effect_mode_expected;
-				AudioEffect.effect_mode_expected = 0;
+				mainAppCt.EffectMode = AudioEffect[Communication_Effect_Flow_Get()].effect_mode_expected;
+				AudioEffect[Communication_Effect_Flow_Get()].effect_mode_expected = 0;
 			}
 			else
 			{
@@ -1456,11 +1498,11 @@ void CommonMsgProccess(uint16_t Msg)
 #endif
 
 			AUDIOEFFECT_EFFECT_PARA *mpara = get_user_effect_parameters(mainAppCt.EffectMode);
-			uint16_t	FrameSize = roboeffect_estimate_frame_size(mpara->user_effect_list, mpara->user_effect_parameters);
+			uint16_t FrameSize = roboeffect_estimate_frame_size(mpara->user_effect_list, &mpara->user_effect_parameters[DefaultNet]);
 			DBG("EFFECT_MODE: %s,%ld,%d\n", mpara->user_effect_name,mpara->user_effect_list->sample_rate,FrameSize);
 			if (FrameSize == AudioCoreFrameSizeGet(DefaultNet)
 			   && mpara->user_effect_list->sample_rate == AudioCoreMixSampleRateGet(DefaultNet)
-			//   && EffectModeCmp(EffectMode,mainAppCt.EffectMode)
+			   && EffectModeCmp(EffectMode,mainAppCt.EffectMode)
 			)	//不涉及修改帧长 采样率
 			{
 				if(!AudioEffectModeSel(mainAppCt.EffectMode, 2))//sel: 0=init hw, 1=effect, 2=hw + effect
@@ -1473,8 +1515,8 @@ void CommonMsgProccess(uint16_t Msg)
 			else
 			{
 				uint32_t usb_source = USB_AUDIO_SOURCE_NUM;
-				uint16_t defaultFrameSize= mpara->user_effect_list->frame_size;
-				mpara->user_effect_list->frame_size = roboeffect_estimate_frame_size(mpara->user_effect_list, mpara->user_effect_parameters);
+				uint8_t defaultFrameSize= mpara->user_effect_list->frame_size;
+				mpara->user_effect_list->frame_size = roboeffect_estimate_frame_size(mpara->user_effect_list, &mpara->user_effect_parameters[DefaultNet]);
 				FrameSize = AudioCoreFrameSizeGet(DefaultNet);
 				PauseAuidoCore();
 				ModeCommonDeinit();
@@ -1483,7 +1525,22 @@ void CommonMsgProccess(uint16_t Msg)
 					APP_DBG("MSG_EFFECTMODE ModeInit Error!!!\n");
 					break;
 				}
-				AudioCoreSourceSinkPcmBufReinit();
+				for(int8_t i = 0; i < AUDIO_CORE_SOURCE_MAX_NUM; i++)
+				{
+					if(AudioCoreSourceToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
+					{
+						AudioCore.AudioSource[i].PcmInBuf = roboeffect_get_source_buffer(
+										AudioEffect[AudioEffect_getSourceNet(i)].context_memory, AudioCoreSourceToRoboeffect(i));
+					}
+				}
+				for(int8_t i = 0; i < AUDIO_CORE_SINK_MAX_NUM; i++)
+				{
+					if(AudioCoreSinkToRoboeffect(i) != AUDIOCORE_SOURCE_SINK_ERROR)
+					{
+						AudioCore.AudioSink[i].PcmOutBuf = roboeffect_get_sink_buffer(
+										AudioEffect[AudioEffect_getSinkNet(i)].context_memory, AudioCoreSinkToRoboeffect(i));
+					}
+				}
 #ifdef CFG_APP_USB_AUDIO_MODE_EN
 			#ifdef CFG_FUNC_USB_AUDIO_MIX_MODE
 				//USB_AUDIO_MIX模式，帧长改变 或者 通道改变，声卡需要重新初始化通道
@@ -1534,30 +1591,31 @@ void CommonMsgProccess(uint16_t Msg)
 			}
 
 			AUDIOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(mainAppCt.EffectMode);
-			if (para->user_effect_list->sample_rate != AudioCoreMixSampleRateGet(DefaultNet))
+			para += Communication_Effect_Flow_Get();
+			if (para->user_effect_list->sample_rate != AudioCoreMixSampleRateGet(Communication_Effect_Flow_Get()))
 			{
 				AudioEffectModeSel(mainAppCt.EffectMode, 1);//sel: 0=init hw, 1=effect, 2=hw + effect
 				gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
 			}
 			else
 			{
-				int8_t opera = AudioEffect.effect_enable ? 1 : -1;
-				uint8_t addr = AudioEffect.effect_addr;
-				uint32_t FrameSize = AudioCoreFrameSizeGet(DefaultNet);
+				int8_t opera = AudioEffect[Communication_Effect_Flow_Get()].effect_enable ? 1 : -1;
+				uint8_t addr = AudioEffect[Communication_Effect_Flow_Get()].effect_addr;
+				uint32_t FrameSize = AudioCoreFrameSizeGet(Communication_Effect_Flow_Get());
 				uint32_t ChangeFrameSize = roboeffect_recommend_frame_size_upon_effect_change(
-						AudioEffect.context_memory, AudioEffect.audioeffect_frame_size, AudioEffect.effect_addr, opera);
+						AudioEffect[Communication_Effect_Flow_Get()].context_memory, AudioEffect[Communication_Effect_Flow_Get()].audioeffect_frame_size, AudioEffect[Communication_Effect_Flow_Get()].effect_addr, opera);
 
-				if( ChangeFrameSize && AudioCoreFrameSizeGet(DefaultNet) != ChangeFrameSize)
+				if( ChangeFrameSize && AudioCoreFrameSizeGet(Communication_Effect_Flow_Get()) != ChangeFrameSize)
 				{
-					AudioEffect.cur_effect_para->user_effect_list->frame_size = ChangeFrameSize;
-					APP_DBG("Need Change FrameSize to %ld\n", AudioEffect.cur_effect_para->user_effect_list->frame_size);
+					AudioEffect[Communication_Effect_Flow_Get()].cur_effect_para->user_effect_list->frame_size = ChangeFrameSize;
+					APP_DBG("Need Change FrameSize to %ld\n", AudioEffect[Communication_Effect_Flow_Get()].cur_effect_para->user_effect_list->frame_size);
 
 					if(!SysCurModeReboot())
 					{
 						//当前模式重启失败，恢复上次参数，再次重启模式
-						if(AudioEffect.effect_enable)
-							AudioEffect.effect_enable = 0;
-						AudioEffect.cur_effect_para->user_effect_list->frame_size = FrameSize;
+						if(AudioEffect[Communication_Effect_Flow_Get()].effect_enable)
+							AudioEffect[Communication_Effect_Flow_Get()].effect_enable = 0;
+						AudioEffect[Communication_Effect_Flow_Get()].cur_effect_para->user_effect_list->frame_size = FrameSize;
 						SysCurModeReboot();
 					}
 					gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
@@ -1573,7 +1631,7 @@ void CommonMsgProccess(uint16_t Msg)
 			{
 				HardWareMuteOrUnMute();
 			}
-            AudioEffect.reinit_done = 1;
+            AudioEffect[Communication_Effect_Flow_Get()].reinit_done = 1;
 			break;
 
 		#ifdef CFG_FUNC_RTC_EN
@@ -1695,62 +1753,7 @@ void CommonMsgProccess(uint16_t Msg)
 				#endif
 			}
 			break;
-
-		case MSG_BT_CLEAR_PAIRED_LIST:
-			memset(btManager.btLinkDeviceInfo,0,sizeof(btManager.btLinkDeviceInfo));
-			BtDdb_EraseBtLinkInforMsg();
-			break;
 #endif
-
-#ifdef BT_PROFILE_BQB_ENABLE
-		case MSG_A2DP_CONNECT:
-			APP_DBG("MSG_A2DP_CONNECT\n");
-			A2dpConnect(0,btManager.btDdbLastAddr);
-		break;
-
-
-		case MSG_AVRCP_CONNECT:
-			APP_DBG("MSG_AVRCP_CONNECT\n");
-			AvrcpConnect(0,btManager.btDdbLastAddr);
-		break;
-
-		case MSG_AVRCP_STOP:
-			APP_DBG("MSG_AVRCP_STOP\n");
-			AvrcpCtrlStop(0);
-			break;
-
-		case MSG_HFP_CONNECT:
-			APP_DBG("MSG_HFP_CONNECT\n");
-			HfpConnect(0,btManager.btDdbLastAddr);
-		break;
-
-		case MSG_SCO_CONNECT:
-			APP_DBG("MSG_SCO_CONNECT\n");
-			HfpAudioConnect(0);
-		break;
-
-		case MSG_BT_BQB_AVDTP_SMG:
-		{
-			BTBqbAvdtpSmgSet(1);
-			APP_DBG("enable AVDTP/SNK/ACP/SIG/SMG/BI-05-C BI-33-C test\n");
-		}
-		break;
-
-		case MSG_BT_BQB_AVDTP_SMG_BI38C:
-		{
-			BTBqbAvdtpSmgBI38CSet(1);
-			APP_DBG("enable AVDTP/SNK/ACP/SIG/SMG/BI-38-C test\n");
-		}
-		break;
-
-		case MSG_BT_BQB_VRR_BV_01_C:
-			if(GetHfpState(0) == BT_HFP_STATE_CONNECTED)
-			{
-				APP_DBG("MSG_BT_BQB_VRR_BV_01_C\n");
-				HfpVoiceRecognition(0, '2');
-			}
-			break;
-#endif//BT_PROFILE_BQB_ENABLE
 
 		default:
 			#ifdef CFG_FUNC_DISPLAY_EN
@@ -1762,6 +1765,7 @@ void CommonMsgProccess(uint16_t Msg)
 			#endif
 
 			refresh_addr = AudioMsgProccess(Msg);
+
 			if(refresh_addr)
 			{
 				gCtrlVars.AutoRefresh = refresh_addr;

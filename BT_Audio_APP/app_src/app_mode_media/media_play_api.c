@@ -104,45 +104,6 @@ bool FolderExclude_callback(FILINFO *finfo)
 #endif
 	return FALSE;
 }
-
-#ifdef CFG_FUNC_DECRYPT_EN
-#define DECRY_KEY 0xAA //解密秘钥必须和工具使用的秘钥相匹配
-
-void DeCRYPT_CRYPT(uint8_t *buffer, uint32_t len)
-{
-    int i;
-
-	for(i = 0; i < len; i++)
-	{
-		*(uint8_t *)buffer = *(uint8_t *)buffer ^ DECRY_KEY;
-		buffer++;
-	}
-}
-
-void DeCRYPT_Init(int32_t *SongFileType)
-{
-	mv_fread_call_back_set(DeCRYPT_CRYPT);
-	switch(*SongFileType)
-	{
-	case FILE_TYPE_MVB:
-		*SongFileType = MP3_DECODER;
-		break;
-	case FILE_TYPE_MVC:
-		*SongFileType = WAV_DECODER;
-		break;
-	case FILE_TYPE_MVD:
-		*SongFileType = WMA_DECODER;
-		break;
-	case FILE_TYPE_MVF:
-		*SongFileType = FLAC_DECODER;
-		break;
-	default:
-		mv_fread_call_back_set(NULL);
-	}
-}
-
-#endif
-
 void UAndSDDiskUpgradeJudge(void)
 {
 
@@ -395,26 +356,8 @@ bool MediaPlayerInitialize(DEV_ID DeviceIndex, int32_t FileIndex, uint32_t Folde
 			return FALSE;
 		}
 
-#if FLASH_BOOT_EN
 		UAndSDDiskUpgradeJudge();
-#ifndef FUNC_UPDATE_CONTROL
-		if(!SoftFlagGet(SoftFlagUpgradeOK)&&(SoftFlagGet(SoftFlagMvaInUDisk)||SoftFlagGet(SoftFlagMvaInCard)))
-		{
-			APP_DBG("MediaPlayerInitialize return,because MVA upgrade \n");
-			if(SoftFlagGet(SoftFlagMvaInCard))
-			{
-				APP_DBG("MainApp:updata file exist in Card\n");
-				start_up_grate(SysResourceCard);
-			}
-			else if(SoftFlagGet(SoftFlagMvaInUDisk))
-			{
-				APP_DBG("MainApp:updata file exist in Udisk\n");
-				start_up_grate(SysResourceUDisk);
-			}
-			return TRUE;
-		}
-#endif
-#endif
+		
 		APP_DBG("Hardware initialize success.\n");
 
 		//默认使用全盘播放第一个文件
@@ -433,7 +376,13 @@ bool MediaPlayerInitialize(DEV_ID DeviceIndex, int32_t FileIndex, uint32_t Folde
 
 		gMediaPlayer->TotalFileSumInDisk = f_file_real_quantity();
 		gMediaPlayer->ValidFolderSumInDisk = f_dir_with_song_real_quantity();//f_dir_real_quantity();
-
+#if FLASH_BOOT_EN
+		if(!SoftFlagGet(SoftFlagUpgradeOK)&&(SoftFlagGet(SoftFlagMvaInUDisk)||SoftFlagGet(SoftFlagMvaInCard)))
+		{
+			APP_DBG("MediaPlayerInitialize return,because MVA upgrade \n");
+			return TRUE;
+		}
+#endif
 		if(!gMediaPlayer->TotalFileSumInDisk)
 		{
 			return FALSE;
@@ -478,10 +427,6 @@ bool MediaPlayerInitialize(DEV_ID DeviceIndex, int32_t FileIndex, uint32_t Folde
 		{
 			break;
 		}
-#ifdef CFG_FUNC_APP_USB_CARD_IDLE
-		if(IsMediaPlugOut())
-			return FALSE;
-#endif
 		gMediaPlayer->CurFileIndex = (gMediaPlayer->CurFileIndex % gMediaPlayer->TotalFileSumInDisk) + 1;
 	}
 	if(i == gMediaPlayer->TotalFileSumInDisk)
@@ -894,9 +839,6 @@ bool MediaPlayerDecoderInit(void)
 #endif
 #endif
 	{
-#ifdef CFG_FUNC_DECRYPT_EN
-		DeCRYPT_Init((int32_t*)&SongFileType);
-#endif
 		if(DecoderInit(&gMediaPlayer->PlayerFile,DECODER_MODE_CHANNEL,(int32_t)IO_TYPE_FILE, (int32_t)SongFileType) != RT_SUCCESS)
 		{
 			return FALSE;

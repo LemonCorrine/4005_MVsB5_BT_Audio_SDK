@@ -62,6 +62,14 @@ typedef enum _EFFECT_MODE
     EFFECT_MODE_NanBianNv,
     EFFECT_MODE_NvBianNan,
     EFFECT_MODE_WaWaYin,
+	/**********aec mode**************/
+	EFFECT_MODE_USBAEC,
+	EFFECT_MODE_USBAEC_A,
+	EFFECT_MODE_USBAEC_B,
+	EFFECT_MODE_USBAEC_C,
+	EFFECT_MODE_USBAEC_D,
+	EFFECT_MODE_USBAEC_E,
+	EFFECT_MODE_USBAEC_F,
 
 	EFFECT_MODE_COUNT,
     //User can add other effect mode
@@ -98,6 +106,21 @@ typedef enum _EQ_MODE
 #define ANA_INPUT_CH_LINEIN3 3
 #define ANA_INPUT_CH_LINEIN4 4
 #define ANA_INPUT_CH_LINEIN5 5
+
+//for System Control	0x01
+typedef struct _SystemControlContext
+{
+	uint8_t	  			sync_head;
+	uint8_t	  			len;
+    uint16_t            System_Mode;
+    uint16_t            System_Reset;
+    uint16_t            System_Sample_Rate_Enable;
+    uint16_t            System_Sample_Rate;
+    uint16_t            System_MCLK_Enable;
+    uint16_t            System_MCLK;
+    uint16_t            Factory_Reset;
+    uint16_t            Frame_Size_Set;
+}SystemControlContext;
 
 //for ADC0 PGA      0x03
 typedef struct _ADC0PGAContext
@@ -214,33 +237,36 @@ typedef struct _SPDIFContext
 
 typedef struct _HardwareConfigContext
 {
-	//for ADC0 PGA      0x03
-	ADC0PGAContext		ADC0PGACt;
-    //for ADC0 DIGITAL  0x04
-	ADCDigitalContext	ADC0DigitalCt;
+	//for System Control 0x01
+//	SystemControlContext SysCtrlCt;
 
-	//for AGC0 ADC0     0x05(just for sync but not used)
-	uint16_t			ADC0AGC_Reserved;
+	//for ADC0 PGA       0x03
+	ADC0PGAContext		 ADC0PGACt;
+    //for ADC0 DIGITAL   0x04
+	ADCDigitalContext	 ADC0DigitalCt;
 
-	//for ADC1 PGA      0x06
-	ADC1PGAContext		ADC1PGACt;
+	//for AGC0 ADC0      0x05(just for sync but not used)
+	uint16_t			 ADC0AGC_Reserved;
 
-	//for ADC1 DIGITAL  0x07
-	ADCDigitalContext	ADC1DigitalCt;
+	//for ADC1 PGA       0x06
+	ADC1PGAContext		 ADC1PGACt;
 
-	//for AGC1  ADC1    0x08
-	ADCAGCContext		ADC1AGCCt;
+	//for ADC1 DIGITAL   0x07
+	ADCDigitalContext	 ADC1DigitalCt;
 
-	//for DAC0          0x09
-	DACContext			DAC0Ct;
+	//for AGC1  ADC1     0x08
+	ADCAGCContext		 ADC1AGCCt;
 
-	//for DAC1          0x0a
-	uint16_t            DAC1_Reserved;
+	//for DAC0           0x09
+	DACContext			 DAC0Ct;
+
+	//for DAC1           0x0a
+	uint16_t             DAC1_Reserved;
 
 	//not used
-	I2SContext			I2S0Ct;
-	I2SContext			I2S1Ct;
-	SPDIFContext		SPDIFCt;
+	I2SContext			 I2S0Ct;
+	I2SContext			 I2S1Ct;
+	SPDIFContext		 SPDIFCt;
 }HardwareConfigContext;
 
 typedef enum _AutoRefreshType

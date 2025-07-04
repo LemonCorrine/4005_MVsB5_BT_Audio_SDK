@@ -250,7 +250,7 @@ bool SpdifPlayInit(void)
 	AudioIOSet.Adapt = SRC_ADJUST;//SRC_SRA;
 	AudioIOSet.Sync = FALSE;
 	AudioIOSet.Channels = 2;
-	AudioIOSet.Net = DefaultNet;
+	AudioIOSet.Net = AudioEffect_getSourceNet(SPDIF_SOURCE_NUM);
 
 	AudioIOSet.DataIOFunc = Spdif_Rx_DataGet;
 	AudioIOSet.LenGetFunc = Spdif_Rx_DataLenGet;
@@ -279,7 +279,12 @@ bool SpdifPlayInit(void)
 	if(GetSystemMode() == ModeOpticalAudioPlay)
 	{
 		//spdif config
+		GPIO_RegBitsSet(GPIO_A_ANA_EN,SPDIF0_OPTICAL_INDEX);
 		GPIO_PortAModeSet(SPDIF0_OPTICAL_INDEX, SPDIF0_OPTICAL_PORT_MODE);
+#ifdef CFG_APP_COAXIAL_MODE_EN
+		GPIO_PortAModeSet(SPDIF0_COAXIAL_INDEX, 0);
+#endif
+		SPDIF0_AnalogModuleEnable(SPDIF0_OPTICAL_PORT_ANA_INPUT, SPDIF_ANA_LEVEL_300mVpp);
 	}
 #endif
 
@@ -288,6 +293,9 @@ bool SpdifPlayInit(void)
 	{	
 		GPIO_RegBitsSet(GPIO_A_ANA_EN,SPDIF0_COAXIAL_INDEX);
 		GPIO_PortAModeSet(SPDIF0_COAXIAL_INDEX, SPDIF0_COAXIAL_PORT_MODE);
+#ifdef CFG_APP_OPTICAL_MODE_EN
+		GPIO_PortAModeSet(SPDIF0_OPTICAL_INDEX, 0);
+#endif
 		SPDIF0_AnalogModuleEnable(SPDIF0_COAXIAL_PORT_ANA_INPUT, SPDIF_ANA_LEVEL_300mVpp);
 	}
 #endif
@@ -415,12 +423,12 @@ void SpdifPlayRun(uint16_t msgId)
 				SPDIF_DpllLockDeInit();
 				if(!SPDIF_FlagStatusGet(CFG_SPDIF_MODULE,LOCK_FLAG_STATUS))
 				{
-					APP_DBG("unlock return\n");
+					printf("unlock return\n");
 					return ;
 				}
 				else
 				{
-					APP_DBG("reinit dpll lock\n");
+					printf("reinit dpll lock\n");
 					SPDIF_DpllLockInit();//dpll lock mode
 					SPDIF_DpllLockStart();
 				}

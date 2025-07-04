@@ -19,7 +19,7 @@
 #include "bt_stack_service.h"
 
 #if BT_SOURCE_SUPPORT
-uint8_t gBtSourceInquiryStart = 0;
+static uint8_t gBtSourceInquiryStart = 0;
 static uint8_t gBtSourceNameRequestCnt = 0;
 
 
@@ -44,12 +44,12 @@ void BtSourceInquiryResultParse(uint8_t *addr, uint16_t extRespLen, uint8_t *ext
 
 			BtSourceInquiryListInsert(addr, name_len, &extResp[name_offset], classOfDevice, rssi);
 
-			/*APP_DBG("name: ");
+			/*printf("name: ");
 			for(len = 0; len < name_len; len++)
 			{
-				APP_DBG("%c", extResp[offset+2+len]);
+				printf("%c", extResp[offset+2+len]);
 			}
-			APP_DBG(",classOfDev:%x-%x-%x\n", classOfDevice[0], classOfDevice[1], classOfDevice[2]);
+			printf(",classOfDev:%x-%x-%x\n", classOfDevice[0], classOfDevice[1], classOfDevice[2]);
 			*/
 
 			nameInforFlag = 1;
@@ -206,7 +206,7 @@ void BtSourceInquiryListPrintf(void)
 	{
 		if(btManager.SourceInqResultList[i].flag)
 		{
-			APP_DBG("ID[%d]: Addr[%02x:%02x:%02x:%02x:%02x:%02x], name = %s ,classOfDev:%02x-%02x-%02x, rssi:%d\n",
+			printf("ID[%d]: Addr[%02x:%02x:%02x:%02x:%02x:%02x], name = %s ,classOfDev:%02x-%02x-%02x, rssi:%d\n",
 				i,
 				btManager.SourceInqResultList[i].addr[0],
 				btManager.SourceInqResultList[i].addr[1],
@@ -238,7 +238,7 @@ void BtSourceNameRequest(void)
 		{
 			if(btManager.SourceInqResultList[i].nameFlag == 0)
 			{
-				APP_DBG("ID[%d] name request: Addr[%02x:%02x:%02x:%02x:%02x:%02x]\n",
+				printf("ID[%d] name request: Addr[%02x:%02x:%02x:%02x:%02x:%02x]\n",
 				i,
 				btManager.SourceInqResultList[i].addr[0],
 				btManager.SourceInqResultList[i].addr[1],
@@ -260,7 +260,7 @@ void BtSourceNameRequest(void)
 
 	gBtSourceInquiryStart = 0;
 	BtSourceInquiryListPrintf();
-	APP_DBG("!!!!!!!!!! end!!!!\n");
+	printf("!!!!!!!!!! end!!!!\n");
 
 	BtSourceNameMatch();
 
@@ -292,7 +292,7 @@ uint8_t BtSourceConnectIndex(uint32_t index)
 	{
 		if(index < A2DP_SCAN_NUMBER && btManager.SourceInqResultList[index].flag)
 		{
-			APP_DBG("BtSourceConnectIndex :  [%02x:%02x:%02x:%02x:%02x:%02x]\n",
+			printf("BtSourceConnectIndex :  [%02x:%02x:%02x:%02x:%02x:%02x]\n",
 				btManager.SourceInqResultList[index].addr[0],
 				btManager.SourceInqResultList[index].addr[1],
 				btManager.SourceInqResultList[index].addr[2],
@@ -314,11 +314,6 @@ void BtSourceNameMatch(void)
 {
 	uint8_t i;
 
-#ifdef SOURCE_AUTO_INQUIRY_AND_CONNECT
-	int8_t rssi_temp = -120;
-	uint8_t dev_index = 0xff;
-#endif
-
 	//通过过滤条件,主动发起连接
 	for(i=0;i<A2DP_SCAN_NUMBER;i++)
 	{
@@ -332,8 +327,9 @@ void BtSourceNameMatch(void)
 					//||(memcmp(btManager.SourceInqResultList[i].name, "BP15", strlen("BP15"))==0)   //增加多个名称匹配连接，在此增加
 				)
 				)
+#endif
 			{
-				APP_DBG("connect :  [%02x:%02x:%02x:%02x:%02x:%02x]\n",
+				printf("connect :  [%02x:%02x:%02x:%02x:%02x:%02x]\n",
 					btManager.SourceInqResultList[i].addr[0],
 					btManager.SourceInqResultList[i].addr[1],
 					btManager.SourceInqResultList[i].addr[2],
@@ -347,43 +343,9 @@ void BtSourceNameMatch(void)
 				BtSourceStartConnect();
 				return;
 			}
-#else
-
-#ifdef SOURCE_AUTO_INQUIRY_AND_CONNECT_RSSI
-			if((btManager.SourceInqResultList[i].flag))
-			{
-				if(btManager.SourceInqResultList[i].rssi >= rssi_temp)
-				{
-					rssi_temp = btManager.SourceInqResultList[i].rssi;
-					dev_index = i;
-				}
-			}
-#else//SOURCE_AUTO_INQUIRY_AND_CONNECT_RSSI
-			dev_index = 0;//连接搜到的第一个设备
-#endif
-
-
-#endif//SOURCE_AUTO_INQUIRY_AND_CONNECT
 		}
 	}
-
 #ifdef SOURCE_AUTO_INQUIRY_AND_CONNECT
-	if(dev_index < A2DP_SCAN_NUMBER)
-	{
-		APP_DBG("connect :  [%02x:%02x:%02x:%02x:%02x:%02x]\n",
-			btManager.SourceInqResultList[dev_index].addr[0],
-			btManager.SourceInqResultList[dev_index].addr[1],
-			btManager.SourceInqResultList[dev_index].addr[2],
-			btManager.SourceInqResultList[dev_index].addr[3],
-			btManager.SourceInqResultList[dev_index].addr[4],
-			btManager.SourceInqResultList[dev_index].addr[5]
-			);
-		gBtSourceInquiryStart = 0;
-		memcpy(btManager.conRemoteAddr, btManager.SourceInqResultList[dev_index].addr, 6);
-		memcpy(btManager.remoteAddr, btManager.conRemoteAddr, 6);
-		BtSourceStartConnect();
-	}
-
 	gBtSourceInquiryStart = 0;
 #endif
 }
@@ -534,7 +496,7 @@ void BtSourceGetRemoteName(void * para)
 	{
 		memcpy(btManager.remoteAddr, param->params.remDevName.addr, 6);
 		BtSourceCheckConn(btManager.remoteAddr,3500);
-		APP_DBG("---------BtSourceCheckConn(btManager.remoteAddr)\n");
+		printf("---------BtSourceCheckConn(btManager.remoteAddr)\n");
 	}
 
 	QuiryDelayTimerSet(3000);//有回连，先延时Inquiry
@@ -550,7 +512,7 @@ void BtSourceGetRemoteName(void * para)
 		}
 		memcpy(btManager.remoteAddr, param->params.remDevName.addr, 6);
 		BtSourceCheckConn(btManager.remoteAddr,3500);
-		APP_DBG("---------BtSourceCheckConn(btManager.remoteAddr)\n");
+		printf("---------BtSourceCheckConn(btManager.remoteAddr)\n");
 	}
 
 	if(gBtSourceInquiryStart)

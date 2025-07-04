@@ -212,8 +212,9 @@ void WakeupSourceSet(void)
 
 void DeepSleeping(void)
 {
-//	uint32_t GpioAPU_Back,GpioAPD_Back,GpioBPU_Back,GpioBPD_Back;
+	uint32_t GpioAPU_Back,GpioAPD_Back,GpioBPU_Back,GpioBPD_Back;
 
+//	WDG_Disable();
 	WDG_Feed();
 
 #if CFG_RES_MIC_SELECT
@@ -222,10 +223,10 @@ void DeepSleeping(void)
 #endif
 	AudioDAC_AllPowerDown();
 
-//	GpioAPU_Back = GPIO_RegGet(GPIO_A_PU);
-//	GpioAPD_Back = GPIO_RegGet(GPIO_A_PD);
-//	GpioBPU_Back = GPIO_RegGet(GPIO_B_PU);
-//	GpioBPD_Back = GPIO_RegGet(GPIO_B_PD);
+	GpioAPU_Back = GPIO_RegGet(GPIO_A_PU);
+	GpioAPD_Back = GPIO_RegGet(GPIO_A_PD);
+	GpioBPU_Back = GPIO_RegGet(GPIO_B_PU);
+	GpioBPD_Back = GPIO_RegGet(GPIO_B_PD);
 	WakeupSourceSet();
 	SleepMain();
 	waitCECTimeFlag = 0;
@@ -243,20 +244,20 @@ void DeepSleeping(void)
 	}
 	Power_WakeupDisable(0xff);
 	//GPIO恢复上下拉
-//	GPIO_RegSet(GPIO_A_PU, GpioAPU_Back);
-//	GPIO_RegSet(GPIO_A_PD, GpioAPD_Back);
-//	GPIO_RegSet(GPIO_B_PU, GpioBPU_Back);
-//	GPIO_RegSet(GPIO_B_PD, GpioBPD_Back);
-//#if 1
-//    GPIO_PortBModeSet(GPIOB0, 0x0001); //调试口 SW恢复 方便下载
-//    GPIO_PortBModeSet(GPIOB1, 0x0001);
-//#else
-//	GPIO_PortAModeSet(GPIOA30, 0x0005);//调试口 SW恢复 方便下载
-//	GPIO_PortAModeSet(GPIOA31, 0x0004);
-//#endif
+	GPIO_RegSet(GPIO_A_PU, GpioAPU_Back);
+	GPIO_RegSet(GPIO_A_PD, GpioAPD_Back);
+	GPIO_RegSet(GPIO_B_PU, GpioBPU_Back);
+	GPIO_RegSet(GPIO_B_PD, GpioBPD_Back);
+#if 1
+    GPIO_PortBModeSet(GPIOB0, 0x0001); //调试口 SW恢复 方便下载
+    GPIO_PortBModeSet(GPIOB1, 0x0001);
+#else
+	GPIO_PortAModeSet(GPIOA30, 0x0005);//调试口 SW恢复 方便下载
+	GPIO_PortAModeSet(GPIOA31, 0x0004);
+#endif
+	WDG_Feed();
 	WakeupMain();
-    APP_DBG("Wakeup!\n");
-    WDG_Feed();
+	WDG_Feed();
 #if defined(CFG_RES_ADC_KEY_SCAN) || defined(CFG_RES_IR_KEY_SCAN) || defined(CFG_RES_CODE_KEY_USE)|| defined(CFG_ADC_LEVEL_KEY_EN) || defined(CFG_RES_IO_KEY_SCAN)
 	KeyInit();//Init keys
 #endif	
@@ -349,11 +350,11 @@ bool SystermWackupSourceCheck(void)
 #endif
 #endif
 #ifdef CFG_PARA_WAKEUP_SOURCE_POWERKEY
-		if(sources & SYSWAKEUP_SOURCE6_POWERKEY)
-		{
-			sources = 0;
-			return TRUE;
-		}
+//		if(sources & SYSWAKEUP_SOURCE6_POWERKEY)
+//		{
+//			sources = 0;
+//			return TRUE;
+//		}
 #endif
 #if defined(CFG_PARA_WAKEUP_SOURCE_ADCKEY) && defined(CFG_RES_ADC_KEY_SCAN)
 		if(sources & (CFG_PARA_WAKEUP_SOURCE_ADCKEY | SYSWAKEUP_SOURCE6_POWERKEY))
@@ -383,9 +384,6 @@ bool SystermWackupSourceCheck(void)
 
 	}
 	sources = 0;
-#if defined(CFG_PARA_WAKEUP_SOURCE_ADCKEY)
-	Power_LDO11DConfig(PWD_LDO11_LVL_0V95);
-#endif
 //	SysTickDeInit();
 	return FALSE;
 }

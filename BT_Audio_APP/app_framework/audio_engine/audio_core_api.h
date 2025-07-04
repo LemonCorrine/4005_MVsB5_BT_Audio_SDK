@@ -29,6 +29,7 @@ enum
 	I2S_MIX2_SOURCE_NUM,        //I2S MIX2通道
 	USB_SOURCE_NUM,             //USB MIX通道
 	LINEIN_MIX_SOURCE_NUM,      //Line in MIX通道
+	AEC_REF_SOURCE_NUM,			//for usb phone aec reference source
 	AUDIO_CORE_SOURCE_MAX_NUM,
 };
 
@@ -61,6 +62,7 @@ enum
 #if BT_SOURCE_SUPPORT
 	AUDIO_BT_SOURCE_SINK_NUM,
 #endif
+	AEC_REF_SINK_NUM,			//for usb phone aec reference sink
 	AUDIO_CORE_SINK_MAX_NUM,
 };
 //随模式调用的共用sink
@@ -143,9 +145,8 @@ typedef struct _AudioCoreSink
 #endif
 	void							*AdjAdapter; //微调适配器
 	SRC_ADAPTER						*SrcAdapter; //转采样适配器
-
 	bool							InitFlag;	 //初始化标志
-	bool							PcmBufFlag;	//为1的时候，PcmOutBuf由audiocore申请，需要audiocore释放
+	bool							PcmBufFlag;	//为1的时候，PcmInBuf由audiocore申请，需要audiocore释放
 }AudioCoreSink;
 
 
@@ -155,6 +156,7 @@ typedef struct _AudioCoreContext
 	uint32_t		AdaptOut[(MAX_FRAME_SAMPLES * SRC_SCALE_MAX * sizeof(PCM_DATA_TYPE))/ 2];//转采样和软件微调输出buf
 	MIX_NET			CurrentMix; //当前混音组合，旨在 多通路异步处理和收发。
 	uint16_t		FrameReady; //使用位段登记 数据/空间帧可用
+	uint16_t 		NetReady;//CurrentMix Net数据就绪
 	uint32_t		SampleRate[MaxNet];//[DefaultNet]/[0]:主通路中心采样率。
 	uint16_t		FrameSize[MaxNet];//[DefaultNet]/[0]:主通路 采样帧，支持独立通路组合SeparateNet及独立采样帧。
 	AudioCoreSource AudioSource[AUDIO_CORE_SOURCE_MAX_NUM];

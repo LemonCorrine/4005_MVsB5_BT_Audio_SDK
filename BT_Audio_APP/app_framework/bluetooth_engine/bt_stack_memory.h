@@ -24,7 +24,7 @@
  *****************************************************************/
 typedef struct _BT_STACK_MEM_ALLOC_
 {
-	uint8_t	BtBaseMem[9000]; //common
+	uint8_t	BtBaseMem[10000]; //common
 
 #if (BT_A2DP_SUPPORT)		//a2dp+avrcp
 	uint8_t	BtA2DPMem[15500];
@@ -46,7 +46,7 @@ typedef struct _BT_STACK_MEM_ALLOC_
 	uint8_t	BtHfpMem[5800];
 #endif
 
-#if (BT_SPP_SUPPORT)
+#if (BT_SPP_SUPPORT ||(defined(CFG_FUNC_BT_OTA_EN)))
 	uint8_t	BtSppMem[700];
 #endif
 

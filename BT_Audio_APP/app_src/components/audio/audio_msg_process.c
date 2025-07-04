@@ -19,8 +19,6 @@ extern int16_t EqMode_data_3[];
 extern int16_t EqMode_data_4[];
 extern int16_t EqMode_data_5[];
 
-extern uint8_t EffectModeMsgProcess(uint16_t Msg);
-
 int16_t EqMode;
 int16_t MicVolume = CFG_PARA_SYS_VOLUME_DEFAULT;
 int16_t MusicVolume = CFG_PARA_SYS_VOLUME_DEFAULT;
@@ -42,28 +40,30 @@ static const int16_t VolumeTable[CFG_PARA_MAX_VOLUME_NUM + 1] = {
 
 uint8_t AudioMusicVolSync(void)
 {
-	uint8_t 	refresh_addr = GetEffectControlIndex(MUSIC_VOLUME_ADJUST);
+	uint16_t 	refresh_addr = GetEffectControlIndex(MUSIC_VOLUME_ADJUST);
 	uint8_t     vol = mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM];
 
 	if(vol > CFG_PARA_MAX_VOLUME_NUM)
 		vol = CFG_PARA_MAX_VOLUME_NUM;
 
 	if(refresh_addr != 0)
-		roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 1, (int16_t *)&VolumeTable[vol]);
+		roboeffect_set_effect_parameter(AudioEffect[AUDIOEFFECT_GET_EFFECTNET(refresh_addr)].context_memory,
+										AUDIOEFFECT_GET_REALEFFECTADDR(refresh_addr), 1, (int16_t *)&VolumeTable[vol]);
 
 	return refresh_addr;
 }
 
 uint8_t AudioMicVolSync(void)
 {
-	uint8_t 	refresh_addr = GetEffectControlIndex(MIC_VOLUME_ADJUST);
+	uint16_t 	refresh_addr = GetEffectControlIndex(MIC_VOLUME_ADJUST);
 	uint8_t     vol = mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM];
 
 	if(vol > CFG_PARA_MAX_VOLUME_NUM)
 		vol = CFG_PARA_MAX_VOLUME_NUM;
 
 	if(refresh_addr != 0)
-		roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 1, (int16_t *)&VolumeTable[vol]);
+		roboeffect_set_effect_parameter(AudioEffect[AUDIOEFFECT_GET_EFFECTNET(refresh_addr)].context_memory,
+										AUDIOEFFECT_GET_REALEFFECTADDR(refresh_addr), 1, (int16_t *)&VolumeTable[vol]);
 
 	return refresh_addr;
 }
@@ -77,29 +77,30 @@ uint8_t AudioRemindVolSync(void)
 		vol = CFG_PARA_MAX_VOLUME_NUM;
 
 	if(refresh_addr != 0)
-		roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 1, (int16_t *)&VolumeTable[vol]);
+		roboeffect_set_effect_parameter(AudioEffect[AUDIOEFFECT_GET_EFFECTNET(refresh_addr)].context_memory,
+										AUDIOEFFECT_GET_REALEFFECTADDR(refresh_addr), 1, (int16_t *)&VolumeTable[vol]);
 
 	return refresh_addr;
 }
 
 uint8_t AudioEqSync(void)
 {
-	uint8_t refresh_addr = GetEffectControlIndex(EQ_MODE_ADJUST);
+	uint16_t refresh_addr = GetEffectControlIndex(EQ_MODE_ADJUST);
 
 	if(refresh_addr)
 	{
 		if(EqMode == 0)
-			roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 255, EqMode_data_0);
+			roboeffect_set_effect_parameter(AudioEffect[AUDIOEFFECT_GET_EFFECTNET(refresh_addr)].context_memory, AUDIOEFFECT_GET_REALEFFECTADDR(refresh_addr), 255, EqMode_data_0);
 		else if(EqMode == 1)
-			roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 255, EqMode_data_1);
+			roboeffect_set_effect_parameter(AudioEffect[AUDIOEFFECT_GET_EFFECTNET(refresh_addr)].context_memory, AUDIOEFFECT_GET_REALEFFECTADDR(refresh_addr), 255, EqMode_data_1);
 		else if(EqMode == 2)
-			roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 255, EqMode_data_2);
+			roboeffect_set_effect_parameter(AudioEffect[AUDIOEFFECT_GET_EFFECTNET(refresh_addr)].context_memory, AUDIOEFFECT_GET_REALEFFECTADDR(refresh_addr), 255, EqMode_data_2);
 		else if(EqMode == 3)
-			roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 255, EqMode_data_3);
+			roboeffect_set_effect_parameter(AudioEffect[AUDIOEFFECT_GET_EFFECTNET(refresh_addr)].context_memory, AUDIOEFFECT_GET_REALEFFECTADDR(refresh_addr), 255, EqMode_data_3);
 		else if(EqMode == 4)
-			roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 255, EqMode_data_4);
+			roboeffect_set_effect_parameter(AudioEffect[AUDIOEFFECT_GET_EFFECTNET(refresh_addr)].context_memory, AUDIOEFFECT_GET_REALEFFECTADDR(refresh_addr), 255, EqMode_data_4);
 		else if(EqMode == 5)
-			roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 255, EqMode_data_5);
+			roboeffect_set_effect_parameter(AudioEffect[AUDIOEFFECT_GET_EFFECTNET(refresh_addr)].context_memory, AUDIOEFFECT_GET_REALEFFECTADDR(refresh_addr), 255, EqMode_data_5);
 		else
 			refresh_addr = 0;
 	}
@@ -109,15 +110,15 @@ uint8_t AudioEqSync(void)
 
 void AudioEffectParamSync(void)
 {
-	if(AudioEffect.context_memory == NULL)
+	if(AudioEffect[DefaultNet].context_memory == NULL)
 		return;
 
-	AudioMusicVolSync();
-	AudioMicVolSync();
-#ifdef CFG_FUNC_MUSIC_EQ_MODE_EN
+	////Audio Core & Audioeffect音量配置
+	SystemVolSet();
+
 	AudioEqSync();
-#endif
-	EffectModeMsgProcess(MSG_EFFECT_SYNC); //同步自动化代码中处理的参数
+
+//	EffectModeMsgProcessForNet(MSG_EFFECT_SYNC, DefaultNet); //同步自动化代码中处理的参数
 
 	gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
 
@@ -132,21 +133,10 @@ uint8_t AudioCommonMsgProcess(uint16_t Msg)
 
 	switch(Msg)
 	{
-#ifdef CFG_FUNC_MUSIC_EQ_MODE_EN
 	case MSG_EQ:
 		if(++EqMode >= 6)
 			EqMode = 0;
 		refresh_addr = AudioEqSync();
-		break;
-#endif
-	case MSG_3D:
-		refresh_addr = GetEffectControlIndex(_3D_ENABLE);
-		APP_DBG("MSG_3D  %d\n",refresh_addr);
-		if(refresh_addr)
-		{
-			bool enable = roboeffect_get_effect_status(AudioEffect.context_memory, refresh_addr);
-			AudioEffect_effect_enable(refresh_addr, !enable);
-		}
 		break;
 	case MSG_MUSIC_VOLUP:
 		AudioMusicVolUp();

@@ -27,14 +27,6 @@
 #define BT_SUPPORT			        ENABLE
 
 /*****************************************************************
- * BLE Central And Peripheral (主从一体)
- * 扫描+广播 分时复用
- *****************************************************************/
-#if (BLE_SUPPORT == ENABLE)
-#define BLE_DUAL_ROLE 				DISABLE //BLE主从一体开关
-#endif
-
-/*****************************************************************
  * 蓝牙发射功能配置
  *****************************************************************/
 #define BT_SOURCE_SUPPORT			DISABLE
@@ -47,10 +39,6 @@
 #define SUPPORT_SOURCE_SINK_AUTO_SWITCH_FUNC 
 //#define SOURCE_ACCESS_MODE_ENABLE		// 在蓝牙发射模式下,允许被搜索被连接
 //#define SOURCE_AUTO_INQUIRY_AND_CONNECT	// source模式下自动INQUIRY,然后连接设备
-
-#ifdef SOURCE_AUTO_INQUIRY_AND_CONNECT
-#define SOURCE_AUTO_INQUIRY_AND_CONNECT_RSSI	//自动INQUIRY，连接信号最好的设备
-#endif
 
 #define A2DP_SCAN_NUMBER			10 //扫描设备最大保存个数
 #define A2DP_INQUIRY_TIMEOUT		10 //unit:s   default:10s
@@ -104,8 +92,6 @@ enum
 #else
 #define SYS_BT_BACKGROUND_TYPE		BT_BACKGROUND_FAST_POWER_ON_OFF		//0 -> BT后台不能连接手机
 #endif
-
-//#define FLASH_SAVE_REMOTE_BT_NAME		//是否需要记忆已连设备的蓝牙名称
 
 //蓝牙简易配对功能
 #define BT_SIMPLEPAIRING_FLAG		TRUE 	//0:use pin code; 1:simple pairing

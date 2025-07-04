@@ -15,6 +15,7 @@ typedef enum
 {
 	EffectModeStateSuspend	= 0,//EffectMode挂起态，按键不能直接切换到该音效模式。固定模式使用，比如HFP AEC
 	EffectModeStateReady,		//EffectMode就绪态，按键可以切换
+	EffectModeStateForUSBAEC,	//only USB AEC use, double chart cannot switch directly to single chart effect mode
 }EffectModeState;
 
 typedef struct __UserEffectModeValidConfig
@@ -23,70 +24,80 @@ typedef struct __UserEffectModeValidConfig
 	EffectModeState 				effect_mode_state;
 	const AUDIOEFFECT_SOURCE_SINK_NUM *source_sink;
 	const AUDIOEFFECT_EFFECT_PARA	 *effect_para;
-	const uint8_t 					*effect_control;
-	uint8_t 						(*msg_process)(int msg);
+	const uint16_t 					*effect_control;
+	uint8_t 						(*msg_process[MaxNet])(int msg);
 }UserEffectModeValidConfig;
 
-extern const AUDIOEFFECT_EFFECT_PARA bypass_effect_para;
+extern const AUDIOEFFECT_EFFECT_PARA bypass_effect_para[MaxNet];
 extern const AUDIOEFFECT_SOURCE_SINK_NUM bypass_mode;
 
-extern const AUDIOEFFECT_EFFECT_PARA HunXiang_effect_para;
-extern const AUDIOEFFECT_EFFECT_PARA DianYin_effect_para;
-extern const AUDIOEFFECT_EFFECT_PARA MoYin_effect_para;
-extern const AUDIOEFFECT_EFFECT_PARA HanMai_effect_para;
-extern const AUDIOEFFECT_EFFECT_PARA NanBianNv_effect_para;
-extern const AUDIOEFFECT_EFFECT_PARA NvBianNan_effect_para;
-extern const AUDIOEFFECT_EFFECT_PARA WaWaYin_effect_para;
+extern const AUDIOEFFECT_EFFECT_PARA HunXiang_effect_para[MaxNet];
+extern const AUDIOEFFECT_EFFECT_PARA DianYin_effect_para[MaxNet];
+extern const AUDIOEFFECT_EFFECT_PARA MoYin_effect_para[MaxNet];
+extern const AUDIOEFFECT_EFFECT_PARA HanMai_effect_para[MaxNet];
+extern const AUDIOEFFECT_EFFECT_PARA NanBianNv_effect_para[MaxNet];
+extern const AUDIOEFFECT_EFFECT_PARA NvBianNan_effect_para[MaxNet];
+extern const AUDIOEFFECT_EFFECT_PARA WaWaYin_effect_para[MaxNet];
 extern const AUDIOEFFECT_SOURCE_SINK_NUM Karaoke_mode;
-extern const uint8_t Karaoke_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX];
+extern const uint16_t Karaoke_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX];
 
-extern const AUDIOEFFECT_EFFECT_PARA mic_effect_para;
+extern const AUDIOEFFECT_EFFECT_PARA mic_effect_para[MaxNet];
 extern const AUDIOEFFECT_SOURCE_SINK_NUM mic_mode;
-extern const uint8_t mic_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX];
+extern const uint16_t mic_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX];
 
-extern const AUDIOEFFECT_EFFECT_PARA music_effect_para;
+extern const AUDIOEFFECT_EFFECT_PARA music_effect_para[MaxNet];
 extern const AUDIOEFFECT_SOURCE_SINK_NUM music_mode;
-extern const uint8_t music_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX];
+extern const uint16_t music_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX];
 
 extern const AUDIOEFFECT_EFFECT_PARA micusbAI_effect_para;
 extern const AUDIOEFFECT_SOURCE_SINK_NUM micusbAI_mode;
 
-extern const AUDIOEFFECT_EFFECT_PARA hfp_effect_para;
+extern const AUDIOEFFECT_EFFECT_PARA hfp_effect_para[MaxNet];
 extern const AUDIOEFFECT_SOURCE_SINK_NUM hfp_mode;
-extern const uint8_t hfp_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX];
+extern const uint16_t hfp_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX];
 
-#ifndef CFG_FLOWCHART_KARAOKE_ENABLE
-uint8_t msg_process_Karaoke(int msg)
-{
-	return 0;
-}
-#endif
+extern const AUDIOEFFECT_EFFECT_PARA aec_effect_para[MaxNet];
+extern const AUDIOEFFECT_EFFECT_PARA aec_A_effect_para[MaxNet];
+extern const AUDIOEFFECT_EFFECT_PARA aec_B_effect_para[MaxNet];
+extern const AUDIOEFFECT_EFFECT_PARA aec_C_effect_para[MaxNet];
+extern const AUDIOEFFECT_EFFECT_PARA aec_D_effect_para[MaxNet];
+extern const AUDIOEFFECT_EFFECT_PARA aec_E_effect_para[MaxNet];
+extern const AUDIOEFFECT_EFFECT_PARA aec_F_effect_para[MaxNet];
+extern const AUDIOEFFECT_SOURCE_SINK_NUM aec_mode;
+extern const uint16_t aec_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX];
 
 //音效模式按键切换配置表，顺序切换
 //包含音效参数节点，MSG消息处理
 static const UserEffectModeValidConfig EffectModeToggleMap[] =
 {
 #ifdef CFG_AI_DENOISE_EN
-	{EFFECT_MODE_MICUSBAI,	EffectModeStateReady,	&micusbAI_mode,	&micusbAI_effect_para,	NULL,	NULL},
+	{EFFECT_MODE_MICUSBAI,	1,	&micusbAI_mode,	&micusbAI_effect_para,	NULL},
 #endif
 #ifdef CFG_FUNC_EFFECT_BYPASS_EN
-	{EFFECT_MODE_BYPASS,	EffectModeStateReady,	&bypass_mode,	&bypass_effect_para,	NULL,	NULL},
+	{EFFECT_MODE_BYPASS,	EffectModeStateSuspend,	&bypass_mode,	&bypass_effect_para[DefaultNet],	NULL,	{NULL}},
 #else
 	#ifdef CFG_FUNC_MIC_KARAOKE_EN
-		{EFFECT_MODE_HunXiang,	EffectModeStateReady,	&Karaoke_mode,	&HunXiang_effect_para,	Karaoke_effect_ctrl,	msg_process_Karaoke},
-		{EFFECT_MODE_DianYin,	EffectModeStateReady,	&Karaoke_mode,	&DianYin_effect_para,	Karaoke_effect_ctrl,	msg_process_Karaoke},
-		{EFFECT_MODE_MoYin,		EffectModeStateReady,	&Karaoke_mode,	&MoYin_effect_para,		Karaoke_effect_ctrl,	msg_process_Karaoke},
-		{EFFECT_MODE_HanMai,	EffectModeStateReady,	&Karaoke_mode,	&HanMai_effect_para,	Karaoke_effect_ctrl,	msg_process_Karaoke},
-		{EFFECT_MODE_NanBianNv,	EffectModeStateReady,	&Karaoke_mode,	&NanBianNv_effect_para,	Karaoke_effect_ctrl,	msg_process_Karaoke},
-		{EFFECT_MODE_NvBianNan,	EffectModeStateReady,	&Karaoke_mode,	&NvBianNan_effect_para,	Karaoke_effect_ctrl,	msg_process_Karaoke},
-		{EFFECT_MODE_WaWaYin,	EffectModeStateReady,	&Karaoke_mode,	&WaWaYin_effect_para,	Karaoke_effect_ctrl,	msg_process_Karaoke},
+		{EFFECT_MODE_HunXiang,	EffectModeStateReady,	&Karaoke_mode,	&HunXiang_effect_para[DefaultNet],	Karaoke_effect_ctrl,	{msg_process_Karaoke,NULL}},
+		{EFFECT_MODE_DianYin,	EffectModeStateReady,	&Karaoke_mode,	&DianYin_effect_para[DefaultNet],	Karaoke_effect_ctrl,	{msg_process_Karaoke,NULL}},
+		{EFFECT_MODE_MoYin,		EffectModeStateReady,	&Karaoke_mode,	&MoYin_effect_para[DefaultNet],		Karaoke_effect_ctrl,	{msg_process_Karaoke,NULL}},
+		{EFFECT_MODE_HanMai,	EffectModeStateReady,	&Karaoke_mode,	&HanMai_effect_para[DefaultNet],	Karaoke_effect_ctrl,	{msg_process_Karaoke,NULL}},
+		{EFFECT_MODE_NanBianNv,	EffectModeStateReady,	&Karaoke_mode,	&NanBianNv_effect_para[DefaultNet],	Karaoke_effect_ctrl,	{msg_process_Karaoke,NULL}},
+		{EFFECT_MODE_NvBianNan,	EffectModeStateReady,	&Karaoke_mode,	&NvBianNan_effect_para[DefaultNet],	Karaoke_effect_ctrl,	{msg_process_Karaoke,NULL}},
+		{EFFECT_MODE_WaWaYin,	EffectModeStateReady,	&Karaoke_mode,	&WaWaYin_effect_para[DefaultNet],	Karaoke_effect_ctrl,	{msg_process_Karaoke,NULL}},
 	#else
-		{EFFECT_MODE_MIC,		EffectModeStateReady,	&mic_mode,		&mic_effect_para,		mic_effect_ctrl,	NULL	},
-		{EFFECT_MODE_MUSIC,		EffectModeStateReady,	&music_mode,	&music_effect_para,		music_effect_ctrl,	NULL	},
+		{EFFECT_MODE_MIC,		EffectModeStateReady,		&mic_mode,		&mic_effect_para[DefaultNet],		mic_effect_ctrl,	{NULL}	},
+		{EFFECT_MODE_MUSIC,		EffectModeStateReady,		&music_mode,	&music_effect_para[DefaultNet],		music_effect_ctrl,	{NULL}	},
+		{EFFECT_MODE_USBAEC,	EffectModeStateForUSBAEC,	&aec_mode,		&aec_effect_para[DefaultNet],		aec_effect_ctrl,	{NULL}	},
+		{EFFECT_MODE_USBAEC_A,	EffectModeStateForUSBAEC,	&aec_mode,		&aec_A_effect_para[DefaultNet],		aec_effect_ctrl,	{NULL}	},
+//		{EFFECT_MODE_USBAEC_B,	EffectModeStateForUSBAEC,	&aec_mode,		&aec_B_effect_para[DefaultNet],		aec_effect_ctrl,	{NULL}	},
+//		{EFFECT_MODE_USBAEC_C,	EffectModeStateForUSBAEC,	&aec_mode,		&aec_C_effect_para[DefaultNet],		aec_effect_ctrl,	{NULL}	},
+//		{EFFECT_MODE_USBAEC_D,	EffectModeStateForUSBAEC,	&aec_mode,		&aec_D_effect_para[DefaultNet],		aec_effect_ctrl,	{NULL}	},
+//		{EFFECT_MODE_USBAEC_E,	EffectModeStateForUSBAEC,	&aec_mode,		&aec_E_effect_para[DefaultNet],		aec_effect_ctrl,	{NULL}	},
+//		{EFFECT_MODE_USBAEC_F,	EffectModeStateForUSBAEC,	&aec_mode,		&aec_F_effect_para[DefaultNet],		aec_effect_ctrl,	{NULL}	},
 	#endif
 #endif
 #if defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT)
-	{EFFECT_MODE_HFP_AEC,	EffectModeStateSuspend,	&hfp_mode,		&hfp_effect_para,	hfp_effect_ctrl,	NULL},
+	{EFFECT_MODE_HFP_AEC,	EffectModeStateSuspend,	&hfp_mode,		&hfp_effect_para[DefaultNet],	hfp_effect_ctrl,	{NULL}},
 #endif
 };
 
@@ -125,7 +136,22 @@ uint8_t GetFristEffectMode(void)
 
 	for(i = 0; i < EffectModeToggleMapMaxIndex; i++)
 	{
-		if(EffectModeToggleMap[i].effect_mode_state != EffectModeStateSuspend)
+		if(EffectModeToggleMap[i].effect_mode_state == EffectModeStateReady)
+		{
+			return EffectModeToggleMap[i].effect_mode;
+		}
+	}
+
+	return EffectModeToggleMap[0].effect_mode;
+}
+
+uint8_t GetFristEffectModeforUSBAEC(void)
+{
+	uint8_t i;
+
+	for(i = 0; i < EffectModeToggleMapMaxIndex; i++)
+	{
+		if(EffectModeToggleMap[i].effect_mode_state == EffectModeStateForUSBAEC)
 		{
 			return EffectModeToggleMap[i].effect_mode;
 		}
@@ -145,7 +171,7 @@ uint8_t GetNextEffectMode(void)
 		{	//切换到下一个音效模式
 			for(j = (i+1) % EffectModeToggleMapMaxIndex; j != i ; j = (j+1) % EffectModeToggleMapMaxIndex)
 			{
-				if(EffectModeToggleMap[j].effect_mode_state != EffectModeStateSuspend)
+				if(EffectModeToggleMap[j].effect_mode_state == EffectModeToggleMap[i].effect_mode_state)
 				{
 					return EffectModeToggleMap[j].effect_mode;
 				}
@@ -160,6 +186,41 @@ uint8_t GetNextEffectMode(void)
 //	return GetFristEffectMode();
 }
 
+bool isEffectModeforUSBAEC(uint8_t EffectMode)
+{
+	uint8_t i;
+
+	for(i = 0; i < EffectModeToggleMapMaxIndex; i++)
+	{
+		if(EffectMode == EffectModeToggleMap[i].effect_mode)
+		{
+			if(EffectModeToggleMap[i].effect_mode_state == EffectModeStateForUSBAEC)
+			{
+				return TRUE;
+			}
+			else
+			{
+				return FALSE;
+			}
+		}
+	}
+	return FALSE;
+}
+
+bool isEffectModeRight(uint8_t EffectMode)
+{
+	uint8_t i;
+
+	for(i = 0; i < EffectModeToggleMapMaxIndex; i++)
+	{
+		if(EffectMode == EffectModeToggleMap[i].effect_mode)
+		{
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
 //音效按键消息处理
 uint8_t EffectModeMsgProcess(uint16_t Msg)
 {
@@ -168,9 +229,24 @@ uint8_t EffectModeMsgProcess(uint16_t Msg)
 	for(i = 0; i < EffectModeToggleMapMaxIndex; i++)
 	{
 		if(mainAppCt.EffectMode == EffectModeToggleMap[i].effect_mode &&
-		   EffectModeToggleMap[i].msg_process)
+		   EffectModeToggleMap[i].msg_process[DefaultNet])
 		{
-			return EffectModeToggleMap[i].msg_process(Msg);
+			return EffectModeToggleMap[i].msg_process[DefaultNet](Msg);
+		}
+	}
+
+	return 0;
+}
+uint8_t EffectModeMsgProcessForNet(uint16_t Msg, uint8_t net)
+{
+	uint8_t i;
+
+	for(i = 0; i < EffectModeToggleMapMaxIndex; i++)
+	{
+		if(mainAppCt.EffectMode == EffectModeToggleMap[i].effect_mode &&
+		   EffectModeToggleMap[i].msg_process[net])
+		{
+			return EffectModeToggleMap[i].msg_process[net](Msg);
 		}
 	}
 
@@ -272,7 +348,7 @@ uint8_t GetCurSameEffectModeID(uint8_t index)
 //找到当前框图中的第index个音效的参数
 AUDIOEFFECT_EFFECT_PARA * GetCurSameEffectModeAudioPara(uint8_t index)
 {
-	return (AUDIOEFFECT_EFFECT_PARA *)EffectModeToggleMap[GetEffectModeParaIndex(index)].effect_para;
+	return (AUDIOEFFECT_EFFECT_PARA	*)EffectModeToggleMap[GetEffectModeParaIndex(index)].effect_para;
 }
 
 
@@ -304,7 +380,7 @@ uint8_t GetCurEffectModeNum(void)
 }
 
 //获取音效控制节点index
-uint8_t GetEffectControlIndex(AUDIOEFFECT_EFFECT_CONTROL type)
+uint16_t GetEffectControlIndex(AUDIOEFFECT_EFFECT_CONTROL type)
 {
 	uint8_t i;
 
@@ -322,6 +398,7 @@ uint8_t GetEffectControlIndex(AUDIOEFFECT_EFFECT_CONTROL type)
 
 	return 0;
 }
+
 
 uint32_t GetEffectNameTotalLen()
 {

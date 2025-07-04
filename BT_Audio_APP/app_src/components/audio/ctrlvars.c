@@ -431,14 +431,15 @@ void DefaultParamgsInit(void)
 	//for system control 0x01
 	gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
 
-	if(AudioEffect.context_memory)
+	if(AudioEffect[DefaultNet].context_memory)
 	{
-		memcpy(&gCtrlVars.HwCt, AudioEffect.cur_effect_para->user_module_parameters, sizeof(gCtrlVars.HwCt));
+		memcpy(&gCtrlVars.HwCt, AudioEffect[DefaultNet].cur_effect_para->user_module_parameters, sizeof(gCtrlVars.HwCt));
 	}
 	else
 	{
 		AUDIOEFFECT_EFFECT_PARA *para;
-		if (mainAppCt.EffectMode  == 0)
+		extern bool isEffectModeRight(uint8_t EffectMode);
+		if ((mainAppCt.EffectMode  == EFFECT_MODE_DEFAULT) || !isEffectModeRight(mainAppCt.EffectMode))
 		{
 			extern uint8_t GetFristEffectMode(void);
             mainAppCt.EffectMode = GetFristEffectMode();
@@ -555,13 +556,13 @@ void AudioCodecGainUpdata(void)
 	AudioADC_HighPassFilterSet(ADC0_MODULE, gCtrlVars.HwCt.ADC0DigitalCt.adc_dc_blocker_en);
 	AudioADC_ChannelSwap(ADC0_MODULE, gCtrlVars.HwCt.ADC0DigitalCt.adc_lr_swap);
 	AudioADC_VolSet(ADC0_MODULE, gCtrlVars.HwCt.ADC0DigitalCt.adc_dig_l_vol, gCtrlVars.HwCt.ADC0DigitalCt.adc_dig_l_vol);
-	AudioADC_DigitalMute(ADC0_MODULE, gCtrlVars.HwCt.ADC0DigitalCt.adc_mute, gCtrlVars.HwCt.ADC0DigitalCt.adc_mute);
+	AudioADC_ChannelSwap(ADC0_MODULE, gCtrlVars.HwCt.ADC0DigitalCt.adc_mute);
 
 	AudioADC_HighPassFilterConfig(ADC1_MODULE, HPCList[gCtrlVars.HwCt.ADC1DigitalCt.adc_hpc]);
 	AudioADC_HighPassFilterSet(ADC1_MODULE, gCtrlVars.HwCt.ADC1DigitalCt.adc_dc_blocker_en);
 	AudioADC_ChannelSwap(ADC1_MODULE, gCtrlVars.HwCt.ADC1DigitalCt.adc_lr_swap);
 	AudioADC_VolSet(ADC1_MODULE, gCtrlVars.HwCt.ADC1DigitalCt.adc_dig_l_vol, gCtrlVars.HwCt.ADC1DigitalCt.adc_dig_l_vol);
-	AudioADC_DigitalMute(ADC1_MODULE, gCtrlVars.HwCt.ADC1DigitalCt.adc_mute, gCtrlVars.HwCt.ADC1DigitalCt.adc_mute);
+	AudioADC_ChannelSwap(ADC1_MODULE, gCtrlVars.HwCt.ADC1DigitalCt.adc_mute);
 
 	AudioDAC_VolSet(DAC0, gCtrlVars.HwCt.DAC0Ct.dac_dig_l_vol, gCtrlVars.HwCt.DAC0Ct.dac_dig_r_vol);
 #ifndef CFG_AUDIO_WIDTH_24BIT

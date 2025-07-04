@@ -17,6 +17,7 @@ extern "C" {
 typedef void (*AudioEffectApplyFunc)(void *effectUint, int16_t *pcm_in, int16_t *pcm_out, uint32_t n);
 
 void AudioMusicProcess(AudioCoreContext *pAudioCore);
+void AudioUsbAECProcess(AudioCoreContext *pAudioCore);
 void AudioBypassProcess(AudioCoreContext *pAudioCore);
 void AudioEffectProcessBTHF(AudioCoreContext *pAudioCore);
 void AudioNoAppProcess(AudioCoreContext *pAudioCore);

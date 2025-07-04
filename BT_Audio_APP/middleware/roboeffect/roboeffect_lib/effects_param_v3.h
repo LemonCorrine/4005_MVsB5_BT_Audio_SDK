@@ -5,8 +5,8 @@
 #include "type.h"
 
 /*
-	Roboeffect Version: 2.25.5
-	Audio Effect Lib Version: 2.45.5
+	Roboeffect Version: 2.28.0
+	Audio Effect Lib Version: 2.45.6
 	Protocol Version: 0.4.0
 */
 typedef struct _param_auto_tune
@@ -635,6 +635,13 @@ typedef struct _param_drc_legacy
 	int16_t pregain_0;
 	int16_t pregain_1;
 }param_drc_legacy;
+
+typedef struct _param_pcm_delay_ms
+{
+	int16_t delay;
+	int16_t max_delay;
+	int16_t high_quality_enable;
+}param_pcm_delay_ms;
 
 typedef struct _param_fader
 {
@@ -1281,6 +1288,13 @@ typedef enum _DRC_LEGACY_PARAMS_ENUM
 	INDEX_DRC_LEGACY_PREGAIN_0 = 16,
 	INDEX_DRC_LEGACY_PREGAIN_1 = 17,
 }DRC_LEGACY_PARAMS_ENUM;
+
+typedef enum _PCM_DELAY_MS_PARAMS_ENUM
+{
+	INDEX_PCM_DELAY_MS_DELAY = 0,
+	INDEX_PCM_DELAY_MS_MAX_DELAY = 1,
+	INDEX_PCM_DELAY_MS_HIGH_QUALITY_ENABLE = 2,
+}PCM_DELAY_MS_PARAMS_ENUM;
 
 typedef enum _FADER_PARAMS_ENUM
 {

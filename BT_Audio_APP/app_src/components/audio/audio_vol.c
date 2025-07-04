@@ -66,6 +66,7 @@ uint8_t gBtAbsVolSetTable[17]={
 const int16_t AudioModeDigitalGianTable[][2]=
 {
 	{ModeBtAudioPlay,		0/*dB*/},
+	{ModeBtHfPlay,			0/*dB*/},
 	{ModeUDiskAudioPlay,	0/*dB*/},
 	{ModeUsbDevicePlay,		0/*dB*/},
 	{ModeCardAudioPlay,		0/*dB*/},
@@ -79,8 +80,8 @@ void AudioAPPDigitalGianProcess(SysModeNumber AppMode)
 {
 	uint32_t i;
 	int16_t preGain = 0;
-	extern uint8_t GetEffectControlIndex(AUDIOEFFECT_EFFECT_CONTROL type);
-	uint8_t refresh_addr = GetEffectControlIndex(APPMODE_PREGAIN);
+	extern uint16_t GetEffectControlIndex(AUDIOEFFECT_EFFECT_CONTROL type);
+	uint16_t refresh_addr = GetEffectControlIndex(APPMODE_PREGAIN);
 
 	for(i = 0; i < sizeof(AudioModeDigitalGianTable)/(sizeof(int16_t)*2); i++)
 	{
@@ -92,7 +93,8 @@ void AudioAPPDigitalGianProcess(SysModeNumber AppMode)
 	}
 
 	if(refresh_addr)
-		roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 1, (int16_t *)&preGain);
+		roboeffect_set_effect_parameter(AudioEffect[AUDIOEFFECT_GET_EFFECTNET(refresh_addr)].context_memory,
+										AUDIOEFFECT_GET_REALEFFECTADDR(refresh_addr), 1, (int16_t *)&preGain);
 }
 
 uint8_t BtAbsVolume2VolLevel(uint8_t absValue)
@@ -122,6 +124,12 @@ void HardWareMuteOrUnMute(void)
 	if(AudioCoreSinkIsEnable(AUDIO_DAC0_SINK_NUM))
 	{
 		AudioDAC_SoftMute(DAC0, mainAppCt.gSysVol.MuteFlag, mainAppCt.gSysVol.MuteFlag);
+	}
+#endif
+#if CFG_RES_MIC_SELECT
+	if(AudioCoreSourceIsEnable(MIC_SOURCE_NUM))
+	{
+		AudioADC_SoftMute(ADC1_MODULE, mainAppCt.gSysVol.MuteFlag, mainAppCt.gSysVol.MuteFlag);
 	}
 #endif
 }

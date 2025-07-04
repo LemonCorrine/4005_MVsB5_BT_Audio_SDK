@@ -20,6 +20,7 @@
 typedef enum _MIX_NET_
 {
 	DefaultNet,
+	AECNet,
 //	SeparateNet,
 //......
 	MaxNet,
@@ -98,7 +99,11 @@ typedef struct _AudioCoreIO_
 #define SINK_BIT_EN(Value, Index) 			(Value) |= (1<<(AUDIO_CORE_SOURCE_MAX_NUM + Index))
 #define SINK_BIT_DIS(Value, Index)			(Value) &= ~(1<<(AUDIO_CORE_SOURCE_MAX_NUM + Index))
 #define	SINK_BIT_GET(Value, Index)			(((Value) >> (AUDIO_CORE_SOURCE_MAX_NUM + Index)) & 0x01)
-#define SINK_BIT_MASK(Value)			((Value) & (((1<<(AUDIO_CORE_SOURCE_MAX_NUM + AUDIO_CORE_SINK_MAX_NUM)) - 1) - ((1<<AUDIO_CORE_SOURCE_MAX_NUM) - 1)))
+#define SINK_BIT_MASK(Value)				((Value) & (((1<<(AUDIO_CORE_SOURCE_MAX_NUM + AUDIO_CORE_SINK_MAX_NUM)) - 1) - ((1<<AUDIO_CORE_SOURCE_MAX_NUM) - 1)))
+#define NET_BIT_EN(Value, Index) 			(Value) |= (1<<(Index))
+#define NET_BIT_DIS(Value, Index)			(Value) &= ~(1<<(Index))
+#define	NET_BIT_GET(Value, Index)			(((Value) >> (Index)) & 0x01)
+#define	NET_BIT_MASK(Value)					((Value) & ((1<<MaxNet) - 1))
 
 //#define SOURCES(Index)	(AudioCore.AudioSource[Index])
 //#define SINKS(Index)	(AudioCore.AudioSink[Index])

@@ -71,7 +71,7 @@ uint8_t LeInitConfigParams(void)
 /**********************************************************************************
  *BLE CLIENT CONFIG
  **********************************************************************************/
-#if (BLE_DUAL_ROLE == ENABLE)
+#ifdef DUOBLE_ROLE
 static void gatt_client_discover_cmp_cb(uint8_t conidx, uint8_t user_lid, uint16_t metainfo, uint16_t status)
 
 {

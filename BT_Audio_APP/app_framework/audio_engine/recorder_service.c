@@ -66,7 +66,7 @@ static struct
 #endif
 
 
-#define MEDIA_RECORDER_TASK_STACK_SIZE		512// 1024
+#define MEDIA_RECORDER_TASK_STACK_SIZE		384// 1024
 #define MEDIA_RECORDER_TASK_PRIO			2
 #define MEDIA_RECORDER_RECV_MSG_TIMEOUT		1
 
@@ -999,7 +999,7 @@ static bool MediaRecorder_Init(MessageHandle parentMsgHandle)
 		AudioIOSet.Adapt = STD;
 		AudioIOSet.Sync = TRUE;
 		AudioIOSet.Channels = 2;
-		AudioIOSet.Net = DefaultNet;
+		AudioIOSet.Net = AudioEffect_getSinkNet(AUDIO_RECORDER_SINK_NUM);
 		AudioIOSet.DataIOFunc = MediaRecorderDataSet;
 		AudioIOSet.LenGetFunc = MediaRecorderDataSpaceLenGet;
 

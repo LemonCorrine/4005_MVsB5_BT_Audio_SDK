@@ -450,11 +450,6 @@ static void CheckBtEventTimer(void)
 
 #if	BT_SOURCE_SUPPORT
 	BtSourceNameGetChack();
-
-#ifdef SOURCE_AUTO_INQUIRY_AND_CONNECT
-	BtSourceReInquiryChack();
-#endif
-
 #endif
 
 }
@@ -841,13 +836,7 @@ static void BtStackServiceEntrance(void * param)
 	BTStackMemAlloc(BT_STACK_MEM_SIZE, gBtHostStackMemHeap, 0);
 
 	APP_DBG("BtStackServiceEntrance.\n");
-
-#if BT_SOURCE_SUPPORT
-#ifdef SOURCE_AUTO_INQUIRY_AND_CONNECT
-	QuiryDelayTimerSet(5000);
-#endif
-#endif
-
+	
 #if (BT_SUPPORT)
 	//BR/EDR init
 	if(!BtStackInit())
@@ -873,14 +862,6 @@ static void BtStackServiceEntrance(void * param)
 	//BtMidMessageSend(MSG_BT_MID_STATE_FAST_ENABLE, 0);
 	if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_DISABLE)
 		BtStackServiceMsgSend(MSG_BTSTACK_RUN_START);
-
-#if BT_SOURCE_SUPPORT
-	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
-	{
-		BtConnectCtrl();//sink->source时，增加一次回连
-	}
-#endif
-
 	while(1)
 	{
 		MessageRecv(btStackServiceCt->msgHandle, &msgRecv, 1);

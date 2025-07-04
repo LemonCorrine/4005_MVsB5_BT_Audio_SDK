@@ -17,6 +17,7 @@
 #include "chip_config.h"
 #include "spi_flash.h"
 #include "debug.h"
+
 //************************************************************************************************************
 //    本系统默认开启2个系统全局宏，在IDE工程配置(Build Settings-Compiler-Symbols)，此处用于提醒
 //*CFG_APP_CONFIG 和 FUNC_OS_EN*/
@@ -52,12 +53,12 @@
 #define CFG_APP_BT_MODE_EN
 #define	CFG_APP_USB_PLAY_MODE_EN
 #define	CFG_APP_CARD_PLAY_MODE_EN
-#define	CFG_APP_LINEIN_MODE_EN
+//#define	CFG_APP_LINEIN_MODE_EN
 //#define CFG_APP_RADIOIN_MODE_EN
 #define CFG_APP_USB_AUDIO_MODE_EN
 //#define CFG_APP_I2SIN_MODE_EN
-#define	CFG_APP_OPTICAL_MODE_EN	// SPDIF 光纤模式
-#define CFG_APP_COAXIAL_MODE_EN	// SPDIF 同轴模式
+//#define	CFG_APP_OPTICAL_MODE_EN	// SPDIF 光纤模式
+//#define CFG_APP_COAXIAL_MODE_EN	// SPDIF 同轴模式
 //#define CFG_APP_HDMIIN_MODE_EN
 
 #ifdef CHIP_BT_DISABLE
@@ -65,9 +66,6 @@
 #endif
 
 #define CFG_FUNC_OPEN_SLOW_DEVICE_TASK
-
-/**USB/CARD模式相关设备未插入时，可进入/不退出模式**/
-//#define CFG_FUNC_APP_USB_CARD_IDLE
 
 #ifdef CFG_APP_RADIOIN_MODE_EN
     #define FUNC_RADIO_RDA5807_EN
@@ -273,6 +271,7 @@
 	#define CFG_FUNC_MIX2_I2S_OUT_SYNC_EN
 #endif
 #endif
+
 #if defined(CFG_APP_LINEIN_MODE_EN)|| defined(CFG_FUNC_LINEIN_MIX_MODE)
 	#define LINEIN_INPUT_CHANNEL				(CHIP_LINEIN_CHANNEL)
 #endif
@@ -456,7 +455,6 @@
 /**如果支持转换其他语言，需要修改fatfs配置表**/
 #define CFG_FUNC_STRING_CONVERT_EN	// 支持字符编码转换
 
-//#define CFG_FUNC_DECRYPT_EN     //支持加密文件播放功能(加密文件由MVAssistant上位机工具生成)
 /**取消AA55判断**/
 /*fatfs内磁盘系统MBR和DBR扇区结尾有此标记检测，为提高非标类型盘兼容性，可开启此项, 为有效鉴定无效盘，此项默认关闭*/
 //#define	CANCEL_COMMON_SIGNATURE_JUDGMENT
@@ -502,7 +500,7 @@
 #define CFG_FUNC_DEBUG_EN
 //#define CFG_FUNC_USBDEBUG_EN
 #ifdef CFG_FUNC_DEBUG_EN
-	#define CFG_UART_TX_PORT 				DEBUG_TX_A10
+	#define CFG_UART_TX_PORT 				DEBUG_TX_A0
 	#define CFG_UART_BANDRATE   			DEBUG_BAUDRATE_2000000//DEBUG_BAUDRATE_115200
 	#define CFG_FLASHBOOT_DEBUG_EN          (1)
 
@@ -627,9 +625,6 @@
 #if defined(CFG_AI_DENOISE_EN) &&(!defined(CFG_DOUBLE_KEY_EN))
 	#error 开启CFG_AI_DENOISE_EN 需要同时开启 CFG_DOUBLE_KEY_EN //开启CFG_AI_DENOISE_EN，需要同时开启 CFG_DOUBLE_KEY_EN
 #endif
-
-//开启flashboot，BT_OTA功能
-//#define CFG_FUNC_BT_OTA_EN
 
 #include "sys_gpio.h"
 #include "clock_config.h"

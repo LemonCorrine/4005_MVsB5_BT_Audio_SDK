@@ -8,37 +8,38 @@
 #include "main_task.h"
 #include "bt_config.h"
 #include "breakpoint.h"
-#include "auto_gen_msg_process.h"
+#include "communication.h"
+//#include "auto_gen_msg_process.h"
 
 extern AUDIOEFFECT_SOURCE_SINK_NUM * get_user_effect_source_sink(void);
-extern uint8_t AudioMicVolSync(void);
 extern uint8_t AudioMusicVolSync(void);
-extern uint8_t GetEffectControlIndex(AUDIOEFFECT_EFFECT_CONTROL type);
+extern uint8_t AudioMicVolSync(void);
+extern uint8_t AudioRemindVolSync(void);
+extern uint16_t GetEffectControlIndex(AUDIOEFFECT_EFFECT_CONTROL type);
 
 int16_t * AudioEffectGetAllParameter(AUDIOEFFECT_EFFECT_CONTROL effect)
 {
-	uint8_t addr;
-	if(AudioEffect.context_memory == NULL)
-		return NULL;
-	addr = GetEffectControlIndex(effect);
+	uint16_t addr = GetEffectControlIndex(effect);
 	if(addr == 0)
 		return NULL;
+	if(AudioEffect[AUDIOEFFECT_GET_EFFECTNET(addr)].context_memory == NULL)
+		return NULL;
 
-	return (int16_t *)roboeffect_get_effect_parameter(AudioEffect.context_memory, addr, 0xff);
+	return (int16_t *)roboeffect_get_effect_parameter(AudioEffect[AUDIOEFFECT_GET_EFFECTNET(addr)].context_memory, AUDIOEFFECT_GET_REALEFFECTADDR(addr), 0xff);
 }
 
 void AudioEffect_GetAudioEffectValue(void)
 {
 #ifdef CFG_FUNC_MIC_KARAOKE_EN
-	param_echo *Echoparam = (param_echo *)AudioEffectGetAllParameter(ECHO_PARAM);
+	EchoUnit *Echoparam = (EchoUnit *)AudioEffectGetAllParameter(ECHO_PARAM);
 	if(Echoparam)
 	{
-		APP_DBG("echo fc:0x%x\n", Echoparam->cutoff_frequency);
+		APP_DBG("echo fc:0x%x\n", Echoparam->fc);
 		APP_DBG("echo delay:0x%x\n", Echoparam->delay);
 		APP_DBG("echo dry:0x%x\n", Echoparam->dry);
 		APP_DBG("echo attenuation:0x%x\n", Echoparam->attenuation);
 		APP_DBG("echo max_delay:0x%x\n", Echoparam->max_delay);
-		APP_DBG("echo quality_mode:0x%x\n", Echoparam->high_quality_enable);
+		APP_DBG("echo quality_mode:0x%x\n", Echoparam->quality_mode);
 		APP_DBG("echo wet:0x%x\n", Echoparam->wet);
 	}
 #endif
@@ -46,7 +47,7 @@ void AudioEffect_GetAudioEffectValue(void)
 
 void AudioEffect_SourceGain_Update(uint8_t source)
 {
-	if(AudioEffect.context_memory == NULL)
+	if(AudioEffect[AudioCore.AudioSource[source].Net].context_memory == NULL)
 		return;
 
 	switch(source)
@@ -90,20 +91,18 @@ void AudioEffect_SourceGain_Update(uint8_t source)
 #endif
 }
 
-uint8_t AudioEffect_effect_status_Get(uint8_t effect_addr)
+uint8_t AudioEffect_effect_status_Get(MIX_NET targetNet, uint8_t effect_addr)
 {
-	if(AudioEffect.context_memory == NULL)
-		return 0;
-	if(!AudioEffect_effectAddr_check(effect_addr))
+	if(AudioEffect[targetNet].context_memory == NULL)
 		return 0;
 
-	return roboeffect_get_effect_status(AudioEffect.context_memory, effect_addr);
+	return roboeffect_get_effect_status(AudioEffect[targetNet].context_memory, effect_addr);
 }
 
 void AudioEffect_effect_enable(uint8_t effect_addr, uint8_t enable)
 {
-	AudioEffect.effect_addr = effect_addr;
-	AudioEffect.effect_enable = enable;
+	AudioEffect[Communication_Effect_Flow_Get()].effect_addr = effect_addr;
+	AudioEffect[Communication_Effect_Flow_Get()].effect_enable = enable;
 
 	MessageContext msgSend;
 	msgSend.msgId = MSG_EFFECTREINIT;
@@ -117,25 +116,57 @@ uint8_t AudioCoreSourceToRoboeffect(int8_t source)
 	switch (source)
 	{
 		case MIC_SOURCE_NUM:
-			return param->mic_source;
+			return AUDIOEFFECT_GET_REALSOURCESINKNUM(param->mic_source);
 		case APP_SOURCE_NUM:
-			return param->app_source;
+			return AUDIOEFFECT_GET_REALSOURCESINKNUM(param->app_source);
 		case REMIND_SOURCE_NUM:
-			return param->remind_source;
+			return AUDIOEFFECT_GET_REALSOURCESINKNUM(param->remind_source);
 		case PLAYBACK_SOURCE_NUM:
-			return param->rec_source;
+			return AUDIOEFFECT_GET_REALSOURCESINKNUM(param->rec_source);
 		case I2S_MIX_SOURCE_NUM:
-			return param->i2s_mix_source;
+			return AUDIOEFFECT_GET_REALSOURCESINKNUM(param->i2s_mix_source);
 		case I2S_MIX2_SOURCE_NUM:
-			return param->i2s_mix2_source;
+			return AUDIOEFFECT_GET_REALSOURCESINKNUM(param->i2s_mix2_source);
 		case USB_SOURCE_NUM:
-			return param->usb_source;
+			return AUDIOEFFECT_GET_REALSOURCESINKNUM(param->usb_source);
 		case LINEIN_MIX_SOURCE_NUM:
-			return param->linein_mix_source;
+			return AUDIOEFFECT_GET_REALSOURCESINKNUM(param->linein_mix_source);
+		case AEC_REF_SOURCE_NUM:
+			return AUDIOEFFECT_GET_REALSOURCESINKNUM(param->aec_ref_source);
 		default:
 			break;// handle error
 	}
 	return AUDIOCORE_SOURCE_SINK_ERROR;
+}
+
+uint8_t AudioEffect_getSourceNet(int8_t source)
+{
+	AUDIOEFFECT_SOURCE_SINK_NUM *param = get_user_effect_source_sink();
+
+	switch (source)
+	{
+		case MIC_SOURCE_NUM:
+			return AUDIOEFFECT_GET_SOURCESINKNET(param->mic_source);
+		case APP_SOURCE_NUM:
+			return AUDIOEFFECT_GET_SOURCESINKNET(param->app_source);
+		case REMIND_SOURCE_NUM:
+			return AUDIOEFFECT_GET_SOURCESINKNET(param->remind_source);
+		case PLAYBACK_SOURCE_NUM:
+			return AUDIOEFFECT_GET_SOURCESINKNET(param->rec_source);
+		case I2S_MIX_SOURCE_NUM:
+			return AUDIOEFFECT_GET_SOURCESINKNET(param->i2s_mix_source);
+		case I2S_MIX2_SOURCE_NUM:
+			return AUDIOEFFECT_GET_SOURCESINKNET(param->i2s_mix2_source);
+		case USB_SOURCE_NUM:
+			return AUDIOEFFECT_GET_SOURCESINKNET(param->usb_source);
+		case LINEIN_MIX_SOURCE_NUM:
+			return AUDIOEFFECT_GET_SOURCESINKNET(param->linein_mix_source);
+		case AEC_REF_SOURCE_NUM:
+			return AUDIOEFFECT_GET_SOURCESINKNET(param->aec_ref_source);
+		default:
+			break;// handle error
+	}
+	return DefaultNet;
 }
 
 uint8_t AudioCoreSinkToRoboeffect(int8_t sink)
@@ -145,28 +176,30 @@ uint8_t AudioCoreSinkToRoboeffect(int8_t sink)
 	switch (sink)
 	{
 		case AUDIO_DAC0_SINK_NUM:
-			return param->dac0_sink;
+			return AUDIOEFFECT_GET_REALSOURCESINKNUM(param->dac0_sink);
 #if	(defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT)) || defined(CFG_APP_USB_AUDIO_MODE_EN)
 		case AUDIO_APP_SINK_NUM:
-			return param->app_sink;
+			return AUDIOEFFECT_GET_REALSOURCESINKNUM(param->app_sink);
 #endif
 
 #ifdef CFG_FUNC_RECORDER_EN
 		case AUDIO_RECORDER_SINK_NUM:
-			return param->rec_sink;
+			return AUDIOEFFECT_GET_REALSOURCESINKNUM(param->rec_sink);
 #endif
 #if defined(CFG_RES_AUDIO_I2SOUT_EN) || defined(CFG_RES_AUDIO_I2S_MIX2_OUT_EN)
 		case AUDIO_STEREO_SINK_NUM:
-			return param->stereo_sink;
+			return AUDIOEFFECT_GET_REALSOURCESINKNUM(param->stereo_sink);
 #endif
 #ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
 		case AUDIO_I2S_MIX_OUT_SINK_NUM:
-			return param->i2s_mix_sink;
+			return AUDIOEFFECT_GET_REALSOURCESINKNUM(param->i2s_mix_sink);
 #endif
 #ifdef CFG_RES_AUDIO_SPDIFOUT_EN
 		case AUDIO_SPDIF_SINK_NUM:
-			return param->spdif_sink;
+			return AUDIOEFFECT_GET_REALSOURCESINKNUM(param->spdif_sink);
 #endif
+		case AEC_REF_SINK_NUM:
+			return AUDIOEFFECT_GET_REALSOURCESINKNUM(param->aec_ref_sink);
 		default:
 			// handle error
 			break;
@@ -174,9 +207,47 @@ uint8_t AudioCoreSinkToRoboeffect(int8_t sink)
 	return AUDIOCORE_SOURCE_SINK_ERROR;
 }
 
-void AudioEffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t *param_input, uint8_t param_len)
+uint8_t AudioEffect_getSinkNet(int8_t sink)
 {
-	EffectValidParamUnit unit = AudioEffect_GetUserEffectValidParam(AudioEffect.user_effect_parameters);
+	AUDIOEFFECT_SOURCE_SINK_NUM *param = get_user_effect_source_sink();
+
+	switch (sink)
+	{
+		case AUDIO_DAC0_SINK_NUM:
+			return AUDIOEFFECT_GET_SOURCESINKNET(param->dac0_sink);
+#if	(defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT)) || defined(CFG_APP_USB_AUDIO_MODE_EN)
+		case AUDIO_APP_SINK_NUM:
+			return AUDIOEFFECT_GET_SOURCESINKNET(param->app_sink);
+#endif
+
+#ifdef CFG_FUNC_RECORDER_EN
+		case AUDIO_RECORDER_SINK_NUM:
+			return AUDIOEFFECT_GET_SOURCESINKNET(param->rec_sink);
+#endif
+#if defined(CFG_RES_AUDIO_I2SOUT_EN) || defined(CFG_RES_AUDIO_I2S_MIX2_OUT_EN)
+		case AUDIO_STEREO_SINK_NUM:
+			return AUDIOEFFECT_GET_SOURCESINKNET(param->stereo_sink);
+#endif
+#ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
+		case AUDIO_I2S_MIX_OUT_SINK_NUM:
+			return AUDIOEFFECT_GET_SOURCESINKNET(param->i2s_mix_sink);
+#endif
+#ifdef CFG_RES_AUDIO_SPDIFOUT_EN
+		case AUDIO_SPDIF_SINK_NUM:
+			return AUDIOEFFECT_GET_SOURCESINKNET(param->spdif_sink);
+#endif
+		case AEC_REF_SINK_NUM:
+			return AUDIOEFFECT_GET_SOURCESINKNET(param->aec_ref_sink);
+		default:
+			// handle error
+			break;
+	}
+	return DefaultNet;
+}
+
+void AudioEffect_update_local_params(MIX_NET targetNet, uint8_t addr, uint8_t param_index, int16_t *param_input, uint8_t param_len)
+{
+	EffectValidParamUnit unit = AudioEffect_GetUserEffectValidParam(AudioEffect[targetNet].user_effect_parameters);
 	uint8_t *params = unit.params_first_address;
 	uint16_t data_len = unit.data_len;
 	uint8_t len = 0;
@@ -203,9 +274,9 @@ void AudioEffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t 
 	}
 }
 
-void AudioEffect_update_local_effect_status(uint8_t addr, uint8_t effect_enable)
+void AudioEffect_update_local_effect_status(MIX_NET targetNet, uint8_t addr, uint8_t effect_enable)
 {
-	EffectValidParamUnit unit = AudioEffect_GetUserEffectValidParam(AudioEffect.user_effect_parameters);
+	EffectValidParamUnit unit = AudioEffect_GetUserEffectValidParam(AudioEffect[targetNet].user_effect_parameters);
 	uint8_t *params = unit.params_first_address;
 	uint16_t data_len = unit.data_len;
 	uint8_t len = 0;
@@ -227,13 +298,13 @@ void AudioEffect_update_local_effect_status(uint8_t addr, uint8_t effect_enable)
 	}
 }
 
-void AudioEffect_update_local_block_params(uint8_t addr)
+void AudioEffect_update_local_block_params(MIX_NET targetNet, uint8_t addr)
 {
-	EffectValidParamUnit unit = AudioEffect_GetUserEffectValidParam(AudioEffect.user_effect_parameters);
+	EffectValidParamUnit unit = AudioEffect_GetUserEffectValidParam(AudioEffect[targetNet].user_effect_parameters);
 	uint8_t *params = unit.params_first_address;
 	uint16_t data_len = unit.data_len;
 	uint8_t len = 0;
-	const uint8_t *p = (uint8_t *)roboeffect_get_effect_parameter(AudioEffect.context_memory, addr, 0xFF);
+	const uint8_t *p = (uint8_t *)roboeffect_get_effect_parameter(AudioEffect[targetNet].context_memory, addr, 0xFF);
 //	uint8_t i = 0;
 
 	while(data_len)
@@ -268,26 +339,45 @@ uint16_t get_user_effect_parameters_len(uint8_t *user_effect_parameters)
     return ((b2 << 8) | b1) + 2;
 }
 
-bool AudioEffect_effectAddr_check(uint8_t addr)
+bool isCurEffectModeSingleFlowChart(EFFECT_MODE effectMode)
 {
-	if(addr < 0x81 || addr > (AudioEffect.cur_effect_para->user_effect_list->count + 0x80))
-		return FALSE;
-//	if(!roboeffect_get_effect_status(AudioEffect.context_memory, addr))
-//			return FALSE;
-	return TRUE;
+	AUDIOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(effectMode);
+	para += AECNet;
+	if(para->user_effect_list == NULL)
+	{
+		return TRUE;
+	}
+	return FALSE;
 }
 
 #ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
+typedef struct __EffectParamOffseUnit
+{
+	uint16_t	effectParamOffset[MaxNet];
+	uint16_t 	HwCfgOffset;
+} EffectParamOffsetUnit;
+
+typedef struct __AudioEffectFlashParamUnit
+{
+	EffectParamOffsetUnit	flashAddr[EFFECT_MODE_COUNT];
+} AudioEffectParamFlashAddrUnit;
+
 uint16_t get_EffectParamFlash_WriteAddr(void)
 {
 	uint16_t offset = 1024 * CFG_EFFECT_PARAM_IN_FLASH_SIZE;
 	uint16_t flashCnt = 0;
-	for(uint8_t i = 0; i < ((EFFECT_MODE_COUNT - 1) * 2); i++)
+	AudioEffectParamFlashAddrUnit effectParamAddr;
+	SpiFlashRead(get_effect_data_addr(), (uint8_t*)&effectParamAddr, sizeof(AudioEffectParamFlashAddrUnit), 1);
+
+	for(uint8_t i = EFFECT_MODE_DEFAULT; i < EFFECT_MODE_COUNT; i++)
 	{
-		SpiFlashRead(get_effect_data_addr() + i * 2, (uint8_t*)&flashCnt, 2, 1);
-//		DBG("flashCnt = %d\n", flashCnt);
-		offset = (flashCnt < offset) ? flashCnt : offset;
+		for(uint8_t net = DefaultNet; net < MaxNet; net++)
+		{
+			offset = (effectParamAddr.flashAddr[i].effectParamOffset[net] < offset) ? effectParamAddr.flashAddr[i].effectParamOffset[net] : offset;
+		}
+		offset = (effectParamAddr.flashAddr[i].HwCfgOffset < offset) ? effectParamAddr.flashAddr[i].HwCfgOffset : offset;
 	}
+
 	return offset;
 }
 
@@ -325,81 +415,107 @@ void EffectParamFlashUpdata(void)
 	uint16_t FlashWriteOffset = 0;
 	uint16_t effectHwCfgOffset = 0;
 	uint16_t effectParamOffset = 0;
+	AudioEffectParamFlashAddrUnit effectParamAddr;
+	SpiFlashRead(get_effect_data_addr(), (uint8_t*)&effectParamAddr, sizeof(AudioEffectParamFlashAddrUnit), 1);
+	DBG("EffectData FlashAdd = %lx\n", FlashAddr);
 
-	if (((SpiFlashRead(get_effect_data_addr() + ((mainAppCt.EffectMode - 1) * 4), (uint8_t*)&effectHwCfgOffset, 2 ,1)  == FLASH_NONE_ERR)
-			&& (effectHwCfgOffset != 0xffff))
-		&& ((SpiFlashRead(get_effect_data_addr() + ((mainAppCt.EffectMode - 1) * 4) + 2, (uint8_t*)&effectParamOffset, 2 ,1)  == FLASH_NONE_ERR)
-				&& (effectParamOffset != 0xffff)))
+	//write MaxNet effectParam
+	for(uint8_t net = DefaultNet; net < MaxNet; net++)
 	{
-		DBG("EffectData FlashAdd = %lx\n", FlashAddr);
+		if(AudioEffect[net].context_memory == NULL)
+			break;
+		if(effectParamAddr.flashAddr[mainAppCt.EffectMode].effectParamOffset[net] != 0xffff)
+		{
+			effectParamOffset = effectParamAddr.flashAddr[mainAppCt.EffectMode].effectParamOffset[net];
+			DBG("effectParamOffset = %d\n", effectParamOffset);
+		}
+		else
+		{
+			FlashWriteOffset = get_EffectParamFlash_WriteAddr();
+			if (FlashWriteOffset < (sizeof(EffectParamOffsetUnit) + get_user_effect_parameters_len(AudioEffect[net].user_effect_parameters)))
+			{
+				APP_DBG("Flash space is not enough!!!\n");
+				return;
+			}
+
+			effectParamOffset = FlashWriteOffset - get_user_effect_parameters_len(AudioEffect[net].user_effect_parameters);
+			DBG("FlashWriteOffset = %d\n", FlashWriteOffset);
+			DBG("effectParamOffset = %d\n", effectParamOffset);
+		}
+
+		//write data
+		SpiFlashWrite(FlashAddr + offsetof(AudioEffectParamFlashAddrUnit, flashAddr[mainAppCt.EffectMode].effectParamOffset[net]), (uint8_t*)&effectParamOffset, 2, 1);
+		if (AudioEffect_FlashWrite(FlashAddr + effectParamOffset, (uint8_t*)AudioEffect[net].user_effect_parameters,
+					get_user_effect_parameters_len(AudioEffect[net].user_effect_parameters)))
+		{
+			APP_DBG("EffectParamFlashUpdata effectParam net(%d) ok!\n", net);
+		}
+		else
+		{
+			APP_DBG("EffectParamFlashUpdata effectParam net(%d) Error!\n", net);
+		}
+	}
+	//write HwCfg
+	if(effectParamAddr.flashAddr[mainAppCt.EffectMode].HwCfgOffset != 0xffff)
+	{
+		effectHwCfgOffset = effectParamAddr.flashAddr[mainAppCt.EffectMode].HwCfgOffset;
 		DBG("effectHwCfgOffset = %d\n", effectHwCfgOffset);
-		DBG("effectParamOffset = %d\n", effectParamOffset);
 	}
 	else
 	{
 		FlashWriteOffset = get_EffectParamFlash_WriteAddr();
-		if (FlashWriteOffset < (((EFFECT_MODE_COUNT - 1) * 4) + sizeof(gCtrlVars.HwCt)
-				+ get_user_effect_parameters_len(AudioEffect.user_effect_parameters)))
+		if (FlashWriteOffset < (sizeof(EffectParamOffsetUnit) + sizeof(gCtrlVars.HwCt)))
 		{
 			APP_DBG("Flash space is not enough!!!\n");
 			return;
 		}
 
 		effectHwCfgOffset = FlashWriteOffset - sizeof(gCtrlVars.HwCt);
-		effectParamOffset = effectHwCfgOffset - get_user_effect_parameters_len(AudioEffect.user_effect_parameters);
-
-		DBG("EffectData FlashAdd = %lx\n", FlashAddr);
 		DBG("FlashWriteOffset = %d\n", FlashWriteOffset);
 		DBG("effectHwCfgOffset = %d\n", effectHwCfgOffset);
-		DBG("effectParamOffset = %d\n", effectParamOffset);
 	}
 
 	//write data
-    SpiFlashWrite(FlashAddr + (mainAppCt.EffectMode - 1) * 4, (uint8_t*)&effectHwCfgOffset, 2, 1);
-    SpiFlashWrite(FlashAddr + (mainAppCt.EffectMode - 1) * 4 + 2, (uint8_t*)&effectParamOffset, 2, 1);
-	if (AudioEffect_FlashWrite(FlashAddr + effectHwCfgOffset, (uint8_t*)&gCtrlVars.HwCt, sizeof(gCtrlVars.HwCt))
-		&& AudioEffect_FlashWrite(FlashAddr + effectParamOffset, (uint8_t*)AudioEffect.user_effect_parameters,
-				get_user_effect_parameters_len(AudioEffect.user_effect_parameters)))
+	SpiFlashWrite(FlashAddr + offsetof(AudioEffectParamFlashAddrUnit, flashAddr[mainAppCt.EffectMode].HwCfgOffset), (uint8_t*)&effectHwCfgOffset, 2, 1);
+	if (AudioEffect_FlashWrite(FlashAddr + effectHwCfgOffset, (uint8_t*)&gCtrlVars.HwCt, sizeof(gCtrlVars.HwCt)))
 	{
-		APP_DBG("EffectParamFlashUpdata ok!\n");
+		APP_DBG("EffectParamFlashUpdata HwCfg ok!\n");
 	}
 	else
 	{
-		APP_DBG("EffectParamFlashUpdata Error!\n");
+		APP_DBG("EffectParamFlashUpdata HwCfg Error!\n");
 	}
 }
 
 bool AudioEffect_GetFlashHwCfg(uint8_t effectMode, HardwareConfigContext *hw_ct)
 {
-	uint16_t offset = 0;
-	if (SpiFlashRead(get_effect_data_addr() + ((mainAppCt.EffectMode - 1) * 4), (uint8_t*)&offset, 2 ,1) == FLASH_NONE_ERR)
+	uint16_t effectHwCfgOffset = 0;
+	AudioEffectParamFlashAddrUnit effectParamAddr;
+	SpiFlashRead(get_effect_data_addr(), (uint8_t*)&effectParamAddr, sizeof(AudioEffectParamFlashAddrUnit), 1);
+	effectHwCfgOffset = effectParamAddr.flashAddr[effectMode].HwCfgOffset;
+
+	if ((effectHwCfgOffset != 0xffff) && (SpiFlashRead(get_effect_data_addr() + effectHwCfgOffset, (uint8_t*)hw_ct, sizeof(gCtrlVars.HwCt) ,1) == FLASH_NONE_ERR))
 	{
-		if ((offset != 0xffff) && (SpiFlashRead(get_effect_data_addr() + offset, (uint8_t*)hw_ct, sizeof(gCtrlVars.HwCt) ,1) == FLASH_NONE_ERR))
-		{
-			return TRUE;
-		}
+		return TRUE;
 	}
 	DBG("flash read HwCt err\n");
 	return FALSE;
 }
 
-bool AudioEffect_GetFlashEffectParam(uint8_t effectMode,  uint8_t *effect_param)
+bool AudioEffect_GetFlashEffectParam(uint8_t effectMode, MIX_NET targetNet, uint8_t *effect_param)
 {
-	uint16_t effectHwCfgOffset = 0;
 	uint16_t effectParamOffset = 0;
-	if ((SpiFlashRead(get_effect_data_addr() + ((mainAppCt.EffectMode - 1) * 4), (uint8_t*)&effectHwCfgOffset, 2 ,1) == FLASH_NONE_ERR)
-			&& (SpiFlashRead(get_effect_data_addr() + ((mainAppCt.EffectMode - 1) * 4) + 2, (uint8_t*)&effectParamOffset, 2 ,1) == FLASH_NONE_ERR)
-			&& (effectHwCfgOffset - effectParamOffset == get_user_effect_parameters_len(effect_param)))
+	AudioEffectParamFlashAddrUnit effectParamAddr;
+	SpiFlashRead(get_effect_data_addr(), (uint8_t*)&effectParamAddr, sizeof(AudioEffectParamFlashAddrUnit), 1);
+	effectParamOffset = effectParamAddr.flashAddr[effectMode].effectParamOffset[targetNet];
+
+	if ((effectParamOffset != 0xffff) && (SpiFlashRead(get_effect_data_addr() + effectParamOffset, (uint8_t*)effect_param, get_user_effect_parameters_len(effect_param) ,1) == FLASH_NONE_ERR))
 	{
-		if (SpiFlashRead(get_effect_data_addr() + effectParamOffset, (uint8_t*)effect_param, get_user_effect_parameters_len(effect_param) ,1) == FLASH_NONE_ERR)
-		{
-			return TRUE;
-		}
+		return TRUE;
 	}
 	DBG("flash read EffectParam err\n");
 	return FALSE;
 }
-
 bool AudioEffect_CheckFlashEffectParam(void)
 {
 	uint16_t flashParam[EFFECT_MODE_COUNT * 2];

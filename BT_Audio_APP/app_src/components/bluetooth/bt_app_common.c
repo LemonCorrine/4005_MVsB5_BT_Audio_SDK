@@ -161,7 +161,7 @@ void BtAccessModeUpdate(BtAccessMode accessMode)
 #if (BT_DEVICE_NUMBER == 2)
 static void BtAccessMode_DualPhone(void)
 {
-	APP_DBG("BtAccessModeSetting, DualPhone \n");
+	printf("BtAccessModeSetting, DualPhone \n");
 
 	if(btManager.btLinkState)
 	{
@@ -213,7 +213,7 @@ static void BtAccessMode_DualPhone(void)
 #if (BT_DEVICE_NUMBER == 1)
 static void BtAccessMode_SinglePhone(void)
 {
-	APP_DBG("BtAccessModeSetting, SinglePhone \n");
+	printf("BtAccessModeSetting, SinglePhone \n");
 	
 	if(btManager.btLinkState)
 	{
@@ -296,10 +296,6 @@ void BtGetRemoteName(BT_STACK_CALLBACK_PARAMS * param)
 	}
 	APP_DBG("\t nameLen = %d , name = %s \n",btManager.remoteNameLen, btManager.remoteName);
 
-#if (BT_SIMPLEPAIRING_FLAG == DISABLE)
-	BtDdb_UpdateDeviceName(param->params.remDevName.addr,param->params.remDevName.name);
-#endif
-
 #if BT_SOURCE_SUPPORT
 	BtSourceGetRemoteName(param);
 #endif
@@ -316,13 +312,13 @@ void BtGetRemoteName(BT_STACK_CALLBACK_PARAMS * param)
 	{
         if(btManager.btLinkState)
         {
-    	    APP_DBG("device is connected, disconnect btbox\n");
+    	    printf("device is connected, disconnect btbox\n");
     		btManager.btLastAddrUpgradeIgnored = 0;
             BTHciDisconnectCmd(param->params.remDevName.addr);
         }
         else
         {
-    		APP_DBG("connect btbox\n");
+    		printf("connect btbox\n");
     		btManager.btLastAddrUpgradeIgnored = 1;
 			memset(btManager.btDdbLastAddr, 0, 6);
         }
@@ -408,7 +404,7 @@ uint32_t GetSupportProfiles(void)
 	profiles |= BT_PROFILE_SUPPORTED_AVRCP;
 #endif
 
-#if (BT_SPP_SUPPORT)
+#if (BT_SPP_SUPPORT ||(defined(CFG_FUNC_BT_OTA_EN)))
 	profiles |= BT_PROFILE_SUPPORTED_SPP;
 #endif
 	
@@ -640,7 +636,7 @@ void BtEventFlagProcess(void)
 				{
 					if((GetAvrcpState(BtCurIndex_Get()) < BT_AVRCP_STATE_CONNECTED)&&(GetA2dpState(BtCurIndex_Get()) >= BT_A2DP_STATE_CONNECTED))
 					{
-						APP_DBG("+++ avrcp connect \n");
+						printf("+++ avrcp connect \n");
 						BtAvrcpConnect(BtCurIndex_Get(),btManager.remoteAddr);
 					}
 					btManager.btEventFlagMask = BT_EVENT_FLAG_NONE;
@@ -661,7 +657,7 @@ void BtEventFlagProcess(void)
 				{
 					if(GetAvrcpState(BtCurIndex_Get()) > BT_AVRCP_STATE_NONE)
 					{
-						APP_DBG("--- avrcp disconnect \n");
+						printf("--- avrcp disconnect \n");
 						AvrcpDisconnect(BtCurIndex_Get());
 					}
 					btManager.btEventFlagMask = BT_EVENT_FLAG_NONE;
@@ -682,7 +678,7 @@ void BtEventFlagProcess(void)
 				{
 					if(GetA2dpState(BtCurIndex_Get()) > BT_A2DP_STATE_NONE)
 					{
-						APP_DBG("--- a2dp disconnect \n");
+						printf("--- a2dp disconnect \n");
 						A2dpDisconnect(BtCurIndex_Get());
 					}
 					btManager.btEventFlagMask = BT_EVENT_FLAG_NONE;

@@ -186,6 +186,10 @@ bool OTG_HostEnumDevice(void)
 	{
 		return FALSE;
 	}
+	if(OtgHostInfo.DeviceDesCriptor.bNumConfigurations != 1)
+	{
+		return FALSE;
+	}
 	
 	//Éè±¸ÃèÊö·û
 	OTG_DBG("Device DeviceDesCriptor:\n");
@@ -203,12 +207,7 @@ bool OTG_HostEnumDevice(void)
 	OTG_DBG("iProduct:\t%02X \n",OtgHostInfo.DeviceDesCriptor.iProduct);
 	OTG_DBG("iSerialNumber:\t%02X \n",OtgHostInfo.DeviceDesCriptor.iSerialNumber);
 	OTG_DBG("bNumConfigurations:\t%02X \n",OtgHostInfo.DeviceDesCriptor.bNumConfigurations);
-
-	if(OtgHostInfo.DeviceDesCriptor.idVendor == 0x05AC)			//Apple
-	{
-		OTG_HostSetIpodChargeCurrent(500);
-	}
-
+	
 	if(OtgHostInfo.DeviceDesCriptor.bNumConfigurations != 1)
 	{
 		return FALSE;

@@ -444,7 +444,7 @@ void RadioPlayResInit(void)
 	AudioIOSet.Adapt = STD;
 	AudioIOSet.Sync = TRUE;
 	AudioIOSet.Channels = 2;
-	AudioIOSet.Net = DefaultNet;
+	AudioIOSet.Net = AudioEffect_getSourceNet(RADIO_SOURCE_NUM);
 	AudioIOSet.DataIOFunc = AudioADC0_DataGet;
 	AudioIOSet.LenGetFunc = AudioADC0_DataLenGet;
 

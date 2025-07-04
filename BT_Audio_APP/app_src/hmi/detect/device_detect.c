@@ -41,23 +41,19 @@
 //#endif
 #ifdef CFG_FUNC_CARD_DETECT
 volatile DETECT_STATE CardState = DETECT_STATE_IDLE;
-#if FLASH_BOOT_EN
-volatile DETECT_STATE CardStateback = DETECT_STATE_IDLE;
-#endif
 #endif
 #ifdef CFG_FUNC_UDISK_DETECT
 volatile DETECT_STATE UsbHostState = DETECT_STATE_IDLE;
-#if FLASH_BOOT_EN
-volatile DETECT_STATE UdiskStateback = DETECT_STATE_IDLE;
-#endif
 uint8_t UsbHostPortFlag = 0;
 #endif
 #ifdef CFG_FUNC_USB_DEVICE_DETECT
 static DETECT_STATE UsbDeviceState = DETECT_STATE_IDLE;
-static uint32_t sDevice_Init_state=0;// 1:inited    0:not init
 #endif
 #ifdef CFG_LINEIN_DET_EN
 static DETECT_STATE LineInState = DETECT_STATE_IDLE;
+#endif
+#ifdef CFG_COMMUNICATION_BY_USB
+static uint32_t sDevice_Init_state=0;// 1:inited    0:not init
 #endif
 
 extern uint32_t SysemMipsPercent;
@@ -218,7 +214,7 @@ bool IsUDiskLink(void)
 #endif
 
 
-#ifdef CFG_FUNC_USB_DEVICE_DETECT
+#ifdef CFG_COMMUNICATION_BY_USB
 bool GetUSBDeviceInitState(void)
 {
 	return sDevice_Init_state; 	
@@ -229,6 +225,7 @@ void SetUSBDeviceInitState(bool state)
 {
 	 sDevice_Init_state = state; 	
 }
+
 
 #endif
 
@@ -543,9 +540,6 @@ static void DevicePlugEventCheck(void)
 #ifdef CFG_FUNC_CARD_DETECT	//card msg
 	if(Plug & CARD_IN_EVENT_BIT)
 	{
-#if FLASH_BOOT_EN
-		CardStateback = DETECT_STATE_IN;
-#endif
 		if(GetSysModeState(ModeCardAudioPlay) == ModeStateSusend)
 		{
 			SetSysModeState(ModeCardAudioPlay,ModeStateReady);
@@ -555,20 +549,10 @@ static void DevicePlugEventCheck(void)
 	}
 	else if(Plug & CARD_OUT_EVENT_BIT)
 	{
-#if FLASH_BOOT_EN
-		if(CardStateback == DETECT_STATE_IN)
-		{
-			SoftFlagDeregister(SoftFlagUpgradeOK);
-		}
-		CardStateback = DETECT_STATE_OUT;
-		SoftFlagDeregister(SoftFlagMvaInCard);//清理mva包标记
-#endif
-#ifndef CFG_FUNC_APP_USB_CARD_IDLE
 		if(GetSysModeState(ModeCardAudioPlay) == ModeStateReady)
 		{
 			SetSysModeState(ModeCardAudioPlay,ModeStateSusend);
 		}
-#endif
 		msgSend.msgId	= MSG_DEVICE_SERVICE_CARD_OUT;
 		MessageSend(GetMainMessageHandle(), &msgSend);
 	}
@@ -576,9 +560,6 @@ static void DevicePlugEventCheck(void)
 #ifdef CFG_FUNC_UDISK_DETECT	//usb host msg	
 	if(Plug & UDISK_IN_EVENT_BIT)
 	{
-#if FLASH_BOOT_EN
-		UdiskStateback = DETECT_STATE_IN;
-#endif
 		if(GetSysModeState(ModeUDiskAudioPlay) == ModeStateSusend)
 		{
 			SetSysModeState(ModeUDiskAudioPlay,ModeStateReady);
@@ -588,20 +569,10 @@ static void DevicePlugEventCheck(void)
 	}
 	else if(Plug & UDISK_OUT_EVENT_BIT)
 	{
-#if FLASH_BOOT_EN
-		if(UdiskStateback == DETECT_STATE_IN)
-		{
-			SoftFlagDeregister(SoftFlagUpgradeOK);
-		}
-		UdiskStateback = DETECT_STATE_OUT;
-		SoftFlagDeregister(SoftFlagMvaInUDisk);//清理mva包标记
-#endif
-#ifndef CFG_FUNC_APP_USB_CARD_IDLE
 		if(GetSysModeState(ModeUDiskAudioPlay) == ModeStateReady)
 		{
 			SetSysModeState(ModeUDiskAudioPlay,ModeStateSusend);
 		}
-#endif
 		msgSend.msgId	= MSG_DEVICE_SERVICE_U_DISK_OUT;
 		MessageSend(GetMainMessageHandle(), &msgSend);
 	}
@@ -726,7 +697,7 @@ void BreakPointSave(uint16_t device_msgId)
 #ifdef CFG_APP_BT_MODE_EN
 			pBpSysInfo->HfVolume     = mainAppCt.HfVolume;
 #endif
-			if(mainAppCt.EffectMode != EFFECT_MODE_HFP_AEC)//蓝牙通话模式下，不保存音效模式
+			if((mainAppCt.EffectMode != EFFECT_MODE_HFP_AEC) && (mainAppCt.EffectMode != EFFECT_MODE_USBAEC))//蓝牙通话模式下，不保存音效模式
 			{
 				pBpSysInfo->EffectMode   = mainAppCt.EffectMode;
 			}
@@ -734,7 +705,7 @@ void BreakPointSave(uint16_t device_msgId)
 #ifdef CFG_FUNC_MUSIC_EQ_MODE_EN
 			pBpSysInfo->EqMode		 = EqMode;
 #endif	
-#ifdef CFG_FUNC_AUDIOEFFECT_AUTO_GEN_MSG_PROC
+#ifdef CFG_FUNC_MIC_KARAOKE_EN
 			pBpSysInfo->ReverbStep   = ReverbStep;
 #endif
 #ifdef CFG_FUNC_MIC_TREB_BASS_EN

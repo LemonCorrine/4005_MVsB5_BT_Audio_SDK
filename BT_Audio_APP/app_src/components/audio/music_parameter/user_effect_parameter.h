@@ -15,7 +15,6 @@
 #include "reverb.h"
 #include "reverb_plate.h"
 #include "reverb_pro.h"
-#include "effects_param_v3.h"
 
 #define AUDIOCORE_SOURCE_SINK_ERROR 0xFF
 
@@ -45,21 +44,23 @@ typedef enum _AUDIOEFFECT_EFFECT_CONTROL
  */
 typedef struct _AUDIOEFFECT_SOURCE_SINK_NUM
 {
-	uint8_t		mic_source;			/**< MIC_SOURCE_NUM                          */
-	uint8_t		app_source;			/**< APP_SOURCE_NUM                          */
-	uint8_t		remind_source;		/**< REMIND_SOURCE_NUM  	                 */
-	uint8_t		rec_source;			/**< PLAYBACK_SOURCE_NUM                     */
-	uint8_t		usb_source;			/**< USB_SOURCE                              */
-	uint8_t		i2s_mix_source;		/**< I2S_MIX_SOURCE                          */
-	uint8_t		i2s_mix2_source;	/**< I2S_MIX2_SOURCE                         */
-	uint8_t		linein_mix_source;	/**< LINEIN_MIX_SOURCE_NUM                   */
+	uint16_t		mic_source;			/**< MIC_SOURCE_NUM                          */
+	uint16_t		app_source;			/**< APP_SOURCE_NUM                          */
+	uint16_t		remind_source;		/**< REMIND_SOURCE_NUM                    	 */
+	uint16_t		rec_source;			/**< PLAYBACK_SOURCE_NUM                     */
+	uint16_t		usb_source;			/**< USB_SOURCE                              */
+	uint16_t		i2s_mix_source;		/**< I2S_MIX_SOURCE                          */
+	uint16_t		i2s_mix2_source;	/**< I2S_MIX2_SOURCE                         */
+	uint16_t		linein_mix_source;	/**< LINEIN_MIX_SOURCE_NUM                   */
+	uint16_t		aec_ref_source;		/**< AEC_REF_SOURCE_NUM						 */
 
-	uint8_t		dac0_sink;			/**< AUDIO_DAC0_SINK_NUM                     */
-	uint8_t		app_sink;			/**< AUDIO_APP_SINK_NUM                      */
-	uint8_t		stereo_sink;		/**< AUDIO_STEREO_SINK_NUM                   */
-	uint8_t		rec_sink;			/**< AUDIO_RECORDER_SINK_NUM                 */
-	uint8_t		i2s_mix_sink;		/**< AUDIO_I2S_MIX_OUT_SINK_NUM              */
-	uint8_t		spdif_sink;			/**< AUDIO_SPDIF_SINK_NUM                    */
+	uint16_t		dac0_sink;			/**< AUDIO_DAC0_SINK_NUM                     */
+	uint16_t		app_sink;			/**< AUDIO_APP_SINK_NUM                      */
+	uint16_t		stereo_sink;		/**< AUDIO_STEREO_SINK_NUM                   */
+	uint16_t		rec_sink;			/**< AUDIO_RECORDER_SINK_NUM                 */
+	uint16_t		i2s_mix_sink;		/**< AUDIO_I2S_MIX_OUT_SINK_NUM              */
+	uint16_t		spdif_sink;			/**< AUDIO_SPDIF_SINK_NUM                    */
+	uint16_t		aec_ref_sink;		/**< AEC_REF_SINK_NUM						 */
 } AUDIOEFFECT_SOURCE_SINK_NUM;
 
 //默认配置为不使用,effect_mode需要默认加在开始的位置
@@ -71,12 +72,54 @@ typedef struct _AUDIOEFFECT_SOURCE_SINK_NUM
 												.i2s_mix_source = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.i2s_mix2_source = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.linein_mix_source = AUDIOCORE_SOURCE_SINK_ERROR,\
+												.aec_ref_source = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.dac0_sink = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.app_sink = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.stereo_sink = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.rec_sink = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.i2s_mix_sink = AUDIOCORE_SOURCE_SINK_ERROR,\
-												.spdif_sink = AUDIOCORE_SOURCE_SINK_ERROR
+												.spdif_sink = AUDIOCORE_SOURCE_SINK_ERROR,\
+												.aec_ref_sink = AUDIOCORE_SOURCE_SINK_ERROR
+
+#define		AUDIOEFFECT_SET_EFFECTADDR(net, rAddr)	((uint16_t)((net << 8) + rAddr))
+#define 	AUDIOEFFECT_GET_EFFECTNET(vAddr)        ((uint8_t)(((vAddr) >> 8) & 0xFF))
+#define 	AUDIOEFFECT_GET_REALEFFECTADDR(vAddr)   ((uint8_t)(((vAddr << 8) >> 8) & 0xFF))
+
+#define		AUDIOEFFECT_SET_SOURCESINKNUM(net, rNum)	((uint16_t)((net << 8) + rNum))
+#define 	AUDIOEFFECT_GET_SOURCESINKNET(vNum)        	((uint8_t)(((vNum) >> 8) & 0xFF))
+#define 	AUDIOEFFECT_GET_REALSOURCESINKNUM(vNum)   	((uint8_t)(((vNum << 8) >> 8) & 0xFF))
+
+
+/**
+ * @brief Echo unit
+ */
+typedef struct __EchoUnit
+{
+	int16_t		fc;
+	int16_t		attenuation;
+	int16_t		delay;
+	int16_t		max_delay;
+	int16_t		quality_mode;//0,1=normal echo, 0,2=24bit echo
+	int16_t		dry;
+	int16_t		wet;
+} EchoUnit;
+
+/**
+ * @brief SilenceDetector unit
+ */
+typedef struct __SilenceDetectorUnit
+{
+	uint16_t	level;
+} SilenceDetectorUnit;
+
+/**
+ * @brief GainControl unit
+ */
+typedef struct __GainControlUnit
+{
+	uint16_t	mute;
+	uint16_t	gain;
+} GainControlUnit;
 
 /**
  * @brief  Get some default parameters
@@ -101,10 +144,11 @@ void AudioEffectParamSync(void);
 
 /**
  * @brief  Get effect status
+ * @param  targetNet : ennum MIX_NET
  * @param  effect_addr : expected audio effect addr
  * @return uint8_t : 0 or 1
  */
-uint8_t AudioEffect_effect_status_Get(uint8_t effect_addr);
+uint8_t AudioEffect_effect_status_Get(MIX_NET targetNet, uint8_t effect_addr);
 
 /**
  * @brief  Onoff effect
@@ -122,6 +166,13 @@ void AudioEffect_effect_enable(uint8_t effect_addr, uint8_t enable);
 uint8_t AudioCoreSourceToRoboeffect(int8_t source);
 
 /**
+ * @brief  get source MIX_NET in AudioCore
+ * @param  source : AudioCore source enum less than AUDIO_CORE_SOURCE_MAX_NUM
+ * @return uint8_t : MIX_NET
+ */
+
+uint8_t AudioEffect_getSourceNet(int8_t source);
+/**
  * @brief  AudioCore sink link to Roboeffect sink
  * @param  sink : AudioCore sink enum less than AUDIO_CORE_SINK_MAX_NUM
  * @return uint8_t : Roboeffect sink index
@@ -129,29 +180,39 @@ uint8_t AudioCoreSourceToRoboeffect(int8_t source);
 uint8_t AudioCoreSinkToRoboeffect(int8_t sink);
 
 /**
+ * @brief  get sink MIX_NET in AudioCore
+ * @param  source : AudioCore sink enum less than AUDIO_CORE_SINK_MAX_NUM
+ * @return uint8_t : MIX_NET
+ */
+uint8_t AudioEffect_getSinkNet(int8_t sink);
+
+/**
  * @brief  Update an audio effect parameter of SDK local backup
+ * @param  targetNet : ennum MIX_NET
  * @param  addr : expected audio effect addr
  * @param  param_index : parameter index in an audio effect parameters
  * @param  param_input : parameter
  * @param  param_len : parameter length
  * @return None
  */
-void AudioEffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t *param_input, uint8_t param_len);
+void AudioEffect_update_local_params(MIX_NET targetNet, uint8_t addr, uint8_t param_index, int16_t *param_input, uint8_t param_len);
 
 /**
  * @brief  Update audio effect status of SDK local backup
+ * @param  targetNet : ennum MIX_NET
  * @param  addr : expected audio effect addr
  * @param  effect_enable : 0 or 1
  * @return None
  */
-void AudioEffect_update_local_effect_status(uint8_t addr, uint8_t effect_enable);
+void AudioEffect_update_local_effect_status(MIX_NET targetNet, uint8_t addr, uint8_t effect_enable);
 
 /**
  * @brief  Update a block effect parameters of SDK local backup
+ * @param  targetNet : ennum MIX_NET
  * @param  addr : expected audio effect addr
  * @return None
  */
-void AudioEffect_update_local_block_params(uint8_t addr);
+void AudioEffect_update_local_block_params(MIX_NET targetNet, uint8_t addr);
 
 /**
  * @brief  Get user effect parameters length
@@ -168,11 +229,11 @@ uint16_t get_user_effect_parameters_len(uint8_t *user_effect_parameters);
 AUDIOEFFECT_EFFECT_PARA * get_user_effect_parameters(uint8_t mode);
 
 /**
- * @brief  Check if effect Addr is right
- * @param  addr : expected audio effect addr
- * @return bool : TRUE or FALSE
+ * @brief  judge if there is only one flowchart for the effect mode
+ * @param  mode : effect mode in enum EFFECT_MODE
+ * @return bool : TRUE or FLASE
  */
-bool AudioEffect_effectAddr_check(uint8_t addr);
+bool isCurEffectModeSingleFlowChart(EFFECT_MODE effectMode);
 
 /**
  * @brief  Save effect parameters to flash
@@ -192,10 +253,11 @@ bool AudioEffect_GetFlashHwCfg(uint8_t effectMode, HardwareConfigContext *hw_ct)
 /**
  * @brief  Get effect parameters from flash
  * @param  effectMode : effect mode in enum EFFECT_MODE
+ * @param  targetNet : ennum MIX_NET
  * @param  hw_ct : effect parameters data pointer
  * @return bool : TRUE or FALSE
  */
-bool AudioEffect_GetFlashEffectParam(uint8_t effectMode,  uint8_t *effect_param);
+bool AudioEffect_GetFlashEffectParam(uint8_t effectMode, MIX_NET targetNet, uint8_t *effect_param);
 
 /**
  * @brief  Check if effect parameters in flash is right

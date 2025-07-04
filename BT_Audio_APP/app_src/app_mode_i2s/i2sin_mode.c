@@ -232,7 +232,7 @@ bool I2SInPlayResInit(void)
 
 	AudioIOSet.Sync = TRUE;//FALSE;//
 	AudioIOSet.Channels = 2;
-	AudioIOSet.Net = DefaultNet;
+	AudioIOSet.Net = AudioEffect_getSourceNet(I2SIN_SOURCE_NUM);
 	AudioIOSet.Depth = AudioCoreFrameSizeGet(DefaultNet) * 2;//sI2SInPlayCt->I2SFIFO1 采样点深度
 //	DBG("Depth:%d", AudioIOSet.Depth);
 	AudioIOSet.HighLevelCent = 60;

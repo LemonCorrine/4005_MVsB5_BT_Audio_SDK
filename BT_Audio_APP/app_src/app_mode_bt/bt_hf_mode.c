@@ -30,6 +30,7 @@
 #include "bt_app_hfp_deal.h"
 #include "bt_stack_service.h"
 #include "remind_sound.h"
+#include "user_effect_parameter.h"
 
 /*******************************************************************************************************************************************************************
 *           		SaveScoData	 			   		   InAdapter	  	    CoreProcess			   OutAdapter			SaveScoData
@@ -415,7 +416,7 @@ static void BtHfModeRunningConfig(void)
 #endif
 	AudioIOSet.Sync = FALSE;
 	AudioIOSet.Channels = 1;
-	AudioIOSet.Net = DefaultNet;
+	AudioIOSet.Net = AudioEffect_getSourceNet(BT_HF_SOURCE_NUM);
 	AudioIOSet.DataIOFunc = BtHf_ScoDataGet;
 	AudioIOSet.LenGetFunc = BtHf_ScoDataLenGet;
 #if	defined(CFG_PARA_HFP_SYNC) && !defined(CFG_PARA_HFP_FREQ_ADJUST)
@@ -555,7 +556,7 @@ bool BtHfInit(void)
 #endif
 	AudioIOSet.Sync = FALSE;//TRUE;
 	AudioIOSet.Channels = 1;
-	AudioIOSet.Net = DefaultNet;
+	AudioIOSet.Net = AudioEffect_getSinkNet(AUDIO_HF_SCO_SINK_NUM);
 	AudioIOSet.Depth = BT_SCO_PCM_FIFO_LEN / 2;
 	AudioIOSet.DataIOFunc = BtHf_SinkScoDataSet;
 	AudioIOSet.LenGetFunc = BtHf_SinkScoDataSpaceLenGet;

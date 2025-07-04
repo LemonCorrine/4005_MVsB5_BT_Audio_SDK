@@ -246,7 +246,7 @@ bool HdmiInPlayResMalloc(uint16_t SampleLen)
 	AudioIOSet.Adapt = SRC_SRA;
 	AudioIOSet.Sync = FALSE;
 	AudioIOSet.Channels = 2;
-	AudioIOSet.Net = DefaultNet;
+	AudioIOSet.Net = AudioEffect_getSourceNet(HDMI_IN_SOURCE_NUM);
 
 	AudioIOSet.DataIOFunc = HDMI_ARC_DataGet;
 	AudioIOSet.LenGetFunc = HDMI_ARC_DataLenGet;

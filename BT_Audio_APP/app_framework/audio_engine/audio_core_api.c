@@ -33,6 +33,9 @@
 #include "audio_vol.h"
 #include "user_effect_parameter.h"
 
+#ifdef CFG_APP_BT_MODE_EN
+uint32_t gACBtMonitor = 0; //audio core检测:蓝牙模式下数据播空计数器
+#endif
 /*******************************************************************************************************************************
  *
  *				 |***GetAdapter***|	  			 |***********CoreProcess***********|			  |***SetAdapter***|
@@ -198,9 +201,27 @@ void AudioCoreRun(void)
 		case AC_RUN_GET:
 			AudioCoreIOLenProcess();
 #ifdef CFG_APP_BT_MODE_EN
-			//audio core检测:蓝牙模式下数据播空监控
-			extern void BtPlayACBtMonitor(uint16_t empty_flag);
-			BtPlayACBtMonitor(SOURCE_BIT_GET(AudioCore.FrameReady, APP_SOURCE_NUM));
+			//每隔1ms查询一次,app_source 数据不足,进行登记
+			if(SOURCE_BIT_GET(AudioCore.FrameReady, APP_SOURCE_NUM) == 0)
+			{
+				extern uint32_t gBtPlaySbcDecoderInitFlag;
+				if((GetSystemMode() == ModeBtAudioPlay)//蓝牙模式
+					&&((GetA2dpState(0) == BT_A2DP_STATE_STREAMING)||(GetA2dpState(1) == BT_A2DP_STATE_STREAMING))//正在播放音乐
+					&&(gBtPlaySbcDecoderInitFlag)//decoder初始化已经完成
+					&&(AudioCoreSourceIsEnable(APP_SOURCE_NUM))//source通路已经开启
+					)
+				{
+					if(++gACBtMonitor>=80)//80ms播空,重置decoder
+					{
+						gACBtMonitor = 0;
+						a2dp_sbc_decoer_init();
+					}
+				}
+				else
+				{
+					gACBtMonitor = 0;
+				}
+			}
 #endif
 			ret = AudioCoreSourceSync();
 			if(ret == FALSE)
@@ -325,8 +346,8 @@ void AudioCoreSourceMuteApply(void)
 				if(!AudioCore.AudioSource[j].Active || !AudioCore.AudioSource[j].Enable
 						|| mainAppCt.gSysVol.MuteFlag || AudioCore.AudioSource[j].LeftMuteFlag)
 				{
-					memset(roboeffect_get_source_buffer(AudioEffect.context_memory, AudioCoreSourceToRoboeffect(j)),
-										0, roboeffect_get_buffer_size(AudioEffect.context_memory));
+					memset(roboeffect_get_source_buffer(AudioEffect[AudioEffect_getSourceNet(j)].context_memory, AudioCoreSourceToRoboeffect(j)),
+										0, roboeffect_get_buffer_size(AudioEffect[AudioEffect_getSourceNet(j)].context_memory));
 				}
 			}
 			AudioCore.AudioSource[j].MuteFlagbk = mute;
@@ -410,8 +431,8 @@ void AudioCoreSinkMuteApply(void)
 				if(!AudioCore.AudioSink[j].Active || !AudioCore.AudioSink[j].Enable
 						|| mainAppCt.gSysVol.MuteFlag || AudioCore.AudioSink[j].LeftMuteFlag)
 				{
-					memset(roboeffect_get_sink_buffer(AudioEffect.context_memory, AudioCoreSinkToRoboeffect(j)),
-										0, roboeffect_get_buffer_size(AudioEffect.context_memory));
+					memset(roboeffect_get_sink_buffer(AudioEffect[AudioEffect_getSinkNet(j)].context_memory, AudioCoreSinkToRoboeffect(j)),
+										0, roboeffect_get_buffer_size(AudioEffect[AudioEffect_getSinkNet(j)].context_memory));
 				}
 			}
 			AudioCore.AudioSink[j].MuteFlagbk = mute;
