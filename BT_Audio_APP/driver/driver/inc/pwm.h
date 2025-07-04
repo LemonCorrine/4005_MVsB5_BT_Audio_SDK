@@ -31,8 +31,8 @@ extern "C" {
 #define PWM_MAX_FREQ_DIV_VALUE   (65535 << 15)
 
 //PWM 输出通道GPIO复用关系
-#define   TIMER5_PWM_A0_A7_A10_A22_A24_B0_B1            0    //TIMER5的PWM引脚可复用在A0, A7,A10,A22,A24,B0,B1
-#define   TIMER6_PWM_A1_A9_A10_A23_A24_A28_B0_B1        1    //TIMER6的PWM引脚可复用在A1, A9,A10,A23,A24,A28,B0,B1
+#define   TIMER5_PWM_A0_A7_A10_A22_A24            		0    //TIMER5的PWM引脚可复用在A0, A7,A10,A22,A24
+#define   TIMER6_PWM_A1_A9_A10_A23_A24_A28        		1    //TIMER6的PWM引脚可复用在A1, A9,A10,A23,A24,A28
 #define   TIMER7_PWM_A3_A5_A20_B4                       2    //TIMER7的PWM引脚可复用在A3, A5,A20,B4
 #define   TIMER8_PWM_A4_A6_A21_B5                       3    //TIMER8的PWM引脚可复用在A4, A6,A21,B5
 

@@ -393,22 +393,107 @@ bool SystermWackupSourceCheck(void)
 //	SysTickDeInit();
 	return FALSE;
 }
+/**
+
 
 
 #endif//CFG_FUNC_DEEPSLEEP_EN
-
-void BtDeepSleepForUsr(void)	//蓝牙休眠配置入口
+ */
+static void SystermBTWakeupConfig(void)
 {
 	NVIC_EnableIRQ(Wakeup_IRQn);
 	NVIC_SetPriority(Wakeup_IRQn, 0);
 	Power_WakeupSourceClear();
 	Power_WakeupSourceSet(SYSWAKEUP_SOURCE15_BT, 0, 0);//设置蓝牙为唤醒源，无需IO所以随便填了0
 	Power_WakeupEnable(SYSWAKEUP_SOURCE15_BT);
+}
+
+
+#endif//CFG_FUNC_DEEPSLEEP_EN
+
+
+
+
+/**
+ * @brief  蓝牙进入sniff 模式的睡眠后，会调用该函数
+ * @param  void
+ * @return void
+ * @note   注意sniff模式推荐蓝牙32K采用24MHZ晶振产生,在函数中不要关闭24M晶振,可以调用BtSniffSleepTime获取sniff睡眠时间
+ */
+void BtDeepSleepForUsr(void)
+{
+#ifdef BT_SNIFF_DEEPSLEEP_ENABLE
+	extern void FshcClkSwitch(FSHC_CLK_MODE ClkSrc, uint32_t flash_clk);
+	extern bool GIE_STATE_GET(void);
+	int gie_ret = GIE_STATE_GET();
+	GIE_DISABLE();
+	SystermBTWakeupConfig();
+#ifdef CHIP_USE_DCDC
+	ldo_switch_to_dcdc(6); // 3-1.6V 睡眠时候用1.3V
+#else
+	Power_LDO16Config(0);
+#endif
+	Power_LDO11DConfig(PWD_LDO11_LVL_0V95); // 降低到0.95V  VDD电压
+	ADC_Disable();
+
+	Clock_SysClkSelect(RC_CLK_MODE);
+	SpiFlashInit(80000000, MODE_1BIT, 0, SYS_FLASH_CLK_SELECT);//rc时钟 不支持flash 4bit，系统恢复时重配。
+	FshcClkSwitch(FSHC_RC_CLK_MODE, 80000000);//再切RC
+
+	Clock_UARTClkSelect(RC_CLK_MODE);//先切换log clk。避免后续慢速处理
+	LogUartConfig(TRUE);
+	GIE_ENABLE();
 
 	NVIC_DisableForDeepsleep();
-	SleepMain();
+	Clock_APllClose();//APLL会增加约980uA的功耗
+	Clock_PllClose();
+#if !defined(CFG_RES_RTC_EN)
+	Clock_HOSCDisable();//若有RTC应用并且RTC所用时钟是HOSC，则不关闭HOSC，即24M晶振
+#endif
+
 	Power_GotoDeepSleep();
-	WakeupMain();
+
+	Clock_HOSCCurrentSet(15);
+	Clock_Config(1, SYS_CRYSTAL_FREQ);
+	Clock_PllLock(SYS_CORE_DPLL_FREQ);
+	Clock_APllLock(SYS_CORE_APLL_FREQ);//蓝牙使用APLL 240M
+	Clock_SysClkSelect(SYS_CORE_CLK_SELECT);
+	Clock_HOSCCurrentSet(5);
+	Clock_UARTClkSelect(SYS_UART_CLK_SELECT);
+	LogUartConfig(TRUE);
+
+
+#if (SYS_CORE_SET_MODE == CORE_ONLY_APLL_MODE)
+	Clock_PllClose();
+#endif
+#ifdef CHIP_USE_DCDC
+	ldo_switch_to_dcdc(5); // 3-1.6V 睡眠时候用1.3V
+#else
+	Power_LDO16Config(0);
+#endif
+#ifdef CFG_RES_ADC_KEY_SCAN
+	Power_LDO11DConfig(PWD_LDO11_LVL_1V05); // 降低到0.95V  VDD使用SarADC功能，最低电压只能到1.05V
+#else
+	Power_LDO11DConfig(PWD_LDO11_LVL_0V95); // 降低到0.95V  VDD使用SarADC功能，最低电压只能到1.05V
+#endif
+    SpiFlashInit(80000000, MODE_4BIT, 0, SYS_FLASH_CLK_SELECT);
+	Clock_UARTClkSelect(SYS_UART_CLK_SELECT);//先切换log clk。避免后续慢速处理
+	LogUartConfig(TRUE);
+	ADC_Enable();
+
+
+
 	NVIC_EnableForDeepsleep();
-	APP_DBG("LogUartConfig\n");
+	NVIC_DisableIRQ(Wakeup_IRQn);
+	Power_WakeupDisable(SYSWAKEUP_SOURCE15_BT);
+	if(gie_ret == 0)
+	{
+		GIE_DISABLE();
+	}
+
+	//APP_DBG("LogUartConfig1\n");// 调试的时候可以打开打印，正常使用屏蔽
+#endif
+
 }
+
+

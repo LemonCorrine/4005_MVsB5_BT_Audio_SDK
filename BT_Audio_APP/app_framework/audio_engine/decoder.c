@@ -1077,6 +1077,9 @@ int32_t BtDecoderInit(void *io_handle,int32_t decoder_type)
 
 		MCUCircular_Config(&DecoderServiceCt[DECODER_MODE_CHANNEL].DecoderCircularBuf, DecoderServiceCt[DECODER_MODE_CHANNEL].DecoderFifo, DecoderServiceCt[DECODER_MODE_CHANNEL].DecoderFifoSize);
 		DecoderServiceCt[DECODER_MODE_CHANNEL].Channel = audio_decoder->song_info.num_channels;//配置本地fifo 声道数（init后固定不变）
+#ifdef CFG_AUDIO_OUT_AUTO_SAMPLE_RATE_44100_48000
+		AudioOutSampleRateSet(audio_decoder->song_info.sampling_rate);
+#endif
 		//if (audio_decoder->song_info.sampling_rate != CFG_PARA_SAMPLE_RATE)
 		{
 			AudioCoreSourceChange(APP_SOURCE_NUM, audio_decoder->song_info.num_channels, audio_decoder->song_info.sampling_rate);

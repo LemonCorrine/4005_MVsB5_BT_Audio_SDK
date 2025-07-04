@@ -331,7 +331,7 @@ void SleepMain(void)
 	WDG_Feed();
     closeADC(); // 关闭ADC，降低功耗
 //    DeepSleepIOConfig();
-
+    Clock_RcFreqGet(1);		//先获取RC时钟，避免在唤醒源检测时启动硬件计数器
 #ifdef CHIP_USE_DCDC
     ldo_switch_to_dcdc(6); // DCDC 1.3V,降低功耗
 #else
@@ -363,6 +363,7 @@ void WakeupMain(void)
 	LogUartConfig(TRUE);//调整时钟后，重配串口前不要打印。
 
 	SysTickInit();
+	ADC_Enable();
 }
 #endif
 

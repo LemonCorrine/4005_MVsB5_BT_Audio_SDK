@@ -172,16 +172,9 @@ static bool HardwareInit(DEV_ID DevId)
 #ifdef CFG_RES_CARD_USE
 		case DEV_ID_SD:
 		{
-			CardPortInit(CFG_RES_CARD_GPIO);
-			if(SDCard_Init() != NONE_ERR)
-			{
-				APP_DBG("Card init err.\n");
-				return FALSE;
-			}
-			APP_DBG("SDCard Init Success!\n");
 			strcpy(current_vol, MEDIA_VOLUME_STR_C);
 
-			while(f_mount(&gMediaPlayer->gFatfs_sd, current_vol, 1) != FR_OK && --Retry);
+			while(f_mount(&gMediaPlayer->gFatfs_sd, current_vol, 1) != FR_OK && Retry--);
 			if(!Retry)
 			{
 				APP_DBG("SDø®π“‘ÿ  ß∞‹\n");

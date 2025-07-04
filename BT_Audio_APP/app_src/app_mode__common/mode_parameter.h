@@ -147,11 +147,14 @@ const DeviceEventMsgTable DeviceEventMsgTableArray[]=
 {MSG_DEVICE_SERVICE_BTHF_OUT,					BIT(ModeBtHfPlay),																			ENTERR_PREV_MODE},
 
 #ifndef CFG_FUNC_APP_USB_CARD_IDLE
+#ifdef CFG_APP_USB_PLAY_MODE_EN
 {MSG_DEVICE_SERVICE_U_DISK_IN,					~(BIT(ModeBtHfPlay)|BIT(ModeUDiskAudioPlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),			ModeUDiskAudioPlay},
 {MSG_DEVICE_SERVICE_U_DISK_OUT,					BIT(ModeUDiskAudioPlay),																	ENTERR_PREV_MODE},
-
+#endif
+#ifdef CFG_APP_CARD_PLAY_MODE_EN
 {MSG_DEVICE_SERVICE_CARD_IN, 					~(BIT(ModeBtHfPlay)|BIT(ModeCardAudioPlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),			ModeCardAudioPlay},
 {MSG_DEVICE_SERVICE_CARD_OUT, 					BIT(ModeCardAudioPlay),																		ENTERR_PREV_MODE},
+#endif
 #endif
 
 {MSG_DEVICE_SERVICE_USB_DEVICE_IN,				~(BIT(ModeBtHfPlay)|BIT(ModeUsbDevicePlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),			ModeUsbDevicePlay},

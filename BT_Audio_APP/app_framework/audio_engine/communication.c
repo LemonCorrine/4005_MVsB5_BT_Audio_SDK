@@ -72,6 +72,23 @@ static const uint32_t SupportSampleRateList[]={
 	192000,
 };
 
+typedef struct _comm_status_table
+{
+	uint8_t old_cmd;
+	int32_t total_len;
+	int32_t remain_len;
+	const uint8_t *data;
+	uint8_t package_id;
+}comm_status_table;
+
+static comm_status_table g_status_machine = {0xff, 0, 0, 0, 0};
+
+static void init_status_matchin(comm_status_table *machine)
+{
+	memset(machine, 0x00, sizeof(comm_status_table));
+	machine->old_cmd = 0xff;
+}
+
 static int32_t comm_ret_sample_rate_enum(uint32_t samplerate)
 {
 	int i;
@@ -187,11 +204,8 @@ bool roboeffect_effect_update_params_entrance(uint8_t addr, uint8_t *buf, uint32
 						return FALSE;
 				}
 			}
-			if (addr == AudioEffect.effect_count || AudioEffect.reinit_done)
-			{
-                AudioEffect.reinit_done = 0;
-				AudioEffect_effect_enable(addr,enable);
-			}
+
+			AudioEffect_effect_enable(addr,enable);
         }
         else//one parameter
         {
@@ -231,13 +245,9 @@ uint8_t graph_cnt = 0;
 static uint8_t package_id = 0;
 void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 {
-	uint8_t *temp;
+	uint8_t *temp = tx_buf;
 	uint16_t total_len = 0;
 	static int32_t remain_len;
-	static const char *char_pp;
-
-    temp = tx_buf;
-
 	if(buf[0] == V3_PACKAGE_TYPE_PARAM)//enquiry params
 	{
 		temp[0] = 0xA5;
@@ -262,69 +272,62 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 	}
 	else if(buf[0] == V3_PACKAGE_TYPE_LIB || buf[0] == V3_PACKAGE_TYPE_STREAM)//enquiry stream
 	{
-		if(buf[0] == V3_PACKAGE_TYPE_LIB)
-		{
-			// total_len = sizeof_effect_property_for_display();
-			// printf("lib start: %d\n", total_len);
-		}
-		else if(buf[0] == V3_PACKAGE_TYPE_STREAM)
-		{
-			// total_len = get_user_effects_script_len();
-			// printf("script start: %d\n", total_len);
-		}
-
-		//[package_id, 0xFF, 0x00, type, len_H, len_L, data...data, EOM]
 		temp[0] = 0xA5;
 		temp[1] = 0x5A;
 		temp[2] = 0x80;
 		//len later
-		temp[4] = package_id;
 
-		if(package_id == 0)//first package
+		if(g_status_machine.old_cmd != buf[0])//if not get EOM, a new cmd is alway the first package
 		{
 			uint16_t len;
+
+			init_status_matchin(&g_status_machine);
+			g_status_machine.old_cmd = buf[0];
+
+			//package type dispatch, no parambin flow-chart
 			if(buf[0] == V3_PACKAGE_TYPE_LIB)
 			{
-				char_pp = (const char*)effect_property_for_display;
-				total_len = sizeof_effect_property_for_display();
+				g_status_machine.data = effect_property_for_display;
+				g_status_machine.total_len = sizeof_effect_property_for_display();
 				// printf("first display\n");
 			}
 			else if(buf[0] == V3_PACKAGE_TYPE_STREAM)
 			{
-				char_pp = (const char*)AudioEffect.cur_effect_para->user_effects_script;
-				total_len = AudioEffect.user_effects_script_len;
+				g_status_machine.data = AudioEffect.cur_effect_para->user_effects_script;
+				g_status_machine.total_len = AudioEffect.user_effects_script_len;
+				// printf("first script\n");
 			}
 
-			remain_len = total_len;//init remain_len
-			if(remain_len >= STREAM_CLIPS_LEN)
+			g_status_machine.remain_len = g_status_machine.total_len;//init remain_len
+			if(g_status_machine.remain_len >= STREAM_CLIPS_LEN)
 				len = STREAM_CLIPS_LEN;
 			else
-				len = remain_len;
+				len = g_status_machine.remain_len;
 			
 			temp[3] = len + 7;
+
+			//[package_id, 0xFF, 0x00, type, len_H, len_L, data...data, EOM]
+			temp[4] = g_status_machine.package_id;
 			temp[5] = 0xFF;
 			temp[6] = 0x00;
-			if(buf[0] == V3_PACKAGE_TYPE_LIB)
-				temp[7] = V3_PACKAGE_TYPE_LIB;//type
-			else if(buf[0] == V3_PACKAGE_TYPE_STREAM)
-				temp[7] = V3_PACKAGE_TYPE_STREAM;//type
+			temp[7] = buf[0];//message type
 
-			*((uint16_t*)(&temp[8])) = total_len;
+			*((uint16_t*)(&temp[8])) = g_status_machine.total_len;
 
-			memcpy(&temp[10], char_pp, len);
+			memcpy(&temp[10], g_status_machine.data, len);
 
-			remain_len -= len;
-			char_pp += len;
+			g_status_machine.remain_len -= len;
+			g_status_machine.data += len;
 
-			if(remain_len > 0)
+			if(g_status_machine.remain_len > 0)
 			{
 				temp[10 + len] = 0x00;//EOM
-				package_id ++;
+				g_status_machine.package_id ++;
 			}
 			else
 			{
 				temp[10 + len] = 0x01;//EOM
-				package_id = 0;
+				init_status_matchin(&g_status_machine);//reset for next field
 			}
 			
 			temp[10 + len + 1] = 0x16;
@@ -334,26 +337,27 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 		else
 		{
 			uint16_t len;
-			if(remain_len >= STREAM_CLIPS_LEN)
+			if(g_status_machine.remain_len >= STREAM_CLIPS_LEN)
 				len = STREAM_CLIPS_LEN;
 			else
-				len = remain_len;
+				len = g_status_machine.remain_len;
 
 			temp[3] = len + 2;
-			memcpy(&temp[5], char_pp, len);
+			temp[4] = g_status_machine.package_id;
+			memcpy(&temp[5], g_status_machine.data, len);
 
-			remain_len -= len;
-			char_pp += len;
+			g_status_machine.remain_len -= len;
+			g_status_machine.data += len;
 
-			if(remain_len > 0)
+			if(g_status_machine.remain_len > 0)
 			{
 				temp[5 + len] = 0x00;//EOM
-				package_id ++;
+				g_status_machine.package_id ++;
 			}
 			else
 			{
 				temp[5 + len] = 0x01;//EOM
-				package_id = 0;
+				init_status_matchin(&g_status_machine);//reset for next field
 
 				//switch to next graph
 			}
@@ -456,6 +460,175 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 
 		package_id = 0;
 	}
+	else if (buf[0] == V3_PACKAGE_EFFECT_ALL_PARAM_EFFECT)
+	{
+		temp[0] = 0xA5;
+		temp[1] = 0x5A;
+		temp[2] = 0x80;
+		//len later
+
+		if(g_status_machine.old_cmd != buf[0])//if not get EOM, a new cmd is alway the first package
+		{
+			uint16_t len;
+
+			init_status_matchin(&g_status_machine);
+			g_status_machine.old_cmd = buf[0];
+
+			EffectValidParamUnit unit = AudioEffect_GetUserEffectValidParam(AudioEffect.user_effect_parameters);
+			g_status_machine.data = unit.params_first_address;
+			g_status_machine.total_len = unit.data_len;
+			// printf("first audio effect info\n");
+
+			g_status_machine.remain_len = g_status_machine.total_len;//init remain_len
+			if(g_status_machine.remain_len >= STREAM_CLIPS_LEN)
+				len = STREAM_CLIPS_LEN;
+			else
+				len = g_status_machine.remain_len;
+
+			temp[3] = len + 5;
+
+			//[package_id, 0xFF, 0x00, type, len_H, len_L, data...data, EOM]
+			temp[4] = g_status_machine.package_id;
+			temp[5] = 0xFF;
+			temp[6] = 0x00;
+			temp[7] = buf[0];//message type
+
+			memcpy(&temp[8], g_status_machine.data, len);
+
+			g_status_machine.remain_len -= len;
+			g_status_machine.data += len;
+
+			if(g_status_machine.remain_len > 0)
+			{
+				temp[8 + len] = 0x00;//not EOM
+				g_status_machine.package_id ++;
+				temp[8 + len + 1] = 0x16;
+			}
+			else
+			{
+				temp[3] = temp[3] + 4;
+				*((uint32_t*)(&temp[8])) = g_status_machine.total_len;
+				temp[8 + len + 4] = 0x01;//EOM
+				temp[8 + len + 4 + 1] = 0x16;
+				init_status_matchin(&g_status_machine);//reset for next field
+			}
+			Communication_Effect_Send(temp, temp[3] + 5);
+		}
+		else
+		{
+			uint16_t len;
+			if(g_status_machine.remain_len >= STREAM_CLIPS_LEN)
+				len = STREAM_CLIPS_LEN;
+			else
+				len = g_status_machine.remain_len;
+
+			temp[3] = len + 2;
+			temp[4] = g_status_machine.package_id;
+			memcpy(&temp[5], g_status_machine.data, len);
+
+			g_status_machine.remain_len -= len;
+			g_status_machine.data += len;
+
+			if(g_status_machine.remain_len > 0)
+			{
+				temp[5 + len] = 0x00;//not EOM
+				g_status_machine.package_id ++;
+				temp[5 + len + 1] = 0x16;
+			}
+			else
+			{
+				temp[3] = temp[3] + 4;
+				temp[5 + len + 4] = 0x01;//EOM
+				temp[5 + len + 4 + 1] = 0x16;
+				init_status_matchin(&g_status_machine);//reset for next field
+			}
+			Communication_Effect_Send(temp, temp[3] + 5);
+		}
+	}
+	else if (buf[0] == V3_PACKAGE_EFFECT_ALL_PARAM_CODEC)
+	{
+		temp[0] = 0xA5;
+		temp[1] = 0x5A;
+		temp[2] = 0x80;
+		//len later
+
+		if(g_status_machine.old_cmd != buf[0])//if not get EOM, a new cmd is alway the first package
+		{
+			uint16_t len;
+
+			init_status_matchin(&g_status_machine);
+			g_status_machine.old_cmd = buf[0];
+
+			g_status_machine.data = (const uint8_t *)&gCtrlVars.HwCt;
+			g_status_machine.total_len = sizeof(HardwareConfigContext);
+			// printf("first audio effect info\n");
+
+			g_status_machine.remain_len = g_status_machine.total_len;//init remain_len
+			if(g_status_machine.remain_len >= STREAM_CLIPS_LEN)
+				len = STREAM_CLIPS_LEN;
+			else
+				len = g_status_machine.remain_len;
+
+			temp[3] = len + 5;
+
+			//[package_id, 0xFF, 0x00, type, len_H, len_L, data...data, EOM]
+			temp[4] = g_status_machine.package_id;
+			temp[5] = 0xFF;
+			temp[6] = 0x00;
+			temp[7] = buf[0];//message type
+
+			memcpy(&temp[8], g_status_machine.data, len);
+
+			g_status_machine.remain_len -= len;
+			g_status_machine.data += len;
+
+			if(g_status_machine.remain_len > 0)
+			{
+				temp[8 + len] = 0x00;//not EOM
+				g_status_machine.package_id ++;
+				temp[8 + len + 1] = 0x16;
+			}
+			else
+			{
+				temp[3] = temp[3] + 4;
+				*((uint32_t*)(&temp[8])) = g_status_machine.total_len;
+				temp[8 + len + 4] = 0x01;//EOM
+				temp[8 + len + 4 + 1] = 0x16;
+				init_status_matchin(&g_status_machine);//reset for next field
+			}
+			Communication_Effect_Send(temp, temp[3] + 5);
+		}
+		else
+		{
+			uint16_t len;
+			if(g_status_machine.remain_len >= STREAM_CLIPS_LEN)
+				len = STREAM_CLIPS_LEN;
+			else
+				len = g_status_machine.remain_len;
+
+			temp[3] = len + 2;
+			temp[4] = g_status_machine.package_id;
+			memcpy(&temp[5], g_status_machine.data, len);
+
+			g_status_machine.remain_len -= len;
+			g_status_machine.data += len;
+
+			if(g_status_machine.remain_len > 0)
+			{
+				temp[5 + len] = 0x00;//not EOM
+				g_status_machine.package_id ++;
+				temp[5 + len + 1] = 0x16;
+			}
+			else
+			{
+				temp[3] = temp[3] + 4;
+				temp[5 + len + 4] = 0x01;//EOM
+				temp[5 + len + 4 + 1] = 0x16;
+				init_status_matchin(&g_status_machine);//reset for next field
+			}
+			Communication_Effect_Send(temp, temp[3] + 5);
+		}
+	}
 }
 
 void Communication_Effect_0x00(void)
@@ -526,14 +699,14 @@ void Communication_Effect_0x02(void)///systme ram
 	uint16_t CpuMaxFreq = Clock_CoreClockFreqGet() / 1000000;
 	uint16_t cpu_mips = (uint16_t)(((10000 - SysemMipsPercent) * (Clock_CoreClockFreqGet()/1000000)) / 10000);
 	uint16_t CpuMaxRamSize = CFG_CHIP_RAM_SIZE/1024;//
-	uint16_t cpu_core_clk = roboeffect_get_error_code(AudioEffect.context_memory);
+	uint16_t RoboeffectErrCode = roboeffect_get_error_code(AudioEffect.context_memory);
 
 	memset(tx_buf, 0, sizeof(tx_buf));
 
 	tx_buf[0]  = 0xa5;
 	tx_buf[1]  = 0x5a;
 	tx_buf[2]  = 0x02;
-	tx_buf[3]  = 1 +  1 + 2*5 ;
+	tx_buf[3]  = 1*3 + 2*5 ;
 	tx_buf[4]  = 0xff;
 
 	memcpy(&tx_buf[5], &UsedRamSize, 2);
@@ -544,8 +717,10 @@ void Communication_Effect_0x02(void)///systme ram
 
 	memcpy(&tx_buf[10], &CpuMaxFreq, 2);
 	memcpy(&tx_buf[12], &CpuMaxRamSize, 2);
-	memcpy(&tx_buf[14], &cpu_core_clk, 2);
-	tx_buf[16] = 0x16;
+	memcpy(&tx_buf[14], &RoboeffectErrCode, 2);
+	tx_buf[16] = gCtrlVars.EffectRefresh;
+	gCtrlVars.EffectRefresh = 0;
+	tx_buf[17] = 0x16;
 	Communication_Effect_Send(tx_buf, tx_buf[3] + 5);
 }
 
@@ -992,7 +1167,7 @@ void Comm_AGC1_0x08(uint8_t * buf)
 			break;
 		case 7://hold time
 			memcpy(&TmpData, &buf[1], 2);
-			gCtrlVars.HwCt.ADC1AGCCt.adc_agc_hold_time = TmpData > 4096? 4096 : TmpData;
+			gCtrlVars.HwCt.ADC1AGCCt.adc_agc_hold_time = TmpData > 31? 31 : TmpData;
 			AudioADC_AGCHoldTime(ADC1_MODULE,(uint32_t)gCtrlVars.HwCt.ADC1AGCCt.adc_agc_hold_time);
 			break;
 		case 8://attack time
@@ -1023,7 +1198,7 @@ void Comm_AGC1_0x08(uint8_t * buf)
 			break;
 		case 13://nosie gate hold time
 			memcpy(&TmpData, &buf[1], 2);
-			gCtrlVars.HwCt.ADC1AGCCt.adc_agc_noise_time = TmpData > 4096? 4096 : TmpData;
+			gCtrlVars.HwCt.ADC1AGCCt.adc_agc_noise_time = TmpData > 31? 31 : TmpData;
 			AudioADC_AGCNoiseHoldTime(ADC1_MODULE,(uint8_t)gCtrlVars.HwCt.ADC1AGCCt.adc_agc_noise_time);
 			break;
 		default:

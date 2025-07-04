@@ -61,6 +61,7 @@
  * 蓝牙通用功能配置
  *****************************************************************/
 //#define BT_SNIFF_ENABLE			//sniff功能开关
+//#define BT_SNIFF_DEEPSLEEP_ENABLE    //在sniff模式允许进入deepsleep
 
 //#define BT_PROFILE_BQB_ENABLE		//BQB认证开关
 

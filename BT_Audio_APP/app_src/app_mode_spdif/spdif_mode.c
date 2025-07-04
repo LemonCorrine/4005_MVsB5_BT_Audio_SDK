@@ -63,6 +63,8 @@ extern const char* GetModeNameStr(SysModeNumber Mode);
 //由于采样值从32bit转换为16bit，可以使用同一个buf，否则要独立申请
 #define SPDIF_CARRY_LEN					(MAX_FRAME_SAMPLES * sizeof(PCM_DATA_TYPE) * 2 * 2 + PCM_REMAIN_SMAPLES * 2 * 4)//支持192000输入 buf len for get data form dma fifo, deal + 6samples 用于缓存偶尔多余的数据，#9817
 
+#define SPDIF_CARRY_LEN_24				(SPDIF_CARRY_LEN + 300)	//192000输入的时候，buf会增大100-300个字节，经验值需要实测
+
 static const uint8_t DmaChannelMap[6] = {
 	//DMA默认配置不要删除，DMA数量不足6个的时候作为填充用
 	DMA_CFG_TABLE_DEFAULT_INIT
@@ -254,12 +256,12 @@ bool SpdifPlayInit(void)
 	memset(SpdifPlayCt->SpdifCarry, 0, SPDIF_CARRY_LEN);
 
 #ifdef CFG_AUDIO_WIDTH_24BIT
-	SpdifPlayCt->SpdifCarry24 = (uint32_t *)osPortMalloc(SPDIF_CARRY_LEN);
+	SpdifPlayCt->SpdifCarry24 = (uint32_t *)osPortMalloc(SPDIF_CARRY_LEN_24);
 	if(SpdifPlayCt->SpdifCarry24 == NULL)
 	{
 		return FALSE;
 	}
-	memset(SpdifPlayCt->SpdifCarry24, 0, SPDIF_CARRY_LEN);
+	memset(SpdifPlayCt->SpdifCarry24, 0, SPDIF_CARRY_LEN_24);
 #endif
 	if(!ModeCommonInit())
 	{
@@ -425,10 +427,10 @@ void SpdifPlayRun(uint16_t msgId)
 		{
 			HardWareMuteOrUnMute();
 		}
-		vTaskDelay(20);
 		DMA_ChannelDisable(CFG_SPDIF_RX_DMA_CHANNEL);
 		DMA_CircularFIFOClear(CFG_SPDIF_RX_DMA_CHANNEL);
 		DMA_ChannelEnable(CFG_SPDIF_RX_DMA_CHANNEL);
+		vTaskDelay(10);
 		AudioCoreSourceEnable(SPDIF_SOURCE_NUM);
 
 #ifdef SPDIF_DPLL_LOCK_MODE
@@ -469,10 +471,6 @@ void SpdifPlayRun(uint16_t msgId)
 #endif
 
 		AudioCoreSourceUnmute(SPDIF_SOURCE_NUM, TRUE, TRUE);
-		if(IsAudioPlayerMute() == TRUE)
-		{
-			HardWareMuteOrUnMute();
-		}
 	}
 
 #ifdef SPDIF_DPLL_LOCK_MODE
@@ -509,7 +507,11 @@ void SpdifPlayRun(uint16_t msgId)
 			DpllLockReInit();
 #endif
 		}
-		
+
+		if(IsAudioPlayerMute() == TRUE)
+		{
+			HardWareMuteOrUnMute();
+		}
 		SpdifDataCarry();
 	}
 	//任务优先级设置为4,通过发送该命令，可以提高AudioCore service有效利用率

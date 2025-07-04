@@ -74,9 +74,9 @@ uint8_t msg_process_Karaoke(int msg)
 //包含音效参数节点，MSG消息处理
 static const UserEffectModeValidConfig EffectModeToggleMap[] =
 {
-#if(CFG_FUNC_EFFECT_DEMO == EFFECT_USB_HOST_AUDIO_DEMO) 		//host uac 音效框图DEMO
+#if defined(CFG_FUNC_USB_HOST_AUDIO_MIX_MODE)		//host uac 音效框图DEMO
 	{EFFECT_MODE_UAC,		EffectModeStateReady,	&uac_mode,		&uac_effect_para,		uac_effect_ctrl,	NULL	},
-#elif(CFG_FUNC_EFFECT_DEMO == EFFECT_USB_DEVICE_TWO_AUDIO_DEMO)
+#elif defined(CFG_APP_USB_AUDIO_MODE_EN) && (CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO) //双声卡框图 demo
 	{EFFECT_MODE_TWO_AUDIO,	EffectModeStateReady,	&TwoAudio_mode,	&TwoAudio_effect_para,	TwoAudio_effect_ctrl,	NULL	},
 #else
 #ifdef CFG_AI_DENOISE_EN

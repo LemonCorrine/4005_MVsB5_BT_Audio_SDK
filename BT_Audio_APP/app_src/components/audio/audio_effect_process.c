@@ -51,6 +51,10 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 	{
 		usb_out = pAudioCore->AudioSink[USB_AUDIO_SINK_NUM].PcmOutBuf;
 	}
+#ifdef CFG_FUNC_USB_AUDIO_MIX_MODE
+	if(IsBtHfpSink())
+		usb_out = NULL;
+#endif
 #endif
 
 	roboeffect_apply(AudioEffect.context_memory);

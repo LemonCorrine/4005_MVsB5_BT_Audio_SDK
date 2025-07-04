@@ -17,6 +17,10 @@
 #endif
 
 #define SYS_CRYSTAL_FREQ			24*1000*1000	//¾§ÌåÆµÂÊ Hz
+#define SYS_CORE_CLK_DIV                 1
+#define SYS_CLK_DIV                      2
+#define SYS_CLK_DIV_SNIFF                1
+#define SYS_CORE_CLK_DIV_SNIFF           4
 
 #if (SYS_CORE_SET_MODE == CORE_USB_CRYSTA_FREE_MODE)
 	#ifndef  CFG_APP_USB_AUDIO_MODE_EN

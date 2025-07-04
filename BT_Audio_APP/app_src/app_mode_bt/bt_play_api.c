@@ -277,12 +277,19 @@ void a2dp_sbc_save(uint8_t *p,uint32_t len)
 	int info_ok = 0;
 	int play_start = 0;
 	int ret = 0;
+	uint8_t errorFlag = 0;
 	
 	if(!IsBtAudioMode())
 		return;
 		
 	if(a2dp_player == NULL)
 	{
+		return;
+	}
+
+	if(p[0] != 0x9C)
+	{
+		printf("==== a2dp recv sbc,len=%d, error: 0x%02x\n", len, p[0]);
 		return;
 	}
 
@@ -350,7 +357,8 @@ void a2dp_sbc_save(uint8_t *p,uint32_t len)
 		MCUCircular_PutData(&a2dp_player->sbc_fifo_cnt,p,len);
 		if(MCUCircular_GetSpaceLen(&a2dp_player->sbc_fifo_cnt) <= len)
 		{
-			MCUCircular_GetData(&a2dp_player->sbc_fifo_cnt,p,len);//抛弃旧数据
+			errorFlag = 1;
+			//MCUCircular_GetData(&a2dp_player->sbc_fifo_cnt,p,len);//抛弃旧数据
 		}
 		if(MCUCircular_GetDataLen(&a2dp_player->sbc_fifo_cnt) >= SBC_FIFO_LEVEL_HIGH)
 		{
@@ -373,9 +381,27 @@ void a2dp_sbc_save(uint8_t *p,uint32_t len)
 			}
 		}
 	}
+	else
+	{
+		errorFlag = 2;
+	}
+	
 	if(gie_ret)
 	{
 		GIE_ENABLE();
+	}
+	if(errorFlag)
+	{
+		if(errorFlag == 1)
+		{
+			printf("fifo full, cur_space_len = %d, recv_len=%d\n", MCUCircular_GetSpaceLen(&a2dp_player->sbc_fifo_cnt), len);
+		}
+		else if(errorFlag == 2)
+		{
+			printf("=========== error:sbc fifo is full, current space len = %d, recv len=%d\n", MCUCircular_GetSpaceLen(&a2dp_player->sbc_fifo_cnt), len);
+		}
+
+		errorFlag = 0;
 	}
 	if(info_ok)
 	{
@@ -424,7 +450,8 @@ uint16_t A2DPDataLenGet(void)
 	{
 		return 0;
 	}
-
+	if(gBtPlaySbcDecoderInitFlag == 0)
+		return 0;
 	if(a2dp_player->sbc_init_flag == 0 || a2dp_player->sbc_bytes == 0)
 		return 0;
 

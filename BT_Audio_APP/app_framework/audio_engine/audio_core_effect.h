@@ -30,7 +30,6 @@ typedef struct _AudioeffectContext
 	uint8_t effect_count;
 	uint8_t effect_addr;
 	uint8_t effect_enable;
-	uint8_t reinit_done;
 #ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
 	bool	EffectFlashUseFlag;
 #endif

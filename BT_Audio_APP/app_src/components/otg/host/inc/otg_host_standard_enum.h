@@ -171,7 +171,7 @@ typedef struct _USB_INTERFACE_DESCRIPTOR
 
 typedef struct _USB_FUN
 {
-	uint8_t Length;
+	uint16_t Length;
 	uint8_t *pData;
 }USB_FUN;
 
@@ -185,8 +185,7 @@ typedef struct _OTG_HOST_INFO
 	uint8_t DeviceAddress;
 	USB_DEVICE_DESCRIPTOR DeviceDesCriptor;//18 BYTE
 	USB_CONFIGURATION_DESCRIPTOR ConfigDesCriptor;//9 BYTE
-	uint8_t DesCriptorBuffer[MAX_DESCRIPTOR_LEN];//512 BYTE
-	
+	uint8_t *DesCriptorBuffer;//512 BYTE
 	USB_FUN UsbInterface[MAXINTERFACE];//解析后的接口描述符数据指针
 	uint8_t UsbInterfaceNum;//接口有效数
 	

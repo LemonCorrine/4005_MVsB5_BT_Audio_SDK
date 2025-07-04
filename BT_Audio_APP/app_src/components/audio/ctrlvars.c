@@ -461,11 +461,7 @@ void DefaultParamgsInit(void)
 	//scramble默认开启，设置成POS_NEG
 	gCtrlVars.HwCt.DAC0Ct.dac_scramble = POS_NEG + 1;
 	//L R数据反，默认交换数据
-#if (CFG_CHIP_SEL == CFG_CHIP_BP1524A1) || (CFG_CHIP_SEL == CFG_CHIP_BP1524A2) || (CFG_CHIP_SEL == CFG_CHIP_AP1524A1) || (CFG_CHIP_SEL == CFG_CHIP_BP1564A1) || (CFG_CHIP_SEL == CFG_CHIP_BP1564A2)
-	gCtrlVars.HwCt.DAC0Ct.dac_out_mode = MODE1;
-#else
-	gCtrlVars.HwCt.DAC0Ct.dac_out_mode = MODE0;
-#endif
+	gCtrlVars.HwCt.DAC0Ct.dac_out_mode = CHIP_AUDIODAC_DOUT_MODE;
 }
 
 void AudioLineSelSet(int8_t ana_input_ch)
@@ -562,6 +558,8 @@ void AudioCodecGainUpdata(void)
 	AudioADC_ChannelSwap(ADC1_MODULE, gCtrlVars.HwCt.ADC1DigitalCt.adc_lr_swap);
 	AudioADC_VolSet(ADC1_MODULE, gCtrlVars.HwCt.ADC1DigitalCt.adc_dig_l_vol, gCtrlVars.HwCt.ADC1DigitalCt.adc_dig_l_vol);
 	AudioADC_DigitalMute(ADC1_MODULE, gCtrlVars.HwCt.ADC1DigitalCt.adc_mute, gCtrlVars.HwCt.ADC1DigitalCt.adc_mute);
+
+	AudioADC_AGCChannelSel(ADC1_MODULE, (gCtrlVars.HwCt.ADC1AGCCt.adc_agc_mode & 0x01), (gCtrlVars.HwCt.ADC1AGCCt.adc_agc_mode >> 1) & 0x01);
 
 	AudioDAC_VolSet(DAC0, gCtrlVars.HwCt.DAC0Ct.dac_dig_l_vol, gCtrlVars.HwCt.DAC0Ct.dac_dig_r_vol);
 #ifndef CFG_AUDIO_WIDTH_24BIT

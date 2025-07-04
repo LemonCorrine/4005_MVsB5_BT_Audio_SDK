@@ -13,7 +13,7 @@
 #define __ROBOEFFECT_API_H__
 
 /*Roboeffect Library version*/
-#define ROBOEFFECT_LIB_VER "2.28.0"
+#define ROBOEFFECT_LIB_VER "2.28.1"
 
 #include <stdio.h>
 #include <nds32_intrinsic.h>
@@ -303,6 +303,9 @@ typedef struct _roboeffect_memory_size_response
 	uint32_t scratch_memory_size;
 } roboeffect_memory_size_response;
 
+
+
+
 typedef bool (*roboeffect_effect_apply_func)(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
 typedef bool (*roboeffect_effect_init_func)(void *node);
 typedef bool (*roboeffect_effect_config_func)(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);//can be all param(param_num=0xff) or only ONE param(param_num=1)
@@ -316,7 +319,7 @@ typedef int32_t (*roboeffect_effect_memory_size_func)(roboeffect_memory_size_que
 #define PARAMBIN_MAGIC_NUM (0xA55AB44B)
 
 #define PARAMBIN_VER_H 0
-#define PARAMBIN_VER_M 5
+#define PARAMBIN_VER_M 7
 #define PARAMBIN_VER_L 0
 
 typedef enum _roboeffect_parambin_sub_type
@@ -332,6 +335,7 @@ typedef enum _roboeffect_parambin_sub_type
 	ROBO_PB_SUBTYPE_PRESET_INFO,
 	ROBO_PB_SUBTYPE_IO_NAME,
 	ROBO_PB_SUBTYPE_MODE_PARAMS,
+	ROBO_PB_SUBTYPE_EFFECT_NAME,
 	ROBO_PB_SUBTYPE_MAX,
 
 
@@ -356,7 +360,6 @@ typedef struct _roboeffect_parambin_header
 	uint16_t flow_name_len;
 	uint16_t current_flow_cnt;
 	uint16_t chip_id;//
-	char flow_name_ptr[];
 
 } roboeffect_parambin_header;
 
@@ -367,6 +370,22 @@ typedef struct _roboeffect_parambin_flow_pair
 } roboeffect_parambin_flow_pair;
 
 #pragma pack()
+
+typedef struct _roboeffect_parambin_brief
+{
+	uint32_t bin_size;
+	const uint8_t *protocol_ver;
+	const uint8_t * roboeffect_ver;
+	uint16_t flow_num;
+	uint16_t total_str_size;
+	uint16_t current_flow_num;
+	uint16_t chip_id;
+	const roboeffect_parambin_flow_pair *flow_table;
+	const char *name_str;
+	const uint8_t *password;
+	const uint8_t *flow_ptr;
+
+} roboeffect_parambin_brief;
 
 /*********************************************parambin end*********************************************************/
 
@@ -654,6 +673,14 @@ ROBOEFFECT_ERROR_CODE roboeffect_user_defined_get_info(void *node, roboeffect_us
  */
 ROBOEFFECT_ERROR_CODE roboeffect_parambin_check_whole_bin(const uint8_t *parambin_addr, uint32_t *parambin_size);
 
+/**
+ * @brief Get brief infomation of parambin
+ * 
+ * @param parambin_addr : parambin address
+ * @param *parambin_size : output, parambin size in bytes; can be NULL if not needed
+ * @return ROBOEFFECT_ERROR_CODE : ROBOEFFECT_ERROR_OK for parambin is valid, others for parambin if invalid.
+ */
+ROBOEFFECT_ERROR_CODE roboeffect_parambin_get_brief_info(const uint8_t *parambin_addr, roboeffect_parambin_brief *brief_info);
 
 /**
  * @brief Get information of current flows in pairs
@@ -663,6 +690,14 @@ ROBOEFFECT_ERROR_CODE roboeffect_parambin_check_whole_bin(const uint8_t *parambi
  * @return roboeffect_parambin_flow_pair * : a table of roboeffect_parambin_flow_pair
  */
 roboeffect_parambin_flow_pair *roboeffect_parambin_get_current_flow(const uint8_t *parambin_addr, uint32_t *item_cnt);
+
+/**
+ * @brief Get password for parameter bin
+ * 
+ * @param parambin_addr : parambin address
+ * @return uint8_t * : pointer to password with 4 bytes
+ */
+uint8_t *roboeffect_parambin_get_password(const uint8_t *parambin_data);
 
 /**
  * @brief Get flow data by index
@@ -766,6 +801,16 @@ const char *roboeffect_parambin_get_io_name(void *main_context, uint8_t id);
  * @return const roboeffect_io_unit * : roboeffect_io_unit struct, NULL for error.
  */
 const roboeffect_io_unit *roboeffect_parambin_get_io_by_name(void *main_context, const char *name);
+
+/**
+ * @brief Get effect address by name string.
+ * 
+ * @param main_context : main context memory allocated by user
+ * @param name: name string of effect, NULL for error.
+ * @return uint8_t : effect address with 0x81 ~ 0xF0, 0 for error.
+ */
+uint8_t roboeffect_parambin_get_addr_by_name(void *main_context, const char *name);
+
 
 /**
  * @brief Checks if the specified IO name matches the device node.

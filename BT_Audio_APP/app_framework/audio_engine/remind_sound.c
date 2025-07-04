@@ -54,7 +54,11 @@ typedef struct _SongClipsHdr
 {
 	char sync[4];
 	uint32_t crc;
+#if(REMIND_SOUND_NUM_MODE == 4)
+	uint32_t cnt;
+#else
 	uint8_t cnt;
+#endif
 } SongClipsHdr;
 #pragma pack()
 
@@ -105,9 +109,8 @@ typedef struct _RemindSoundContext
 	#endif
 }RemindSoundContext;
 
-
-#define REMIND_FLASH_MAX_NUM		255 //flash提示音区配置决定
-#define REMIND_FLASH_HDR_SIZE		0x1000 //提示音条目信息区大小
+//#define REMIND_FLASH_MAX_NUM		255 //flash提示音区配置决定
+#define REMIND_FLASH_HDR_SIZE		REMIND_SOUND_HEADER_SIZE//0x1000 //提示音条目信息区大小
 #define REMIND_FLASH_READ_TIMEOUT 	100
 #define REMIND_FLASH_ADDR(n) 		(REMIND_FLASH_STORE_BASE + sizeof(SongClipsEntry) * n + sizeof(SongClipsHdr))//flash提示音区配置决定
 #define REMIND_ID(Addr)				((Addr - REMIND_FLASH_STORE_BASE - sizeof(SongClipsHdr)) / (sizeof(SongClipsEntry)))
@@ -156,16 +159,6 @@ osMutexId RemindMutex = NULL;
 uint32_t get_remind_state(void)
 {
 	return RemindSoundCt.player_init;
-}
-
-void RemindSoundAudioPlayEnd(void);
-void Reset_Remind_Buffer(void)
-{
-	RemindSoundAudioPlayEnd();
-#ifndef CFG_REMIND_SOUND_DECODING_USE_LIBRARY
-	if(Mp2Decode != NULL)
-		memset(Mp2Decode,0,sizeof(struct _Mp2DecodeContext));
-#endif
 }
 
 static uint16_t RemindSountItemFind(uint8_t *RemindItem)
@@ -1043,12 +1036,11 @@ void RemindSoundClearPlay(void)
 
 }
 
-void RemindSoundClearSlavePlay(void)
+void RemindSoundBufferFree(void)
 {
-	memset(&RemindSoundCt,0,sizeof(RemindSoundCt));
-#ifndef CFG_REMIND_SOUND_DECODING_USE_LIBRARY
-	if(Mp2Decode != NULL)
-		memset(Mp2Decode,0,sizeof(struct _Mp2DecodeContext));
+#ifdef CFG_REMIND_MP2_DECODE_BUF_USE_MALLOC
+	osPortFree(Mp2Decode);
+	Mp2Decode = NULL;
 #endif
 }
 

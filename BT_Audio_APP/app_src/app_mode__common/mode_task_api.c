@@ -22,11 +22,13 @@
 #include "remind_sound.h"
 #include "hdmi_in_api.h"
 #include "roboeffect_api.h"
+#include "communication.h"
 #include "user_effect_parameter.h"
 #include "clk.h"
 //app
 #include "bt_stack_service.h"
 #include "bt_app_ddb_info.h"
+#include "reset.h"
 
 #if (BT_AVRCP_VOLUME_SYNC)
 #include "bt_app_avrcp_deal.h"
@@ -89,6 +91,26 @@ extern uint8_t AudioCommonMsgProcess(uint16_t Msg);
 
 #ifdef CFG_FUNC_USB_AUDIO_MIX_MODE  //USB MIX通道，使用 USB_SOURCE_NUM
 	uint32_t	UsbAudioSourceNum = APP_SOURCE_NUM;
+
+bool IsBtHfpSrc(void)
+{
+	//hfp模式，不能操作APP_SOURCE_NUM
+	if(GetSystemMode() == ModeBtHfPlay &&
+	   USB_AUDIO_SOURCE_NUM	 == APP_SOURCE_NUM)
+		return 1;
+
+	return 0;
+}
+
+bool IsBtHfpSink(void)
+{
+	//hfp模式，不能操作AUDIO_APP_SINK_NUM，HFP SCO_SINK也是用这个通道
+	if(GetSystemMode() == ModeBtHfPlay &&
+		USB_AUDIO_SINK_NUM	== AUDIO_APP_SINK_NUM)
+		return 1;
+
+	return 0;
+}
 #endif
 
 uint32_t get_audioeffect_default_frame_info(roboeffect_effect_list_info *user_effect_list,uint32_t type)
@@ -633,6 +655,13 @@ bool ModeCommonInit(void)
 #endif // CFG_ADCDAC_SEL_LOWPOWERMODE
 	//MADC_MIC_PowerUP(SingleEnded);
 	gCtrlVars.HwCt.ADC1DigitalCt.adc_sample_rate = SampleRateIndexGet(AudioADC_SampleRateGet(ADC1_MODULE));
+
+#ifdef CFG_FUNC_AUDIO_SILENCE_AVOIDANCE_EN
+	while(DMA_CircularDataLenGet(PERIPHERAL_ID_AUDIO_ADC1_RX) < FifoLenStereo/2)
+	{
+//	    printf("ADC1 %d \n",DMA_CircularDataLenGet(PERIPHERAL_ID_AUDIO_ADC1_RX));
+	}
+#endif
 	AudioCoreSourceEnable(MIC_SOURCE_NUM);
 #endif
 
@@ -946,6 +975,7 @@ void ModeCommonDeinit(void)
 	AudioCoreSourceDisable(REMIND_SOURCE_NUM);
 	AudioCoreSourceDeinit(REMIND_SOURCE_NUM);
 	RemindSoundAudioPlayEnd();
+	RemindSoundBufferFree();
 #ifdef CFG_REMIND_SOUND_DECODING_USE_LIBRARY
 	RemindMp3DecoderDeinit();
 #endif
@@ -972,6 +1002,8 @@ void ModeCommonDeinit(void)
 	mainAppCt.sbc_encode_pcm_buf = NULL;
 	AudioCoreSinkDisable(AUDIO_BT_SOURCE_SINK_NUM);
 #endif
+
+	Reset_FunctionReset(DMAC_FUNC_SEPA);
 }
 
 bool AudioIoCommonForHfp(uint16_t gain)
@@ -1550,7 +1582,8 @@ void CommonMsgProccess(uint16_t Msg)
 
 			if(!EffectModeCmp(EffectMode,mainAppCt.EffectMode))
 			{
-				gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
+				gCtrlVars.AutoRefresh = 0x80;
+				gCtrlVars.EffectRefresh = V3_PACKAGE_TYPE_STREAM;
 			}
 			else
 			{
@@ -1593,7 +1626,7 @@ void CommonMsgProccess(uint16_t Msg)
 						AudioEffect.cur_effect_para->user_effect_list->frame_size = FrameSize;
 						SysCurModeReboot();
 					}
-					gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
+//					gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
 				}
 				else
 				{
@@ -1606,7 +1639,6 @@ void CommonMsgProccess(uint16_t Msg)
 			{
 				HardWareMuteOrUnMute();
 			}
-            AudioEffect.reinit_done = 1;
 			break;
 
 		#ifdef CFG_FUNC_RTC_EN

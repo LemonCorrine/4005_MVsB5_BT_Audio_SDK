@@ -2,8 +2,8 @@
  *******************************************************************************
  * @file    sound_remind.h
  * @author  castle (Automatic generated)
- * @version v4.1
- * @date    20190101
+ * @version v5.1
+ * @date    2025-06-20
  * @brief   
  *******************************************************************************
  * @attention
@@ -17,6 +17,10 @@
  *
  * <h2><center>&copy; COPYRIGHT 2018 MVSilicon </center></h2>
  */
+
+#define REMIND_SOUND_NUM_MODE 1
+
+#define REMIND_SOUND_HEADER_SIZE (0x1000)
 
 #ifndef __SOUND_REMIND__
 #define __SOUND_REMIND__

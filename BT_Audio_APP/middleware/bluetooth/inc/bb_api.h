@@ -87,6 +87,9 @@ void RF_PowerDownByHw(void);
 void RF_PowerUpBySw(void);
 void RF_PowerDownBySw(void);
 
+void Bt_Set_sniff_clk_src(uint8_t srcClk);// srcClk:0 RC CLK   1:osc ·ÖÆµµ½32k
+int32_t BtSniffSleepTime(void);
+
 /***************************************************
  * sniff use Hosc/RC
  **************************************************/

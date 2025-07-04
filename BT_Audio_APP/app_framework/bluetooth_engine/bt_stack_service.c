@@ -823,6 +823,9 @@ static void BtStackServiceEntrance(void * param)
 	ConfigBtBbParams(&bbParams);
 
 	Bluetooth_common_init(&bbParams);
+#ifdef BT_SNIFF_ENABLE
+	Bt_Set_sniff_clk_src(0);//默认是是0,在BB_int 之前做设置,设置为1使用24MHZ分频
+#endif
 #if ( BT_SUPPORT )
 	Bt_init((void*)&bbParams);
 //	tws_slave_cap = bbParams.freqTrim;
@@ -880,6 +883,11 @@ static void BtStackServiceEntrance(void * param)
 		BtConnectCtrl();//sink->source时，增加一次回连
 	}
 #endif
+
+	{//register did service
+		extern void DviceID_Register_SdpService(void);
+		DviceID_Register_SdpService();
+	}
 
 	while(1)
 	{

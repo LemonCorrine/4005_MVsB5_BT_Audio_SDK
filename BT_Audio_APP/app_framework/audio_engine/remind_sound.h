@@ -45,7 +45,7 @@ void RemindSoundInit(void);
 uint8_t RemindSoundIsPlay(void);
 //void RemindSoundRun(SysModeState ModeState);
 void RemindSoundClearPlay(void);
-void RemindSoundClearSlavePlay(void);
+void RemindSoundBufferFree(void);
 uint8_t RemindSoundIsBlock(void);
 bool RemindSoundIsMix(void);
 uint16_t RemindDataGet(void* Buf, uint16_t Samples);

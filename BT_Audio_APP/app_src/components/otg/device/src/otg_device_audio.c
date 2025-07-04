@@ -428,11 +428,15 @@ void OnDeviceAudioSendIsoPacket(void)
 		RealLen += 1;
 	}
 
-/*	if(UsbAudioMic.FramCount < (UsbAudioMic.AudioSampleRate/AudioCoreMixSampleRateGet(DefaultNet))*10)
+	if(UsbAudioMic.AltSlow)
 	{
 		memset(iso_buf,0,RealLen*sizeof(PCM_DATA_TYPE)*channel);
+		if(MCUCircular_GetDataLen(&UsbAudioMic.CircularBuf) > UsbAudioMic.CircularBuf.BufDepth * 6 / 10)
+		{
+			UsbAudioMic.AltSlow = 0;
+		}
 	}
-	else */if(UsbAudioMic.PCMBuffer != NULL)
+	else if(UsbAudioMic.PCMBuffer != NULL)
 	{
 		if(MCUCircular_GetDataLen(&UsbAudioMic.CircularBuf) < RealLen*sizeof(PCM_DATA_TYPE)*channel)
 		{
@@ -902,8 +906,9 @@ void UsbAudioTimer1msProcess(void)
 			if(UsbAudioSpeaker1.FramCount != UsbAudioSpeaker1.TempFramCount)
 			{
 				UsbAudioSpeaker1.TempFramCount = UsbAudioSpeaker1.FramCount;
-				if(!AudioCoreSourceIsEnable(USB_AUDIO_SOURCE1_NUM))
+				if(!AudioCoreSourceIsEnable(USB_AUDIO_SOURCE1_NUM) && MCUCircular_GetDataLen(&UsbAudioSpeaker1.CircularBuf) > UsbAudioSpeaker1.CircularBuf.BufDepth * 6 / 10)
 				{
+					AudioCoreSourceFifoReset(USB_AUDIO_SOURCE1_NUM);
 					AudioCoreSourceEnable(USB_AUDIO_SOURCE1_NUM);
 				}
 			}
@@ -917,19 +922,9 @@ void UsbAudioTimer1msProcess(void)
 	{
 		UsbAudioSpeaker1.FramCount = 0;
 		UsbAudioSpeaker1.TempFramCount = 0;
+		UsbAudioSpeaker1.CircularBuf.R = 0;
+		UsbAudioSpeaker1.CircularBuf.W = 0;
 		AudioCoreSourceDisable(USB_AUDIO_SOURCE1_NUM);
-	}
-	if(UsbAudioSpeaker1.AltSlow)
-	{
-		if(UsbAudioSpeaker1.FramCount > 100)
-		{
-			AudioCoreSourceUnmute(USB_AUDIO_SOURCE1_NUM,1,1);
-			UsbAudioSpeaker1.AltSlow = 0;
-		}
-		else
-		{
-			AudioCoreSourceMute(USB_AUDIO_SOURCE1_NUM,1,1);
-		}
 	}
 #endif
 
@@ -941,13 +936,20 @@ void UsbAudioTimer1msProcess(void)
 			if(UsbAudioSpeaker.FramCount != UsbAudioSpeaker.TempFramCount)
 			{
 				UsbAudioSpeaker.TempFramCount = UsbAudioSpeaker.FramCount;
-				if(!AudioCoreSourceIsEnable(USB_AUDIO_SOURCE_NUM))
+				if(!AudioCoreSourceIsEnable(USB_AUDIO_SOURCE_NUM) && MCUCircular_GetDataLen(&UsbAudioSpeaker.CircularBuf) > UsbAudioSpeaker.CircularBuf.BufDepth * 6 / 10)
 				{
+					AudioCoreSourceFifoReset(USB_AUDIO_SOURCE_NUM);
+#ifdef CFG_FUNC_USB_ADJUST_UNION_EN
+					AudioCoreAdjustUnionRegister(1);
+#endif
 					AudioCoreSourceEnable(USB_AUDIO_SOURCE_NUM);
 				}
 			}
 			else
 			{
+	#ifdef CFG_FUNC_USB_AUDIO_MIX_MODE
+				if(!IsBtHfpSrc())
+	#endif
 				AudioCoreSourceDisable(USB_AUDIO_SOURCE_NUM);
 			}
 		}
@@ -956,19 +958,15 @@ void UsbAudioTimer1msProcess(void)
 	{
 		UsbAudioSpeaker.FramCount = 0;
 		UsbAudioSpeaker.TempFramCount = 0;
+		UsbAudioSpeaker.CircularBuf.R = 0;
+		UsbAudioSpeaker.CircularBuf.W = 0;
+#ifdef CFG_FUNC_USB_ADJUST_UNION_EN
+		AudioCoreAdjustUnionDeregister(1);
+#endif
+#ifdef CFG_FUNC_USB_AUDIO_MIX_MODE
+		if(!IsBtHfpSrc())
+#endif
 		AudioCoreSourceDisable(USB_AUDIO_SOURCE_NUM);
-	}
-	if(UsbAudioSpeaker.AltSlow)
-	{
-		if(UsbAudioSpeaker.FramCount > 100)
-		{
-			AudioCoreSourceUnmute(USB_AUDIO_SOURCE_NUM,1,1);
-			UsbAudioSpeaker.AltSlow = 0;
-		}
-		else
-		{
-			AudioCoreSourceMute(USB_AUDIO_SOURCE_NUM,1,1);
-		}
 	}
 
 #endif
@@ -983,6 +981,10 @@ void UsbAudioTimer1msProcess(void)
 				UsbAudioMic.TempFramCount = UsbAudioMic.FramCount;
 				if(!AudioCoreSinkIsEnable(USB_AUDIO_SINK_NUM))
 				{
+					AudioCoreSinkFifoReset(USB_AUDIO_SINK_NUM);
+#ifdef CFG_FUNC_USB_ADJUST_UNION_EN
+					AudioCoreAdjustUnionRegister(-1);
+#endif
 					AudioCoreSinkEnable(USB_AUDIO_SINK_NUM);
 				}
 			}
@@ -993,6 +995,14 @@ void UsbAudioTimer1msProcess(void)
 		UsbAudioMic.Accumulator = 0;
 		UsbAudioMic.FramCount = 0;
 		UsbAudioMic.TempFramCount = 0;
+		UsbAudioMic.CircularBuf.R = 0;
+		UsbAudioMic.CircularBuf.W = 0;
+#ifdef CFG_FUNC_USB_ADJUST_UNION_EN
+		AudioCoreAdjustUnionDeregister(-1);
+#endif
+#ifdef CFG_FUNC_USB_AUDIO_MIX_MODE
+		if(!IsBtHfpSink())
+#endif
 		AudioCoreSinkDisable(USB_AUDIO_SINK_NUM);
 	}
 #endif

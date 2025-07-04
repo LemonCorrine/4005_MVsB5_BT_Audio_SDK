@@ -634,134 +634,61 @@ void MediaRecorderStopProcess(void)
 //	SoftFlagDeregister(SoftFlagRecording);//ÇåÀí
 }
 
+bool RecordUDiskDiskMount(void)
+{
+	if(GetSysModeState(ModeUDiskAudioPlay)!=ModeStateSusend)	//´ýÓÅ»¯ £ºÅÐ¶ÏÊÇ·ñ³õÊ¼»¯UÅÌ
+	{
+		if(f_mount(&RecorderCt->MediaFatfs, MEDIA_VOLUME_STR_U, 1) == 0)
+		{
+			RecorderCt->DiskVolume = 1;
+			APP_DBG("UÅÌ¿¨¹ÒÔØµ½ 1:/--> ³É¹¦\n");
+			return TRUE;
+		}
+		else
+		{
+			APP_DBG("UÅÌ¿¨¹ÒÔØµ½ 1:/--> Ê§°Ü\n");
+			return FALSE;
+		}
+	}
+	return FALSE;
+}
+
+bool RecordSDCardDiskMount(void)
+{
+	if(GetSysModeState(ModeCardAudioPlay)!=ModeStateSusend)		//´ýÓÅ»¯ £ºÅÐ¶ÏÊÇ·ñ³õÊ¼»¯SD¿¨
+	{
+		if(f_mount(&RecorderCt->MediaFatfs, MEDIA_VOLUME_STR_C, 1) == 0)
+		{
+			RecorderCt->DiskVolume = 0;
+			APP_DBG("SD mount 0:/--> ok\n");
+			if(GetSystemMode() == ModeBtAudioPlay || GetSystemMode() == ModeBtHfPlay)
+			{
+				SD_CARD *sd = SDCard_GetCardInfo();
+				osMutexLock(SDIOMutex);
+				SDIO_ClkDisable();
+				SDIO_ClkSet(sd->MaxTransSpeed + 1);//½µµÍclk
+				osMutexUnlock(SDIOMutex);
+				APP_DBG("SDCard MaxTransSpeed: %d\n",sd->MaxTransSpeed + 1);
+				return TRUE;
+			}
+		}
+		else
+		{
+			APP_DBG("SD mount 0:/--> fail\n");
+			return FALSE;
+		}
+	}
+	return FALSE;
+}
+
 #ifdef CFG_FUNC_RECORD_SD_UDISK
 bool RecordDiskMount(void)
 {
-	bool ret = TRUE;
-
-#ifdef  CFG_FUNC_RECORD_UDISK_FIRST
-#ifdef CFG_FUNC_UDISK_DETECT
-	if(GetSysModeState(ModeUDiskAudioPlay)!=ModeStateSusend)
-	{
-		APP_DBG("Ã¶¾ÙMASSSTORAGE½Ó¿ÚOK\n");
-		if(ret == TRUE)
-		{
-			if(f_mount(&RecorderCt->MediaFatfs, MEDIA_VOLUME_STR_U, 1) == 0)
-			{
-				RecorderCt->DiskVolume = 1;
-				APP_DBG("UÅÌ¿¨¹ÒÔØµ½ 1:/--> ³É¹¦\n");
-			}
-			else
-			{
-				ret = FALSE;
-				APP_DBG("UÅÌ¿¨¹ÒÔØµ½ 1:/--> Ê§°Ü\n");
-			}
-		}
-	}
-	else
-#endif
-	{
-		ret = FALSE;
-	}
-#ifdef CFG_APP_CARD_PLAY_MODE_EN
-	if(!ret)
-	{
-		ret = TRUE;
-		if(GetSysModeState(ModeCardAudioPlay)!=ModeStateSusend)
-		{
-			CardPortInit(CFG_RES_CARD_GPIO);
-			if(SDCard_Init() == 0)
-			{
-				APP_DBG("SDCard Init Success!\n");
-				if(f_mount(&RecorderCt->MediaFatfs, MEDIA_VOLUME_STR_C, 1) == 0)
-				{
-					RecorderCt->DiskVolume = 0;
-					APP_DBG("SD mount 0:/--> ok\n");
-					if(GetSystemMode() == ModeBtAudioPlay || GetSystemMode() == ModeBtHfPlay)
-					{
-						SD_CARD *sd = SDCard_GetCardInfo();
-						osMutexLock(SDIOMutex);
-						SDIO_ClkDisable();
-						SDIO_ClkSet(sd->MaxTransSpeed + 1);//½µµÍclk
-						osMutexUnlock(SDIOMutex);
-						APP_DBG("SDCard MaxTransSpeed: %d\n",sd->MaxTransSpeed + 1);
-					}
-				}
-				else
-				{
-					ret = FALSE;
-					APP_DBG("SD mount 0:/--> fail\n");
-				}
-			}
-			else
-			{
-				ret = FALSE;
-				APP_DBG("SdInit Failed!\n");
-			}
-		}
-		else
-		{
-			ret = FALSE;
-		}
-	}
-#endif
+#ifdef CFG_FUNC_RECORD_UDISK_FIRST
+    return RecordUDiskDiskMount() || RecordSDCardDiskMount();
 #else
-	if(ResourceValue(AppResourceCard))
-	{
-		CardPortInit(CFG_RES_CARD_GPIO);
-		if(SDCard_Init() == 0)
-		{
-			APP_DBG("SDCard Init Success!\n");
-			if(f_mount(&RecorderCt->MediaFatfs, MEDIA_VOLUME_STR_C, 1) == 0)
-			{
-				RecorderCt->DiskVolume = 0;
-				APP_DBG("SD mount 0:/--> ok\n");
-			}
-			else
-			{
-				ret = FALSE;
-				APP_DBG("SD mount 0:/--> fail\n");
-			}
-		}
-		else
-		{
-			ret = FALSE;
-			APP_DBG("SdInit Failed!\n");
-		}
-	}
-	else
-	{
-		ret = FALSE;
-	}
-#ifdef CFG_FUNC_UDISK_DETECT
-	if(!ret)
-	{
-		ret = TRUE;
-		if(ResourceValue(AppResourceUDisk))
-		{
-			if(ret == TRUE)
-			{
-				if(f_mount(&RecorderCt->MediaFatfs, MEDIA_VOLUME_STR_U, 1) == 0)
-				{
-					RecorderCt->DiskVolume = 1;
-					APP_DBG("UÅÌ¿¨¹ÒÔØµ½ 1:/--> ³É¹¦\n");
-				}
-				else
-				{
-					ret = FALSE;
-					APP_DBG("UÅÌ¿¨¹ÒÔØµ½ 1:/--> Ê§°Ü\n");
-				}
-			}
-		}
-		else
-		{
-			ret = FALSE;
-		}
-	}
+    return RecordSDCardDiskMount() || RecordUDiskDiskMount();
 #endif
-#endif
-
-	return ret;
 }
 #endif
 
@@ -1232,26 +1159,14 @@ bool MediaRecorderServiceKill(void)
 		RecorderCt->taskHandle = NULL;
 	}
 #ifdef CFG_FUNC_RECORD_SD_UDISK
-		if(RecorderCt->DiskVolume == MEDIA_VOLUME_U)
-		{
-			f_unmount(MEDIA_VOLUME_STR_U);
-		//	ResourceRegister(AppResourceUDisk | AppResourceUDiskForPlay);
-		}
-		else
-		{
-#ifdef CFG_APP_CARD_PLAY_MODE_EN
-			f_unmount(MEDIA_VOLUME_STR_C);
-		//	ResourceRegister(AppResourceCard | AppResourceCardForPlay);
-			if(SDIOMutex)
-			{
-				osMutexLock(SDIOMutex);
-			}
-			SDCardDeinit(CFG_RES_CARD_GPIO);
-			{
-				osMutexUnlock(SDIOMutex);
-			}
-#endif
-		}
+	if(RecorderCt->DiskVolume == MEDIA_VOLUME_U)
+	{
+		f_unmount(MEDIA_VOLUME_STR_U);
+	}
+	else if(RecorderCt->DiskVolume == MEDIA_VOLUME_C)
+	{
+		f_unmount(MEDIA_VOLUME_STR_C);
+	}
 #endif
 
 	AudioCoreSinkDeinit(AUDIO_RECORDER_SINK_NUM);

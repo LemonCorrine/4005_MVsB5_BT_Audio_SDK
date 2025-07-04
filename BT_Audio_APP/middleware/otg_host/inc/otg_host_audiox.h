@@ -20,7 +20,7 @@ extern "C"{
 #include <string.h>
 #include <otg_host.h>
 #include "otg_host_hcd.h"
-
+#include "mvintrinsics.h"
 typedef struct
 {
 	PIPE_INFO           Pipe;				//∂Àµ„–≈œ¢
@@ -37,6 +37,9 @@ typedef struct
 	uint8_t				ByteSet;
 }USBH_AudioStreamFormatInfo;
 
+typedef USBH_StatusTypeDef(*USBH_AudioSampleRateCheckCallback)(uint32_t FreqIn,uint32_t FreqOut);
+
+void USBH_AudioSampleRateCheckCallbackSet(USBH_AudioSampleRateCheckCallback func);
 USBH_StatusTypeDef USBH_AudioClassDevEnum(USBH_AudioStreamFormatInfo *Speaker,USBH_AudioStreamFormatInfo *Mic);
 USBH_StatusTypeDef USBH_AudioSetVolume(USBH_AudioStreamFormatInfo *Stream,uint8_t Volume);
 USBH_StatusTypeDef USBH_AudioSetSampleFreq(USBH_AudioStreamFormatInfo *Stream, uint32_t frequency);

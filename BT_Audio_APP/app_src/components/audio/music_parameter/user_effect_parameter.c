@@ -366,12 +366,12 @@ bool AudioEffect_CheckFlashEffectParam(void)
 
 	if ((SpiFlashRead(get_effect_data_addr(), (uint8_t*)flashParam, EFFECT_MODE_COUNT * 4 ,1) == FLASH_NONE_ERR))
 	{
-		for(i = 0; i < EFFECT_MODE_COUNT;)
+		for(i = 0; i < EFFECT_MODE_COUNT; i++)
 		{
 //			DBG("### %d - Hwcfg:%d, param:%d\n", i, flashParam[i], flashParam[i + 1]);
 			para = get_user_effect_parameters(i);
-			if((flashParam[i] != 0xffff) && (flashParam[i + 1] != 0xffff)
-				&& (flashParam[i] - flashParam[i + 1] != get_user_effect_parameters_len(para->user_effect_parameters)))
+			if((flashParam[i*2] != 0xffff) && (flashParam[i*2 + 1] != 0xffff)
+				&& (flashParam[i*2] - flashParam[i*2 + 1] != get_user_effect_parameters_len(para->user_effect_parameters)))
 			{
 //				DBG("flash read effect_mode(%d)EffectParam err %d\n", i, get_user_effect_parameters_len(para->user_effect_parameters));
 				DBG("EffectParam in flash changed, erase all\n");
@@ -381,7 +381,6 @@ bool AudioEffect_CheckFlashEffectParam(void)
 				}
 				return FALSE;
 			}
-			i += 2;
 		}
 	}
 	return TRUE;

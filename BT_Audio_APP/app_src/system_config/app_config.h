@@ -41,7 +41,7 @@
  * 前者是burner烧录时版本，后者是mva版本需关注*/
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(1)
-#define  CFG_SDK_MINOR_VERSION		(0)
+#define  CFG_SDK_MINOR_VERSION		(1)
 #define  CFG_SDK_PATCH_VERSION	    (0)
 
 
@@ -89,6 +89,10 @@
 #define READER				5
 
 #ifdef  CFG_APP_USB_AUDIO_MODE_EN
+//双声卡框图 demo 在默认框图中使用USB_SOURCE_NUM 和 APP_SOURCE_NUM 分别作为两个usb下行通道
+//配置 CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO
+//使用DEMO的方式配置音效主要是因为使用率低，切占用内存较多，暂时不加入到默认框图中。
+//音效demo主要是以展示效果用，各demo功能之间切勿同时打开。因为音效框图并不一致。
 	#define CFG_PARA_USB_MODE	AUDIO_MIC
 
 	#define CFG_PARA_AUDIO_USB_IN_SYNC	//时钟偏差引起的 采样点同步
@@ -243,23 +247,12 @@
 //	#define	CFG_FUNC_MIC_KARAOKE_EN      //MIC karaoke功能选择
 #endif
 
-//#define CFG_FUNC_USB_HOST_AUDIO_MIX_MODE	//usb host uac 后台
-
 //usb host uac 框图demo 在默认框图中增加了 USB_HOST_SOURCE_NUM 和 AUDIO_USB_HOST_SINK_NUM
-#define EFFECT_USB_HOST_AUDIO_DEMO				1
 //双声卡框图 demo 在默认框图中，使用USB_SOURCE_NUM 和 APP_SOURCE_NUM 分别作为两个usb下行通道
-#define EFFECT_USB_DEVICE_TWO_AUDIO_DEMO		2
-
 //音效DEMO配置说明：
 //	1.使用DEMO的方式配置音效主要是因为使用率低，切占用内存较多，暂时不加入到默认框图中。
 //	2.音效demo主要是以展示效果用，各demo功能之间切勿同时打开。因为音效框图并不一致。
-#ifdef CFG_FUNC_USB_HOST_AUDIO_MIX_MODE
-	#define CFG_FUNC_EFFECT_DEMO 				EFFECT_USB_HOST_AUDIO_DEMO
-#endif
-#if (CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO)
-	#define CFG_FUNC_EFFECT_DEMO 				EFFECT_USB_DEVICE_TWO_AUDIO_DEMO
-#endif
-
+//#define CFG_FUNC_USB_HOST_AUDIO_MIX_MODE	//usb host uac 后台
 
 #ifdef CFG_FUNC_MIC_KARAOKE_EN
 //Line in mix for Karaoke
@@ -387,6 +380,9 @@
 //    2.此版本默认打开，请勿关闭!!!!!!!!!!
 //****************************************************************************************	
 #define	CFG_FUNC_MIXER_SRC_EN
+//#define	CFG_FUNC_SRC_HIGHER_EN
+//#define	CFG_FUNC_USB_ADJUST_UNION_EN			//usb上下行硬件微调共用机制
+//#define	CFG_FUNC_AUDIO_SILENCE_AVOIDANCE_EN		//DAC防播空机制
 
 //     采样率硬件微调功能选择
 //说明:

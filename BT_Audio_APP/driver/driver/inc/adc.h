@@ -56,8 +56,7 @@ typedef enum __ADC_DC_CHANNEL_SEL
 	ADC_CHANNEL_AD4_A29,						/**channel 10*/
 	ADC_CHANNEL_AD5_A30,						/**channel 11*/
 	ADC_CHANNEL_AD6_A31,						/**channel 12*/
-	ADC_CHANNEL_AD7_B0B1,						/**channel 13*/
-	ADC_CHANNEL_AD8_A0A1A2B4B5B9,				/**channel 14*/
+	ADC_CHANNEL_AD8_A0A1A2B4B5B9 = 14,			/**channel 14*/
 	ADC_CHANNEL_BK_ADKEY						/**channel 15*/
 }ADC_DC_CHANNEL_SEL;
 

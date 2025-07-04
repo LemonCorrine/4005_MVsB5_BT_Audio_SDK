@@ -202,20 +202,21 @@ bool I2S_MixInit(bool hf_mode_flag)
 			return FALSE;
 		}
 
-		if((CFG_RES_MIX_I2S_MODE == I2S_MASTER_MODE) || !defined(CFG_FUNC_MIX_I2S_OUT_SYNC_EN))
+#if((CFG_RES_MIX_I2S_MODE == I2S_MASTER_MODE) || !defined(CFG_FUNC_MIX_I2S_OUT_SYNC_EN))
 		{// Master 或不开微调
 			if(CFG_PARA_MIX_I2S_SAMPLERATE == sampleRate)
 				AudioIOSet.Adapt = STD;//SRC_ONLY
 			else
 				AudioIOSet.Adapt = SRC_ONLY;
 		}
-		else//slave
+#else//slave
 		{
 			if(CFG_PARA_MIX_I2S_SAMPLERATE == sampleRate)
 				AudioIOSet.Adapt = STD;//SRA_ONLY;//CLK_ADJUST_ONLY;
 			else
 				AudioIOSet.Adapt = SRC_ONLY;//SRC_SRA;//SRC_ADJUST;
 		}
+#endif
 		AudioIOSet.Sync = TRUE;//I2S slave 时候如果master没有接，有可能会导致DAC也不出声音。
 		AudioIOSet.Channels = 2;
 		AudioIOSet.Net = DefaultNet;
@@ -479,20 +480,21 @@ bool I2S_Mix2Init(bool hf_mode_flag)
 			return FALSE;
 		}
 
-		if((CFG_RES_MIX2_I2S_MODE == I2S_MASTER_MODE) || !defined(CFG_FUNC_MIX2_I2S_OUT_SYNC_EN))
+#if((CFG_RES_MIX2_I2S_MODE == I2S_MASTER_MODE) || !defined(CFG_FUNC_MIX2_I2S_OUT_SYNC_EN))
 		{// Master 或不开微调
 			if(CFG_PARA_MIX2_I2S_SAMPLERATE == sampleRate)
 				AudioIOSet.Adapt = STD;//SRC_ONLY
 			else
 				AudioIOSet.Adapt = SRC_ONLY;
 		}
-		else//slave
+#else//slave
 		{
 			if(CFG_PARA_MIX2_I2S_SAMPLERATE == sampleRate)
 				AudioIOSet.Adapt = STD;//SRA_ONLY;//CLK_ADJUST_ONLY;
 			else
 				AudioIOSet.Adapt = SRC_ONLY;//SRC_SRA;//SRC_ADJUST;
 		}
+#endif
 		AudioIOSet.Sync = TRUE;//I2S slave 时候如果master没有接，有可能会导致DAC也不出声音。
 		AudioIOSet.Channels = 2;
 		AudioIOSet.Net = DefaultNet;

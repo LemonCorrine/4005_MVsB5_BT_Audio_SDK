@@ -172,7 +172,7 @@ static bool BtPlayInitRes(void)
 	AudioIOSet.Depth = sizeof(a2dp_player->sbc_fifo) / 119 * 128 + sizeof(a2dp_player->last_pcm_buf) / 4;
 #endif
 	AudioIOSet.LowLevelCent = 40;
-	AudioIOSet.HighLevelCent = 90;
+	AudioIOSet.HighLevelCent = 70;//90;
 #ifdef	CFG_AUDIO_WIDTH_24BIT
 	AudioIOSet.IOBitWidth = 0;//0,16bit,1:24bit
 	AudioIOSet.IOBitWidthConvFlag = 1;//需要数据进行位宽扩展
@@ -595,21 +595,24 @@ bool BtPlayDeinit(void)
 #if (BT_SOURCE_SUPPORT)// source
 	BtSourceBtModeDeinit();
 #else
-	if(  sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF
-	  || sys_parameter.bt_BackgroundType == BT_BACKGROUND_DISABLE	)
+	if(!SoftFlagGet(SoftFlagSysCurModeReboot))
 	{
-		if(GetSysModeState(ModeBtHfPlay) != ModeStateInit)
+		if(  sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF
+		  || sys_parameter.bt_BackgroundType == BT_BACKGROUND_DISABLE	)
 		{
-			BtDisconnectWaitComplete();
+			if(GetSysModeState(ModeBtHfPlay) != ModeStateInit)
+			{
+				BtDisconnectWaitComplete();
 
-			if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF)
-				BtFastPowerOff();
+				if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF)
+					BtFastPowerOff();
+				else
+					BtPowerOff();
+			}
 			else
-				BtPowerOff();
-		}
-		else
-		{
-			BtStackServiceWaitResume();
+			{
+				BtStackServiceWaitResume();
+			}
 		}
 	}
 #endif

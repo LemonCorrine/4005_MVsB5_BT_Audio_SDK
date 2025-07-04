@@ -289,6 +289,10 @@ TE_PWRKEYINIT_RET SystemPowerKeyInit(TE_PWRKEY_MODE eMode, TE_KEYDET_TIME eTime)
 		{
 			lpTime = 64;
 		}
+		if(lpTime < 2)
+		{
+			lpTime = 2;
+		}
 	}
 	//DBG("lpTime = %d\n", lpTime);
 	//parameter settings ²ÎÊýÉèÖÃ

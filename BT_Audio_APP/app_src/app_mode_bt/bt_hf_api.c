@@ -33,7 +33,7 @@
 #define MSBC_BLOCK_LENGTH	15
 
 // sco sync header H2
-uint8_t sco_sync_header[4][2] = 
+const uint8_t sco_sync_header[4][2] =
 {
 	{0x01, 0x08}, 
 	{0x01, 0x38}, 

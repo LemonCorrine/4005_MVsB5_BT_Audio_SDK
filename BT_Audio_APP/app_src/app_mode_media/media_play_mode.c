@@ -743,7 +743,6 @@ bool MediaPlayDeinit(void)
 	{
 #if (defined(CFG_APP_CARD_PLAY_MODE_EN) )
 		f_unmount(MEDIA_VOLUME_STR_C);
-		SDCardDeinit(CFG_RES_CARD_GPIO);
 		osMutexUnlock(SDIOMutex);
 		APP_DBG("unmount sd card\n");
 #endif

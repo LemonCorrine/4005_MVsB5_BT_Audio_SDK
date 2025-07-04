@@ -585,7 +585,7 @@ char *effect_lib_version_return(void)
 __attribute__((section(".robo_property")))
 const uint8_t effect_property_for_display[] = {
 0x00, 0x04, 0x00, //protocol@0.4.0
-0x02, 0x1C, 0x00, //roboeffect_library@2.28.0
+0x02, 0x1C, 0x01, //roboeffect_library@2.28.1
 0x02, 0x2D, 0x06, //audio_effect_library@2.45.6
 ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN, //number of total inner effects
 (ROBOEFFECT_TOTAL_MAX-ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN), //number of total 3rd party effects

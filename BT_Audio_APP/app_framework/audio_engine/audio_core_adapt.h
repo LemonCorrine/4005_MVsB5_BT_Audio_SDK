@@ -9,13 +9,14 @@
 #define BT_AUDIO_APP_SRC_INC_AUDIO_CORE_ADAPT_H_
 #include "type.h"
 #include "resampler_polyphase.h"
+#include "resampler.h"
 #include "mcu_circular_buf.h"
 //#include "sra.h"
 #include "resampler_farrow.h"
 #include "app_config.h"
 #define SRA_MAX_CHG 		2
 #define SRA_BLOCK 			128
-#define POLYNOMIAL_ORDER	 4
+#define POLYNOMIAL_ORDER	 4	//4
 
 typedef enum _MIX_NET_
 {
@@ -39,7 +40,11 @@ typedef enum _AUDIO_ADAPT_
 typedef struct _SRC_ADAPTER_
 {
 	uint32_t					SampleRate;
+#ifndef CFG_FUNC_SRC_HIGHER_EN
 	ResamplerPolyphaseContext	SrcCt;
+#else
+	ResamplerContext			SrcCt;
+#endif
 	MCU_CIRCULAR_CONTEXT		SrcBufHandler;
 } SRC_ADAPTER;
 
@@ -109,6 +114,7 @@ typedef struct _AudioCoreIO_
 #define ADJUST_APLL_PERIOD			(512*10)	//以采样点监测消抖周期，用于硬件微调。
 #define ADJUST_DIV_MAX				100			//硬件微调限幅度对应万分之五的频偏，源于div的小数分频调整。
 #define	ADJUST_SHRESHOLD			2			//2~4 Low～high之间 抑制硬件微调的震荡，连续单向水位变化，反向抑制。
+#define ADJUST_GROUP_FRAME(AdjustVal)	(AdjustVal == 0 ? 1 : 10) //(AdjustVal == 0 ? 1 : ADJUST_PERIOD/128)
 
 #define SRC_INPUT_MAX		128 //即 MAX_FRAME_SAMPLES @resampler_polyphase.h
 #define SRC_INPUT_MIN		8//低于这两个数值，不做转换处理 减少累积误差
@@ -150,6 +156,12 @@ void AudioCoreSourceChange(uint8_t Index, uint8_t Channels, uint32_t SampleRate)
 
 //调整音频参数 设置非0值，设置0时保持原值
 void AudioCoreSinkChange(uint8_t Index, uint8_t Channels, uint32_t SampleRate);
+
+//调整LenGetFunc()对应的最大值  @sample
+void AudioCoreSourceFifoReset(uint8_t Index);
+
+// 重置音频通路FIFO 设置非0值，设置0时保持原值
+void AudioCoreSinkFifoReset(uint8_t Index);
 
 //调整LenGetFunc()对应的最大值  @sample
 void AudioCoreSourceDepthChange(uint8_t Index, uint32_t NewDepth);

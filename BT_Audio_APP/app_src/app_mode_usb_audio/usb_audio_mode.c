@@ -226,7 +226,11 @@ bool UsbDevicePlayResInit(void)
 #if !defined(CFG_PARA_AUDIO_USB_IN_SRC)
 	AudioIOSet.Adapt = SRA_ONLY;//CLK_ADJUST_ONLY;
 #else
+#ifdef CFG_FUNC_USB_ADJUST_UNION_EN
+	AudioIOSet.Adapt = SRC_ADJUST;//SRC_ADJUST;
+#else
 	AudioIOSet.Adapt = SRC_SRA;//STD;//SRC_ADJUST;
+#endif
 #endif
 #endif
 	AudioIOSet.Sync = TRUE;
@@ -272,7 +276,11 @@ bool UsbDevicePlayResInit(void)
 #if !defined(CFG_PARA_AUDIO_USB_OUT_SRC)
 	AudioIOSet.Adapt = SRA_ONLY;//CLK_ADJUST_ONLY;
 #else
+#ifdef CFG_FUNC_USB_ADJUST_UNION_EN
+	AudioIOSet.Adapt = SRC_ADJUST;//SRC_ADJUST;
+#else
 	AudioIOSet.Adapt = SRC_SRA;//SRC_ADJUST;
+#endif
 #endif
 #endif
 	AudioIOSet.Sync = FALSE;//FALSE;//
@@ -311,18 +319,9 @@ void UsbDevicePlayHardwareInit(void)
 	if(!SoftFlagGet(SoftFlagSysCurModeReboot))
 	{
 		OTG_DeviceModeSel(CFG_PARA_USB_MODE, USB_VID, USBPID(CFG_PARA_USB_MODE));
-	#ifdef CFG_OTG_MODE_READER_EN
-		if(GetSysModeState(ModeCardAudioPlay)!=ModeStateSusend)
-		{
-			CardPortInit(CFG_RES_CARD_GPIO);
-			if(SDCard_Init() == NONE_ERR)
-			{
-				APP_DBG("SD INIT OK\n");
-				//sd_link = 1;
-			}
-		}
+#ifdef CFG_OTG_MODE_READER_EN
 		OTG_DeviceStorInit();
-	#endif
+#endif
 		OTG_DeviceFifoInit();
 		OTG_DeviceInit();
 		NVIC_EnableIRQ(Usb_IRQn);
@@ -376,6 +375,8 @@ bool UsbDevicePlayInit(void)
 		}
 	}
 #endif
+	AudioEffect_SourceGain_Update(APP_SOURCE_NUM, CFG_PARA_MAX_VOLUME_NUM); //设置到最大
+
 #ifdef CFG_OTG_MODE_AUDIO_EN
 	AudioCoreSourceUnmute(USB_AUDIO_SOURCE_NUM,TRUE,TRUE);
 #endif
@@ -395,11 +396,19 @@ void UsbDevicePlayRun(uint16_t msgId)
 		case MSG_HID_KEY1_DOWN:
 			APP_DBG("KEY1_DOWN\n");
 			OTG_DeviceAudioSendHidKeyDown(AUDIO_VOL_UP);
+			if(IsAudioPlayerMute() == TRUE)
+			{
+				HardWareMuteOrUnMute();
+			}
 			break;
 
 		case MSG_HID_KEY2_DOWN:
 			APP_DBG("KEY2_DOWN\n");
 			OTG_DeviceAudioSendHidKeyDown(AUDIO_VOL_DN);
+			if(IsAudioPlayerMute() == TRUE)
+			{
+				HardWareMuteOrUnMute();
+			}
 			break;
 
 		case MSG_HID_KEY3_DOWN:
@@ -430,11 +439,19 @@ void UsbDevicePlayRun(uint16_t msgId)
 		case MSG_MUSIC_VOLUP:
 			APP_DBG("VOLUP\n");
 			OTG_DeviceAudioSendPcCmd(AUDIO_VOL_UP);
+			if(IsAudioPlayerMute() == TRUE)
+			{
+				HardWareMuteOrUnMute();
+			}
 			break;
 
 		case MSG_MUSIC_VOLDOWN:
 			APP_DBG("VOLDOWN\n");
 			OTG_DeviceAudioSendPcCmd(AUDIO_VOL_DN);
+			if(IsAudioPlayerMute() == TRUE)
+			{
+				HardWareMuteOrUnMute();
+			}
 			break;
 
 		default:
@@ -494,6 +511,9 @@ bool UsbDevicePlayDeinit(void)
 			OTG_DeviceFifoInit();
 			OTG_DeviceInit();
 		}
+
+		//恢复其他模式的音量值
+		AudioMusicVolSet(MusicVolume);
 	}
 	//NVIC_DisableIRQ(Usb_IRQn);
 	UsbDevicePlayResRelease();

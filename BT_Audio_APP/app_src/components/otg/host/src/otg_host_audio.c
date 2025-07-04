@@ -21,6 +21,7 @@
 #include "irqn.h"
 #include "otg_device_audio.h"
 #include "otg_host_standard_enum.h"
+#include "resampler_polyphase.h"
 #undef  OTG_DBG
 #define	OTG_DBG(format, ...)		printf(format, ##__VA_ARGS__)
 
@@ -33,7 +34,11 @@ AUDIO_HandleTypeDef UacAudio;
 uint8_t *PcmOutFiFoBuf;
 uint8_t *PcmInFiFoBuf;
 uint8_t *hidInFiFoBuf;
+#ifdef CFG_APP_USB_AUDIO_MODE_EN
 extern uint8_t iso_buf[];
+#else
+uint8_t iso_buf[384];	//48K 32Bit 2Chn
+#endif
 extern volatile uint32_t gHostUsbMicUnMuteTimer;//ms
 #define	InterfaceDescriptor		((PUSB_INTERFACE_DESCRIPTOR)OtgHostInfo.UsbInterface[i].pData)
 
@@ -193,7 +198,6 @@ void OnHostAudioRcvIsoPacket(void)
 
 void OnHostAudioSendIsoPacket(void)
 {
-#if (CFG_PARA_USB_MODE & MIC_ONLY)
 	int32_t s;
 	uint32_t channel = UacAudio.Speaker.NrChannels;
 	uint32_t SendLen = 0;
@@ -249,7 +253,6 @@ void OnHostAudioSendIsoPacket(void)
 #endif
 	}
 	OTG_HostISOWrite(&UacAudio.Speaker.Pipe,iso_buf,SendLen*UacAudio.Speaker.ByteSet*channel,0);
-#endif
 }
 
 void UsbHostHidDateProcess(void)
@@ -314,6 +317,21 @@ void UsbHostHidDateProcess(void)
 	}
 }
 
+USBH_StatusTypeDef USBH_AudioSampleRateCheck(uint32_t FreqIn,uint32_t FreqOut)
+{
+	extern RESAMPLER_POLYPHASE_SRC_RATIO GetRatioEnum(uint32_t Scale1000);
+	RESAMPLER_POLYPHASE_SRC_RATIO ret;
+
+	ret = GetRatioEnum(1000 * FreqOut / FreqIn);
+	APP_DBG("FreqIn %ld,FreqOut %ld GetRatioEnum %d\n",FreqIn,FreqOut,ret);
+
+	if(ret == RESAMPLER_POLYPHASE_SRC_RATIO_UNSUPPORTED)
+	{
+		return USBH_NOT_SUPPORTED;
+	}
+	return USBH_OK;
+}
+
 bool UsbHostPlayHardwareInit(void)
 {
 	uint32_t i;
@@ -323,6 +341,10 @@ bool UsbHostPlayHardwareInit(void)
 
 	UacAudio.Speaker.ByteSet = PCM16BIT;
 	UacAudio.Speaker.frequency = AudioCore.SampleRate[DefaultNet];
+
+	//采样率转换支持检测回调
+	USBH_AudioSampleRateCheckCallbackSet(USBH_AudioSampleRateCheck);
+
 	//声卡枚举
 	if(USBH_AudioClassDevEnum(&UacAudio.Speaker,&UacAudio.Mic) != USBH_OK)
 	{
@@ -331,7 +353,7 @@ bool UsbHostPlayHardwareInit(void)
 	}
 	if(UacAudio.Speaker.supported)
 	{
-		USBH_AudioSetVolume(&UacAudio.Speaker,50);	//50%
+		USBH_AudioSetVolume(&UacAudio.Speaker,100);	//100%
 	//	USBH_AudioSetVolumeDB(&UacAudio.Speaker,0);	//0db
 	}
 	if(UacAudio.Mic.supported)

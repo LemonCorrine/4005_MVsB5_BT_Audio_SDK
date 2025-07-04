@@ -510,7 +510,7 @@ bool DeviceStorIsStopped(void)
 void OTG_DeviceStorInit(void)
 {
 	sReaderState = READER_INIT;
-	OTG_DeviceInit();
+//	OTG_DeviceInit();
 	DeviceStorStoppedFlag = FALSE;
 	DeviceStorCmdFlag = FALSE;
 	sReaderState = READER_READY;

@@ -265,6 +265,8 @@ typedef struct _ControlVariablesContext
 	//for System status 0x02
 	AutoRefreshType 			AutoRefresh;
 
+	uint8_t 					EffectRefresh;
+
 	HardwareConfigContext HwCt;
 
     //for system define

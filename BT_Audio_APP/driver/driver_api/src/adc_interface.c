@@ -14,13 +14,25 @@ static AUDIO_BitWidth ADC0_BitWidth = ADC_WIDTH_24BITS;
 static AUDIO_BitWidth ADC1_BitWidth = ADC_WIDTH_24BITS;
 extern uint8_t mclkFreqNum;
 
+//AudioADC的采样率大于48K时，AudioDAC采样率不能小于等于48K
 void AudioADC_DigitalInit(ADC_MODULE Module, uint32_t SampleRate, AUDIO_BitWidth BitWidth, void* Buf, uint16_t Len)
 {
 	//音频时钟使能，其他模块可能也会开启
+	if(SampleRate > 48000)
+	{
+		mclkFreqNum = 4;
+	}
 	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_1, AUDIO_PLL_CLK1_FREQ * mclkFreqNum);
 	Clock_AudioPllClockSet(SYS_AUDIO_CLK_SELECT, PLL_CLK_2, AUDIO_PLL_CLK2_FREQ * mclkFreqNum);
 
-	AudioADC_MclkFreqSet(Module, mclkFreqNum);
+	if(SampleRate > 48000)
+	{
+		AudioADC_MclkFreqSet(Module, 2);
+	}
+	else
+	{
+		AudioADC_MclkFreqSet(Module, mclkFreqNum);
+	}
 
 	if(Module == ADC0_MODULE)
     {
@@ -126,6 +138,7 @@ void AudioADC_AnaInit(ADC_MODULE ADCMODULE, ADC_CHANNEL ChannelSel, AUDIO_ADC_IN
         // 选择linein1通路
         if(ChannelSel == CHANNEL_LEFT)
         {
+            AudioADC_PGASel(ADC0_MODULE, CHANNEL_LEFT, LINEIN_NONE);
             if(InputSel == LINEIN1_LEFT)
             {
                 AudioADC_PGASel(ADC0_MODULE, CHANNEL_LEFT, LINEIN1_LEFT);
@@ -143,6 +156,7 @@ void AudioADC_AnaInit(ADC_MODULE ADCMODULE, ADC_CHANNEL ChannelSel, AUDIO_ADC_IN
         }
         else if(ChannelSel == CHANNEL_RIGHT)
         {
+            AudioADC_PGASel(ADC0_MODULE, CHANNEL_RIGHT, LINEIN_NONE);
             if(InputSel == LINEIN1_RIGHT)
             {
                 AudioADC_PGASel(ADC0_MODULE, CHANNEL_RIGHT, LINEIN1_RIGHT);
@@ -221,12 +235,14 @@ void AudioADC_AnaDeInit(ADC_MODULE ADCMODULE)
     if(ADCMODULE == ADC0_MODULE)
     {
         AudioADC_PGAPowerUp(ADC0_MODULE, 0, 0);
+        AudioADC_PowerUp(ADC0_MODULE, 0, 0);
         AudioADC_PGASel(ADC0_MODULE, CHANNEL_LEFT, LINEIN_NONE);
         AudioADC_PGASel(ADC0_MODULE, CHANNEL_RIGHT, LINEIN_NONE);
     }
     else
     {
         AudioADC_PGAPowerUp(ADC1_MODULE, 0, 0);
+        AudioADC_PowerUp(ADC1_MODULE, 0, 0);
     }
 }
 

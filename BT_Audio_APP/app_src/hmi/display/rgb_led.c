@@ -2,12 +2,12 @@
 #include "pwm.h"
 #include <string.h>
 
-#define		RGB_G_PWM_CH			TIMER6_PWM_A1_A9_A10_A23_A24_A28_B0_B1
-#define		RGB_G_PWM_GPIO			7 		//B1
+#define		RGB_G_PWM_CH			TIMER6_PWM_A1_A9_A10_A23_A24_A28
+#define		RGB_G_PWM_GPIO			0 		//A1
 #define		RGB_G_PWM_TIMER			TIMER6
 
-#define		RGB_R_PWM_CH			TIMER5_PWM_A0_A7_A10_A22_A24_B0_B1
-#define		RGB_R_PWM_GPIO			5 		//B0
+#define		RGB_R_PWM_CH			TIMER5_PWM_A0_A7_A10_A22_A24
+#define		RGB_R_PWM_GPIO			0 		//A0
 #define		RGB_R_PWM_TIMER			TIMER5
 
 #define		RGB_B_PWM_CH			TIMER7_PWM_A3_A5_A20_B4

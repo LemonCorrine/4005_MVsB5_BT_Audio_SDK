@@ -21,12 +21,17 @@
 #include "otg_host_hcd.h"
 #include "otg_host_standard_enum.h"
 //#include "otg_host_udisk.h"
-
+#ifdef FUNC_OS_EN
+#include "rtos_api.h"
+#endif
 extern int printf(const char *fmt, ...);
 #undef  OTG_DBG
 #define	OTG_DBG(format, ...)		//printf(format, ##__VA_ARGS__)  //bkd mark
 
 //uint8_t gMaxPacketSize0 = 8;//EP0最大包长度，默认为64  //zsq
+#ifndef FUNC_OS_EN
+static uint8_t DesCriptorBuffer[MAX_DESCRIPTOR_LEN];//512 BYTE
+#endif
 OTG_HOST_INFO OtgHostInfo;
 
 bool OTG_HostGetDescriptor(uint8_t Type, uint8_t Index, uint8_t* Buf, uint16_t Size)
@@ -154,13 +159,12 @@ bool OTG_HostSetIpodChargeCurrent(int16_t Current)
  */
 bool OTG_HostEnumDevice(void)
 {
-	uint32_t	DescriptorLen;
-	uint32_t	DescriptorType;
-	uint32_t	i;
-	uint32_t	InterfaceNum = 0;
+	uint16_t	DescriptorLen;
+	uint8_t		DescriptorType;
+	uint8_t		InterfaceNum = 0;
+	uint16_t	i;
 	uint8_t	*pBuf;
 	OTG_DBG("HOST Start enum Device\n");
-	memset(OtgHostInfo.DesCriptorBuffer, 0, sizeof(OtgHostInfo.DesCriptorBuffer));
 	OTG_DBG("Get Device  Descriptor\n");
 	if(!OTG_HostGetDescriptor(USB_DT_DEVICE, 0, (uint8_t*)&OtgHostInfo.DeviceDesCriptor, 8))
 	{
@@ -222,12 +226,24 @@ bool OTG_HostEnumDevice(void)
 
 	DescriptorLen = OtgHostInfo.ConfigDesCriptor.wTotalLength;
 
+#ifdef FUNC_OS_EN
+	OtgHostInfo.DesCriptorBuffer = osPortMalloc(DescriptorLen);
+	if(!OtgHostInfo.DesCriptorBuffer)
+	{
+		OTG_DBG("DesCriptorBuffer ERROR\n");
+		return FALSE;
+	}
+#else
 	if(DescriptorLen > MAX_DESCRIPTOR_LEN)
 	{
-		DescriptorLen = MAX_DESCRIPTOR_LEN;
+		OTG_DBG("DesCriptorBuffer ERROR %ld byte\n",DescriptorLen);
+		return FALSE;
 	}
+	OtgHostInfo.DesCriptorBuffer = DesCriptorBuffer;
+#endif
+	memset(OtgHostInfo.DesCriptorBuffer, 0, DescriptorLen);
 
-	OTG_DBG("Get All Device ConfigCriptor\n");
+	OTG_DBG("Get All Device ConfigCriptor %ld byte\n",DescriptorLen);
 	if(!OTG_HostGetDescriptor(USB_DT_CONFIG, 0, OtgHostInfo.DesCriptorBuffer, DescriptorLen))
 	{
 		return FALSE;
@@ -256,7 +272,7 @@ bool OTG_HostEnumDevice(void)
 		}
 		OtgHostInfo.UsbInterface[InterfaceNum].Length = OtgHostInfo.UsbInterface[InterfaceNum].Length + DescriptorLen;
 		i = i + DescriptorLen;
-		if(i > MAX_DESCRIPTOR_LEN)return FALSE;// bkd add for dead loop
+		if(i > OtgHostInfo.ConfigDesCriptor.wTotalLength)return FALSE;// bkd add for dead loop
 		if(i == (OtgHostInfo.ConfigDesCriptor.wTotalLength - 9))
 		{
 			if(OtgHostInfo.UsbInterfaceNum == OtgHostInfo.ConfigDesCriptor.bNumInterfaces)
@@ -317,3 +333,14 @@ uint8_t OTG_HostInit(void)
 	return FunFlage;
 }
 
+uint8_t OTG_HostUnInit(void)
+{
+#ifdef FUNC_OS_EN
+	if(OtgHostInfo.DesCriptorBuffer)
+	{
+		OTG_DBG("DesCriptorBuffer\n");
+		osPortFree(OtgHostInfo.DesCriptorBuffer);
+		OtgHostInfo.DesCriptorBuffer = 0;
+	}
+#endif
+}

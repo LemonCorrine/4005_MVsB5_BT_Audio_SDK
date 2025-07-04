@@ -293,6 +293,7 @@ void OTG_DeviceStandardRequest()
 					OTG_EndpointInterruptDisable(DEVICE_ISO_IN_EP);
 					OTG_DeviceEndpointReset(DEVICE_ISO_IN_EP,TYPE_ISO_IN);
 					OTG_DeviceEndpointPacketSizeSet(DEVICE_ISO_IN_EP,DEVICE_FS_ISO_IN_MPS);
+					UsbAudioMic.AltSlow = 1;
 				}else{
 					OTG_EndpointInterruptEnable(DEVICE_ISO_IN_EP,OnDeviceAudioSendIsoPacket);
 					OTG_DeviceISOSend(DEVICE_ISO_IN_EP,0,0);

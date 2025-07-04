@@ -101,9 +101,11 @@ void DdbDeleteRecord(uint8_t index);
 uint32_t DdbFindRecord(const uint8_t *bdAddr);
 
 bool BtDdb_GetLastBtAddr(uint8_t *BtLastAddr, uint8_t* profile);
-#if (BT_SIMPLEPAIRING_FLAG == DISABLE)
+
+#ifdef FLASH_SAVE_REMOTE_BT_NAME
 void BtDdb_UpdateDeviceName(uint8_t *bdAddr, uint8_t *bdName);
 #endif
+
 bool BtDdb_ClearTwsDeviceAddrList(void);
 
 void BtDdb_ClrTwsDevInfor(void);

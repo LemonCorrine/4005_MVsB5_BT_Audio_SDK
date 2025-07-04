@@ -355,10 +355,18 @@ uint32_t DeviceDetect(void)
 			gDeviceCardTimer = 0;
 			if(CardState == DETECT_STATE_IN)
 			{
+				CardPortInit(CFG_RES_CARD_GPIO);
+				if(SDCard_Init() != NONE_ERR)
+				{
+					APP_DBG("Card init err.\n");
+					return FALSE;
+				}
+				APP_DBG("SDCard Init Success!\n");
 				Ret |= CARD_IN_EVENT_BIT;
 			}
 			else
 			{
+				SDCardDeinit(CFG_RES_CARD_GPIO);
 				Ret |= CARD_OUT_EVENT_BIT;
 			}
 		}
@@ -400,6 +408,7 @@ DetectCardExit:
 						break;
 				}
 				UsbHostPortFlag = 0;
+				OTG_HostUnInit();
 			}
 			else
 			{

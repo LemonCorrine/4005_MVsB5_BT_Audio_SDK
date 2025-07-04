@@ -58,6 +58,9 @@ osMutexId SwUARTMutex = NULL;
 
 #define SW_PIN_MASK		(1<<SW_UART_IO_PORT_PIN_INDEX)
 
+//校验位选择，分别对应 0:无校验 1:奇校验 2:偶校验
+#define SW_UART_PARITY_BITS_TYPE		0
+
 #include "remap.h"
 #define	SW_UART_TCM_SIZE		4
 uint8_t IsSwUartActedAsUARTFlag = 0;
@@ -76,7 +79,7 @@ void SwUartTxTcmInit(void)
 	memcpy((void*)TCMStartAddr, (void*)StartAddr, SW_UART_TCM_SIZE*1024);
 	Remap_AddrRemapSet(ADDR_REMAP2, StartAddr, TCMStartAddr, SW_UART_TCM_SIZE);
 
-	printf("Tcm_Swdelay: %x-%x ,%x-%x\n",StartAddr,SwUartDelay, TCMStartAddr,tcm_buf);
+//	printf("Tcm_Swdelay: %x-%x ,%x-%x\n",StartAddr,SwUartDelay, TCMStartAddr,tcm_buf);
 }
 /**
  * @brief  Init specified IO as software uart's TX.
@@ -213,7 +216,17 @@ void SwUartSendByte(uint8_t c)
 		SwUartDelay(SW_DELAY);
 		c >>= 1;
 	}
-
+#if (SW_UART_PARITY_BITS_TYPE == 1)	//1:奇校验 2:偶校验
+	if(Cnt % 2)//偶数
+	{
+		(*(volatile unsigned long *) SW_OUT_REG) &= ~(SW_PIN_MASK);
+	}
+	else
+	{
+		(*(volatile unsigned long *) SW_OUT_REG) |= SW_PIN_MASK;
+	}
+	SwUartDelay(SW_DELAY);
+#elif (SW_UART_PARITY_BITS_TYPE == 2) //1:奇校验 2:偶校验
 	if(Cnt % 2)//偶数
 	{
 		(*(volatile unsigned long *) SW_OUT_REG) |= SW_PIN_MASK;
@@ -223,6 +236,7 @@ void SwUartSendByte(uint8_t c)
 		(*(volatile unsigned long *) SW_OUT_REG) &= ~(SW_PIN_MASK);
 	}
 	SwUartDelay(SW_DELAY);
+#endif
 
 	(*(volatile unsigned long *) SW_OUT_REG) |= SW_PIN_MASK;
 	SwUartDelay(SW_DELAY);

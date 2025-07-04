@@ -296,8 +296,9 @@ void BtGetRemoteName(BT_STACK_CALLBACK_PARAMS * param)
 	}
 	APP_DBG("\t nameLen = %d , name = %s \n",btManager.remoteNameLen, btManager.remoteName);
 
-#if (BT_SIMPLEPAIRING_FLAG == DISABLE)
-	BtDdb_UpdateDeviceName(param->params.remDevName.addr,param->params.remDevName.name);
+#ifdef FLASH_SAVE_REMOTE_BT_NAME
+	if(!sys_parameter.bt_SimplePairingEnable)
+		BtDdb_UpdateDeviceName(param->params.remDevName.addr,param->params.remDevName.name);
 #endif
 
 #if BT_SOURCE_SUPPORT

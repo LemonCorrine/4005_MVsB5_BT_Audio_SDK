@@ -681,7 +681,7 @@ static void SysModeEntrance(void * param)
 		void MediaRecorderEncode(void);
 		MediaRecorderEncode();
 #endif
-
+		WDG_Feed();
 		SysModeDeinit();
 		SysModeInit();
 		if(ModeInputFunction.RemindRun)

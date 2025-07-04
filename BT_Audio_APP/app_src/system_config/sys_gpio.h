@@ -62,7 +62,7 @@
  //****************************************************************************************
  // 		  TF卡，USB设备检测功能
  //****************************************************************************************
-#if defined(CFG_APP_CARD_PLAY_MODE_EN)
+#if defined(CFG_APP_CARD_PLAY_MODE_EN)||defined(CFG_OTG_MODE_READER_EN)
 #define	CFG_RES_CARD_USE  //启用SD电路
 #ifdef CFG_RES_CARD_USE
 #include "sd_card.h"
@@ -202,7 +202,7 @@
 	#define HDMI_CEC_IO_INDEX				0
 	//#define HDMI_CEC_RECV_IO	            28
 	//#define HDMI_CEC_RECV_IO_PIN	    	28
-	#define HDMI_CEC_SEND_IO	            TIMER5_PWM_A0_A7_A10_A22_A24_B0_B1 /*dma table配合*/
+	#define HDMI_CEC_SEND_IO	            TIMER5_PWM_A0_A7_A10_A22_A24 /*dma table配合*/
 	#define HDMI_CEC_SEND_IO_PIN			(0)
     #define HDMI_CEC_RECV_DATA_ADDR	    	TIMER5_PWC_DATA_ADDR
     #define HDMI_CEC_SEND_DATA_ADDR         TIMER5_PWM_DUTY_ADDR

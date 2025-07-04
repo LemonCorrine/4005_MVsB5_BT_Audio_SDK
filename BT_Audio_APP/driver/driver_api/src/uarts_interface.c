@@ -33,11 +33,17 @@ uint32_t UARTS_Send(UART_PORT_T UART_MODULE,uint8_t* SendBuf, uint32_t BufLen,ui
 {
 	uint32_t Len;
 #ifdef FUNC_OS_EN
-	osMutexLock(UART0Mutex);
+	if(UART_MODULE == UART_PORT1)
+		osMutexLock(UART1Mutex);
+	else
+		osMutexLock(UART0Mutex);
 #endif
 	Len =  UART_Send(UART_MODULE,SendBuf, BufLen,TimeOut);
 #ifdef FUNC_OS_EN
-	osMutexUnlock(UART0Mutex);
+	if(UART_MODULE == UART_PORT1)
+		osMutexUnlock(UART1Mutex);
+	else
+		osMutexUnlock(UART0Mutex);
 #endif
 	return Len;
 }
@@ -45,26 +51,38 @@ uint32_t UARTS_Send(UART_PORT_T UART_MODULE,uint8_t* SendBuf, uint32_t BufLen,ui
 void UARTS_SendByte(UART_PORT_T UART_MODULE,uint8_t SendByte)
 {
 #ifdef FUNC_OS_EN
-	osMutexLock(UART0Mutex);
+	if(UART_MODULE == UART_PORT1)
+		osMutexLock(UART1Mutex);
+	else
+		osMutexLock(UART0Mutex);
 #endif
 
 	UART_SendByte(UART_MODULE,SendByte);
 
 #ifdef FUNC_OS_EN
-	osMutexUnlock(UART0Mutex);
+	if(UART_MODULE == UART_PORT1)
+		osMutexUnlock(UART1Mutex);
+	else
+		osMutexUnlock(UART0Mutex);
 #endif
 }
 
 void UARTS_SendByte_In_Interrupt(UART_PORT_T UART_MODULE,uint8_t SendByte)
 {
 #ifdef FUNC_OS_EN
-	osMutexLock(UART0Mutex);
+	if(UART_MODULE == UART_PORT1)
+		osMutexLock(UART1Mutex);
+	else
+		osMutexLock(UART0Mutex);
 #endif
 
 	UART_SendByte_In_Interrupt(UART_MODULE,SendByte);
 
 #ifdef FUNC_OS_EN
-	osMutexUnlock(UART0Mutex);
+	if(UART_MODULE == UART_PORT1)
+		osMutexUnlock(UART1Mutex);
+	else
+		osMutexUnlock(UART0Mutex);
 #endif
 }
 

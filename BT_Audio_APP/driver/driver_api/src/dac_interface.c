@@ -4,7 +4,10 @@
 #include "clk.h"
 #include "debug.h"
 #include "dac_interface.h"
-#ifdef CFG_APP_CONFIG
+#if defined(CFG_CHIP_CONFIG)
+	#include "chip_config.h"
+	#define DAC_DOUT_MODE				CHIP_AUDIODAC_DOUT_MODE
+#elif defined(CFG_APP_CONFIG)
 	#include "app_config.h"
 	#include "ctrlvars.h"
 	#define DAC_DOUT_MODE				gCtrlVars.HwCt.DAC0Ct.dac_out_mode
@@ -16,6 +19,7 @@
 static uint8_t DAC_BitWidth = 24;
 uint8_t mclkFreqNum = 1;
 
+//AudioADC的采样率大于48K时，AudioDAC采样率不能小于等于48K
 void AudioDAC_Init(DACParamCt *ct, uint32_t SampleRate, uint16_t BitWidth, void *Buf, uint16_t Len,  void *BufEXT, uint16_t LenEXT)
 {
 	mclkFreqNum = SampleRate > 48000 ? 4:1;

@@ -161,7 +161,7 @@ void BtAvrcpConnectedDev(BT_AVRCP_CALLBACK_PARAMS * param)
 
 #if (BT_AVRCP_VOLUME_SYNC)
 	btManager.avrcpSyncEnable = 0;
-	btManager.avrcpSyncVol = 0xff; //初始值
+	btManager.avrcpSyncVol = mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]; //初始值
 	AvrcpAdvTargetSyncVolumeConfig(ConnectIndex,BtLocalVolLevel2AbsVolme(AudioMusicVolGet()));//蓝牙AVRCP连接成功后，将当前的音量值同步到AVRCP adv.volume默认值
 #endif
 
