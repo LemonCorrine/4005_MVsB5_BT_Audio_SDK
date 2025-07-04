@@ -27,16 +27,6 @@
 		popm    $r0, $r1
 	.endm
 
-	.macro EXCEPTION_HANDLER NUM
-	.align 2
-		addi $sp,$sp,#0x800
-		pushm $lp,$sp
-		pushm $r0,$r20
-		mov55 $r0, $sp
-		li	$r1, \NUM
-		b   ExceptionCommHandler
-	.endm
-
 	.section .vector, "ax"
 !========================================================================
 ! Vector table
@@ -103,36 +93,69 @@ ISR_TABLE:
 ----------------------------------------------------------------------*/
 OS_Trap_TLB_Fill:
 //1:  b   1b
-	EXCEPTION_HANDLER 0x1
+	pushm $lp,$sp
+	pushm $r0,$r20
+	mov55 $r0, $sp
+	li	$r1, 0x1
+	b   ExceptionCommHandler
+
 
 OS_Trap_PTE_Not_Present:
 //1:  b   1b
-	EXCEPTION_HANDLER 0x2
+	pushm $lp,$sp
+	pushm $r0,$r20
+	mov55 $r0, $sp
+	li	$r1, 0x2
+	b   ExceptionCommHandler
 
 OS_Trap_TLB_Misc:
 //1:  b   1b
-	EXCEPTION_HANDLER 0x3
+	pushm $lp,$sp
+	pushm $r0,$r20
+	mov55 $r0, $sp
+	li	$r1, 0x3
+	b   ExceptionCommHandler
 
 
 OS_Trap_TLB_VLPT_Miss:
 //1:  b   1b
-	EXCEPTION_HANDLER 0x4
+	pushm $lp,$sp
+	pushm $r0,$r20
+	mov55 $r0, $sp
+	li	$r1, 0x4
+	b   ExceptionCommHandler
 
 OS_Trap_Machine_Error:
 //1:  b   1b
-	EXCEPTION_HANDLER 0x5
+	pushm $lp,$sp
+	pushm $r0,$r20
+	mov55 $r0, $sp
+	li	$r1, 0x5
+	b   ExceptionCommHandler
 
 OS_Trap_Debug_Related:
 //1:  b   1b
-	EXCEPTION_HANDLER 0x6
+	pushm $lp,$sp
+	pushm $r0,$r20
+	mov55 $r0, $sp
+	li	$r1, 0x6
+	b   ExceptionCommHandler
 
 OS_Trap_General_Exception:
 //1:  b   1b
-	EXCEPTION_HANDLER 0x7
+	pushm $lp,$sp
+	pushm $r0,$r20
+	mov55 $r0, $sp
+	li	$r1, 0x7
+	b   ExceptionCommHandler
 
 OS_Trap_Syscall:
 //1:  b   1b
-	EXCEPTION_HANDLER 0x8
+	pushm $lp,$sp
+	pushm $r0,$r20
+	mov55 $r0, $sp
+	li	$r1, 0x8
+	b   ExceptionCommHandler
 
 OS_Trap_Int_Comm:
 	ENABLE_IT_DT
