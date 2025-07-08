@@ -87,8 +87,8 @@ static const UserEffectModeValidConfig EffectModeToggleMap[] =
 	#else
 		{EFFECT_MODE_MIC,		EffectModeStateReady,		&mic_mode,		&mic_effect_para[DefaultNet],		mic_effect_ctrl,	{NULL}	},
 		{EFFECT_MODE_MUSIC,		EffectModeStateReady,		&music_mode,	&music_effect_para[DefaultNet],		music_effect_ctrl,	{NULL}	},
-		{EFFECT_MODE_USBAEC,	EffectModeStateForUSBAEC,	&aec_mode,		&aec_effect_para[DefaultNet],		aec_effect_ctrl,	{NULL}	},
-		{EFFECT_MODE_USBAEC_A,	EffectModeStateForUSBAEC,	&aec_mode,		&aec_A_effect_para[DefaultNet],		aec_effect_ctrl,	{NULL}	},
+		{EFFECT_MODE_USBAEC,	EffectModeStateForUSBAEC,	&aec_mode,		&aec_effect_para[DefaultNet],	 	aec_effect_ctrl,	{NULL}	},
+		// {EFFECT_MODE_USBAEC_A,	EffectModeStateForUSBAEC,	&aec_mode,		&aec_A_effect_para[DefaultNet],		aec_effect_ctrl,	{NULL}	},
 //		{EFFECT_MODE_USBAEC_B,	EffectModeStateForUSBAEC,	&aec_mode,		&aec_B_effect_para[DefaultNet],		aec_effect_ctrl,	{NULL}	},
 //		{EFFECT_MODE_USBAEC_C,	EffectModeStateForUSBAEC,	&aec_mode,		&aec_C_effect_para[DefaultNet],		aec_effect_ctrl,	{NULL}	},
 //		{EFFECT_MODE_USBAEC_D,	EffectModeStateForUSBAEC,	&aec_mode,		&aec_D_effect_para[DefaultNet],		aec_effect_ctrl,	{NULL}	},

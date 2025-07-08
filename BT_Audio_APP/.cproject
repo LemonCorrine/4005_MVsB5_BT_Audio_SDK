@@ -148,7 +148,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/fatfs}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/third_party_effect/ai_denoise}&quot;"/>
 								</option>
-								<option defaultValue="-O0" id="nds.c.link.option.optimization.level.1768301097" name="Optimization Level" superClass="nds.c.link.option.optimization.level" value="-Os1" valueType="string"/>
+								<option defaultValue="-O0" id="nds.c.link.option.optimization.level.1768301097" name="Optimization Level" superClass="nds.c.link.option.optimization.level" value="-Og" valueType="string"/>
 								<option defaultValue="true" id="nds32le-elf-mculib-v3s.c.link.option.noshared.base.94131748" name="No shared libraries (-static)" superClass="nds32le-elf-mculib-v3s.c.link.option.noshared.base" valueType="boolean"/>
 								<option id="nds.c.link.option.nostart.1403177588" name="Do not use standard start files (-nostartfiles)" superClass="nds.c.link.option.nostart" value="true" valueType="boolean"/>
 								<option id="nds.c.linker.option.cmodel.16442458" name="Code Model" superClass="nds.c.linker.option.cmodel" value="-mcmodel=medium" valueType="string"/>
@@ -190,9 +190,7 @@
 		<project id="BT_Audio_APP.target.nds32le-elf-mculib-v3s.exe.316802969" name="Andes Executable" projectType="target.nds32le-elf-mculib-v3s.exe"/>
 	</storageModule>
 	<storageModule moduleId="refreshScope" versionNumber="2">
-		<configuration configurationName="Release">
-			<resource resourceType="PROJECT" workspacePath="/BT_Audio_APP_USBAEC"/>
-		</configuration>
+		<configuration configurationName="Release"/>
 		<configuration configurationName="Debug">
 			<resource resourceType="PROJECT" workspacePath="/BT_Audio_APP"/>
 		</configuration>

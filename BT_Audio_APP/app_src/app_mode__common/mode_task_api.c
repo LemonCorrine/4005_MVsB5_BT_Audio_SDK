@@ -556,7 +556,7 @@ bool ModeCommonInit(void)
 		}
 
 		//sink0
-		AudioIOSet.Adapt = STD;
+		AudioIOSet.Adapt = STD; 
 		AudioIOSet.Sync = TRUE;
 		AudioIOSet.Channels = 2;
 		AudioIOSet.Net = AudioEffect_getSinkNet(AUDIO_DAC0_SINK_NUM);
@@ -723,7 +723,7 @@ bool ModeCommonInit(void)
 #if((CFG_RES_I2S_MODE == I2S_MASTER_MODE) || !defined(CFG_FUNC_I2S_IN_SYNC_EN))
 		// Master 或不开微调
 		if(CFG_PARA_I2S_SAMPLERATE == sampleRate)
-			AudioIOSet.Adapt = STD;//SRC_ONLY
+			AudioIOSet.Adapt = SRC_ONLY;//SRC_ONLY 
 		else
 			AudioIOSet.Adapt = SRC_ONLY;
 #else//slave

@@ -55,8 +55,8 @@
 #define	CFG_APP_CARD_PLAY_MODE_EN
 //#define	CFG_APP_LINEIN_MODE_EN
 //#define CFG_APP_RADIOIN_MODE_EN
-#define CFG_APP_USB_AUDIO_MODE_EN
-//#define CFG_APP_I2SIN_MODE_EN
+// #define CFG_APP_USB_AUDIO_MODE_EN
+#define CFG_APP_I2SIN_MODE_EN
 //#define	CFG_APP_OPTICAL_MODE_EN	// SPDIF 光纤模式
 //#define CFG_APP_COAXIAL_MODE_EN	// SPDIF 同轴模式
 //#define CFG_APP_HDMIIN_MODE_EN
@@ -123,8 +123,10 @@
 /**DAC通道配置选择**/
 #define CFG_RES_AUDIO_DAC0_EN
 
+#ifndef CFG_APP_USB_AUDIO_MODE_EN
 /**I2S音频输出通道配置选择**/
-//#define CFG_RES_AUDIO_I2SOUT_EN
+#define CFG_RES_AUDIO_I2SOUT_EN
+#endif
 
 /**光纤同轴音频输出通道配置选择**/
 //#define CFG_RES_AUDIO_SPDIFOUT_EN
@@ -162,7 +164,7 @@
 		#define I2S_DIN_GPIO				I2S1_DIN_A10
 	#endif
 #else
-	#define I2S_MCLK_GPIO					I2S0_MCLK_OUT_A24 //选择MCLK_OUT/MCLK_IN脚，I2S自动配置成master/slave
+	#define I2S_MCLK_GPIO					I2S0_MCLK_OUT_A24  //选择MCLK_OUT/MCLK_IN脚，I2S自动配置成master/slave
 	#define I2S_LRCLK_GPIO					I2S0_LRCLK_A20
 	#define I2S_BCLK_GPIO					I2S0_BCLK_A21
 	#ifdef CFG_RES_AUDIO_I2SOUT_EN

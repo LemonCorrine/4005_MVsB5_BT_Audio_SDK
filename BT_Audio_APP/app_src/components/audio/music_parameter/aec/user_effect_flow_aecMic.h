@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_aecMic.h                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.16.6                 
+ * @author  ACPWorkbench: 3.17.1                 
  * @version V1.2.0                                  
- * @Created 2025-03-11T17:47:34                                      
+ * @Created 2025-07-08T11:18:37                                      
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -34,6 +34,7 @@ typedef enum _AECMIC_roboeffect_effect_list_enum{
     AECMIC_mic_ns_ADDR,
     AECMIC_mic_EQ_ADDR,
     AECMIC_mic_drc_ADDR,
+    AECMIC_upmix_1to2_0_ADDR,
     AECMIC_gain_control4_ADDR,
     AECMIC_pcm_delay0_ADDR,
     AECMIC_COUNT_ADDR,
@@ -50,19 +51,9 @@ extern const roboeffect_effect_steps_table user_effect_steps_aecMic;
 
 extern uint32_t get_user_effects_script_len_aecMic(void);
 
-extern char *parameter_group_name_aecMic[7];
+extern char *parameter_group_name_aecMic[2];
 extern const unsigned char user_effect_parameters_aecMic_AEC_Music[];
 extern const unsigned char user_module_parameters_aecMic_AEC_Music[];
 extern const unsigned char user_effect_parameters_aecMic_AEC_Music_A[];
 extern const unsigned char user_module_parameters_aecMic_AEC_Music_A[];
-extern const unsigned char user_effect_parameters_aecMic_AEC_Music_B[];
-extern const unsigned char user_module_parameters_aecMic_AEC_Music_B[];
-extern const unsigned char user_effect_parameters_aecMic_AEC_Music_C[];
-extern const unsigned char user_module_parameters_aecMic_AEC_Music_C[];
-extern const unsigned char user_effect_parameters_aecMic_AEC_Music_D[];
-extern const unsigned char user_module_parameters_aecMic_AEC_Music_D[];
-extern const unsigned char user_effect_parameters_aecMic_AEC_Music_E[];
-extern const unsigned char user_module_parameters_aecMic_AEC_Music_E[];
-extern const unsigned char user_effect_parameters_aecMic_AEC_Music_F[];
-extern const unsigned char user_module_parameters_aecMic_AEC_Music_F[];
 #endif/*__USER_EFFECT_FLOW_AECMIC_H__*/

@@ -267,6 +267,63 @@ bool I2SInPlayResInit(void)
 	sI2SInPlayCt->AudioCoreI2SIn->AudioEffectProcess = (AudioCoreProcessFunc)AudioBypassProcess;
 #endif
 
+	uint16_t AudioUsbPhoneBuf_DataLenGet(void);
+	uint16_t AudioUsbPhoneBuf_DataGet(void *Buffer, uint16_t Len);
+	uint16_t AudioUsbPhoneBuf_DataPut(void *Buffer, uint16_t Len);
+	uint16_t AudioUsbPhoneBuf_SpaceGet(void);
+
+	//CC_TODO: AEC Reference source and sink
+	void AudioUsbPhoneBufInit(void); AudioUsbPhoneBufInit();
+
+	//New Reference sink
+	AudioIOSet.Adapt = SRC_ONLY;
+	AudioIOSet.Sync = FALSE;//
+	AudioIOSet.Channels = 1;
+	AudioIOSet.Net = AudioEffect_getSinkNet(AEC_REF_SINK_NUM);
+	AudioIOSet.DataIOFunc = AudioUsbPhoneBuf_DataPut;
+	AudioIOSet.LenGetFunc = AudioUsbPhoneBuf_SpaceGet;
+	// AudioIOSet.Depth = AudioCoreFrameSizeGet(DefaultNet) * 4;//fifo 采样点深度
+	AudioIOSet.Depth = AudioCoreFrameSizeGet(AudioIOSet.Net) * 2;//fifo 采样点深度
+	// AudioIOSet.LowLevelCent = 40;
+	// AudioIOSet.HighLevelCent = 60;
+
+	AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
+	AudioIOSet.IOBitWidthConvFlag = 0;//需要数据进行位宽扩展
+
+	AudioIOSet.SampleRate = AudioCoreMixSampleRateGet(AudioEffect_getSourceNet(AEC_REF_SOURCE_NUM));
+	if(!AudioCoreSinkInit(&AudioIOSet, AEC_REF_SINK_NUM))
+	{
+		DBG("AEC_REF_SINK_NUM sink error!\n");
+	}
+
+	//New Reference source
+	AudioIOSet.Adapt = STD;
+	AudioIOSet.Sync = FALSE;//
+	AudioIOSet.Channels = 1;
+	AudioIOSet.Net = AudioEffect_getSourceNet(AEC_REF_SOURCE_NUM);
+	AudioIOSet.DataIOFunc = AudioUsbPhoneBuf_DataGet;
+	AudioIOSet.LenGetFunc = AudioUsbPhoneBuf_DataLenGet;
+	// AudioIOSet.Depth = AudioCoreFrameSizeGet(AECNet) * 4;//fifo 采样点深度
+	AudioIOSet.Depth = AudioCoreFrameSizeGet(AudioIOSet.Net) * 2;//fifo 采样点深度
+	// AudioIOSet.LowLevelCent = 40;
+	// AudioIOSet.HighLevelCent = 60;
+	AudioIOSet.SampleRate = AudioCoreMixSampleRateGet(AudioIOSet.Net);
+	if(!AudioCoreSourceInit(&AudioIOSet, AEC_REF_SOURCE_NUM))
+	{
+		DBG("AEC_REF_SOURCE_NUM source error!\n");
+	}
+	AudioCoreSinkEnable(AEC_REF_SINK_NUM);
+	AudioCoreSourceEnable(AEC_REF_SOURCE_NUM);
+
+
+	//Core Process
+#ifdef CFG_FUNC_AUDIO_EFFECT_EN
+//	UsbDevicePlayCt->AudioCoreUsb->AudioEffectProcess = (AudioCoreProcessFunc)AudioMusicProcess;
+	AudioCoreProcessConfig((void*)AudioUsbAECProcess);
+#else
+//	UsbDevicePlayCt->AudioCoreUsb->AudioEffectProcess = (AudioCoreProcessFunc)AudioBypassProcess;
+	AudioCoreProcessConfig((void*)AudioBypassProcess);
+#endif
 	return TRUE;
 }
 
@@ -280,11 +337,14 @@ bool I2SInPlayResInit(void)
  * @Others      数据流从I2S到audiocore配有函数指针，audioCore到Dac同理，由audiocoreService任务按需驱动
  * Record
  */
+static uint8_t sysEffectMode;
 bool  I2SInPlayInit(void)
 {
 	bool ret;
 
 	APP_DBG("I2SIn init\n");
+	sysEffectMode = mainAppCt.EffectMode;	//保存EffectMode，退出AEC以后需要恢复
+	mainAppCt.EffectMode = EFFECT_MODE_USBAEC;
 	DMA_ChannelAllocTableSet((uint8_t *)DmaChannelMap);//
 
 	if(!ModeCommonInit())
@@ -422,7 +482,55 @@ bool I2SInPlayDeinit(void)
 	osPortFree(sI2SInPlayCt);
 	sI2SInPlayCt = NULL;
 
+	mainAppCt.EffectMode = sysEffectMode;	//恢复EffectMode
+
 	return TRUE;
+}
+
+MemHandle UsbphBuffer;
+//AEC
+#define AEC_REF_BUF_LEN   (256 * 1 * sizeof(PCM_DATA_TYPE)) * 4		//(framesize * channel * wordlen) * count
+static uint8_t usbph_raw_buf[AEC_REF_BUF_LEN] = {0};
+
+void AudioUsbPhoneBufInit(void)
+{
+	//mv_mopen(&UsbphBuffer, usbph_raw_buf, sizeof(usbph_raw_buf) - 4, NULL);
+
+	UsbphBuffer.addr = usbph_raw_buf;
+	UsbphBuffer.mem_capacity = AEC_REF_BUF_LEN;
+	UsbphBuffer.mem_len = 0;	//store data can be used as a delay, not use so set to 0
+	UsbphBuffer.p = 0;
+}
+
+void AudioUsbPhoneBufDeInit(void)
+{
+	UsbphBuffer.addr = NULL;
+	UsbphBuffer.mem_capacity = 0;
+	UsbphBuffer.mem_len = 0;
+	UsbphBuffer.p = 0;
+}
+
+uint16_t AudioUsbPhoneBuf_DataLenGet(void)
+{
+	return mv_msize(&UsbphBuffer)/sizeof(PCM_DATA_TYPE);//always return samples
+}
+
+uint16_t AudioUsbPhoneBuf_SpaceGet(void)
+{
+	return mv_mremain(&UsbphBuffer)/sizeof(PCM_DATA_TYPE);//always return samples
+}
+
+uint16_t AudioUsbPhoneBuf_DataGet(void *Buffer, uint16_t Len)
+{
+	uint16_t tlen = mv_mread(Buffer, sizeof(PCM_DATA_TYPE), Len, &UsbphBuffer);
+//	DBG("#  tlen = %d, datalen:%d\n", tlen/sizeof(PCM_DATA_TYPE), AudioUsbPhoneBuf_DataLenGet());
+	return tlen/sizeof(PCM_DATA_TYPE);
+}
+uint16_t AudioUsbPhoneBuf_DataPut(void *Buffer, uint16_t Len)
+{
+	uint16_t tlen = mv_mwrite(Buffer, sizeof(PCM_DATA_TYPE), Len, &UsbphBuffer);
+//	DBG("put = %d, space:%d\n", tlen/sizeof(PCM_DATA_TYPE), AudioUsbPhoneBuf_SpaceGet());
+	return tlen/sizeof(PCM_DATA_TYPE);
 }
 
 #endif//#ifdef CFG_APP_I2SIN_MODE_EN

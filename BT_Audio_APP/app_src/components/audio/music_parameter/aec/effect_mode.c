@@ -26,149 +26,149 @@ const AUDIOEFFECT_EFFECT_PARA aec_effect_para[MaxNet] =
 	}
 };
 
-const AUDIOEFFECT_EFFECT_PARA aec_A_effect_para[MaxNet] =
-{
-	{
-		.user_effect_name = (uint8_t *)"AEC_Music_A",
-		.chart_name = (uint8_t *)chart_name_aecMusic,
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMusic,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMusic,
-		.user_effects_script = (uint8_t *)user_effects_script_aecMusic,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMusic_AEC_Music_A,
-		.user_module_parameters = (uint8_t *)user_module_parameters_aecMusic_AEC_Music_A,
-		.get_user_effects_script_len = get_user_effects_script_len_aecMusic,
-	},
-	{
-		.user_effect_name = (uint8_t *)"AEC_Mic_A",
-		.chart_name = (uint8_t *)chart_name_aecMic,
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMic,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMic,
-		.user_effects_script = (uint8_t *)user_effects_script_aecMic,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMic_AEC_Music_A,
-		.user_module_parameters = (uint8_t *)user_module_parameters_aecMic_AEC_Music_A,
-		.get_user_effects_script_len = get_user_effects_script_len_aecMic,
-	}
-};
+// const AUDIOEFFECT_EFFECT_PARA aec_A_effect_para[MaxNet] =
+// {
+// 	{
+// 		.user_effect_name = (uint8_t *)"AEC_Music_A",
+// 		.chart_name = (uint8_t *)chart_name_aecMusic,
+// 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMusic,
+// 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMusic,
+// 		.user_effects_script = (uint8_t *)user_effects_script_aecMusic,
+// 		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMusic_AEC_Music_A,
+// 		.user_module_parameters = (uint8_t *)user_module_parameters_aecMusic_AEC_Music_A,
+// 		.get_user_effects_script_len = get_user_effects_script_len_aecMusic,
+// 	},
+// 	{
+// 		.user_effect_name = (uint8_t *)"AEC_Mic_A",
+// 		.chart_name = (uint8_t *)chart_name_aecMic,
+// 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMic,
+// 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMic,
+// 		.user_effects_script = (uint8_t *)user_effects_script_aecMic,
+// 		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMic_AEC_Music_A,
+// 		.user_module_parameters = (uint8_t *)user_module_parameters_aecMic_AEC_Music_A,
+// 		.get_user_effects_script_len = get_user_effects_script_len_aecMic,
+// 	}
+// };
 
-const AUDIOEFFECT_EFFECT_PARA aec_B_effect_para[MaxNet] =
-{
-	{
-		.user_effect_name = (uint8_t *)"AEC_Music_B",
-		.chart_name = (uint8_t *)chart_name_aecMusic,
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMusic,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMusic,
-		.user_effects_script = (uint8_t *)user_effects_script_aecMusic,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMusic_AEC_Music_B,
-		.user_module_parameters = (uint8_t *)user_module_parameters_aecMusic_AEC_Music_B,
-		.get_user_effects_script_len = get_user_effects_script_len_aecMusic,
-	},
-	{
-		.user_effect_name = (uint8_t *)"AEC_Mic_B",
-		.chart_name = (uint8_t *)chart_name_aecMic,
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMic,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMic,
-		.user_effects_script = (uint8_t *)user_effects_script_aecMic,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMic_AEC_Music_B,
-		.user_module_parameters = (uint8_t *)user_module_parameters_aecMic_AEC_Music_B,
-		.get_user_effects_script_len = get_user_effects_script_len_aecMic,
-	}
-};
+// const AUDIOEFFECT_EFFECT_PARA aec_B_effect_para[MaxNet] =
+// {
+// 	{
+// 		.user_effect_name = (uint8_t *)"AEC_Music_B",
+// 		.chart_name = (uint8_t *)chart_name_aecMusic,
+// 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMusic,
+// 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMusic,
+// 		.user_effects_script = (uint8_t *)user_effects_script_aecMusic,
+// 		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMusic_AEC_Music_B,
+// 		.user_module_parameters = (uint8_t *)user_module_parameters_aecMusic_AEC_Music_B,
+// 		.get_user_effects_script_len = get_user_effects_script_len_aecMusic,
+// 	},
+// 	{
+// 		.user_effect_name = (uint8_t *)"AEC_Mic_B",
+// 		.chart_name = (uint8_t *)chart_name_aecMic,
+// 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMic,
+// 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMic,
+// 		.user_effects_script = (uint8_t *)user_effects_script_aecMic,
+// 		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMic_AEC_Music_B,
+// 		.user_module_parameters = (uint8_t *)user_module_parameters_aecMic_AEC_Music_B,
+// 		.get_user_effects_script_len = get_user_effects_script_len_aecMic,
+// 	}
+// };
 
-const AUDIOEFFECT_EFFECT_PARA aec_C_effect_para[MaxNet] =
-{
-	{
-		.user_effect_name = (uint8_t *)"AEC_Music_C",
-		.chart_name = (uint8_t *)chart_name_aecMusic,
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMusic,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMusic,
-		.user_effects_script = (uint8_t *)user_effects_script_aecMusic,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMusic_AEC_Music_C,
-		.user_module_parameters = (uint8_t *)user_module_parameters_aecMusic_AEC_Music_C,
-		.get_user_effects_script_len = get_user_effects_script_len_aecMusic,
-	},
-	{
-		.user_effect_name = (uint8_t *)"AEC_Mic_C",
-		.chart_name = (uint8_t *)chart_name_aecMic,
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMic,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMic,
-		.user_effects_script = (uint8_t *)user_effects_script_aecMic,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMic_AEC_Music_C,
-		.user_module_parameters = (uint8_t *)user_module_parameters_aecMic_AEC_Music_C,
-		.get_user_effects_script_len = get_user_effects_script_len_aecMic,
-	}
-};
+// const AUDIOEFFECT_EFFECT_PARA aec_C_effect_para[MaxNet] =
+// {
+// 	{
+// 		.user_effect_name = (uint8_t *)"AEC_Music_C",
+// 		.chart_name = (uint8_t *)chart_name_aecMusic,
+// 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMusic,
+// 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMusic,
+// 		.user_effects_script = (uint8_t *)user_effects_script_aecMusic,
+// 		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMusic_AEC_Music_C,
+// 		.user_module_parameters = (uint8_t *)user_module_parameters_aecMusic_AEC_Music_C,
+// 		.get_user_effects_script_len = get_user_effects_script_len_aecMusic,
+// 	},
+// 	{
+// 		.user_effect_name = (uint8_t *)"AEC_Mic_C",
+// 		.chart_name = (uint8_t *)chart_name_aecMic,
+// 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMic,
+// 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMic,
+// 		.user_effects_script = (uint8_t *)user_effects_script_aecMic,
+// 		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMic_AEC_Music_C,
+// 		.user_module_parameters = (uint8_t *)user_module_parameters_aecMic_AEC_Music_C,
+// 		.get_user_effects_script_len = get_user_effects_script_len_aecMic,
+// 	}
+// };
 
-const AUDIOEFFECT_EFFECT_PARA aec_D_effect_para[MaxNet] =
-{
-	{
-		.user_effect_name = (uint8_t *)"AEC_Music_D",
-		.chart_name = (uint8_t *)chart_name_aecMusic,
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMusic,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMusic,
-		.user_effects_script = (uint8_t *)user_effects_script_aecMusic,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMusic_AEC_Music_D,
-		.user_module_parameters = (uint8_t *)user_module_parameters_aecMusic_AEC_Music_D,
-		.get_user_effects_script_len = get_user_effects_script_len_aecMusic,
-	},
-	{
-		.user_effect_name = (uint8_t *)"AEC_Mic_D",
-		.chart_name = (uint8_t *)chart_name_aecMic,
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMic,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMic,
-		.user_effects_script = (uint8_t *)user_effects_script_aecMic,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMic_AEC_Music_D,
-		.user_module_parameters = (uint8_t *)user_module_parameters_aecMic_AEC_Music_D,
-		.get_user_effects_script_len = get_user_effects_script_len_aecMic,
-	}
-};
+// const AUDIOEFFECT_EFFECT_PARA aec_D_effect_para[MaxNet] =
+// {
+// 	{
+// 		.user_effect_name = (uint8_t *)"AEC_Music_D",
+// 		.chart_name = (uint8_t *)chart_name_aecMusic,
+// 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMusic,
+// 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMusic,
+// 		.user_effects_script = (uint8_t *)user_effects_script_aecMusic,
+// 		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMusic_AEC_Music_D,
+// 		.user_module_parameters = (uint8_t *)user_module_parameters_aecMusic_AEC_Music_D,
+// 		.get_user_effects_script_len = get_user_effects_script_len_aecMusic,
+// 	},
+// 	{
+// 		.user_effect_name = (uint8_t *)"AEC_Mic_D",
+// 		.chart_name = (uint8_t *)chart_name_aecMic,
+// 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMic,
+// 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMic,
+// 		.user_effects_script = (uint8_t *)user_effects_script_aecMic,
+// 		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMic_AEC_Music_D,
+// 		.user_module_parameters = (uint8_t *)user_module_parameters_aecMic_AEC_Music_D,
+// 		.get_user_effects_script_len = get_user_effects_script_len_aecMic,
+// 	}
+// };
 
-const AUDIOEFFECT_EFFECT_PARA aec_E_effect_para[MaxNet] =
-{
-	{
-		.user_effect_name = (uint8_t *)"AEC_Music_E",
-		.chart_name = (uint8_t *)chart_name_aecMusic,
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMusic,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMusic,
-		.user_effects_script = (uint8_t *)user_effects_script_aecMusic,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMusic_AEC_Music_E,
-		.user_module_parameters = (uint8_t *)user_module_parameters_aecMusic_AEC_Music_E,
-		.get_user_effects_script_len = get_user_effects_script_len_aecMusic,
-	},
-	{
-		.user_effect_name = (uint8_t *)"AEC_Mic_E",
-		.chart_name = (uint8_t *)chart_name_aecMic,
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMic,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMic,
-		.user_effects_script = (uint8_t *)user_effects_script_aecMic,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMic_AEC_Music_E,
-		.user_module_parameters = (uint8_t *)user_module_parameters_aecMic_AEC_Music_E,
-		.get_user_effects_script_len = get_user_effects_script_len_aecMic,
-	}
-};
+// const AUDIOEFFECT_EFFECT_PARA aec_E_effect_para[MaxNet] =
+// {
+// 	{
+// 		.user_effect_name = (uint8_t *)"AEC_Music_E",
+// 		.chart_name = (uint8_t *)chart_name_aecMusic,
+// 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMusic,
+// 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMusic,
+// 		.user_effects_script = (uint8_t *)user_effects_script_aecMusic,
+// 		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMusic_AEC_Music_E,
+// 		.user_module_parameters = (uint8_t *)user_module_parameters_aecMusic_AEC_Music_E,
+// 		.get_user_effects_script_len = get_user_effects_script_len_aecMusic,
+// 	},
+// 	{
+// 		.user_effect_name = (uint8_t *)"AEC_Mic_E",
+// 		.chart_name = (uint8_t *)chart_name_aecMic,
+// 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMic,
+// 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMic,
+// 		.user_effects_script = (uint8_t *)user_effects_script_aecMic,
+// 		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMic_AEC_Music_E,
+// 		.user_module_parameters = (uint8_t *)user_module_parameters_aecMic_AEC_Music_E,
+// 		.get_user_effects_script_len = get_user_effects_script_len_aecMic,
+// 	}
+// };
 
-const AUDIOEFFECT_EFFECT_PARA aec_F_effect_para[MaxNet] =
-{
-	{
-		.user_effect_name = (uint8_t *)"AEC_Music_F",
-		.chart_name = (uint8_t *)chart_name_aecMusic,
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMusic,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMusic,
-		.user_effects_script = (uint8_t *)user_effects_script_aecMusic,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMusic_AEC_Music_F,
-		.user_module_parameters = (uint8_t *)user_module_parameters_aecMusic_AEC_Music_F,
-		.get_user_effects_script_len = get_user_effects_script_len_aecMusic,
-	},
-	{
-		.user_effect_name = (uint8_t *)"AEC_Mic_F",
-		.chart_name = (uint8_t *)chart_name_aecMic,
-		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMic,
-		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMic,
-		.user_effects_script = (uint8_t *)user_effects_script_aecMic,
-		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMic_AEC_Music_F,
-		.user_module_parameters = (uint8_t *)user_module_parameters_aecMic_AEC_Music_F,
-		.get_user_effects_script_len = get_user_effects_script_len_aecMic,
-	}
-};
+// const AUDIOEFFECT_EFFECT_PARA aec_F_effect_para[MaxNet] =
+// {
+// 	{
+// 		.user_effect_name = (uint8_t *)"AEC_Music_F",
+// 		.chart_name = (uint8_t *)chart_name_aecMusic,
+// 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMusic,
+// 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMusic,
+// 		.user_effects_script = (uint8_t *)user_effects_script_aecMusic,
+// 		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMusic_AEC_Music_F,
+// 		.user_module_parameters = (uint8_t *)user_module_parameters_aecMusic_AEC_Music_F,
+// 		.get_user_effects_script_len = get_user_effects_script_len_aecMusic,
+// 	},
+// 	{
+// 		.user_effect_name = (uint8_t *)"AEC_Mic_F",
+// 		.chart_name = (uint8_t *)chart_name_aecMic,
+// 		.user_effect_list = (roboeffect_effect_list_info *)&user_effect_list_aecMic,
+// 		.user_effect_steps = (roboeffect_effect_steps_table *)&user_effect_steps_aecMic,
+// 		.user_effects_script = (uint8_t *)user_effects_script_aecMic,
+// 		.user_effect_parameters = (uint8_t *)user_effect_parameters_aecMic_AEC_Music_F,
+// 		.user_module_parameters = (uint8_t *)user_module_parameters_aecMic_AEC_Music_F,
+// 		.get_user_effects_script_len = get_user_effects_script_len_aecMic,
+// 	}
+// };
 
 const AUDIOEFFECT_SOURCE_SINK_NUM aec_mode =
 {
