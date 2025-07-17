@@ -164,14 +164,14 @@
 		#define I2S_DIN_GPIO				I2S1_DIN_A10
 	#endif
 #else
-	#define I2S_MCLK_GPIO					I2S0_MCLK_OUT_A24  //选择MCLK_OUT/MCLK_IN脚，I2S自动配置成master/slave
-	#define I2S_LRCLK_GPIO					I2S0_LRCLK_A20
-	#define I2S_BCLK_GPIO					I2S0_BCLK_A21
+	#define I2S_MCLK_GPIO					I2S1_MCLK_OUT_A7  //选择MCLK_OUT/MCLK_IN脚，I2S自动配置成master/slave
+	#define I2S_LRCLK_GPIO					I2S1_LRCLK_A20
+	#define I2S_BCLK_GPIO					I2S1_BCLK_A21
 	#ifdef CFG_RES_AUDIO_I2SOUT_EN
-		#define I2S_DOUT_GPIO				I2S0_DOUT_A22
+		#define I2S_DOUT_GPIO				I2S1_DOUT_A10
 	#endif
 	#ifdef CFG_APP_I2SIN_MODE_EN
-		#define I2S_DIN_GPIO				I2S0_DIN_A23
+		#define I2S_DIN_GPIO				I2S1_DIN_A31
 	#endif
 #endif
 #define CFG_RES_I2S_MODE				GET_I2S_MODE(I2S_MCLK_GPIO)		//根据I2S_MCLK_GPIO自动配置master/slave
@@ -213,13 +213,13 @@
 //    1.此功能是基于MUSIC EQ进行手动设置的，需要在调音参数中使能此EQ；
 //    2.可在flat/classic/pop/jazz/pop/vocal boost之间通过KEY来切换   
 #if CFG_RES_MIC_SELECT
-//	#define	CFG_FUNC_MIC_KARAOKE_EN      //MIC karaoke功能选择
+	#define	CFG_FUNC_MIC_KARAOKE_EN      //MIC karaoke功能选择
 #endif
 
 #ifdef CFG_FUNC_MIC_KARAOKE_EN
 //Line in mix for Karaoke
 #ifndef CFG_APP_LINEIN_MODE_EN
-//	#define CFG_FUNC_LINEIN_MIX_MODE
+	#define CFG_FUNC_LINEIN_MIX_MODE
 #endif
 // I2S mix mode for Karaoke
 //#define CFG_RES_AUDIO_I2S_MIX_OUT_EN

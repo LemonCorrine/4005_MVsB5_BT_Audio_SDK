@@ -79,7 +79,7 @@ static const UserEffectModeValidConfig EffectModeToggleMap[] =
 	#ifdef CFG_FUNC_MIC_KARAOKE_EN
 		{EFFECT_MODE_HunXiang,	EffectModeStateReady,	&Karaoke_mode,	&HunXiang_effect_para[DefaultNet],	Karaoke_effect_ctrl,	{msg_process_Karaoke,NULL}},
 		{EFFECT_MODE_DianYin,	EffectModeStateReady,	&Karaoke_mode,	&DianYin_effect_para[DefaultNet],	Karaoke_effect_ctrl,	{msg_process_Karaoke,NULL}},
-		{EFFECT_MODE_MoYin,		EffectModeStateReady,	&Karaoke_mode,	&MoYin_effect_para[DefaultNet],		Karaoke_effect_ctrl,	{msg_process_Karaoke,NULL}},
+		{EFFECT_MODE_USBAEC,	EffectModeStateForUSBAEC,&aec_mode,		&aec_effect_para[DefaultNet],		aec_effect_ctrl,		{NULL}},
 		{EFFECT_MODE_HanMai,	EffectModeStateReady,	&Karaoke_mode,	&HanMai_effect_para[DefaultNet],	Karaoke_effect_ctrl,	{msg_process_Karaoke,NULL}},
 		{EFFECT_MODE_NanBianNv,	EffectModeStateReady,	&Karaoke_mode,	&NanBianNv_effect_para[DefaultNet],	Karaoke_effect_ctrl,	{msg_process_Karaoke,NULL}},
 		{EFFECT_MODE_NvBianNan,	EffectModeStateReady,	&Karaoke_mode,	&NvBianNan_effect_para[DefaultNet],	Karaoke_effect_ctrl,	{msg_process_Karaoke,NULL}},

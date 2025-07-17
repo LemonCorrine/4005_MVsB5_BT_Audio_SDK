@@ -145,7 +145,7 @@ void LineinADCDigitalInit(void)
 		BitWidth = ADC_WIDTH_24BITS;
 #endif
 
-	AudioADC_DigitalInit(ADC0_MODULE, AudioCoreMixSampleRateGet(DefaultNet),BitWidth, (void*)sLineInPlayCt->ADCFIFO, sLineInPlayCt->ADCFIFO_len);
+	AudioADC_DigitalInit(ADC0_MODULE, AudioCoreMixSampleRateGet(AECNet)/* 采样频率要改成AEC采样频率 */,BitWidth, (void*)sLineInPlayCt->ADCFIFO, sLineInPlayCt->ADCFIFO_len);
 
 #ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
 	Clock_AudioMclkSel(AUDIO_ADC0, gCtrlVars.HwCt.ADC0DigitalCt.adc_mclk_source);
