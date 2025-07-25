@@ -31,6 +31,9 @@ extern "C"{
  * @brief  Port连接检测函数
  * @param  NONE
  * @return NONE
+ * 重要提示：
+ * 目标设备必须固定角色
+ * 两方都检测Host/Device时，无法识别
  */
 void OTG_PortLinkCheck(void);
 

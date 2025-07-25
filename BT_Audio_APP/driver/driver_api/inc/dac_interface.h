@@ -32,6 +32,7 @@ typedef struct __DACParamCt
  * @brief  AudioDAC配置函数
  * @return 无
  * @Note   因为涉及时钟配置, AudioDAC_Init需要在AudioADC和I2S配置之前调用
+ * @Note   AudioADC的采样率大于48K时，AudioDAC采样率不能小于等于48K
  */
 void AudioDAC_Init(DACParamCt *ct, uint32_t SampleRate, uint16_t BitWidth, void *Buf, uint16_t Len, void *BufEXT, uint16_t LenEXT);
 
@@ -39,6 +40,7 @@ void AudioDAC_Init(DACParamCt *ct, uint32_t SampleRate, uint16_t BitWidth, void 
  * @brief  AudioDAC采样率切换配置
  * @return 无
  * @Note   如果采样率在<=48K、>48K之间切换的，需要在切换完dac的采样率后重新配置AudioADC、I2S的时钟
+ * @Note   AudioADC的采样率大于48K时，AudioDAC采样率不能小于等于48K
  */
 void AudioDAC0_SampleRateChange(uint32_t SampleRate);
 

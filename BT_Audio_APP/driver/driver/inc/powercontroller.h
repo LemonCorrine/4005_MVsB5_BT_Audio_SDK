@@ -361,9 +361,16 @@ void Power_LDO16DConfigHighCurrentLimit(uint8_t OCSel_val);
  */
 void Power_LDO33AConfigHighCurrentLimit(uint8_t OCSel_val);
 
+typedef enum _PWR_DCDC_LVL_SEL
+{
+    PWD_DCDC_LVL_1V6 = 3, // 1.6V
+    PWD_DCDC_LVL_1V5 = 4, // 1.5V
+    PWD_DCDC_LVL_1V4 = 5, // 1.4V
+    PWD_DCDC_LVL_1V3 = 6, // 1.3V
+} PWR_DCDC_LVL_SEL;
 /**
  * @brief  ldo_switch_to_dcdc, 切换到DCDC模式，配置电压
- * @param  trim_cfg: 0-1.9V;1-1.8;2-1.7V;3-1.6V;4-1.5V;5-1.4V;6-1.3V
+ * @param  trim_cfg: 3-1.6V;4-1.5V;5-1.4V;6-1.3V
  * @return void
  * @note
  *          DCDC电感选型： 负载最大电流150mA选择一类电感，负载最大电流100mA选择一类或二类电感
@@ -373,19 +380,19 @@ void Power_LDO33AConfigHighCurrentLimit(uint8_t OCSel_val);
  *           1.不支持DCDC的芯片型号请勿调用该接口，否则会导致芯片因无法正常供电而无法工作！
  *           2.切换到DCDC需要每次开机都调用该接口，芯片将从LDO切换到DCDC工作模式，若后续需要调整DCDC电压，请调用Power_DCDCConfig()接口。
  */
-void ldo_switch_to_dcdc(uint8_t trim_cfg);
+void ldo_switch_to_dcdc(PWR_DCDC_LVL_SEL trim_cfg);
 
 /**
  * @brief  Config LDO16D voltage
- * @param  uint8_t value: 0-1.9V;1-1.8;2-1.7V;3-1.6V;4-1.5V;5-1.4V;6-1.3V
+ * @param  uint8_t value: 3-1.6V;4-1.5V;5-1.4V;6-1.3V
  * @return void
  * @note   需要在DCDC模式下调用，否则无效。
  */
-void Power_DCDCConfig(uint8_t value);
+void Power_DCDCConfig(PWR_DCDC_LVL_SEL value);
 
 /**
  * @brief  Power config LDO16 voltage
- * @param  value: 0-1.6V, 1-1.7V, 2-1.8V
+ * @param  value: 0-1.6V
  * @return void
  * @note   none
  */

@@ -256,7 +256,8 @@ uint32_t AudioDAC_SampleRateGet(DAC_MODULE DACModule);
 /**
  * @brief  Audio DAC sampler rate set
  * @param  DACModule which AudioDAC you will use
- * @param  SampleRate 8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000 are supported.
+ * @param  SampleRate 8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000, 
+ * 					  88200, 96000, 176400, 192000 are supported.
  * @return NONE
  */
 void AudioDAC_SampleRateSet(DAC_MODULE DACModule,uint32_t SampleRate);
@@ -411,12 +412,16 @@ bool AudioDAC_AllPowerOn_Fast(DAC_Model DACModel, DAC_LoadStatus DACLoadStatus, 
 
 /**
  * @brief All Analog power Down DAC
+ * @note The digital DIG_EN cannot be turned off before PowerDown
+ * @note You must have already used SysTickInit before using this API
  * @return TRUE:sucess,FALSE:failure
  */
 bool AudioDAC_AllPowerDown(void);
 
 /**
  * @brief All Analog power Down DAC in Fast mode
+ * @note The digital DIG_EN cannot be turned off before PowerDown
+ * @note You must have already used SysTickInit before using this API
  * @return TRUE:sucess,FALSE:failure
  */
 bool AudioDAC_AllPowerDown_Fast(void);

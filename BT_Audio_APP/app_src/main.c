@@ -201,7 +201,7 @@ void SystemClockInit(bool FristPoweron)
 #endif
 
 #ifdef CHIP_USE_DCDC
-	ldo_switch_to_dcdc(3); // 3-1.6V Default:1.6V
+	ldo_switch_to_dcdc(PWD_DCDC_LVL_1V6); // 3-1.6V Default:1.6V
 #else
 	Power_LDO16Config(1);
 #endif
@@ -333,7 +333,7 @@ void SleepMain(void)
 //    DeepSleepIOConfig();
     Clock_RcFreqGet(1);		//先获取RC时钟，避免在唤醒源检测时启动硬件计数器
 #ifdef CHIP_USE_DCDC
-    ldo_switch_to_dcdc(6); // DCDC 1.3V,降低功耗
+    ldo_switch_to_dcdc(PWD_DCDC_LVL_1V3); // DCDC 1.3V,降低功耗
 #else
 	Power_LDO16Config(0);
 #endif

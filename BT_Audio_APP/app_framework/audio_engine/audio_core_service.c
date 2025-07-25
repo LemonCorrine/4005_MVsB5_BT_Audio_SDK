@@ -140,6 +140,7 @@ static void AudioCoreServiceEntrance(void * param)
 				break;
 
 			default:
+				AudioMsgProccess(msgRecv.msgId);
 				break;
 		}
 

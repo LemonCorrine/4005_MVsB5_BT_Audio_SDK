@@ -1659,7 +1659,10 @@ void Communication_Effect_0xfd(uint8_t *buf, uint8_t len)//user define tag
 	tx_buf[1]  = 0x5a;
 	tx_buf[2]  = 0xfd;//control
 	tx_buf[3]  = 0x16;
-	EffectParamFlashUpdata();
+
+	extern void SlowDevice_MsgSend(uint16_t msgId);
+	SlowDevice_MsgSend(MSG_DEVICE_EFFECT_DATA_WRITE);
+
 	Communication_Effect_Send(&tx_buf[2], 1);//·µ»Ø¿ØÖÆ×Ö
 #endif
 }

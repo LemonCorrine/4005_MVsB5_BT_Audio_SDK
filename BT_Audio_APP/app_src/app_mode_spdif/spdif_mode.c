@@ -48,6 +48,7 @@
 #if defined(CFG_APP_OPTICAL_MODE_EN) || defined(CFG_APP_COAXIAL_MODE_EN)
 
 //#define SPDIF_DPLL_LOCK_MODE
+//#define SPDIF_DMA_MONITOR_ENABLE	//开启SPDIF DMA工作监控
 
 #ifdef SPDIF_DPLL_LOCK_MODE
 void DpllLockReInit(void);
@@ -64,6 +65,9 @@ extern const char* GetModeNameStr(SysModeNumber Mode);
 #define SPDIF_CARRY_LEN					(MAX_FRAME_SAMPLES * sizeof(PCM_DATA_TYPE) * 2 * 2 + PCM_REMAIN_SMAPLES * 2 * 4)//支持192000输入 buf len for get data form dma fifo, deal + 6samples 用于缓存偶尔多余的数据，#9817
 
 #define SPDIF_CARRY_LEN_24				(SPDIF_CARRY_LEN + 300)	//192000输入的时候，buf会增大100-300个字节，经验值需要实测
+
+//spdif data carry step len from DMA to circular buf
+#define SPDIF_CARRY_FRAME_SAMPLES 32
 
 static const uint8_t DmaChannelMap[6] = {
 	//DMA默认配置不要删除，DMA数量不足6个的时候作为填充用
@@ -124,7 +128,13 @@ typedef struct _SpdifPlayContext
 	bool 				SpdifDpllLockFlag;
 	uint32_t 			dpll_lock_cnt;
 #endif
-	SPDIF_TYPE_STR  	 AudioInfo;
+	SPDIF_TYPE_STR		AudioInfo;
+	uint16_t			SpdifMuteCnt;
+
+#ifdef	SPDIF_DMA_MONITOR_ENABLE
+	bool				spdif_reboot_flag;	//reset标志位
+	uint32_t			spdif_count;		//异常计数次数
+#endif
 }SpdifPlayContext;
 
 static  SpdifPlayContext*		SpdifPlayCt = NULL;
@@ -166,14 +176,24 @@ void SpdifDataCarry(void)
 	spdif_len = spdif_len & 0xFFF8;
 	if(!spdif_len)
 	{
+#ifdef	SPDIF_DMA_MONITOR_ENABLE
+		//无数据计数器累加，20次以后启动复位
+		SpdifPlayCt->spdif_count++;
+		if(SpdifPlayCt->spdif_count > 20)	//这个20次可以按实际效果优化
+			SpdifPlayCt->spdif_reboot_flag = 1;
+#endif
 		return ;
 	}
 
-	cnt = (spdif_len / (sizeof(PCM_DATA_TYPE) * 4)) / (MAX_FRAME_SAMPLES);
+#ifdef	SPDIF_DMA_MONITOR_ENABLE
+	SpdifPlayCt->spdif_count = 0;	//有数据清0
+#endif
+
+	cnt = (spdif_len / (sizeof(PCM_DATA_TYPE) * 4)) / (SPDIF_CARRY_FRAME_SAMPLES);
 
 	while(cnt--)
 	{
-		pcm_len = DMA_CircularDataGet(CFG_SPDIF_RX_DMA_CHANNEL, pcmBuf, MAX_FRAME_SAMPLES * (sizeof(PCM_DATA_TYPE) * 4));
+		pcm_len = DMA_CircularDataGet(CFG_SPDIF_RX_DMA_CHANNEL, pcmBuf, SPDIF_CARRY_FRAME_SAMPLES * (sizeof(PCM_DATA_TYPE) * 4));
 #ifdef CFG_AUDIO_WIDTH_24BIT
 //		pcm_len = SPDIF_SPDIFDataToPCMData(CFG_SPDIF_MODULE,(int32_t *)pcmBuf, pcm_len, (int32_t *)SpdifPlayCt->SpdifCarry24, SPDIF_WORDLTH_24BIT);
 		SPDIF_SPDIFDatatoAudioData((int32_t *)pcmBuf, pcm_len, (int32_t *)SpdifPlayCt->SpdifCarry24, SPDIF_WORDLTH_24BIT, &SpdifPlayCt->AudioInfo);
@@ -203,6 +223,7 @@ void SpdifDataCarry(void)
 		}
 		MCUCircular_PutData(&SpdifPlayCt->SpdifPcmCircularBuf, pcmBuf, pcm_len);
 #endif
+		SpdifPlayCt->SpdifMuteCnt = (SpdifPlayCt->SpdifMuteCnt > 1 ? (SpdifPlayCt->SpdifMuteCnt-1):0);
 	}
 }
 
@@ -369,7 +390,13 @@ bool SpdifPlayInit(void)
 	}		
 #endif
 
+
+	/************************solution 1***************************/
+	//SpdifPlayCt->SpdifLockFlag = TRUE;
+	/************************solution 2***************************/
 	SpdifPlayCt->SpdifLockFlag = FALSE;
+	AudioCoreSourceMute(SPDIF_SOURCE_NUM, TRUE, TRUE);
+	/*************************end*********************************/
 	
 #ifndef CFG_FUNC_REMIND_SOUND_EN
 	 if(IsAudioPlayerMute() == TRUE)
@@ -405,7 +432,10 @@ void SpdifPlayRun(uint16_t msgId)
 	{
 		APP_DBG("SPDIF RX UNLOCK!\n");
 		SpdifPlayCt->SpdifLockFlag = FALSE;
-
+#ifdef	SPDIF_DMA_MONITOR_ENABLE
+		SpdifPlayCt->spdif_count = 0;	//UNLOCK清0
+#endif
+		AudioCoreSourceMute(SPDIF_SOURCE_NUM, TRUE, TRUE);
 #ifdef SPDIF_DPLL_LOCK_MODE
 		SpdifPlayCt->dpll_lock_cnt = 0;
 		SPDIF_DpllLockDeInit();
@@ -414,25 +444,15 @@ void SpdifPlayRun(uint16_t msgId)
 #endif
 
 		AudioCoreSourceDisable(SPDIF_SOURCE_NUM);
-		/*#ifdef CFG_FUNC_FREQ_ADJUST
-		AudioCoreSourceFreqAdjustDisable();
-		#endif
-		*/
+		AudioCoreSourceFifoReset(SPDIF_SOURCE_NUM);
+		SpdifPlayCt->SpdifMuteCnt = 20;
 	}
 	if(!SpdifPlayCt->SpdifLockFlag && SPDIF_FlagStatusGet(CFG_SPDIF_MODULE,LOCK_FLAG_STATUS))
 	{
 		APP_DBG("SPDIF RX LOCK!\n");
 		SpdifPlayCt->SpdifLockFlag = TRUE;
-		if(IsAudioPlayerMute() == FALSE)
-		{
-			HardWareMuteOrUnMute();
-		}
-		DMA_ChannelDisable(CFG_SPDIF_RX_DMA_CHANNEL);
-		DMA_CircularFIFOClear(CFG_SPDIF_RX_DMA_CHANNEL);
-		DMA_ChannelEnable(CFG_SPDIF_RX_DMA_CHANNEL);
-		vTaskDelay(10);
 		AudioCoreSourceEnable(SPDIF_SOURCE_NUM);
-
+		vTaskDelay(10);
 #ifdef SPDIF_DPLL_LOCK_MODE
 		SPDIF_DpllLockStart();
 
@@ -469,8 +489,6 @@ void SpdifPlayRun(uint16_t msgId)
 			SpdifPlayCt->SpdifDpllLockFlag = FALSE;
 		}
 #endif
-
-		AudioCoreSourceUnmute(SPDIF_SOURCE_NUM, TRUE, TRUE);
 	}
 
 #ifdef SPDIF_DPLL_LOCK_MODE
@@ -502,15 +520,17 @@ void SpdifPlayRun(uint16_t msgId)
 			AudioOutSampleRateSet(SpdifPlayCt->SampleRate);
 #endif
 			AudioCoreSourceChange(SPDIF_SOURCE_NUM, 0, SpdifPlayCt->SampleRate);
-
+			AudioCoreSourceMute(SPDIF_SOURCE_NUM, TRUE, TRUE);
+			SpdifPlayCt->SpdifMuteCnt = 250;	//some devices maybe need larger or smaller
 #ifdef SPDIF_DPLL_LOCK_MODE
 			DpllLockReInit();
 #endif
 		}
 
-		if(IsAudioPlayerMute() == TRUE)
+		if(!SpdifPlayCt->SpdifMuteCnt && AudioCoreSourceMuteStatusGet(SPDIF_SOURCE_NUM))
 		{
-			HardWareMuteOrUnMute();
+			APP_DBG("Unmute spdif\n");
+			AudioCoreSourceUnmute(SPDIF_SOURCE_NUM, TRUE, TRUE);
 		}
 		SpdifDataCarry();
 	}
@@ -520,6 +540,20 @@ void SpdifPlayRun(uint16_t msgId)
 		msgSend.msgId		= MSG_NONE;
 		MessageSend(GetAudioCoreServiceMsgHandle(), &msgSend);
 	}
+#ifdef	SPDIF_DMA_MONITOR_ENABLE
+	if(SpdifPlayCt->spdif_reboot_flag)
+	{
+		//进行复位
+		SpdifPlayDeinit();
+		Reset_RegisterReset(DMAC_REG_SEPA);
+		SpdifPlayInit();//SpdifPlayCt在这个里面会全部清0
+#ifdef CFG_FUNC_REMIND_SOUND_EN
+		RemindSoundClearPlay();//复位过程中不播放模式提示音
+#endif
+		SoftFlagDeregister(SoftFlagAudioCoreSourceIsDeInit);
+		AudioCoreServiceResume();
+	}
+#endif
 }
 
 

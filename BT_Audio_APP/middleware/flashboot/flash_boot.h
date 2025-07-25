@@ -1,8 +1,8 @@
 #ifndef __FLASH_BOOT_H__
 #define __FLASH_BOOT_H__
 /*
-版本说明：当前为V5.2.0版本
-日期：2024年7月29日
+版本说明：当前为V5.2.2版本
+日期：2025年5月21日
 */
 #ifdef CFG_APP_CONFIG
 	#include "upgrade.h"
@@ -78,7 +78,7 @@ typedef enum __UART_BAUDRATE
  *     为5时则标识升级code前全部擦除芯片数据，即擦除“全片”（即除开flash的0地址开始flashboot占用空间不擦除以及最后8K不擦除）
  * 例如：0x5F 则为比较CODE CRC判断是否需要升级；升级时仅部分擦除，不进行全擦除
  */
-#define JUDGEMENT_STANDARD		0x5F
+#define JUDGEMENT_STANDARD		0x55
 
 #if CFG_RES_CARD_GPIO == SDIO_A15_A16_A17
 #define SD_PORT				CHN_MASK_SDCARD

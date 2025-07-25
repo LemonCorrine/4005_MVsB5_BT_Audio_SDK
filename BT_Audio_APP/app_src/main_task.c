@@ -626,7 +626,9 @@ static void MainAppTaskEntrance(void * param)
 			if(msg.msgId != MSG_NONE)
 			{
 				SysModeGenerate(msg.msgId);
-				MessageSend(GetSysModeMsgHandle(), &msg);	
+				extern bool AudioEffect_Msg_Check(uint32_t Msg);
+				if(!AudioEffect_Msg_Check(msg.msgId))
+					MessageSend(GetSysModeMsgHandle(), &msg);
 			}
 			SysModeChangeTimeoutProcess();
 		}

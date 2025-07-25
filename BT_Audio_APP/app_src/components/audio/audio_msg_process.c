@@ -55,8 +55,10 @@ void AudioEffectParamSync(void)
 	if(AudioEffect.context_memory == NULL)
 		return;
 
-	AudioEffect_SourceGain_Update(APP_SOURCE_NUM, mainAppCt.gSysVol.AudioSourceVol[APP_SOURCE_NUM]);
-	AudioEffect_SourceGain_Update(MIC_SOURCE_NUM, mainAppCt.gSysVol.AudioSourceVol[MIC_SOURCE_NUM]);
+	////Audio Core & Audioeffect音量配置
+	SystemVolSet();
+	AudioAPPDigitalGianProcess(mainAppCt.SysCurrentMode);
+
 #ifdef CFG_FUNC_MUSIC_EQ_MODE_EN
 	AudioEqSync();
 #endif
@@ -124,4 +126,39 @@ uint8_t AudioCommonMsgProcess(uint16_t Msg)
 	}
 
 	return refresh_addr;
+}
+
+uint8_t AudioMsgProccess(uint16_t Msg)
+{
+	uint8_t 	refresh_addr = 0;
+
+	refresh_addr = AudioCommonMsgProcess(Msg);   //Msg优先发给SDK代码 处理
+	if(refresh_addr == 0)
+	{
+		//转发Msg到脚本生成的代码 中处理
+		refresh_addr = EffectModeMsgProcess(Msg);
+	}
+
+	if(refresh_addr)
+	{
+		gCtrlVars.AutoRefresh = refresh_addr;
+#ifdef CFG_FUNC_BREAKPOINT_EN
+		SystemVolSync();
+		BackupInfoUpdata(BACKUP_SYS_INFO);
+#endif
+	}
+
+	return refresh_addr;
+}
+
+bool AudioEffect_Msg_Check(uint32_t Msg)
+{
+	if(Msg > MSG_EFFECTCONTROL_START && Msg < MSG_EFFECTCONTROL_END)
+	{
+		MessageContext msgSend;
+		msgSend.msgId = Msg;
+		MessageSend(GetAudioCoreServiceMsgHandle(), &msgSend);
+		return TRUE;
+	}
+	return FALSE;
 }

@@ -285,7 +285,7 @@ void OnDeviceAudioRcvIsoPacket1(void)
 	int32_t s;
 	uint32_t sample = 0;
 	OTG_DeviceISOReceive(DEVICE_ISO_OUT_EP1, (uint8_t*)iso_buf, OUT1_PCM_LEN, &Len);
-
+	if(Len == 0) return;
 	UsbAudioSpeaker1.FramCount++;
 
 	if(UsbAudioSpeaker1.ByteSet == PCM16BIT)
@@ -340,7 +340,10 @@ void OnDeviceAudioRcvIsoPacket1(void)
 		return;
 	}
 
-	MCUCircular_PutData(&UsbAudioSpeaker1.CircularBuf, (uint8_t*)iso_buf, sample*sizeof(PCM_DATA_TYPE));
+	if(MCUCircular_GetSpaceLen(&UsbAudioSpeaker1.CircularBuf) > sample*sizeof(PCM_DATA_TYPE))
+	{
+		MCUCircular_PutData(&UsbAudioSpeaker1.CircularBuf, (uint8_t*)iso_buf, sample*sizeof(PCM_DATA_TYPE));
+	}
 }
 #endif
 
@@ -353,6 +356,7 @@ void OnDeviceAudioRcvIsoPacket(void)
 	int32_t s;
 	uint32_t sample = 0;
 	OTG_DeviceISOReceive(DEVICE_ISO_OUT_EP, (uint8_t*)iso_buf, OUT_PCM_LEN, &Len);
+	if(Len == 0) return;
 
 	UsbAudioSpeaker.FramCount++;
 
@@ -408,7 +412,10 @@ void OnDeviceAudioRcvIsoPacket(void)
 		return;
 	}
 
-	MCUCircular_PutData(&UsbAudioSpeaker.CircularBuf, (uint8_t*)iso_buf, sample*sizeof(PCM_DATA_TYPE));
+	if(MCUCircular_GetSpaceLen(&UsbAudioSpeaker.CircularBuf) > sample*sizeof(PCM_DATA_TYPE))
+	{
+		MCUCircular_PutData(&UsbAudioSpeaker.CircularBuf, (uint8_t*)iso_buf, sample*sizeof(PCM_DATA_TYPE));
+	}
 }
 #endif
 

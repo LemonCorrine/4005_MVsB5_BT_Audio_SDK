@@ -109,6 +109,11 @@ void AudioCoreSourceUnmute(uint8_t Index, bool IsLeftUnmute, bool IsRightUnmute)
 	}
 }
 
+bool AudioCoreSourceMuteStatusGet(uint8_t Index)
+{
+	return AudioCore.AudioSource[Index].LeftMuteFlag | AudioCore.AudioSource[Index].RightMuteFlag;
+}
+
 void AudioCoreSourceConfig(uint8_t Index, AudioCoreSource* Source)
 {
 	memcpy(&AudioCore.AudioSource[Index], Source, sizeof(AudioCoreSource));

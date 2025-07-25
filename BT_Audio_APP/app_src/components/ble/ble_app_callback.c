@@ -126,7 +126,7 @@ void AppEventCallBack(LE_CB_EVENT event, LE_CB_PARAMS *param)
         }
         APP_DBG("\n");
         //·¢ËÍÊ¾Àý
-        ble_send_data(param->rcv_data.conhdl,0,0,0x0e,test_buff,sizeof(test_buff),0);
+        ble_send_data(param->rcv_data.conhdl,0,0,0x0d,test_buff,sizeof(test_buff),0);
         break;
     }
     case LE_APP_READ_DATA_EVENT:

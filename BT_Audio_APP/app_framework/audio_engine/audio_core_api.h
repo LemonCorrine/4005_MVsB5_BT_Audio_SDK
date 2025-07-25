@@ -198,6 +198,8 @@ void AudioCoreSourceMute(uint8_t Index, bool IsLeftMute, bool IsRightMute);
 
 void AudioCoreSourceUnmute(uint8_t Index, bool IsLeftUnmute, bool IsRightUnmute);
 
+bool AudioCoreSourceMuteStatusGet(uint8_t Index);
+
 void AudioCoreSourceConfig(uint8_t Index, AudioCoreSource* Source);
 
 void AudioCoreSinkEnable(uint8_t Index);

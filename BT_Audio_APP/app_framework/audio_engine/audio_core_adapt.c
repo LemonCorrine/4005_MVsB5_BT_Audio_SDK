@@ -1060,7 +1060,8 @@ bool AudioCoreDataSpaceCheck(void)
 void AudioCoreIOLenProcess(void)
 {
 	uint16_t Index;
-	uint32_t SrcAudioLen, SraAudioLen;//Sample
+	int32_t SrcAudioLen;
+	uint32_t SraAudioLen;//Sample
 	AudioCoreSource *Source;
 	AudioCoreSink *Sink;
 	for(Index = 0; Index < AUDIO_CORE_SOURCE_MAX_NUM; Index++)
@@ -1112,11 +1113,13 @@ void AudioCoreIOLenProcess(void)
 								{
 							#ifndef	CFG_FUNC_SRC_HIGHER_EN
 									SrcAudioLen = resampler_polyphase_apply24(&SrcAdapter->SrcCt, (int32_t *)AudioCore.AdaptIn, (int32_t *)AudioCore.AdaptOut, SrcAudioLen);
+									if(SrcAudioLen < 0) SrcAudioLen = 0;
 							#else
 									AudioCorePcmDataBitWidthConv((int32_t *)AudioCore.AdaptIn,SrcAudioLen * PcmDataLen,PCM_DATA_24BIT_WIDTH);
 									SrcAudioLen = resampler_apply(&SrcAdapter->SrcCt,(int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+									if(SrcAudioLen < 0) SrcAudioLen = 0;
 									gain_control_apply((int16_t *)AudioCore.AdaptOut, (int16_t *)AudioCore.AdaptOut, SrcAudioLen, 0, 140, Source->Channels);
-									AudioCorePcmDataBitWidthConv((int16_t *)AudioCore.AdaptOut,SrcAudioLen * PcmDataLen,PCM_DATA_16BIT_WIDTH);
+									AudioCorePcmDataBitWidthConv((int16_t *)AudioCore.AdaptOut,SrcAudioLen * (PcmDataLen/2),PCM_DATA_16BIT_WIDTH);
 							#endif
 								}
 								else
@@ -1124,8 +1127,10 @@ void AudioCoreIOLenProcess(void)
 								{
 							#ifndef	CFG_FUNC_SRC_HIGHER_EN
 									SrcAudioLen = resampler_polyphase_apply(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+									if(SrcAudioLen < 0) SrcAudioLen = 0;
 							#else
 									SrcAudioLen = resampler_apply(&SrcAdapter->SrcCt,(int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+									if(SrcAudioLen < 0) SrcAudioLen = 0;
 									gain_control_apply((int16_t *)AudioCore.AdaptOut, (int16_t *)AudioCore.AdaptOut, SrcAudioLen, 0, 140, Source->Channels);
 							#endif
 								}
@@ -1234,11 +1239,13 @@ void AudioCoreIOLenProcess(void)
 								{
 #ifndef	CFG_FUNC_SRC_HIGHER_EN
 									SrcAudioLen = resampler_polyphase_apply24(&SrcAdapter->SrcCt, (int32_t *)AudioCore.AdaptIn, (int32_t *)AudioCore.AdaptOut, SrcAudioLen);
+									if(SrcAudioLen < 0) SrcAudioLen = 0;
 #else
 									AudioCorePcmDataBitWidthConv((int32_t *)AudioCore.AdaptIn,SrcAudioLen * PcmDataLen,PCM_DATA_24BIT_WIDTH);
 									SrcAudioLen = resampler_apply(&SrcAdapter->SrcCt,(int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+									if(SrcAudioLen < 0) SrcAudioLen = 0;
 									gain_control_apply((int16_t *)AudioCore.AdaptOut, (int16_t *)AudioCore.AdaptOut, SrcAudioLen, 0, 140, Source->Channels);
-									AudioCorePcmDataBitWidthConv((int16_t *)AudioCore.AdaptOut,SrcAudioLen * PcmDataLen,PCM_DATA_16BIT_WIDTH);
+									AudioCorePcmDataBitWidthConv((int16_t *)AudioCore.AdaptOut,SrcAudioLen * (PcmDataLen/2),PCM_DATA_16BIT_WIDTH);
 #endif
 								}
 								else
@@ -1246,8 +1253,10 @@ void AudioCoreIOLenProcess(void)
 								{
 #ifndef	CFG_FUNC_SRC_HIGHER_EN
 									SrcAudioLen = resampler_polyphase_apply(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+									if(SrcAudioLen < 0) SrcAudioLen = 0;
 #else
 									SrcAudioLen = resampler_apply(&SrcAdapter->SrcCt,(int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+									if(SrcAudioLen < 0) SrcAudioLen = 0;
 									gain_control_apply((int16_t *)AudioCore.AdaptOut, (int16_t *)AudioCore.AdaptOut, SrcAudioLen, 0, 140, Source->Channels);
 #endif
 								}
@@ -1364,11 +1373,13 @@ void AudioCoreIOLenProcess(void)
 								{
 #ifndef	CFG_FUNC_SRC_HIGHER_EN
 									SrcAudioLen = resampler_polyphase_apply24(&SrcAdapter->SrcCt, (int32_t *)AudioCore.AdaptIn, (int32_t *)AudioCore.AdaptOut, SrcAudioLen);
+									if(SrcAudioLen < 0) SrcAudioLen = 0;
 #else
 									AudioCorePcmDataBitWidthConv((int32_t *)AudioCore.AdaptIn,SrcAudioLen * PcmDataLen,PCM_DATA_24BIT_WIDTH);
 									SrcAudioLen = resampler_apply(&SrcAdapter->SrcCt,(int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+									if(SrcAudioLen < 0) SrcAudioLen = 0;
 									gain_control_apply((int16_t *)AudioCore.AdaptOut, (int16_t *)AudioCore.AdaptOut, SrcAudioLen, 0, 140, Source->Channels);
-									AudioCorePcmDataBitWidthConv((int16_t *)AudioCore.AdaptOut,SrcAudioLen * PcmDataLen,PCM_DATA_16BIT_WIDTH);
+									AudioCorePcmDataBitWidthConv((int16_t *)AudioCore.AdaptOut,SrcAudioLen * (PcmDataLen/2),PCM_DATA_16BIT_WIDTH);
 #endif
 								}
 								else
@@ -1376,8 +1387,10 @@ void AudioCoreIOLenProcess(void)
 								{
 #ifndef	CFG_FUNC_SRC_HIGHER_EN
 									SrcAudioLen = resampler_polyphase_apply(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+									if(SrcAudioLen < 0) SrcAudioLen = 0;
 #else
 									SrcAudioLen = resampler_apply(&SrcAdapter->SrcCt,(int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+									if(SrcAudioLen < 0) SrcAudioLen = 0;
 									gain_control_apply((int16_t *)AudioCore.AdaptOut, (int16_t *)AudioCore.AdaptOut, SrcAudioLen, 0, 140, Source->Channels);
 #endif
 								}
@@ -1567,11 +1580,13 @@ void AudioCoreIOLenProcess(void)
 								{
 #ifndef	CFG_FUNC_SRC_HIGHER_EN
 									SrcAudioLen = resampler_polyphase_apply24(&SrcAdapter->SrcCt, (int32_t *)AudioCore.AdaptIn, (int32_t *)AudioCore.AdaptOut, SrcAudioLen);
+									if(SrcAudioLen < 0) SrcAudioLen = 0;
 #else
 									AudioCorePcmDataBitWidthConv((int32_t *)AudioCore.AdaptIn,SrcAudioLen * PcmDataLen,PCM_DATA_24BIT_WIDTH);
 									SrcAudioLen = resampler_apply(&SrcAdapter->SrcCt,(int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+									if(SrcAudioLen < 0) SrcAudioLen = 0;
 									gain_control_apply((int16_t *)AudioCore.AdaptOut, (int16_t *)AudioCore.AdaptOut, SrcAudioLen, 0, 140, Source->Channels);
-									AudioCorePcmDataBitWidthConv((int16_t *)AudioCore.AdaptOut,SrcAudioLen * PcmDataLen,PCM_DATA_16BIT_WIDTH);
+									AudioCorePcmDataBitWidthConv((int16_t *)AudioCore.AdaptOut,SrcAudioLen * (PcmDataLen/2),PCM_DATA_16BIT_WIDTH);
 #endif
 								}
 								else
@@ -1579,8 +1594,10 @@ void AudioCoreIOLenProcess(void)
 								{
 #ifndef	CFG_FUNC_SRC_HIGHER_EN
 									SrcAudioLen = resampler_polyphase_apply(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+									if(SrcAudioLen < 0) SrcAudioLen = 0;
 #else
 									SrcAudioLen = resampler_apply(&SrcAdapter->SrcCt,(int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+									if(SrcAudioLen < 0) SrcAudioLen = 0;
 									gain_control_apply((int16_t *)AudioCore.AdaptOut, (int16_t *)AudioCore.AdaptOut, SrcAudioLen, 0, 140, Source->Channels);
 #endif
 								}
@@ -2185,6 +2202,7 @@ void AudioCoreSourceFifoReset(uint8_t Index)
 {
 	AUDIO_ADAPT	Adapt = AudioCore.AudioSource[Index].Adapt;
 	SRA_ADAPTER * AdjAdapter = (SRA_ADAPTER *)AudioCore.AudioSource[Index].AdjAdapter;
+	CLK_ADJUST_ADAPTER * ClkAdjAdapter = (CLK_ADJUST_ADAPTER *)AudioCore.AudioSource[Index].AdjAdapter;
 	SRC_ADAPTER	*SrcAdapter = AudioCore.AudioSource[Index].SrcAdapter;
 	if(!AudioCoreSourceIsInit(Index))
 	{
@@ -2218,6 +2236,11 @@ void AudioCoreSourceFifoReset(uint8_t Index)
 			break;
 
 		case CLK_ADJUST_ONLY:
+			ClkAdjAdapter->TotalNum = 0;
+			ClkAdjAdapter->Count = 0;
+			ClkAdjAdapter->LastLevel = 0;
+			ClkAdjAdapter->RiseTimes = 0;
+			ClkAdjAdapter->AdjustVal = 0;
 			break;
 
 		case SRC_ADJUST:
@@ -2231,6 +2254,12 @@ void AudioCoreSourceFifoReset(uint8_t Index)
 			}
 			SrcAdapter->SrcBufHandler.R = 0;
 			SrcAdapter->SrcBufHandler.W = 0;
+
+			ClkAdjAdapter->TotalNum = 0;
+			ClkAdjAdapter->Count = 0;
+			ClkAdjAdapter->LastLevel = 0;
+			ClkAdjAdapter->RiseTimes = 0;
+			ClkAdjAdapter->AdjustVal = 0;
 			break;
 		default:
 			break;
@@ -2271,6 +2300,7 @@ void AudioCoreSinkFifoReset(uint8_t Index)
 {
 	AUDIO_ADAPT	Adapt = AudioCore.AudioSink[Index].Adapt;
 	SRA_ADAPTER * AdjAdapter = (SRA_ADAPTER *)AudioCore.AudioSink[Index].AdjAdapter;
+	CLK_ADJUST_ADAPTER * ClkAdjAdapter = (CLK_ADJUST_ADAPTER *)AudioCore.AudioSink[Index].AdjAdapter;
 	SRC_ADAPTER	*SrcAdapter = AudioCore.AudioSink[Index].SrcAdapter;
 	if(!AudioCoreSinkIsInit(Index))
 	{
@@ -2304,6 +2334,11 @@ void AudioCoreSinkFifoReset(uint8_t Index)
 			break;
 
 		case CLK_ADJUST_ONLY:
+			ClkAdjAdapter->TotalNum = 0;
+			ClkAdjAdapter->Count = 0;
+			ClkAdjAdapter->LastLevel = 0;
+			ClkAdjAdapter->RiseTimes = 0;
+			ClkAdjAdapter->AdjustVal = 0;
 			break;
 
 		case SRC_ADJUST:
@@ -2317,6 +2352,12 @@ void AudioCoreSinkFifoReset(uint8_t Index)
 			}
 			SrcAdapter->SrcBufHandler.R = 0;
 			SrcAdapter->SrcBufHandler.W = 0;
+
+			ClkAdjAdapter->TotalNum = 0;
+			ClkAdjAdapter->Count = 0;
+			ClkAdjAdapter->LastLevel = 0;
+			ClkAdjAdapter->RiseTimes = 0;
+			ClkAdjAdapter->AdjustVal = 0;
 			break;
 		default:
 			break;
@@ -2562,3 +2603,4 @@ PCM_DATA_WIDTH AudioCoreSourceBitWidthGet(uint8_t Index)
 	return AudioCore.AudioSource[Index].BitWidth;
 }
 #endif
+

@@ -211,7 +211,7 @@ void AudioADC_WidthSet(ADC_MODULE ADCModule, AUDIO_BitWidth BitWidth);
 /**
  * @brief  ADC 模块采样率配置
  * @param  ADCModule    0,ADC0模块; 1,ADC1模块
- * @param  SampleRate   ADC采样率值，9种采样率
+ * @param  SampleRate   ADC采样率值，10种采样率
  * @return 无
  */
 void AudioADC_SampleRateSet(ADC_MODULE ADCModule, uint32_t SampleRate);
@@ -261,6 +261,7 @@ void AudioADC_DigitalMute(ADC_MODULE ADCModule, bool LeftMuteEn, bool RightMuteE
  * @param  ADCModule    0,ADC0模块; 1,ADC1模块
  * @param  LeftMuteEn   TRUE,左通道静音使能; FALSE,左通道取消静音
  * @param  RightMuteEn  TRUE,右通道静音使能; FALSE,右通道取消静音
+ * @note   调用此API之前必须已经成功调用SysTickInit
  * @return 无
  * @Note   该函数内部带延时，如果是静音操作，会延时等待音量降低到0之后退出该函数。
  */
@@ -429,7 +430,7 @@ void AudioADC_AGCTargetLevel(ADC_MODULE ADCModule, uint8_t TargetLevel);
 /**
  * @brief  AGC模模块可调节的最大增益
  * @param  ADCModule    0,ADC0模块; 1,ADC1模块
- * @param  MaxGain		AGC模块最大增益.【0 ~ 63】-->【 39.64 ~ -20.3dB】,step:-0.95dB.
+ * @param  MaxGain		AGC模块最大增益.【0 ~ 31】-->【 32.75 ~ -6】,step:-1.25dB.
  * @return 无
  */
 void AudioADC_AGCMaxGain(ADC_MODULE ADCModule, uint8_t MaxGain);
@@ -437,7 +438,7 @@ void AudioADC_AGCMaxGain(ADC_MODULE ADCModule, uint8_t MaxGain);
 /**
  * @brief  AGC模模块可调节的最小增益
  * @param  ADCModule    0,ADC0模块; 1,ADC1模块
- * @param  MinGain		AGC模块最小增益.【0 ~ 63】-->【 39.64 ~ -20.3dB】,step:-0.95dB.
+ * @param  MinGain		AGC模块最小增益.【0 ~ 31】-->【 32.75 ~ -6dB】,step:-1.25dB.
  * @return 无
  */
 void AudioADC_AGCMinGain(ADC_MODULE ADCModule, uint8_t MinGain);

@@ -166,23 +166,7 @@ void LineInPlayResInit(void)
 	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
 
 	sLineInPlayCt->SampleRate = AudioCoreMixSampleRateGet(DefaultNet);
-	if((sLineInPlayCt->SampleRate == 88200) || (sLineInPlayCt->SampleRate == 176400))
-	{
-		sLineInPlayCt->SampleRate = 44100;
-	}
-	else if((sLineInPlayCt->SampleRate == 96000) || (sLineInPlayCt->SampleRate == 192000))
-	{
-		sLineInPlayCt->SampleRate = 48000;
-	}
-
-	if(sLineInPlayCt->SampleRate != AudioCoreMixSampleRateGet(DefaultNet))
-	{
-		AudioIOSet.Adapt = SRC_ONLY;
-	}
-	else
-	{
-		AudioIOSet.Adapt = STD;
-	}
+	AudioIOSet.Adapt = STD;
 	AudioIOSet.Sync = TRUE;
 	AudioIOSet.Channels = 2;
 	AudioIOSet.Net = DefaultNet;

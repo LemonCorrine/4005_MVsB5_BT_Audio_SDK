@@ -36,6 +36,7 @@
 #include "ctrlvars.h"
 #include "hdmi_in_api.h"
 #include "usb_audio_mode.h"
+#include "user_effect_parameter.h"
 //static bool IsBackUpFlag = FALSE;
 //#ifdef CFG_FUNC_BREAKPOINT_EN
  //TIMER TimerBreakPoint;
@@ -1010,7 +1011,15 @@ void SlowDeviceEventProcess(uint16_t device_msgId)
 		}
 		break;
 #endif
-		
+
+#ifdef CFG_EFFECT_PARAM_UPDATA_BY_ACPWORKBENCH
+		case MSG_DEVICE_EFFECT_DATA_WRITE:
+		{
+			EffectParamFlashUpdata();
+		}
+		break;
+#endif
+
 #ifdef CFG_APP_BT_MODE_EN
 		case MSG_DEVICE_BT_LINKED_INFOR_WRITE:
 		{

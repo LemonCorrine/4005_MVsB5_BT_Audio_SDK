@@ -442,10 +442,6 @@ bool AudioEffectInit()
 		{
 			DBG("roboeffect_init ok.\n");
 			AudioEffect.effect_addr = 0;
-
-			////Audio Core & Audioeffect音量配置
-			SystemVolSet();
-			AudioAPPDigitalGianProcess(mainAppCt.SysCurrentMode);
 		}
 	}
 
@@ -505,7 +501,6 @@ bool ModeCommonInit(void)
 	AudioCoreIO AudioIOSet;
 	uint16_t FifoLenStereo;
 	uint32_t sampleRate;
-	uint32_t adc_sampleRate;
 
 	if(!AudioEffectInit())
 	{
@@ -515,15 +510,6 @@ bool ModeCommonInit(void)
 	AudioOutSampleRecover();
 #endif
 	sampleRate  = AudioCoreMixSampleRateGet(DefaultNet);
-	adc_sampleRate = sampleRate;
-	if((adc_sampleRate == 88200) || (adc_sampleRate == 176400))
-	{
-		adc_sampleRate = 44100;
-	}
-	else if((adc_sampleRate == 96000) || (adc_sampleRate == 192000))
-	{
-		adc_sampleRate = 48000;
-	}
 	APP_DBG("Systerm SampleRate: %ld\n", sampleRate);
 
 	AudioEffectParamSync();
@@ -619,9 +605,9 @@ bool ModeCommonInit(void)
 
 		//Mic1   digital
 	#ifdef CFG_AUDIO_WIDTH_24BIT
-		AudioADC_DigitalInit(ADC1_MODULE, adc_sampleRate,ADC_WIDTH_24BITS,(void*)mainAppCt.ADCFIFO, FifoLenStereo);
+		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_24BITS,(void*)mainAppCt.ADCFIFO, FifoLenStereo);
 	#else
-		AudioADC_DigitalInit(ADC1_MODULE, adc_sampleRate,ADC_WIDTH_16BITS,(void*)mainAppCt.ADCFIFO, FifoLenStereo);
+		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_16BITS,(void*)mainAppCt.ADCFIFO, FifoLenStereo);
 	#endif
 
 	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
@@ -631,7 +617,7 @@ bool ModeCommonInit(void)
 	#endif
 		//Soure0.
 		memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
-		AudioIOSet.Adapt = SRC_ONLY;
+		AudioIOSet.Adapt = STD;
 		AudioIOSet.Sync = TRUE;
 		AudioIOSet.Channels = 1;
 		AudioIOSet.Net = DefaultNet;
@@ -641,7 +627,7 @@ bool ModeCommonInit(void)
 		AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
 		AudioIOSet.IOBitWidthConvFlag = 0;//需要数据进行位宽扩展
 	#endif
-		AudioIOSet.SampleRate = adc_sampleRate;
+		AudioIOSet.SampleRate = sampleRate;
 		if(!AudioCoreSourceInit(&AudioIOSet, MIC_SOURCE_NUM))
 		{
 			DBG("mic Source error");
@@ -891,7 +877,7 @@ bool ModeCommonInit(void)
 		AudioCoreSinkEnable(AUDIO_BT_SOURCE_SINK_NUM);
 	}
 #endif
-	AudioDAC_SCFMute(DAC0, 0, 0);
+	AudioDAC_SoftMute(DAC0, 0, 0);
 	AudioDAC_Enable(DAC0);
 #ifdef CFG_COMMUNICATION_BY_UART
 	uart_data_init();
@@ -905,7 +891,7 @@ void ModeCommonDeinit(void)
 	SoftFlagRegister(SoftFlagAudioCoreSourceIsDeInit);
 #ifdef CFG_RES_AUDIO_DAC0_EN
 //	AudioCoreSinkDisable(AUDIO_DAC0_SINK_NUM);
-	AudioDAC_SCFMute(DAC0, 1, 1);
+	AudioDAC_SoftMute(DAC0, 1, 1);
 	AudioDAC_Disable(DAC0);
 	AudioDAC_FuncReset(DAC0);
 	DMA_InterruptFlagClear(PERIPHERAL_ID_AUDIO_DAC0_TX, DMA_DONE_INT);
@@ -1285,7 +1271,7 @@ bool AudioIoCommonForHfp(uint16_t gain)
 	#endif
 	}
 #endif
-	AudioDAC_SCFMute(DAC0, 0, 0);
+	AudioDAC_SoftMute(DAC0, 0, 0);
 	AudioDAC_Enable(DAC0);
 #ifdef CFG_COMMUNICATION_BY_UART
 	uart_data_init();
@@ -1337,6 +1323,7 @@ bool AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 		}
 
 		AudioCoreSourceSinkPcmBufReinit();
+		AudioEffectParamSync();
 
 #ifdef CFG_APP_LINEIN_MODE_EN
 		if(GetSystemMode() == ModeLineAudioPlay)
@@ -1398,25 +1385,10 @@ bool AudioEffectModeSel(EFFECT_MODE effectMode, uint8_t sel)
 	return TRUE;
 }
 
-uint8_t AudioMsgProccess(uint16_t Msg)
-{
-	uint8_t 	refresh_addr = 0;
-
-	refresh_addr = AudioCommonMsgProcess(Msg);   //Msg优先发给SDK代码 处理
-	if(refresh_addr == 0)
-	{
-		//转发Msg到脚本生成的代码 中处理
-		refresh_addr = EffectModeMsgProcess(Msg);
-	}
-
-	return refresh_addr;
-}
-
 //各模式下的通用消息处理, 共有的提示音在此处理，因此要求调用次API前，确保APP running状态。避免解码器没准备好。
 void CommonMsgProccess(uint16_t Msg)
 {
 	uint8_t     EffectMode;
-	uint8_t 	refresh_addr = 0;
 #if defined(CFG_FUNC_DISPLAY_EN)
 	MessageContext	msgSend;
 #endif
@@ -1427,10 +1399,6 @@ void CommonMsgProccess(uint16_t Msg)
 
 	switch(Msg)
 	{
-		case MSG_MENU://菜单键
-			APP_DBG("menu key\n");
-			AudioPlayerMenu();
-			break;
 #ifdef VD51_REDMINE_13199
 		case MSG_RGB_MODE:
 			if(IsRgbLedModeMenuExit())
@@ -1572,8 +1540,6 @@ void CommonMsgProccess(uint16_t Msg)
 				AudioCoreServiceResume();
 				mpara->user_effect_list->frame_size = defaultFrameSize;
 			}
-
-			AudioEffectParamSync();		//switch effect mode also need to sync some params
 
 			if(IsAudioPlayerMute() == TRUE)
 			{
@@ -1825,16 +1791,6 @@ void CommonMsgProccess(uint16_t Msg)
 			#ifdef CFG_ADC_LEVEL_KEY_EN
 			AdcLevelMsgProcess(Msg);
 			#endif
-
-			refresh_addr = AudioMsgProccess(Msg);
-			if(refresh_addr)
-			{
-				gCtrlVars.AutoRefresh = refresh_addr;
-#ifdef CFG_FUNC_BREAKPOINT_EN
-				SystemVolSync();
-				BackupInfoUpdata(BACKUP_SYS_INFO);
-#endif
-			}
 			break;
 	}
 }
