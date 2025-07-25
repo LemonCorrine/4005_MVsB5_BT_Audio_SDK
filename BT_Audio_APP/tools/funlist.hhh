@@ -531,8 +531,7 @@ SECTIONS
 	__lshrdi3 = 0x0083f748;	 
 	__ashldi3 = 0x0083f770;	 
 	__errno = 0x0083f796;	 
-	memcmp = 0x0083f79c;	 
-	memcpy = 0x0083f7d4;	 
+	memcmp = 0x0083f79c;	  
 	memmove = 0x0083f800;	 
 	memset = 0x0083f8b0;	 
 	rand = 0x0083f8e0;	 
@@ -642,8 +641,6 @@ SECTIONS
 	ke_env = 0x20000368;	 
 	ke_event_env = 0x20000398;	 
 	ke_task_env = 0x200003cc;	 
-	rwip_buf_pool_small = 0x2000041c;	 
-	rwip_buf_pool_big = 0x20000c5c;	 
 	rwip_rf = 0x20000eb4;	 
 	rwip_param = 0x20000ee8;	 
 	rwip_env = 0x20000ef4;	 

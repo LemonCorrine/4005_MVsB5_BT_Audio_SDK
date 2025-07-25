@@ -134,7 +134,6 @@
 									<listOptionValue builtIn="false" value="fatfs"/>
 									<listOptionValue builtIn="false" value="RTC"/>
 									<listOptionValue builtIn="false" value="cvsd_plc"/>
-									<listOptionValue builtIn="false" value="BlueAEC"/>
 									<listOptionValue builtIn="false" value="dsp"/>
 									<listOptionValue builtIn="false" value="m"/>
 								</option>
