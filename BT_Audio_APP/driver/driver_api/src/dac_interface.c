@@ -89,7 +89,14 @@ void AudioDAC_Init(DACParamCt *ct, uint32_t SampleRate, uint16_t BitWidth, void 
 //	AudioDAC_Enable(DAC0);//使能放在模拟上电部分 避免上电pop声
 	AudioDAC_Reset(DAC0);
 	AudioDAC_SoftMute(DAC0,FALSE, FALSE);
-	AudioDAC_AllPowerOn(ct->DACModel, ct->DACLoadStatus, ct->PVDDModel, ct->DACEnergyModel, ct->DACVcomModel);
+	if(AudioDAC_AllPowerOn(ct->DACModel, ct->DACLoadStatus, ct->PVDDModel, ct->DACEnergyModel, ct->DACVcomModel))
+	{
+		DBG("dac poweron ok!\n");
+	}
+	else
+	{
+		DBG("dac poweron abnormal or repeatedly!\n");
+	}
 }
 
 

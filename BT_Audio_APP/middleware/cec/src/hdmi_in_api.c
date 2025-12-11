@@ -681,7 +681,7 @@ uint16_t HDMI_ARC_DataLenGet(void)
 #endif
 	if(hdmiMCUCt != NULL)
 	{
-		return (MCUCircular_GetDataLen(hdmiMCUCt) / bitwidth * 2);
+		return (MCUCircular_GetDataLen(hdmiMCUCt) /(bitwidth * 2));
 	}
 	else
 	{

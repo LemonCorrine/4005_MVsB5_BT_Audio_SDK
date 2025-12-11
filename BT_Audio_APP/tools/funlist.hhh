@@ -641,6 +641,7 @@ SECTIONS
 	ke_env = 0x20000368;	 
 	ke_event_env = 0x20000398;	 
 	ke_task_env = 0x200003cc;	 
+	rwip_buf_pool_small = 0x2000041c;	 
 	rwip_rf = 0x20000eb4;	 
 	rwip_param = 0x20000ee8;	 
 	rwip_env = 0x20000ef4;	 
