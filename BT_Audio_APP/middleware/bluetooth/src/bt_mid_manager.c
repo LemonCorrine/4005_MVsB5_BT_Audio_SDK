@@ -777,4 +777,15 @@ uint8_t* BtCurretAddr_Get(void)
 	return GetBtManager()->btLinked_env[btManager.cur_index].remoteAddr;
 }
 
+/*****************************************************************************************
+ * MAP时间获取callback
+ ****************************************************************************************/
+#ifdef BT_GETTIME_SUPPORT
+void map_time_callback(char *str)
+{
+	printf("map time :%s\n",str);
+	MAP_Disconnect();
+}
+#endif
+
 

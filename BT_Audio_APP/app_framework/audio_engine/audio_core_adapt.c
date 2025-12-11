@@ -1531,7 +1531,7 @@ void AudioCoreIOLenProcess(void)
 							{
 								SraAudioLen = MCUCircular_GetData(&AdjAdapter->SraBufHandler, AudioCore.AdaptIn, SraAudioLen * PcmDataLen) / PcmDataLen;
 								//sra_apply(&AdjAdapter->SraCt, AudioCore.AdaptIn, AudioCore.AdaptOut, AdjAdapter->AdjustVal);
-//								printf("val %d Sra %d\n",AdjAdapter->AdjustVal,SraAudioLen);
+//								printf("val %d Sra %d %d\n",AdjAdapter->AdjustVal,SraAudioLen,AdjAdapter->SraResFarCt.kc);
 				#ifdef CFG_AUDIO_WIDTH_24BIT
 								if(Sink->BitWidth == PCM_DATA_24BIT_WIDTH)
 									resampler_farrow_over_frames_apply24(&AdjAdapter->SraResFarCt, (int32_t *)AudioCore.AdaptIn, (int32_t *)AudioCore.AdaptOut, ADJUST_GROUP_FRAME(AdjAdapter->AdjustVal), AdjAdapter->AdjustVal,128, (int32_t*)&SraAudioLen);
@@ -2071,7 +2071,7 @@ bool AudioCoreSourceSync(void)
 {
 	MIX_NET CurrentNet;
 	uint8_t i;
-	uint16_t ValidIndex, BlockIndex;
+	uint32_t ValidIndex, BlockIndex;
 
 	for(CurrentNet = DefaultNet; CurrentNet < MaxNet; CurrentNet++)
 	{
@@ -2208,6 +2208,7 @@ void AudioCoreSourceFifoReset(uint8_t Index)
 	{
 		return;
 	}
+
 	switch(Adapt)
 	{
 		case STD:
@@ -2215,6 +2216,8 @@ void AudioCoreSourceFifoReset(uint8_t Index)
 		case SRA_ONLY:
 			AdjAdapter->SraBufHandler.R = 0;
 			AdjAdapter->SraBufHandler.W = 0;
+			AdjAdapter->AdjustVal 		= 0;
+			AdjAdapter->Count 			= 0;
 			resampler_farrow_init(&AdjAdapter->SraResFarCt,AudioCore.AudioSource[Index].Channels, POLYNOMIAL_ORDER);
 			break;
 
@@ -2232,6 +2235,8 @@ void AudioCoreSourceFifoReset(uint8_t Index)
 
 			AdjAdapter->SraBufHandler.R = 0;
 			AdjAdapter->SraBufHandler.W = 0;
+			AdjAdapter->AdjustVal 		= 0;
+			AdjAdapter->Count 			= 0;
 			resampler_farrow_init(&AdjAdapter->SraResFarCt,AudioCore.AudioSource[Index].Channels, POLYNOMIAL_ORDER);
 			break;
 
@@ -2313,6 +2318,8 @@ void AudioCoreSinkFifoReset(uint8_t Index)
 		case SRA_ONLY:
 			AdjAdapter->SraBufHandler.R = 0;
 			AdjAdapter->SraBufHandler.W = 0;
+			AdjAdapter->AdjustVal 		= 0;
+			AdjAdapter->Count 			= 0;
 			resampler_farrow_init(&AdjAdapter->SraResFarCt,AudioCore.AudioSink[Index].Channels, POLYNOMIAL_ORDER);
 			break;
 
@@ -2330,6 +2337,8 @@ void AudioCoreSinkFifoReset(uint8_t Index)
 
 			AdjAdapter->SraBufHandler.R = 0;
 			AdjAdapter->SraBufHandler.W = 0;
+			AdjAdapter->AdjustVal 		= 0;
+			AdjAdapter->Count 			= 0;
 			resampler_farrow_init(&AdjAdapter->SraResFarCt,AudioCore.AudioSink[Index].Channels, POLYNOMIAL_ORDER);
 			break;
 
@@ -2452,10 +2461,12 @@ void AudioCoreSourceAdjust(uint8_t Index, bool OnOff)
 	switch(Source->Adapt)
 	{
 		case SRA_ONLY:
+			AudioCoreSourceFifoReset(Index);
 			((SRA_ADAPTER *)(Source->AdjAdapter))->Enable = OnOff;
 			break;
 
 		case SRC_SRA:
+			AudioCoreSourceFifoReset(Index);
 			((SRA_ADAPTER *)(Source->AdjAdapter))->Enable = OnOff;
 			break;
 
@@ -2492,10 +2503,12 @@ void AudioCoreSinkAdjust(uint8_t Index, bool OnOff)
 	switch(Sink->Adapt)
 	{
 		case SRA_ONLY:
+			AudioCoreSinkFifoReset(Index);
 			((SRA_ADAPTER *)(Sink->AdjAdapter))->Enable = OnOff;
 			break;
 
 		case SRC_SRA:
+			AudioCoreSinkFifoReset(Index);
 			((SRA_ADAPTER *)(Sink->AdjAdapter))->Enable = OnOff;
 			break;
 

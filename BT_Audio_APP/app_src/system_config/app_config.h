@@ -42,7 +42,7 @@
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
 #define  CFG_SDK_MAJOR_VERSION		(1)
 #define  CFG_SDK_MINOR_VERSION		(1)
-#define  CFG_SDK_PATCH_VERSION	    (1)
+#define  CFG_SDK_PATCH_VERSION	    (2)
 
 
 //****************************************************************************************

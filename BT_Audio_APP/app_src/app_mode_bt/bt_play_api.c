@@ -289,7 +289,7 @@ void a2dp_sbc_save(uint8_t *p,uint32_t len)
 
 	if(p[0] != 0x9C)
 	{
-		printf("==== a2dp recv sbc,len=%d, error: 0x%02x\n", len, p[0]);
+		printf("==== a2dp recv sbc,len=%lu, error: 0x%02x\n", len, p[0]);
 		return;
 	}
 
@@ -394,11 +394,11 @@ void a2dp_sbc_save(uint8_t *p,uint32_t len)
 	{
 		if(errorFlag == 1)
 		{
-			printf("fifo full, cur_space_len = %d, recv_len=%d\n", MCUCircular_GetSpaceLen(&a2dp_player->sbc_fifo_cnt), len);
+			printf("fifo full, cur_space_len = %lu, recv_len=%lu\n", MCUCircular_GetSpaceLen(&a2dp_player->sbc_fifo_cnt), len);
 		}
 		else if(errorFlag == 2)
 		{
-			printf("=========== error:sbc fifo is full, current space len = %d, recv len=%d\n", MCUCircular_GetSpaceLen(&a2dp_player->sbc_fifo_cnt), len);
+			printf("=========== error:sbc fifo is full, current space len = %lu, recv len=%lu\n", MCUCircular_GetSpaceLen(&a2dp_player->sbc_fifo_cnt), len);
 		}
 
 		errorFlag = 0;

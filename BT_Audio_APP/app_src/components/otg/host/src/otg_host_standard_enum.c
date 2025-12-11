@@ -343,4 +343,5 @@ uint8_t OTG_HostUnInit(void)
 		OtgHostInfo.DesCriptorBuffer = 0;
 	}
 #endif
+	return 0;
 }

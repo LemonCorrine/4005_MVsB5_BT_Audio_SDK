@@ -61,7 +61,7 @@ osMutexId SDIOSendCommandMutex = NULL;
 uint32_t SD_WordModeBuf[4096/4];  //SDIO WORD方式读写buf,SDIO读写时传入的buf不是WORD对齐的情况下用于临时缓存数据
 #endif
 SD_CARD		    SDCard;
-SD_CARD_ID 		SDCardId;
+//SD_CARD_ID 		SDCardId;
 void CardPortInit(uint8_t SdioPort)
 {
 	switch(SdioPort)
@@ -327,10 +327,10 @@ SD_CARD_ERR_CODE SDCard_Identify(void)
 			return CMD2_SEND_ERR;
 		}
 		SDIO_CmdRespGet(resp, SDIO_RESP_TYPE_R2);
-		for(i = 0; i < 15; i++)
-		{
-			*((uint8_t *)(&(SDCardId)) + i + 1) = resp[14 - i];
-		}
+//		for(i = 0; i < 15; i++)
+//		{
+//			*((uint8_t *)(&(SDCardId)) + i + 1) = resp[14 - i];
+//		}
 		SDCard.CardInit = SD_IDENT;
 	}
 

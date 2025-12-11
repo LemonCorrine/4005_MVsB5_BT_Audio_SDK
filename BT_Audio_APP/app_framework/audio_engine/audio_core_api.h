@@ -158,7 +158,7 @@ typedef struct _AudioCoreContext
 	uint32_t		AdaptIn[(MAX_FRAME_SAMPLES * sizeof(PCM_DATA_TYPE)) / 2];//转采样和软件微调输入buf 4字节对齐便于dmafifo衔接
 	uint32_t		AdaptOut[(MAX_FRAME_SAMPLES * SRC_SCALE_MAX * sizeof(PCM_DATA_TYPE))/ 2];//转采样和软件微调输出buf
 	MIX_NET			CurrentMix; //当前混音组合，旨在 多通路异步处理和收发。
-	uint16_t		FrameReady; //使用位段登记 数据/空间帧可用
+	uint32_t		FrameReady; //使用位段登记 数据/空间帧可用
 	uint32_t		SampleRate[MaxNet];//[DefaultNet]/[0]:主通路中心采样率。
 	uint16_t		FrameSize[MaxNet];//[DefaultNet]/[0]:主通路 采样帧，支持独立通路组合SeparateNet及独立采样帧。
 	AudioCoreSource AudioSource[AUDIO_CORE_SOURCE_MAX_NUM];

@@ -32,6 +32,9 @@
 #include "clk.h"
 #include "audio_core_service.h"
 #include "audio_adc.h"
+#include "adc_interface.h"
+
+extern void SystemTimerInit(void);
 
 /**
  * @brief  sniff休眠应用处理

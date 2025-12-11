@@ -475,22 +475,22 @@ static bool SaveBakBPInfo(uint32_t BakNvmAddr, uint32_t NvmBakId, uint8_t SubBak
 			BpRecordFlash.SubBakId= 0;
 #endif				
 		}
-		if(SpiFlashWrite(BakNvmAddr, &pBakWrapper, sizeof(pBakWrapper), 1) < 0)
+		if(SpiFlashWrite(BakNvmAddr, (uint8_t *)&pBakWrapper, sizeof(pBakWrapper), 1) < 0)
 		{
 			return FALSE;
 		}
-		if(SpiFlashWrite(BakNvmAddr + sizeof(pBakWrapper), &bp_info, sizeof(BP_INFO), 1) < 0)
+		if(SpiFlashWrite(BakNvmAddr + sizeof(pBakWrapper), (uint8_t *)&bp_info, sizeof(BP_INFO), 1) < 0)
 		{
 			return FALSE;
 		}
 		return TRUE;
 	}
 
-	if(SpiFlashWrite((uint32_t)(BakNvmAddr + SubBakId * NVM_BAK_SIZE), &pBakWrapper, sizeof(pBakWrapper), 1) < 0)
+	if(SpiFlashWrite((uint32_t)(BakNvmAddr + SubBakId * NVM_BAK_SIZE), (uint8_t *)&pBakWrapper, sizeof(pBakWrapper), 1) < 0)
 	{
 		return FALSE;
 	}
-	if(SpiFlashWrite((uint32_t)(BakNvmAddr + SubBakId * NVM_BAK_SIZE + sizeof(pBakWrapper)), &bp_info, sizeof(BP_INFO), 1) < 0)
+	if(SpiFlashWrite((uint32_t)(BakNvmAddr + SubBakId * NVM_BAK_SIZE + sizeof(pBakWrapper)), (uint8_t *)&bp_info, sizeof(BP_INFO), 1) < 0)
 	{
 		return FALSE;
 	}

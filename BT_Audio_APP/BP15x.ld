@@ -122,6 +122,118 @@ SECTIONS
 	__sdk_code_start =  LOADADDR (.vector);
 	.vector 	: { KEEP(*(.vector )) }
 	.stub_section 	: { KEEP(*(.stub_section )) }
+	".nds32_init_*spi_flash_rom.o" 	: { KEEP(SORT(*spi_flash_rom.o)(.nds32_init )) }
+	".interp_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.interp ) }
+	".hash_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.hash ) }
+	".dynsym_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.dynsym ) }
+	".dynstr_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.dynstr ) }
+	".gnu.version_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.gnu.version ) }
+	".gnu.version_d_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.gnu.version_d ) }
+	".gnu.version_r_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.gnu.version_r ) }
+	".rel.init_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rel.init ) }
+	".rela.init_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rela.init ) }
+	".rel.text_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rel.text .rel.text.* .rel.gnu.linkonce.t.* ) }
+	".rela.text_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rela.text .rela.text.* .rela.gnu.linkonce.t.* ) }
+	".rel.fini_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rel.fini ) }
+	".rela.fini_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rela.fini ) }
+	".rel.rodata_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rel.rodata .rel.rodata.* .rel.gnu.linkonce.r.* ) }
+	".rela.rodata_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.* ) }
+	".rel.data.rel.ro_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rel.data.rel.ro* ) }
+	".rela.data.rel.ro_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rel.data.rel.ro* ) }
+	".rel.data_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rel.data .rel.data.* .rel.gnu.linkonce.d.* ) }
+	".rela.data_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rela.data .rela.data.* .rela.gnu.linkonce.d.* ) }
+	".rel.tdata_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.* ) }
+	".rela.tdata_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.* ) }
+	".rel.tbss_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.* ) }
+	".rela.tbss_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.* ) }
+	".rel.ctors_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rel.ctors ) }
+	".rela.ctors_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rela.ctors ) }
+	".rel.dtors_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rel.dtors ) }
+	".rela.dtors_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rela.dtors ) }
+	".rela.dyn_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(rela.dyn ) SORT(*spi_flash_rom.o)(.rela__libc_subfreeres ) SORT(*spi_flash_rom.o)(.rela__libc_atexit ) SORT(*spi_flash_rom.o)(.rela__libc_thread_subfreeres ) SORT(*spi_flash_rom.o)(.rela.init_array ) SORT(*spi_flash_rom.o)(.rela.fini_array ) }
+	".rel.got_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rel.got ) }
+	".rela.got_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rela.got ) }
+	".rel.sdata_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rel.sdata .rel.sdata.* .rel.gnu.linkonce.s.* ) }
+	".rela.sdata_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rela.sdata .rela.sdata.* .rela.gnu.linkonce.s.* ) }
+	".rel.sbss_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rel.sbss .rel.sbss.* .rel.gnu.linkonce.sb.* ) }
+	".rela.sbss_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rela.sbss .rela.sbss.* .rela.gnu.linkonce.sb.* ) }
+	".rel.sdata2_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rel.sdata2 .rel.sdata2.* .rel.gnu.linkonce.s2.* ) }
+	".rela.sdata2_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rela.sdata2 .rela.sdata2.* .rela.gnu.linkonce.s2.* ) }
+	".rel.sbss2_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rel.sbss2 .rel.sbss2.* .rel.gnu.linkonce.sb2.* ) }
+	".rela.sbss2_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rela.sbss2 .rela.sbss2.* .rela.gnu.linkonce.sb2.* ) }
+	".rel.bss_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rel.bss .rel.bss.* .rel.gnu.linkonce.b.* ) }
+	".rela.bss_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.* ) }
+	".rel.plt_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rel.plt ) }
+	".rela.plt_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rela.plt ) }
+	".init_*spi_flash_rom.o" 	: { KEEP(SORT(*spi_flash_rom.o)(.init )) }
+	".plt_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.plt ) }
+	".text_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.text .stub .text.* .gnu.linkonce.t.* ) KEEP(SORT(*spi_flash_rom.o)(.text.*personality* )) SORT(*spi_flash_rom.o)(.gnu.warning ) . = ALIGN(4); }
+	".fini_*spi_flash_rom.o" 	: { KEEP(SORT(*spi_flash_rom.o)(.fini )) }
+	".ex9.itable_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.ex9.itable ) }
+	PROVIDE (__etext = .);
+	PROVIDE (_etext = .);
+	PROVIDE (etext = .);
+	".rodata_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rodata .rodata.* .gnu.linkonce.r.* ) }
+	".rodata1_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.rodata1 ) }
+	".sdata2_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.sdata2 .sdata2.* .gnu.linkonce.s2.* ) }
+	".sbss2_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.sbss2 .sbss2.* .gnu.linkonce.sb2.* ) }
+	".eh_frame_hdr_*spi_flash_rom.o" 	: { SORT(*spi_flash_rom.o)(.eh_frame_hdr ) }
+	".nds32_init_*spi_flash_flash.o" 	: { KEEP(SORT(*spi_flash_flash.o)(.nds32_init )) }
+	".interp_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.interp ) }
+	".hash_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.hash ) }
+	".dynsym_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.dynsym ) }
+	".dynstr_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.dynstr ) }
+	".gnu.version_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.gnu.version ) }
+	".gnu.version_d_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.gnu.version_d ) }
+	".gnu.version_r_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.gnu.version_r ) }
+	".rel.init_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rel.init ) }
+	".rela.init_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rela.init ) }
+	".rel.text_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rel.text .rel.text.* .rel.gnu.linkonce.t.* ) }
+	".rela.text_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rela.text .rela.text.* .rela.gnu.linkonce.t.* ) }
+	".rel.fini_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rel.fini ) }
+	".rela.fini_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rela.fini ) }
+	".rel.rodata_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rel.rodata .rel.rodata.* .rel.gnu.linkonce.r.* ) }
+	".rela.rodata_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.* ) }
+	".rel.data.rel.ro_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rel.data.rel.ro* ) }
+	".rela.data.rel.ro_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rel.data.rel.ro* ) }
+	".rel.data_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rel.data .rel.data.* .rel.gnu.linkonce.d.* ) }
+	".rela.data_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rela.data .rela.data.* .rela.gnu.linkonce.d.* ) }
+	".rel.tdata_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.* ) }
+	".rela.tdata_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.* ) }
+	".rel.tbss_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.* ) }
+	".rela.tbss_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.* ) }
+	".rel.ctors_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rel.ctors ) }
+	".rela.ctors_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rela.ctors ) }
+	".rel.dtors_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rel.dtors ) }
+	".rela.dtors_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rela.dtors ) }
+	".rela.dyn_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(rela.dyn ) SORT(*spi_flash_flash.o)(.rela__libc_subfreeres ) SORT(*spi_flash_flash.o)(.rela__libc_atexit ) SORT(*spi_flash_flash.o)(.rela__libc_thread_subfreeres ) SORT(*spi_flash_flash.o)(.rela.init_array ) SORT(*spi_flash_flash.o)(.rela.fini_array ) }
+	".rel.got_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rel.got ) }
+	".rela.got_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rela.got ) }
+	".rel.sdata_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rel.sdata .rel.sdata.* .rel.gnu.linkonce.s.* ) }
+	".rela.sdata_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rela.sdata .rela.sdata.* .rela.gnu.linkonce.s.* ) }
+	".rel.sbss_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rel.sbss .rel.sbss.* .rel.gnu.linkonce.sb.* ) }
+	".rela.sbss_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rela.sbss .rela.sbss.* .rela.gnu.linkonce.sb.* ) }
+	".rel.sdata2_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rel.sdata2 .rel.sdata2.* .rel.gnu.linkonce.s2.* ) }
+	".rela.sdata2_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rela.sdata2 .rela.sdata2.* .rela.gnu.linkonce.s2.* ) }
+	".rel.sbss2_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rel.sbss2 .rel.sbss2.* .rel.gnu.linkonce.sb2.* ) }
+	".rela.sbss2_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rela.sbss2 .rela.sbss2.* .rela.gnu.linkonce.sb2.* ) }
+	".rel.bss_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rel.bss .rel.bss.* .rel.gnu.linkonce.b.* ) }
+	".rela.bss_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.* ) }
+	".rel.plt_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rel.plt ) }
+	".rela.plt_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rela.plt ) }
+	".init_*spi_flash_flash.o" 	: { KEEP(SORT(*spi_flash_flash.o)(.init )) }
+	".plt_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.plt ) }
+	".text_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.text .stub .text.* .gnu.linkonce.t.* ) KEEP(SORT(*spi_flash_flash.o)(.text.*personality* )) SORT(*spi_flash_flash.o)(.gnu.warning ) . = ALIGN(4); }
+	".fini_*spi_flash_flash.o" 	: { KEEP(SORT(*spi_flash_flash.o)(.fini )) }
+	".ex9.itable_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.ex9.itable ) }
+	PROVIDE (__etext = .);
+	PROVIDE (_etext = .);
+	PROVIDE (etext = .);
+	".rodata_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rodata .rodata.* .gnu.linkonce.r.* ) }
+	".rodata1_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.rodata1 ) }
+	".sdata2_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.sdata2 .sdata2.* .gnu.linkonce.s2.* ) }
+	".sbss2_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.sbss2 .sbss2.* .gnu.linkonce.sb2.* ) }
+	".eh_frame_hdr_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.eh_frame_hdr ) }
 	.tcm_section 	: { KEEP(*(.tcm_section )) }
 	".nds32_init_*tws_time_sync.o" 	: { KEEP(*tws_time_sync.o(.nds32_init )) }
 	".interp_*tws_time_sync.o" 	: { KEEP(*tws_time_sync.o(.interp )) }
@@ -291,7 +403,6 @@ SECTIONS
 	".sdata2_*co_utils.o" 	: { KEEP(*co_utils.o(.sdata2 .sdata2.* .gnu.linkonce.s2.* )) }
 	".sbss2_*co_utils.o" 	: { KEEP(*co_utils.o(.sbss2 .sbss2.* .gnu.linkonce.sb2.* )) }
 	".eh_frame_hdr_*co_utils.o" 	: { KEEP(*co_utils.o(.eh_frame_hdr )) }
-	.deepsleep_section 	: { KEEP(*(.deepsleep_section )) }
 	.startup_section 	: { KEEP(*(.startup_section )) }
 	.driver.isr 	: { KEEP(*(.driver.isr )) }
 	.nds32_vector 	: { KEEP(*(.nds32_vector )) KEEP(*(SORT(.nds32_vector.* ))) }
@@ -355,25 +466,13 @@ SECTIONS
 	.sdata2 	: { *(.sdata2 .sdata2.* .gnu.linkonce.s2.* ) }
 	.sbss2 	: { *(.sbss2 .sbss2.* .gnu.linkonce.sb2.* ) }
 	.eh_frame_hdr 	: { *(.eh_frame_hdr ) }
-	. = . + 0;
-	__ram_code_start =  LOADADDR (.ram.code);
-	.ram.code 	: { *(.ram.code ) }
-	__ram_code_end =  LOADADDR (.ram.code) + SIZEOF (.ram.code);
-	. = . + 0;
-	__rand_code_start =  LOADADDR (.rand.code);
-	.rand.code 	: { *(.rand.code ) }
-	__rand_code_end =  LOADADDR (.rand.code) + SIZEOF (.rand.code);
-	. = . + 0;
-	__ctxt_code_start =  LOADADDR (.ctxt.code);
-	.ctxt.code 	: { *(.ctxt.code ) }
-	__ctxt_code_end =  LOADADDR (.ctxt.code) + SIZEOF (.ctxt.code);
 	. = 0x20001500;
 	_SDA_BASE_ = 0x20028000;
 	PROVIDE (_stack = 0x20001500);
 	. = ALIGN(0x20);
 	__data_lmastart =  LOADADDR (.eh_frame);
 	__data_start = ADDR(.eh_frame);
-	.eh_frame 	: AT(ALIGN(LOADADDR (.ctxt.code) + SIZEOF (.ctxt.code), 32))
+	.eh_frame 	: AT(ALIGN(LOADADDR (.eh_frame_hdr) + SIZEOF (.eh_frame_hdr), 32))
 		{ KEEP(*(.eh_frame )) }
 	.gcc_except_table 	: AT(ALIGN(LOADADDR (.eh_frame) + SIZEOF (.eh_frame), ALIGNOF(.gcc_except_table)))
 		{ KEEP(*(.gcc_except_table )) *(.gcc_except_table.* ) }

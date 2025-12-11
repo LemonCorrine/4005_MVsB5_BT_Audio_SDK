@@ -73,7 +73,7 @@ bool roboeffect_ai_denoise_init_if(void *node)
 
 bool roboeffect_ai_denoise_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len)
 {
-	int ret;
+//	int ret;
 	uint8_t method_flag = 0;
 	roboeffect_user_defined_effect_info info;
 	ai_denoise_struct *ai_info;
@@ -108,10 +108,10 @@ bool roboeffect_ai_denoise_config_if(void *node, int16_t *new_param, uint8_t par
 
 bool roboeffect_ai_denoise_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n)
 {
-	int i;
+//	int i;
 	roboeffect_user_defined_effect_info info;
 	ai_denoise_struct *ai_info;
-	int32_t ret, block, clip_size;
+	int32_t block, clip_size;
 	
 	/**
 	 * get information struct from instance

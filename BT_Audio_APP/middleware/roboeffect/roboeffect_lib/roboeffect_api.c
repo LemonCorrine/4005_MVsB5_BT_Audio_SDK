@@ -24,6 +24,7 @@
 #include "roboeffect_api.h"
 #include "roboeffect_config.h"
 #include "user_defined_effect_api.h"
+#include <string.h>
 
 #define ROBOEFFECT_EFF_IF_NAME_INIT(a) roboeffect_##a##_init_if
 #define ROBOEFFECT_EFF_IF_NAME_CONF(a) roboeffect_##a##_config_if
@@ -7699,9 +7700,9 @@ uint16_t roboeffect_get_param_index_by_name(char *effect_type_name, char *param_
 	while(pp < effect_property_for_display + sizeof_effect_property_for_display())
 	{
 		item_len = *((uint16_t*)pp);
-		uint8_t *look = pp + 5;
+		uint8_t *look = (uint8_t *)pp + 5;
 		
-		if(*look == strlen(effect_type_name) && strncmp(effect_type_name, look+1, *look) == 0)
+		if(*look == strlen(effect_type_name) && strncmp(effect_type_name, (char *)look+1, *look) == 0)
 		{
 			uint8_t *qq, io_cnt, param_cnt;
 			qq = look + 1 + *look + 2;
@@ -7721,7 +7722,7 @@ uint16_t roboeffect_get_param_index_by_name(char *effect_type_name, char *param_
 
 			while(param_sel < param_cnt)
 			{
-				if(*qq == strlen(param_name) && strncmp(param_name, qq+1, *qq) == 0)
+				if(*qq == strlen(param_name) && strncmp(param_name, (char *)qq+1, *qq) == 0)
 					return param_sel;
 
 				qq += 1 + *qq;//param_name_len + name_string

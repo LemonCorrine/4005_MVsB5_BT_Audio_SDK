@@ -1,8 +1,8 @@
 #ifndef __FLASH_BOOT_H__
 #define __FLASH_BOOT_H__
 /*
-版本说明：当前为V5.2.2版本
-日期：2025年5月21日
+版本说明：当前为V5.3.0版本
+日期：2025年8月13日
 */
 #ifdef CFG_APP_CONFIG
 	#include "upgrade.h"
@@ -150,6 +150,12 @@ typedef enum {
 	RC_32K,								//内部RC32K
 }BOOT_CLK_MODE;
 
+typedef enum {
+	SYMBOL_CHECK,						//中断向量表+特征校验
+	CRC_PART_CODE_CHECK,				//CRC部分  user code 校验
+	CRC_ALL_CODE_CHECK,					//CRC全部  user code 校验
+}UPGRAD_CHECK_MODE;
+
 
 #ifdef USB_CRYSTA_FREE_EN
 #define BOOT_CLK 	RC_32K
@@ -157,7 +163,9 @@ typedef enum {
 #define BOOT_CLK 	HSE_OSC_24M			//外部24m晶体
 #endif
 
-#define BOOT_SYSTEM_CONFIGURATIOM		(BOOT_CLK)
+#define CODE_CHECK 	CRC_ALL_CODE_CHECK	//CRC全部  user code 校验
+
+#define BOOT_SYSTEM_CONFIGURATIOM		((CODE_CHECK<<2) + BOOT_CLK)
 
 #define  CFG_SDK_MAGIC_NUMBER                (0xB0BEBDC9)
 

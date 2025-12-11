@@ -348,6 +348,12 @@ static void BtPlayRunning(uint16_t msgId)
 				//play
 				BtStackServiceMsgSend(MSG_BTSTACK_MSG_BT_PLAY);
 				SetBtPlayState(BT_PLAYER_STATE_PLAYING);
+				if(gBtPlaySbcDecoderInitFlag)
+				{
+#ifdef CFG_PARA_BT_SYNC
+					AudioCoreSourceAdjust(APP_SOURCE_NUM, TRUE);
+#endif
+				}
 			}
 			break;
 		
@@ -481,10 +487,13 @@ bool BtPlayInit(void)
 #if (BT_SOURCE_SUPPORT)// source
 	BtSourceBtModeInit();
 #else
-	if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF)
-		BtFastPowerOn();
-	else if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_DISABLE)
-		BtPowerOn();
+	if(!SoftFlagGet(SoftFlagSysCurModeReboot))
+	{
+		if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_FAST_POWER_ON_OFF)
+			BtFastPowerOn();
+		else if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_DISABLE)
+			BtPowerOn();
+	}
 #endif// source
 
 	ret = BtPlayInitRes();

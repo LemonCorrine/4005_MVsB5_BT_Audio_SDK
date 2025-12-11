@@ -28,6 +28,46 @@ extern "C"{
 
 #include "type.h"
 
+#define     FLASHDRV_IN_ROM         (1)
+
+
+#if FLASHDRV_IN_ROM
+
+#define SpiFlashInit            SpiFlashInit_rom
+#define SpiFlashRead            SpiFlashRead_rom
+#define SpiFlashWrite           SpiFlashWrite_rom
+#define SpiFlashErase           SpiFlashErase_rom
+#define SpiFlashClkSwitch       SpiFlashClkSwitch_rom
+#define FlashErase              FlashErase_rom
+#define SpiFlashInfoGet         SpiFlashInfoGet_rom
+#define SpiFlashResumDelaySet   SpiFlashResumDelaySet_rom
+#define SpiFlashIOCtrl          SpiFlashIOCtrl_rom
+#define IsFlashBusy             IsFlashBusy_rom
+#define SpiFlashReadUniqueID    SpiFlashReadUniqueID_rom
+#define FshcClkSwitchCallBackSet FshcClkSwitchCallBackSet_rom
+
+#define DRV_REMAP_SIZE          (1*1024)     //1K
+
+#else
+#define SpiFlashInit            SpiFlashInit_flash
+#define SpiFlashRead            SpiFlashRead_flash
+#define SpiFlashWrite           SpiFlashWrite_flash
+#define SpiFlashErase           SpiFlashErase_flash
+#define FlashErase              FlashErase_flash
+#define SpiFlashClkSwitch       SpiFlashClkSwitch_flash
+#define SpiFlashInfoGet         SpiFlashInfoGet_flash
+#define SpiFlashResumDelaySet   SpiFlashResumDelaySet_flash
+#define SpiFlashIOCtrl          SpiFlashIOCtrl_flash
+#define IsFlashBusy             IsFlashBusy_flash
+#define SpiFlashReadUniqueID    SpiFlashReadUniqueID_flash
+#define FshcClkSwitchCallBackSet FshcClkSwitchCallBackSet_flash
+
+#define DRV_REMAP_SIZE          (8*1024)     //8K
+
+#endif
+
+
+
 #define     FLASH_GD             (0xC8)    /**<MID */
 #define     FLASH_MX             (0xC2)    /**<MID */
 #define     FLASH_WINBOUND       (0xEF)    /**<MID */
@@ -147,7 +187,8 @@ typedef enum {
  *         @arg UNKNOWN_DID_ERR  identify MID but can't identify DID
  *         @arg NONE_ERR  
  */
-SPI_FLASH_ERR_CODE SpiFlashInit(uint32_t flash_clk, SPIFLASH_IO_MODE IOMode, bool HpmEn, FSHC_CLK_MODE ClkSrc);
+SPI_FLASH_ERR_CODE SpiFlashInit_rom(uint32_t flash_clk, SPIFLASH_IO_MODE IOMode, bool HpmEn, FSHC_CLK_MODE ClkSrc);
+SPI_FLASH_ERR_CODE SpiFlashInit_flash(uint32_t flash_clk, SPIFLASH_IO_MODE IOMode, bool HpmEn, FSHC_CLK_MODE ClkSrc);
 
 
 /**
@@ -161,7 +202,8 @@ SPI_FLASH_ERR_CODE SpiFlashInit(uint32_t flash_clk, SPIFLASH_IO_MODE IOMode, boo
  *         @arg  DATALEN_LESS_THEN_ZERO_ERR    read data but data len is < 0
  *         @arg  NONE_ERR
  */
-SPI_FLASH_ERR_CODE SpiFlashRead( uint32_t StartAddr, uint8_t* Buffer, uint32_t Length, uint32_t TimeOut);
+SPI_FLASH_ERR_CODE SpiFlashRead_rom( uint32_t StartAddr, uint8_t* Buffer, uint32_t Length, uint32_t TimeOut);
+SPI_FLASH_ERR_CODE SpiFlashRead_flash( uint32_t StartAddr, uint8_t* Buffer, uint32_t Length, uint32_t TimeOut);
 
 /**
  * @brief  write data into flash 
@@ -174,7 +216,8 @@ SPI_FLASH_ERR_CODE SpiFlashRead( uint32_t StartAddr, uint8_t* Buffer, uint32_t L
  *         @arg  DATALEN_LESS_THEN_ZERO_ERR    read data but data len is < 0
  *         @arg  NONE_ERR
  */
-SPI_FLASH_ERR_CODE SpiFlashWrite( uint32_t	Addr, uint8_t	*Buffer, uint32_t 	Length, uint32_t IsSuspend);
+SPI_FLASH_ERR_CODE SpiFlashWrite_rom( uint32_t	Addr, uint8_t	*Buffer, uint32_t 	Length, uint32_t IsSuspend);
+SPI_FLASH_ERR_CODE SpiFlashWrite_flash( uint32_t	Addr, uint8_t	*Buffer, uint32_t 	Length, uint32_t IsSuspend);
 
 
 
@@ -191,7 +234,8 @@ SPI_FLASH_ERR_CODE SpiFlashWrite( uint32_t	Addr, uint8_t	*Buffer, uint32_t 	Leng
  * @param  IsSuspend: during flash sector/block erase need suspend set it to 1
  * @return NONE
  */
-void SpiFlashErase(ERASE_TYPE_ENUM erase_type, uint32_t index, bool IsSuspend);
+void SpiFlashErase_rom(ERASE_TYPE_ENUM erase_type, uint32_t index, bool IsSuspend);
+void SpiFlashErase_flash(ERASE_TYPE_ENUM erase_type, uint32_t index, bool IsSuspend);
 
 /**
  * @brief	擦除flash
@@ -200,7 +244,8 @@ void SpiFlashErase(ERASE_TYPE_ENUM erase_type, uint32_t index, bool IsSuspend);
  * @return	ERASE_FLASH_ERR-擦除失败	FLASH_NONE_ERR-擦除成功
  * @note   自动优化使用块擦除以提高擦除效率，擦除过程会关闭中断，不开启suspend
  */
-int32_t FlashErase(uint32_t Offset,uint32_t Size);
+int32_t FlashErase_rom(uint32_t Offset,uint32_t Size);
+int32_t FlashErase_flash(uint32_t Offset,uint32_t Size);
 
 /**
  * @brief	调整flash时钟频率
@@ -209,7 +254,8 @@ int32_t FlashErase(uint32_t Offset,uint32_t Size);
  * @return	SWITCH_FLASH_CLK_ERR-失败	FLASH_NONE_ERR-成功
  * @note
  */
-SPI_FLASH_ERR_CODE SpiFlashClkSwitch(FSHC_CLK_MODE ClkSrc, uint32_t FlashClk);
+SPI_FLASH_ERR_CODE SpiFlashClkSwitch_rom(FSHC_CLK_MODE ClkSrc, uint32_t FlashClk);
+SPI_FLASH_ERR_CODE SpiFlashClkSwitch_flash(FSHC_CLK_MODE ClkSrc, uint32_t FlashClk);
 
 /**
  * @brief  get spi flash information
@@ -217,7 +263,8 @@ SPI_FLASH_ERR_CODE SpiFlashClkSwitch(FSHC_CLK_MODE ClkSrc, uint32_t FlashClk);
  * @return return the SPI_FLASH_INFO pointer
  * @note this function should be called after SpiFlashInit
  */
-SPI_FLASH_INFO* SpiFlashInfoGet(void);
+SPI_FLASH_INFO* SpiFlashInfoGet_rom(void);
+SPI_FLASH_INFO* SpiFlashInfoGet_flash(void);
 
 /**
  * @brief	设置resume时间
@@ -225,7 +272,8 @@ SPI_FLASH_INFO* SpiFlashInfoGet(void);
  * @return	SWITCH_FLASH_CLK_ERR-失败	FLASH_NONE_ERR-成功
  * @note 如果erase和write时使用suspend功能，需要设置
  */
-SPI_FLASH_ERR_CODE SpiFlashResumDelaySet(uint32_t time);
+SPI_FLASH_ERR_CODE SpiFlashResumDelaySet_rom(uint32_t time);
+SPI_FLASH_ERR_CODE SpiFlashResumDelaySet_flash(uint32_t time);
 
 /**
  * @brief  Spi Flash IO Ctrl
@@ -258,7 +306,8 @@ SPI_FLASH_ERR_CODE SpiFlashResumDelaySet(uint32_t time);
  *				arg1: bool hpmEn
  * @return return SPI_FLASH_ERR_CODE for cmd executed
  */
-SPI_FLASH_ERR_CODE SpiFlashIOCtrl(IOCTL_FLASH_T Cmd, ...);
+SPI_FLASH_ERR_CODE SpiFlashIOCtrl_rom(IOCTL_FLASH_T Cmd, ...);
+SPI_FLASH_ERR_CODE SpiFlashIOCtrl_flash(IOCTL_FLASH_T Cmd, ...);
 
 /**
  * @brief  get flash status
@@ -266,7 +315,8 @@ SPI_FLASH_ERR_CODE SpiFlashIOCtrl(IOCTL_FLASH_T Cmd, ...);
  * @return 1-busy 0-idle
  * @note this function should be called after SpiFlashInit
  */
-uint8_t IsFlashBusy(void);
+uint8_t IsFlashBusy_rom(void);
+uint8_t IsFlashBusy_flash(void);
 
 /**
  * @brief  read flash unique id 
@@ -276,11 +326,13 @@ uint8_t IsFlashBusy(void);
  *         @arg  DATALEN_LESS_THEN_ZERO_ERR   buffer len is 0
  *         @arg  NONE_ERR
  */
-SPI_FLASH_ERR_CODE SpiFlashReadUniqueID(uint8_t* Buffer, uint8_t BufLen);
-
+SPI_FLASH_ERR_CODE SpiFlashReadUniqueID_rom(uint8_t* Buffer, uint8_t BufLen);
+SPI_FLASH_ERR_CODE SpiFlashReadUniqueID_flash(uint8_t* Buffer, uint8_t BufLen);
 
 typedef void (*FshcClkSwitch_t)(FSHC_CLK_MODE ClkSrc, uint32_t flash_clk);
-void FshcClkSwitchCallBackSet(FshcClkSwitch_t callback);
+void FshcClkSwitchCallBackSet_rom(FshcClkSwitch_t callback);
+void FshcClkSwitchCallBackSet_flash(FshcClkSwitch_t callback);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus 

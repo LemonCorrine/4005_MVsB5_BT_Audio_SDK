@@ -50,6 +50,8 @@ void AudioDAC_Init(DACParamCt *ct, uint32_t SampleRate, uint16_t BitWidth, void 
 		AudioDAC_DsmOptimizeSet();
 	}
 	AudioDAC_ZeroNumSet(DAC0, 5);
+	AudioDAC_FadeTimeSet(DAC0, 10);
+	AudioDAC_FadeEnable(DAC0);
     if(BitWidth == 16)
     {
         AudioDAC_DoutModeSet(DAC0, DAC_DOUT_MODE, WIDTH_16_BIT); // WIDTH_24_BIT_1, WIDTH_24_BIT_2, WIDTH_16_BIT

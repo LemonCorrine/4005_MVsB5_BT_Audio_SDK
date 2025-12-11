@@ -65,6 +65,7 @@ void start_up_grate(ResourceType UpdateResource)
 #endif
 	if(SREG_BOOT_REGISTER.sParam != 0)
 	{
+		(*(volatile unsigned long *) 0x400400D0) = 0;//REG_ROM_FIX
 		SREG_BOOT_REGISTER.sState = STATE_UPGRADE_APPLY;
 		APP_DBG("start_up_grate0...................");
 		GPIO_RegisterResetMask();

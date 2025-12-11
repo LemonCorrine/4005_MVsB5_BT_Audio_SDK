@@ -42,6 +42,8 @@ typedef struct _AudioCoreServiceContext
 
 static AudioCoreServiceContext		audioCoreServiceCt;
 
+extern uint8_t AudioMsgProccess(uint16_t Msg);
+
 /**
  * @brief	Audio core servcie init
  * @param	NONE

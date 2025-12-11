@@ -9,6 +9,7 @@
 #include "bt_config.h"
 #include "breakpoint.h"
 #include "audio_vol.h"
+#include "audio_core_service.h"
 
 extern uint8_t GetEffectControlIndex(AUDIOEFFECT_EFFECT_CONTROL type);
 

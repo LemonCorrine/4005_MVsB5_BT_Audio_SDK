@@ -402,6 +402,7 @@ void bt_em_size_init(void)
 int main(void)
 {
 	uint16_t RstFlag = 0;
+	extern char __sdk_code_start;
 
 	Chip_Init(1);
 	Chip_MemInit();
@@ -424,6 +425,10 @@ int main(void)
 #endif
 	
 	DBUS_Access_Area_Init(0);//设置Databus访问区间为codesize
+
+	//0.4.0及以后驱动版本，flash api需要remap
+//	DBG("\nTCM_SRAM_START_ADDR_1 = %x, TCM_SIZE = %d KB\n", TCM_SRAM_START_ADDR_1, DRV_REMAP_SIZE/1024);
+	Remap_InitTcm((uint32_t)(&__sdk_code_start), BB_MPU_START_ADDR, DRV_REMAP_SIZE/1024);
 	
 	//考虑到大容量的8M flash，写之前需要Unlock，SDK默认不做加锁保护
 	//用户为了增加flash 安全性，请根据自己flash大小和实际情况酌情做flash加锁保护机制

@@ -266,8 +266,8 @@ static EngineSoundContextWrap *dec_main_1 = NULL;
 int32_t motor_data_callback_1(int32_t index, int32_t n, int16_t *pcm_buf)
 {
     table_motor *item;
-    int16_t *cur_ptr;
-    int i;
+//    int16_t *cur_ptr;
+//    int i;
     
     if(dec_main_1 == NULL)
         return 0;

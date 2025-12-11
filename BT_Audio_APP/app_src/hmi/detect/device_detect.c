@@ -88,6 +88,8 @@ extern bool i2c_work;
 void BreakPointSave(uint16_t device_msgId);
 #endif
 
+extern uint8_t OTG_HostUnInit(void);
+
 #ifdef HDMI_HPD_CHECK_DETECT_EN
 static  DETECT_STATE HDMI_Device_State = DETECT_STATE_IDLE;
 TIMER	HDMIDetectTimer;

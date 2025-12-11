@@ -393,12 +393,8 @@ bool SystermWackupSourceCheck(void)
 //	SysTickDeInit();
 	return FALSE;
 }
-/**
 
-
-
-#endif//CFG_FUNC_DEEPSLEEP_EN
- */
+#ifdef BT_SNIFF_DEEPSLEEP_ENABLE
 static void SystermBTWakeupConfig(void)
 {
 	NVIC_EnableIRQ(Wakeup_IRQn);
@@ -407,7 +403,7 @@ static void SystermBTWakeupConfig(void)
 	Power_WakeupSourceSet(SYSWAKEUP_SOURCE15_BT, 0, 0);//设置蓝牙为唤醒源，无需IO所以随便填了0
 	Power_WakeupEnable(SYSWAKEUP_SOURCE15_BT);
 }
-
+#endif
 
 #endif//CFG_FUNC_DEEPSLEEP_EN
 

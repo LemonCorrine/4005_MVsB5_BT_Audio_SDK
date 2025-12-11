@@ -1123,6 +1123,19 @@ void BtHfpManufactoryInfo(BT_HFP_CALLBACK_PARAMS * param)
 		btManager.btLinked_env[param->index].appleDeviceFlag = 0;
 		
 	btManager.appleDeviceFlag = btManager.btLinked_env[param->index].appleDeviceFlag;
+
+#ifdef BT_GETTIME_SUPPORT
+	if(strstr(param->params.hfpRemoteManufactory,"Apple Inc."))
+	{
+		printf("get remote device time is Apple\n");
+		extern uint16_t gBtMapEnable;
+		gBtMapEnable = 0;
+		HfpGetRemoteDevTime(BtCurIndex_Get());//get time
+	}else{
+		extern uint16_t gBtMapEnable;
+		gBtMapEnable = 1;
+	}
+#endif
 }
 
 /*****************************************************************************************
