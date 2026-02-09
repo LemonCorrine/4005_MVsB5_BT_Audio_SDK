@@ -123,6 +123,7 @@ bool UDiskBulkTransport(uint8_t* Buf, uint16_t Len)
 	TIMER ComTimer;
 	int32_t RemainTime;
 	TimeOutSet(&ComTimer, 3000);
+	memset(&csw,0,sizeof(CSW));
 	cbw.DataTransferLength = CpuToLe16(Len);
 
 	//支持扇区大小不是512字节的U盘
@@ -138,7 +139,7 @@ bool UDiskBulkTransport(uint8_t* Buf, uint16_t Len)
 #ifdef FUNC_OS_EN
 		osTaskDelay(1);// sam add 20200916
 #endif
-		if(IsTimeOut(&ComTimer))
+//		if(IsTimeOut(&ComTimer))
 		{
 			return FALSE;
 		}
@@ -196,7 +197,7 @@ bool UDiskBulkTransport(uint8_t* Buf, uint16_t Len)
 		return FALSE;
 	}
 
-	if(csw.Status == 0)
+	if(csw.Signature == 0x53425355 && csw.Tag == cbw.Tag && csw.Status == 0)
 	{
 		//DBG("B OK\n");
 		CmdErrCnt = 0;

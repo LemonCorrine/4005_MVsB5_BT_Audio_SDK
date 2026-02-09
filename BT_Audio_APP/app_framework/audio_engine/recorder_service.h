@@ -22,7 +22,31 @@ extern "C"{
 
 #include "type.h"
 
-
+typedef struct _WavFileHeader
+{
+	uint8_t	chunk_id[4];		//  0 - ChunkID: "RIFF"
+	uint32_t chunk_size;		//  4 - ChunkSize: (filesize-8)
+	uint8_t format[4];			//  8 - Format: "WAVE"
+	uint8_t subchunk1_id[4];	// 12 - SubChunk1ID: "fmt "
+	uint32_t subchunk1_size;	// 16 - SubChunk1Size: 16 for PCM (18 o 40 for others)
+	uint16_t audio_format;		// 20 - AudioFormat: (1=Uncompressed)
+	uint16_t num_channels;		// 22 - NumChannels: 1 or 2
+	uint32_t sample_rate;		// 24 - SampleRate in Hz
+	uint32_t byte_rate;			// 28 - Byte Rate (SampleRate*NumChannels*(BitsPerSample/8)
+	uint16_t block_align;		// 32 - BlockAlign (== NumChannels * BitsPerSample/8)
+	uint16_t bits_per_sample;	// 34 - BitsPerSample: 16 bit
+	uint8_t subchunk2_id[4];	// 36 - Subchunk2ID: "data"
+	uint32_t subchunk2_size;	// 40 - Subchunk2Size: BitsPerSample/8*NumChannels*NumSamples;
+} WavFileHeader;
+// the critical information of a WAV file
+typedef struct _WavInfo
+{
+	uint32_t sample_rate;		// sample rate in Hz
+	uint32_t num_samples;		// total number of samples contained in WAV file
+	uint16_t num_channels;		// number of channels
+	uint16_t bits_per_sample;	// bits per sample (8/16/24/32)
+} WavInfo_t;
+#define	ENCODER_WAV_SAMPLE_SIZE		512
 
 #ifdef	CFG_FUNC_RECORD_SD_UDISK
 #define FILE_PATH_LEN							(strlen(MEDIA_VOLUME_STR_C)  + strlen(CFG_PARA_RECORDS_FOLDER) + 1 + 8 + 4 + 1 )//vol:3 + folder/:4 + name:8 + .ext:4

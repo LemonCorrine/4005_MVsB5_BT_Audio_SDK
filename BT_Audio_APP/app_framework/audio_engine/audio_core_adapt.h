@@ -157,7 +157,7 @@ void AudioCoreSourceChange(uint8_t Index, uint8_t Channels, uint32_t SampleRate)
 //调整音频参数 设置非0值，设置0时保持原值
 void AudioCoreSinkChange(uint8_t Index, uint8_t Channels, uint32_t SampleRate);
 
-//调整LenGetFunc()对应的最大值  @sample
+// 重置音频通路FIFO 设置非0值，设置0时保持原值
 void AudioCoreSourceFifoReset(uint8_t Index);
 
 // 重置音频通路FIFO 设置非0值，设置0时保持原值

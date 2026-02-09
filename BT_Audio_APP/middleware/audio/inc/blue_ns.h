@@ -4,7 +4,7 @@
  * @brief	Noise Suppression for Mono Signals
  *
  * @author	ZHAO Ying (Alfred)
- * @version	v3.0.0
+ * @version	v3.1.0
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************
@@ -36,7 +36,7 @@ extern "C" {
 /**
  * 
  * @brief Estimate the memory usage of noise suppression module before actual initialization.
- * @param[in]  blk_len Block length in samples. 3 supported values: 128 / 256 / 512.
+ * @param[in]  blk_len Block length in samples. 4 supported values: 64 / 128 / 256 / 512.
  * @param[in]  bit_depth Bit depth of the PCM samples. Choose either 16 or 24 bits.
  * @param[out] persistent_size  size of persistent memory in bytes. The contents of this memory cannot be modified or cleared between calls to blue_ns_run16() or blue_ns_run24().
  * @param[out] scratch_size  size of scratch memory in bytes. The contents of this memory can be modified or cleared for other use between calls to blue_ns_run16() or blue_ns_run24().
@@ -47,10 +47,12 @@ extern "C" {
  * | block_length | bit_depth | persistent |  scratch |
  * |              |           |   (bytes)  |  (bytes) |
  * ----------------------------------------------------
+ * |      64      |    16     |    1568    |    512   |
  * |     128      |    16     |    3104    |   1024   |
  * |     256      |    16     |    6176    |   2048   |
  * |     512      |    16     |   12320    |   4096   |
  * |---------------------------------------------------
+ * |      64      |    24     |    1824    |    512   |
  * |     128      |    24     |    3616    |   1024   |
  * |     256      |    24     |    7200    |   2048   |
  * |     512      |    24     |   14368    |   4096   |
@@ -64,7 +66,7 @@ int32_t blue_ns_estimate_memory_usage(int32_t blk_len, int32_t bit_depth, uint32
  * @brief Initialize the noise suppression module.
  * @param ct Pointer to the noise suppression context object (persistent_size in bytes).
  * @param scratch Pointer to the scratch area (scratch_size in bytes).
- * @param blk_len Block length in samples. 3 supported values: 128 / 256 / 512.
+ * @param blk_len Block length in samples. 4 supported values: 64 / 128 / 256 / 512.
  * @param bit_depth Bit depth of the PCM samples. Choose either 16 or 24 bits.
  * @return error code. BLUENS_ERROR_OK means successful, other codes indicate error.
  * @note Only mono signals are supported. 

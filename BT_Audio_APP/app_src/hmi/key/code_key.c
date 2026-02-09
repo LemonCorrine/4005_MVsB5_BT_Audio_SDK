@@ -119,8 +119,6 @@ KeyScanMsg CodeKeyScan(void)
 	return CodeKey;
 }
 
-#endif //CFG_RES_CODE_KEY_USE
-
 // Coding key signal-A interrupt.
 void GpioInterrupt(void)
 {
@@ -158,3 +156,4 @@ void GpioInterrupt(void)
     
     #endif //CFG_RES_CODE_KEY_USE
 }
+#endif //CFG_RES_CODE_KEY_USE

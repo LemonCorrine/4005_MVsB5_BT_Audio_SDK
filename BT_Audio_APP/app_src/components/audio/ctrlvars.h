@@ -27,6 +27,7 @@ extern "C" {
 #include "timer.h"
 #include "irqn.h"
 #include "i2s_interface.h"
+#include "rtos_api.h"
 
 #define  MAX_MIC_DIG_STEP               (32)
 #define  MAX_MUSIC_DIG_STEP             (32)
@@ -66,6 +67,10 @@ typedef enum _EFFECT_MODE
     EFFECT_MODE_NanBianNv,
     EFFECT_MODE_NvBianNan,
     EFFECT_MODE_WaWaYin,
+
+	EFFECT_MODE_BIS,
+	/**********tdm mode**************/
+	EFFECT_MODE_TDM,
 
 	EFFECT_MODE_COUNT,
     //User can add other effect mode
@@ -264,7 +269,9 @@ typedef struct _ControlVariablesContext
 	//for system control 0x01
 	//for System status 0x02
 	AutoRefreshType 			AutoRefresh;
-
+#ifdef CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN
+	MessageHandle				RefreshMsgHandle;
+#endif
 	uint8_t 					EffectRefresh;
 
 	HardwareConfigContext HwCt;

@@ -57,8 +57,14 @@ static struct
 
 #endif
 
-#define ENCODER_MP3_OUT_BUF_SIZE			MP3_ENCODER_OUTBUF_CAPACITY//((RecorderCt->SamplePerFrame * MEDIA_RECORDER_BITRATE * 1000 / 8) / CFG_PARA_SAMPLE_RATE + 1100)//单次编码帧（576/1152)输出的size，8为防溢出。
-#define ENCODER_MP2_OUT_BUF_SIZE			MP2_ENCODER_OUTBUF_CAPACITY
+#if MEDIA_RECORDER_FORMAT == RECORD_FORMAT_WAV
+	#define ENCODER_OUT_BUF_SIZE			0
+#elif MEDIA_RECORDER_FORMAT == RECORD_FORMAT_MP2
+	#define ENCODER_OUT_BUF_SIZE			MP2_ENCODER_OUTBUF_CAPACITY//((RecorderCt->SamplePerFrame * MEDIA_RECORDER_BITRATE * 1000 / 8) / CFG_PARA_SAMPLE_RATE + 1100)//单次编码帧（576/1152)输出的size，8为防溢出。
+#elif MEDIA_RECORDER_FORMAT == RECORD_FORMAT_MP3
+	#define ENCODER_OUT_BUF_SIZE			MP3_ENCODER_OUTBUF_CAPACITY
+#endif
+
 #if FILE_WRITE_FIFO_LEN <= 2048
 #define FILE_WRITE_BUF_LEN					(512)
 #else
@@ -107,12 +113,12 @@ typedef struct _MediaRecorderContext
 	/* for Encoder */
 	uint16_t 			RemainSample;//编码buf当前采样点数
 	int16_t				*EncodeBuf;
-#ifdef MEDIA_RECORDER_ENC_FORMAT_MP2
+	uint8_t				*EncodeOutBuf;
+#if MEDIA_RECORDER_FORMAT == RECORD_FORMAT_WAV
+#elif MEDIA_RECORDER_FORMAT == RECORD_FORMAT_MP2
 	MP2EncoderContext	*Mp2EncCon;
-	uint8_t				*Mp2OutBuf;
-#else
+#elif MEDIA_RECORDER_FORMAT == RECORD_FORMAT_MP3
 	MP3EncoderContext	*Mp3EncCon;
-	uint8_t				*Mp3OutBuf;
 #endif
 	int32_t				SamplePerFrame;
 	
@@ -153,7 +159,10 @@ typedef struct _MediaRecorderContext
 	RecorderFadoutState		fadout_state;
 #endif
 }MediaRecorderContext;
-
+#if MEDIA_RECORDER_FORMAT == RECORD_FORMAT_WAV
+static WavFileHeader wfh;
+WavInfo_t WavInfo;
+#endif
 static  MediaRecorderContext*		RecorderCt = NULL;
 void MediaRecorderStopProcess(void);
 
@@ -171,11 +180,19 @@ uint16_t RecFileIndex(char *string)
 		//APP_DBG("%c%c%c%c%c", string[0], string[1], string[2], string[3], string[4]);
 		return 0;
 	}
+#if MEDIA_RECORDER_FORMAT == RECORD_FORMAT_WAV
+	if(string[6] !=  'w' || string[7] !=  'a' || string[8] !=  'v')
+	{
+		//APP_DBG("not wav");
+		return 0;
+	}
+#elif MEDIA_RECORDER_FORMAT == RECORD_FORMAT_MP2 || MEDIA_RECORDER_FORMAT == RECORD_FORMAT_MP3
 	if(string[6] !=  'M' || string[7] !=  'P' || string[8] !=  '3')
 	{
 		//APP_DBG("not mp3");
 		return 0;
 	}
+#endif
 	Index = (string[0] - '0') * 10000 + (string[1] - '0') * 1000	+ (string[2] - '0') * 100 + (string[3] - '0') * 10 + (string[4] - '0');
 	if(Index > FILE_NAME_MAX)
 	{
@@ -196,9 +213,15 @@ void IntToStrMP3Name(char *string, uint16_t number)
 	string[3] = (number % 100) / 10 + '0';
 	string[4] = number % 10 + '0';
 	string[5] = '.';
+#if MEDIA_RECORDER_FORMAT == RECORD_FORMAT_WAV
+	string[6] = 'w';
+	string[7] = 'a';
+	string[8] = 'v';
+#elif  MEDIA_RECORDER_FORMAT == RECORD_FORMAT_MP2 || MEDIA_RECORDER_FORMAT == RECORD_FORMAT_MP3
 	string[6] = 'M';
 	string[7] = 'P';
 	string[8] = '3';
+#endif
 	string[9] = '\0';
 }
 
@@ -350,6 +373,17 @@ static bool MediaRecorderOpenDataFile(void)//uint8_t SongType)
 	else
 	{
 		APP_DBG("Open File ok!\n");
+#if MEDIA_RECORDER_FORMAT == RECORD_FORMAT_WAV
+		if(MCUCircular_GetSpaceLen(&RecorderCt->FileWCircularBuf) < sizeof(WavFileHeader))
+		{
+			APP_DBG("FileWCircularBuf:fifo Error!\n");
+		}
+		osMutexLock(RecorderCt->FifoMutex);
+		MCUCircular_PutData(&RecorderCt->FileWCircularBuf, &wfh, sizeof(WavFileHeader));
+		osMutexUnlock(RecorderCt->FifoMutex);
+		APP_DBG("File PutData Header ok! %d\n",sizeof(WavFileHeader));
+#endif
+
 		RecorderCt->FileNum++;//以文件创建为基准，增加文件计数器
 		return TRUE;
 	}
@@ -370,6 +404,34 @@ static bool MediaRecorderOpenDataFile(void)//uint8_t SongType)
 #endif
 }
 
+#if MEDIA_RECORDER_FORMAT == RECORD_FORMAT_WAV
+void wav_write_header(FIL* f, WavInfo_t* wi)
+{
+	uint32_t file_size;
+	UINT write_size;
+	if (f==NULL)
+		return;
+
+	file_size = f->obj.objsize;
+	f_lseek(f, 0);
+
+	wfh.chunk_id[0]='R'; wfh.chunk_id[1]='I'; wfh.chunk_id[2]='F'; wfh.chunk_id[3]='F';
+	wfh.chunk_size = file_size - 8;
+	wfh.format[0]='W'; wfh.format[1]='A'; wfh.format[2]='V'; wfh.format[3]='E';
+	wfh.subchunk1_id[0]='f'; wfh.subchunk1_id[1]='m'; wfh.subchunk1_id[2]='t'; wfh.subchunk1_id[3]=' ';
+	wfh.subchunk1_size = 16;
+	wfh.audio_format = 1;
+	wfh.num_channels = wi->num_channels;
+	wfh.sample_rate = wi->sample_rate;
+	wfh.byte_rate = wi->sample_rate*wi->num_channels*wi->bits_per_sample/8;
+	wfh.block_align = wi->num_channels*wi->bits_per_sample/8;
+	wfh.bits_per_sample = wi->bits_per_sample; // usually 16-bit
+	wfh.subchunk2_id[0]='d'; wfh.subchunk2_id[1]='a'; wfh.subchunk2_id[2]='t'; wfh.subchunk2_id[3]='a';
+	wfh.subchunk2_size = (wi->bits_per_sample/8)*wi->num_channels*wi->num_samples;
+
+	f_write(f, &wfh, sizeof(wfh), &write_size);
+}
+#endif
 
 uint16_t MediaRecorderDataSpaceLenGet(void)
 {
@@ -406,9 +468,11 @@ uint16_t MediaRecorderDataSet(void* Buf, uint16_t Len)
 bool encoder_init(int32_t num_channels, int32_t sample_rate, int32_t *samples_per_frame)
 {
 	*samples_per_frame = (sample_rate > 32000)?(1152):(576);
-#ifdef MEDIA_RECORDER_ENC_FORMAT_MP2
+#if MEDIA_RECORDER_FORMAT  == RECORD_FORMAT_WAV
+	*samples_per_frame = ENCODER_WAV_SAMPLE_SIZE;
+#elif MEDIA_RECORDER_FORMAT  == RECORD_FORMAT_MP2
 	return mp2_encoder_initialize(RecorderCt->Mp2EncCon, num_channels, sample_rate, MEDIA_RECORDER_BITRATE);
-#else
+#elif MEDIA_RECORDER_FORMAT  == RECORD_FORMAT_MP3
 	if(sample_rate < 24000)
 	{
 		return mp3_encoder_initialize(RecorderCt->Mp3EncCon, num_channels, sample_rate, MEDIA_RECORDER_BITRATE, 0);
@@ -422,9 +486,23 @@ bool encoder_init(int32_t num_channels, int32_t sample_rate, int32_t *samples_pe
 
 bool encoder_encode(int16_t *pcm_in, uint8_t *data_out, uint32_t *plength)
 {
-#ifdef MEDIA_RECORDER_ENC_FORMAT_MP2
+#if MEDIA_RECORDER_FORMAT == RECORD_FORMAT_WAV
+	#if WAV_BIT_PER_SAMPLE == 24
+		int32_t i;
+		for(i=(*plength-1);i>=0;i--)
+		{
+			data_out[i*3+2] = data_out[i*2+1];     // 第三个字节取自16bit的高8位
+			data_out[i*3+1] = data_out[i*2];       // 第二个字节取自16bit的低8位
+			data_out[i*3] = 0x80;                // 24bit数据的第一个字节
+		}
+		*plength *= 3;
+	#else
+		*plength *= 2;
+	#endif
+	return 0;
+#elif MEDIA_RECORDER_FORMAT  == RECORD_FORMAT_MP2
 	return mp2_encoder_encode(RecorderCt->Mp2EncCon, pcm_in, data_out, plength);
-#else
+#elif MEDIA_RECORDER_FORMAT  == RECORD_FORMAT_MP3
 	return mp3_encoder_encode(RecorderCt->Mp3EncCon, pcm_in, data_out, plength);
 #endif
 }
@@ -470,10 +548,11 @@ void MediaRecorderEncode(void)
 				}
 			}
 #endif
-#ifdef MEDIA_RECORDER_ENC_FORMAT_MP2
-			if(!encoder_encode(RecorderCt->EncodeBuf, RecorderCt->Mp2OutBuf, &Len))
-#else
-			if(!encoder_encode(RecorderCt->EncodeBuf, RecorderCt->Mp3OutBuf, &Len))// len=313
+#if MEDIA_RECORDER_FORMAT == RECORD_FORMAT_WAV
+			Len = RecorderCt->SamplePerFrame * MEDIA_RECORDER_CHANNEL;
+			if(!encoder_encode(NULL, (uint8_t *)RecorderCt->EncodeBuf, &Len))
+#elif MEDIA_RECORDER_FORMAT == RECORD_FORMAT_MP2 || MEDIA_RECORDER_FORMAT == RECORD_FORMAT_MP3
+			if(!encoder_encode(RecorderCt->EncodeBuf, RecorderCt->EncodeOutBuf, &Len))
 #endif
 			{
 				if(MCUCircular_GetSpaceLen(&RecorderCt->FileWCircularBuf) < Len)
@@ -484,10 +563,10 @@ void MediaRecorderEncode(void)
 #ifdef CFG_FUNC_RECORDER_ADD_FADOUT_EN
 				if(RecorderCt->fadout_state < RecorderFadoutWaitSaveFile)
 #endif
-#ifdef MEDIA_RECORDER_ENC_FORMAT_MP2
-				MCUCircular_PutData(&RecorderCt->FileWCircularBuf, RecorderCt->Mp2OutBuf, Len);
-#else
-				MCUCircular_PutData(&RecorderCt->FileWCircularBuf, RecorderCt->Mp3OutBuf, Len);
+#if MEDIA_RECORDER_FORMAT == RECORD_FORMAT_WAV
+				MCUCircular_PutData(&RecorderCt->FileWCircularBuf, RecorderCt->EncodeBuf, Len);
+#elif MEDIA_RECORDER_FORMAT == RECORD_FORMAT_MP2 || MEDIA_RECORDER_FORMAT == RECORD_FORMAT_MP3
+				MCUCircular_PutData(&RecorderCt->FileWCircularBuf, RecorderCt->EncodeOutBuf, Len);
 #endif
 				osMutexUnlock(RecorderCt->FifoMutex);
 				RecorderCt->sRecSamples += RecorderCt->SamplePerFrame;
@@ -559,6 +638,7 @@ void ExFlashRecorderStartIndex(MessageHandle parentMsgHandle,uint8_t index)
 		return;
 	}
 #endif
+	DBG("index %d \n",index);
 	if(index <= CFG_PARA_RECORDS_INDEX && index > 0)
 	{
 		DBG("[HHH]ExFlash Recorder the %d voice\n",index);
@@ -583,6 +663,13 @@ void MediaRecorderStopProcess(void)
 	if(RecorderCt->RecorderOn)
 	{
 		APP_DBG("Close\n");
+#if MEDIA_RECORDER_FORMAT == RECORD_FORMAT_WAV
+		WavInfo.bits_per_sample = WAV_BIT_PER_SAMPLE;
+		WavInfo.num_channels = MEDIA_RECORDER_CHANNEL;
+		WavInfo.sample_rate = RecorderCt->SampleRate;
+		WavInfo.num_samples = RecorderCt->sRecSamples;
+		wav_write_header(&RecorderCt->RecordFile,&WavInfo);
+#endif
 #ifdef CFG_FUNC_RECORD_SD_UDISK
 		f_close(&RecorderCt->RecordFile);
 #elif defined(CFG_FUNC_RECORD_FLASHFS) 
@@ -625,15 +712,20 @@ void MediaRecorderStopProcess(void)
 	RecorderCt->RemainSample = 0;
 	RecorderCt->SyncFileMs = 0;
 	RecorderCt->state = TaskStatePaused;
-	msgSend.msgId = MSG_MEDIA_RECORDER_STOPPED;
-	MessageSend(RecorderCt->parentMsgHandle, &msgSend);
 
+	while(RecorderCt->state != TaskStateStopping)
+	{
+		osTaskDelay(1);				//等待录音服务写卡操作执行完成。
+	}
 #ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
 	ExFlashRecorderSaveHead();
 #endif
+	msgSend.msgId = MSG_MEDIA_RECORDER_STOPPED;
+	MessageSend(RecorderCt->parentMsgHandle, &msgSend);
 //	SoftFlagDeregister(SoftFlagRecording);//清理
 }
 
+#ifdef CFG_FUNC_RECORD_SD_UDISK
 bool RecordUDiskDiskMount(void)
 {
 	if(GetSysModeState(ModeUDiskAudioPlay)!=ModeStateSusend)	//待优化 ：判断是否初始化U盘
@@ -669,8 +761,8 @@ bool RecordSDCardDiskMount(void)
 				SDIO_ClkSet(sd->MaxTransSpeed + 1);//降低clk
 				osMutexUnlock(SDIOMutex);
 				APP_DBG("SDCard MaxTransSpeed: %d\n",sd->MaxTransSpeed + 1);
-				return TRUE;
 			}
+			return TRUE;
 		}
 		else
 		{
@@ -681,7 +773,6 @@ bool RecordSDCardDiskMount(void)
 	return FALSE;
 }
 
-#ifdef CFG_FUNC_RECORD_SD_UDISK
 bool RecordDiskMount(void)
 {
 #ifdef CFG_FUNC_RECORD_UDISK_FIRST
@@ -781,7 +872,7 @@ static bool MediaRecorderDataProcess(void)
 			ShowRecordingTime();
 #ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
 			if(((RecorderCt->sRecordingTime / 1000) > EXTERN_FLASH_RECORDER_FILE_SECOND)
-				|| ExFlashRec.RecHead.RecSize >= (CFG_PARA_RECORDS_MAX_SIZE-CFG_PARA_RECORDS_INFO_SIZE-ENCODER_MP2_OUT_BUF_SIZE*2))
+				|| ExFlashRec.RecHead.RecSize >= (CFG_PARA_RECORDS_MAX_SIZE-CFG_PARA_RECORDS_INFO_SIZE-ENCODER_OUT_BUF_SIZE*2))
 			{
 				DBG("ExFlash size out!\n");
 				MessageContext		msgSend;
@@ -844,7 +935,7 @@ static void MediaRecorderServiceStopProcess(void)
 		{
 			MediaRecorderStopProcess();
 		}
-		RecorderCt->state = TaskStateStopping;
+//		RecorderCt->state = TaskStateStopping;
 	}
 }
 
@@ -880,23 +971,20 @@ static bool MediaRecorder_Init(MessageHandle parentMsgHandle)
 	RecorderCt->EncodeOn = FALSE;
 
 	//编码控制 句柄
-#ifdef MEDIA_RECORDER_ENC_FORMAT_MP2
+#if MEDIA_RECORDER_FORMAT == RECORD_FORMAT_WAV
+#elif MEDIA_RECORDER_FORMAT == RECORD_FORMAT_MP2
 	RecorderCt->Mp2EncCon = (MP2EncoderContext*)osPortMalloc(sizeof(MP2EncoderContext));
 	if(RecorderCt->Mp2EncCon  == NULL)
 	{
 		return FALSE;
 	}
-#else
+#elif MEDIA_RECORDER_FORMAT == RECORD_FORMAT_MP3
 	RecorderCt->Mp3EncCon = (MP3EncoderContext*)osPortMalloc(sizeof(MP3EncoderContext));
 	if(RecorderCt->Mp3EncCon  == NULL)
 	{
 		return FALSE;
 	}
 #endif
-//	if((RecorderCt->Mp3EncCon = (MP3EncoderContext*)osPortMalloc(sizeof(MP3EncoderContext))) == NULL)
-//	{
-//		return FALSE;
-//	}
 
 	encoder_init(MEDIA_RECORDER_CHANNEL, RecorderCt->SampleRate, &(RecorderCt->SamplePerFrame));
 	if(RecorderCt->SamplePerFrame > MEDIA_ENCODER_SAMPLE_MAX)
@@ -941,36 +1029,21 @@ static bool MediaRecorder_Init(MessageHandle parentMsgHandle)
 	//编码输入buf
 	if(RecorderCt->EncodeBuf == NULL) 
 	{
-		RecorderCt->EncodeBuf = (int16_t*)osPortMalloc(RecorderCt->SamplePerFrame * MEDIA_RECORDER_CHANNEL * 2);
+		RecorderCt->EncodeBuf = (int16_t*)osPortMalloc(RecorderCt->SamplePerFrame * MEDIA_RECORDER_CHANNEL * 3);
 		if(RecorderCt->EncodeBuf == NULL)
 		{
 			return FALSE;
 		}
-
-//		if(((RecorderCt->EncodeBuf = (int16_t*)osPortMalloc(RecorderCt->SamplePerFrame * MEDIA_RECORDER_CHANNEL * 2))) == NULL)
-//		{
-//			return FALSE;
-//		}
 	}
 	//编码输出buf
-#ifdef MEDIA_RECORDER_ENC_FORMAT_MP2
-	RecorderCt->Mp2OutBuf = osPortMalloc(ENCODER_MP2_OUT_BUF_SIZE);
-	if(RecorderCt->Mp2OutBuf == NULL)
-	{
-		return FALSE;
-	}
-#else
-	RecorderCt->Mp3OutBuf = osPortMalloc(ENCODER_MP3_OUT_BUF_SIZE);
-	if(RecorderCt->Mp3OutBuf == NULL)
+#if MEDIA_RECORDER_FORMAT == RECORD_FORMAT_WAV
+#elif MEDIA_RECORDER_FORMAT == RECORD_FORMAT_MP3 || MEDIA_RECORDER_FORMAT == RECORD_FORMAT_MP2
+	RecorderCt->EncodeOutBuf = osPortMalloc(ENCODER_OUT_BUF_SIZE);
+	if(RecorderCt->EncodeOutBuf == NULL)
 	{
 		return FALSE;
 	}
 #endif
-
-//	if((RecorderCt->Mp3OutBuf = osPortMalloc(ENCODER_MP3_OUT_BUF_SIZE)) == NULL)
-//	{
-//		return FALSE;
-//	}
 
 	if(RecorderCt->FileWFifo == NULL)
 	{
@@ -979,11 +1052,6 @@ static bool MediaRecorder_Init(MessageHandle parentMsgHandle)
 		{
 			return FALSE;
 		}
-
-//		if(((RecorderCt->FileWFifo = (int8_t*)osPortMalloc(FILE_WRITE_FIFO_LEN))) == NULL)//MP3 和pcm size 需求不同
-//		{
-//			return FALSE;
-//		}
 	}
 	MCUCircular_Config(&RecorderCt->FileWCircularBuf, RecorderCt->FileWFifo, FILE_WRITE_FIFO_LEN);
 
@@ -991,13 +1059,6 @@ static bool MediaRecorder_Init(MessageHandle parentMsgHandle)
 	{
 		return FALSE;
 	}
-
-	//录音模式下，写文件时的搬数据buf ********注释此段，借用fifo空间，写入文件系统，节约ram************
-//	if((RecorderCt->WriteBuf = osPortMalloc(FILE_WRITE_BUF_LEN)) == NULL)
-//	{
-//		return FALSE;
-//	}
-
 #ifdef CFG_FUNC_RECORD_SD_UDISK
 	RecorderCt->FileNum = 0;
 #endif
@@ -1031,49 +1092,58 @@ static void MediaRecorderEntrance(void * param)
 			}
 		}
 #endif
-		if(!RecorderCt->RecorderOn)
+		if(RecorderCt->state <= TaskStateRunning)
 		{
-#ifdef CFG_FUNC_RECORD_SD_UDISK
-			//bool	Result = FALSE;
-			if(RecordDiskMount())
+			if(!RecorderCt->RecorderOn)
 			{
-				if(RecorderCt->MediaFatfs.free_clst != 0xFFFFFFFF) //fat系统 缺省值，即存在有效值时，输出log
+	#ifdef CFG_FUNC_RECORD_SD_UDISK
+				//bool	Result = FALSE;
+				if(RecordDiskMount())
 				{
-					APP_DBG("Space Remain: %u (Clst) * %u Sector\n", (unsigned int)RecorderCt->MediaFatfs.free_clst, (unsigned int)RecorderCt->MediaFatfs.csize);
+					if(RecorderCt->MediaFatfs.free_clst != 0xFFFFFFFF) //fat系统 缺省值，即存在有效值时，输出log
+					{
+						APP_DBG("Space Remain: %u (Clst) * %u Sector\n", (unsigned int)RecorderCt->MediaFatfs.free_clst, (unsigned int)RecorderCt->MediaFatfs.csize);
+					}
+
+					if(FileIndexInit() == FALSE)
+					{
+						RecorderCt->RecorderOn = FALSE;
+						RecorderCt->RecState = RecorderStateNone;
+						APP_DBG("Rec Number Full!\n");
+						continue;
+					}
 				}
 
-				if(FileIndexInit() == FALSE)
+	#endif//注意：flashfs dev初始化上电时进行。
+				RecorderCt->RecorderOn = TRUE;
+				RecorderCt->state	= TaskStateRunning;
+				RecorderCt->RecState = RecorderStateWriteFile;//RecorderStateEncode;//sam add
+				if(MediaRecorderOpenDataFile())
 				{
-					RecorderCt->RecorderOn = FALSE;
-					RecorderCt->RecState = RecorderStateNone;
-					APP_DBG("Rec Number Full!\n");
-					continue;
+					//MCUCircular_Config(&RecorderCt->CircularHandle, RecorderCt->SinkRecorderFIFO, MEDIA_RECORDER_FIFO_LEN);
+					AudioCoreSinkEnable(AUDIO_RECORDER_SINK_NUM);// BKD CHANGE ,DO not change again please
+					APP_DBG("Audio core sink 1 enable\n");
+				}else{
+					RecorderCt->state = TaskStateStopping;
+					MediaRecorderStopProcess();
+					APP_DBG("MediaRecorder Init buf & Disk Space error!\n");
 				}
 			}
-
-#endif//注意：flashfs dev初始化上电时进行。
-			RecorderCt->RecorderOn = TRUE;
-			RecorderCt->state	= TaskStateRunning;
-			RecorderCt->RecState = RecorderStateWriteFile;//RecorderStateEncode;//sam add
-			if(MediaRecorderOpenDataFile())
+			if(RecorderCt->RecorderOn)
 			{
-				//MCUCircular_Config(&RecorderCt->CircularHandle, RecorderCt->SinkRecorderFIFO, MEDIA_RECORDER_FIFO_LEN);
-				AudioCoreSinkEnable(AUDIO_RECORDER_SINK_NUM);// BKD CHANGE ,DO not change again please
-				APP_DBG("Audio core sink 1 enable\n");
-			}else{
-				MediaRecorderStopProcess();
-				APP_DBG("MediaRecorder Init buf & Disk Space error!\n");
+				if(MediaRecorderDataProcess() == FALSE)
+				{
+					if(RecorderCt->state != TaskStatePaused)
+					{
+						RecorderCt->state = TaskStateStopping;
+						MediaRecorderStopProcess();
+					}
+				}
 			}
 		}
-		if(RecorderCt->RecorderOn)
+		if(RecorderCt->state == TaskStatePaused)
 		{
-			if(MediaRecorderDataProcess() == FALSE)
-			{
-				if(RecorderCt->state != TaskStatePaused)
-				{
-					MediaRecorderStopProcess();
-				}
-			}
+			RecorderCt->state = TaskStateStopping;
 		}
 		osTaskDelay(1);
 	}
@@ -1171,37 +1241,28 @@ bool MediaRecorderServiceKill(void)
 
 	AudioCoreSinkDeinit(AUDIO_RECORDER_SINK_NUM);
 	//PortFree
-#ifdef MEDIA_RECORDER_ENC_FORMAT_MP2
-		if(RecorderCt->Mp2EncCon != NULL)
-		{
-			osPortFree(RecorderCt->Mp2EncCon);
-			RecorderCt->Mp2EncCon = NULL;
-		}
-		if(RecorderCt->EncodeBuf != NULL)
-		{
-			osPortFree(RecorderCt->EncodeBuf);
-			RecorderCt->EncodeBuf = NULL;
-		}
-		if(RecorderCt->Mp2OutBuf != NULL)
-		{
-			osPortFree(RecorderCt->Mp2OutBuf);
-			RecorderCt->Mp2OutBuf = NULL;
-		}
-#else
-	if(RecorderCt->Mp3EncCon != NULL)
-	{
-		osPortFree(RecorderCt->Mp3EncCon);
-		RecorderCt->Mp3EncCon = NULL;
-	}
 	if(RecorderCt->EncodeBuf != NULL)
 	{
 		osPortFree(RecorderCt->EncodeBuf);
 		RecorderCt->EncodeBuf = NULL;
 	}
-	if(RecorderCt->Mp3OutBuf != NULL)
+	if(RecorderCt->EncodeOutBuf != NULL)
 	{
-		osPortFree(RecorderCt->Mp3OutBuf);
-		RecorderCt->Mp3OutBuf = NULL;
+		osPortFree(RecorderCt->EncodeOutBuf);
+		RecorderCt->EncodeOutBuf = NULL;
+	}
+#if MEDIA_RECORDER_FORMAT == RECORD_FORMAT_WAV
+#elif MEDIA_RECORDER_FORMAT == RECORD_FORMAT_MP2
+	if(RecorderCt->Mp2EncCon != NULL)
+	{
+		osPortFree(RecorderCt->Mp2EncCon);
+		RecorderCt->Mp2EncCon = NULL;
+	}
+#elif MEDIA_RECORDER_FORMAT == RECORD_FORMAT_MP3
+	if(RecorderCt->Mp3EncCon != NULL)
+	{
+		osPortFree(RecorderCt->Mp3EncCon);
+		RecorderCt->Mp3EncCon = NULL;
 	}
 #endif
 //	if(RecorderCt->WriteBuf != NULL)
@@ -1303,7 +1364,7 @@ bool MediaRecordHeapEnough(void)
 	/************Encoder**************************/
 	TotalSize += MALLOC_REAL_SIZE(sizeof(MP3EncoderContext));
 	/**************Encode out*********************/
-	TotalSize += MALLOC_REAL_SIZE(ENCODER_MP3_OUT_BUF_SIZE);
+	TotalSize += MALLOC_REAL_SIZE(ENCODER_OUT_BUF_SIZE);
 	/**************MP3 Data FIFO for write************************/
 	TotalSize += MALLOC_REAL_SIZE(FILE_WRITE_FIFO_LEN);
 	/*************Recoder********************/

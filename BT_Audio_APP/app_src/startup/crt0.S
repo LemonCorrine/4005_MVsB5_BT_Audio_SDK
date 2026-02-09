@@ -37,6 +37,17 @@
 		b   ExceptionCommHandler
 	.endm
 
+	.macro TGL_INT_COM
+	.align 2
+	 	pushm $r0,$r1
+	 	jal   dbg_int_in
+	 	popm $r0,$r1
+	 	push $r0
+		jral $r1
+	 	pop  $r0
+	 	jal   dbg_int_out
+	.endm
+
 	.section .vector, "ax"
 !========================================================================
 ! Vector table
@@ -139,6 +150,7 @@ OS_Trap_Int_Comm:
 	SAVE_ALL_HW
 	la  $r1, ISR_TABLE
 	lw  $r1, [$r1+$r0<<2]
+!	TGL_INT_COM
 	jral $r1
 	RESTORE_ALL_HW
 	iret

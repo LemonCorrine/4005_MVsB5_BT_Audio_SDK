@@ -975,3 +975,20 @@ void DeleteTaskMallocMem(TaskHandle_t task)
 		pxNext = pxNext->pxNextMallocBlock;
 	}
 }
+
+
+void vPrintFreeBlocks(void)
+{
+    BlockLink_t *pxBlock = xStart.pxNextFreeBlock;
+    printf("------- Free Blocks List --------\n");
+    while (pxBlock != pxEnd)
+    {
+        printf("  addr 0x%08X  size %6u (0x%05X)\n",
+               (uint32_t)pxBlock,
+               (unsigned)(pxBlock->xBlockSize & ~xBlockAllocatedBit),
+               (unsigned)(pxBlock->xBlockSize & ~xBlockAllocatedBit));
+        pxBlock = pxBlock->pxNextFreeBlock;
+    }
+    printf("---------------------------------\n");
+}
+

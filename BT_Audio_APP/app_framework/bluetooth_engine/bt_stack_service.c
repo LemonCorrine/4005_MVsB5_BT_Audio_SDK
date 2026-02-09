@@ -87,12 +87,16 @@ extern int8_t ME_CancelInquiry(void);
 extern void SlowDevice_MsgSend(uint16_t msgId);
 #endif
 
+
 #ifdef BT_GETTIME_SUPPORT
-uint16_t gBtMapEnable = 1; // TRUE:安卓手机 FALSE:苹果手机 默认使用map协议即安卓手机，部分安卓手机不会返回设备信息。
+uint32_t gBtMapEnable = 1; // TRUE:安卓手机 FALSE:苹果手机 默认使用map协议即安卓手机，部分安卓手机不会返回设备信息。
 #endif
+
+
 /***********************************************************************************
  *
  **********************************************************************************/
+uint32_t gDebugCnt = 0;
 void DebugDisplayTaskInf(void)
 {
 	uint8_t *buf= pvPortMalloc(4096);
@@ -470,7 +474,7 @@ static void CheckBtEventTimer(void)
 		if(gBtMapEnable++ >= 1500) //获取完成之后在map_time_callback中断开MAP协议，保证手机连接第二台设备能获取时间
 		{
 			start_get_time_cmd();
-			gBtMapEnable = 0;
+			gBtMapEnable = 0; 
 		}
 	}
 #endif
@@ -1420,6 +1424,7 @@ void BtEnterDutModeFunc(void)
 		BtDdb_EraseBtLinkInforMsg();
 		
 		APP_DBG("[Enter dut mode]\n");
+		BtSetAccessModeApi(BtAccessModeGeneralAccessible);
 		BTEnterDutMode();
 	}
 }

@@ -54,6 +54,8 @@ typedef struct _AUDIOEFFECT_SOURCE_SINK_NUM
 	uint8_t		i2s_mix_source;		/**< I2S_MIX_SOURCE                          */
 	uint8_t		i2s_mix2_source;	/**< I2S_MIX2_SOURCE                         */
 	uint8_t		linein_mix_source;	/**< LINEIN_MIX_SOURCE_NUM                   */
+	uint8_t		i2s_tdm0_source;	/**< I2S_TDM0_SOURCE                         */
+	uint8_t		i2s_tdm1_source;	/**< I2S_TDM1_SOURCE  		                 */
 
 	uint8_t		dac0_sink;			/**< AUDIO_DAC0_SINK_NUM                     */
 	uint8_t		app_sink;			/**< AUDIO_APP_SINK_NUM                      */
@@ -74,6 +76,8 @@ typedef struct _AUDIOEFFECT_SOURCE_SINK_NUM
 												.i2s_mix_source = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.i2s_mix2_source = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.linein_mix_source = AUDIOCORE_SOURCE_SINK_ERROR,\
+												.i2s_tdm0_source = AUDIOCORE_SOURCE_SINK_ERROR,\
+												.i2s_tdm1_source = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.dac0_sink = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.app_sink = AUDIOCORE_SOURCE_SINK_ERROR,\
 												.stereo_sink = AUDIOCORE_SOURCE_SINK_ERROR,\
@@ -210,5 +214,7 @@ typedef struct __EffectValidParamUnit
 
 EffectValidParamUnit AudioEffect_GetUserEffectValidParam(uint8_t *effect_param);
 
+uint32_t AudioEffect_GetUserEffectParamCRCLen(uint8_t *effect_param);
 
+uint32_t AudioEffect_GetUserHWCfgCRCLen(uint8_t *effect_param);
 #endif

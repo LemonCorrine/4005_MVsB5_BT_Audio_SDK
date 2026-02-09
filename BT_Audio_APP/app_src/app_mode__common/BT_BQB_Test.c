@@ -31,6 +31,7 @@ enum
 	BT_BQB_CMD_STOP,
 	BT_BQB_CMD_VOL_DOWN,
 	BT_BQB_CMD_VOL_UP,
+	BT_BQB_CMD_HANGUP,
 
 	BT_BQB_CMD_HF_VRR_BV_01_C,
 	BT_BQB_CMD_AVDTP_SMG_BI_38_C,
@@ -53,6 +54,7 @@ const char *bqb_cmd_list[BT_BQB_CMD_MAX] =
 	"STOP",
 	"VOL_DOWN",
 	"VOL_UP",
+	"HANGUP",
 
 	"HF_VRR_BV_01_C",
 	"SMG_BI_38_C",
@@ -197,6 +199,11 @@ void bt_bqb_cmd_process(uint8_t *data)
 			msgSend.msgId = MSG_MUSIC_VOLUP;
 		break;
 
+		case BT_BQB_CMD_HANGUP:
+			BtStackServiceMsgSend(MSG_BTSTACK_MSG_BT_HANGUP);
+			return;
+			break;
+
 		case BT_BQB_CMD_HF_VRR_BV_01_C:
 			APP_DBG("BQB: BT_BQB_CMD_HF_VRR_BV_01_C\n");
 			msgSend.msgId = MSG_BT_BQB_VRR_BV_01_C;
@@ -217,6 +224,7 @@ void bt_bqb_cmd_process(uint8_t *data)
 			msgSend.msgId = MSG_BT_BQB_AVDTP_SMG;
 		break;
 	}
+	if(msgSend.msgId!=MSG_NONE)
 	MessageSend(GetMainMessageHandle(), &msgSend);
 }
 

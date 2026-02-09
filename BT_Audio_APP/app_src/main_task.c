@@ -29,6 +29,7 @@
 #include "shell.h"
 #include "audio_core_service.h"
 #include "bt_stack_service.h"
+#include "wireless_service.h"
 #include "bb_api.h"
 #include "bt_config.h"
 #include "bt_app_ddb_info.h"
@@ -104,6 +105,11 @@ static const uint8_t DmaChannelMap[6] = {
 #ifdef CFG_COMMUNICATION_BY_UART
 	CFG_FUNC_COMMUNICATION_TX_DMA_PORT,
 	CFG_FUNC_COMMUNICATION_RX_DMA_PORT,
+#endif
+
+#ifdef CFG_UPGRADE_BY_UART
+	CFG_FUNC_UPGRADE_RX_DMA_PORT,
+	CFG_FUNC_UPGRADE_TX_DMA_PORT,
 #endif
 
 #ifdef CFG_FUNC_LINEIN_MIX_MODE
@@ -262,6 +268,10 @@ static void SysVarInit(void)
 	mainAppCt.hdmiResetFlg = 0;
 #endif
 
+#if defined(CFG_APP_BT_MODE_EN) && defined(CFG_WIRELESS_OUT_ON) //CFG_WIRELESS_EN
+	SetSysModeState(ModeBtAudioPlay,ModeStateSusend);
+#endif
+
 #ifdef CFG_FUNC_BREAKPOINT_EN
 #ifdef CFG_APP_BT_MODE_EN
 	if(SoftFlagGet(SoftFlagUpgradeOK))
@@ -370,7 +380,7 @@ static void SystemInit(void)
 	///////////////////////////////AudioCore/////////////////////////////////////////
 	memset((AudioCoreContext*)&AudioCore, 0, sizeof(AudioCoreContext));
 
-	memset((AudioCoreContext*)&AudioEffect, 0, sizeof(AudioEffectContext));
+	memset((AudioEffectContext*)&AudioEffect, 0, sizeof(AudioEffectContext));
 
 	CtrlVarsInit();//音频系统硬件变量初始化，系统变量初始化
 	
@@ -386,7 +396,10 @@ static void SystemInit(void)
 	mainAppCt.AlarmFlag = FALSE;
 #endif
 
-#ifdef CFG_APP_BT_MODE_EN
+#if defined(CFG_WIRELESS_EN) && defined(CFG_WIRELESS_OUT_ON)
+	DBG("Wireless stack @pwr on!\n");
+	WirelessServiceStart();
+#elif defined(CFG_APP_BT_MODE_EN)
 	//将蓝牙任务创建移至此处,以便优先申请协议栈使用的内存空间,不影响其他的任务; 开机睡眠时，蓝牙stack再次开，避免上电马上退出。
 	if(sys_parameter.bt_BackgroundType != BT_BACKGROUND_DISABLE)
 		BtStackServiceStart();//蓝牙设备驱动serivce 启动失败时，目前是挂起，无同步消息。
@@ -588,8 +601,63 @@ static void PublicMsgPross(MessageContext msg)
 			}
 			break;
 #endif
+#endif//#ifdef CFG_APP_BT_MODE_EN
+#if defined(CFG_WIRELESS_EN) && (!defined(CFG_WIRELESS_OUT_ON) || defined(CFG_RF_TO_BT))
+		case MSG_WIRELESS://stack  create
+			if(GetWirelessServiceTaskHandle() == NULL)
+			{
+	#ifdef CFG_APP_BT_MODE_EN
+				APP_DBG("bt stack reset\n");
+				BtResetAndKill(FALSE);
+	#endif
+				DBG("Wireless stack!\n");
+				WirelessServiceStart();
+			}
+			break;
+
+		case MSG_WIRELESS_EXIT: //stack exit
+			DBG("MSG_WIRELESS_EXIT\n");
+			if(WirelessRFInited())
+			{
+				WirelessServiceKill();
+				MessageContext		newmsg;
+				newmsg.msgId = MSG_WIRELESS_EXITED;
+				MessageSend(mainAppCt.msgHandle, &newmsg);
+#ifdef CFG_APP_BT_MODE_EN
+				if(sys_parameter.bt_BackgroundType != BT_BACKGROUND_DISABLE)
+				{
+					//reset bb and bt stack
+					BtStackServiceStart();
+					BtStackServiceMsgSend(MSG_BTSTACK_RUN_START);
+				#ifdef 	CFG_RF_TO_BT
+					if(GetSysModeState(ModeBtAudioPlay) == ModeStateSusend)
+					{
+						SetSysModeState(ModeBtAudioPlay,ModeStateReady);
+					}
+				#endif
+				}
 #endif
+			}
+
+		break;
+		//This case just for BT RF Test,BT canot resume.
+		case MSG_WIRELESS_EXITED:
+			DBG("MSG_WIRELESS_EXITED\n");
+	#if defined(CFG_RF_TO_BT)
+			MessageContext		newmsg1;
+			newmsg1.msgId = MSG_BT_ENTER_DUT_MODE;
+			MessageSend(mainAppCt.msgHandle, &newmsg1);
+	#endif
+			break;
+#endif//CFG_WIRELESS_EN
+
 		default:
+#if defined(CFG_WIRELESS_EN)
+			if(msg.msgId > MSG_WIRELESS_EVENT && msg.msgId < MSG_WIRELESS_EVENT_END)
+			{
+				WirelessServiceMsgSend(msg.msgId);
+			}
+#endif
 #if	BT_SOURCE_SUPPORT
 			BtSourcePublicMsgPross(msg.msgId);
 #endif

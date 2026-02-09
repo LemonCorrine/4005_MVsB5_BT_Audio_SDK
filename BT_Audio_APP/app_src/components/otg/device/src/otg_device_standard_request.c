@@ -288,6 +288,7 @@ void OTG_DeviceStandardRequest()
 			{
 				DBG("mic %d\n",Setup[2]);
 				UsbAudioMic.AltSet = Setup[2];
+				UsbAudioMic.ByteSet = MicByteSet[UsbAudioMic.AltSet];
 				if(UsbAudioMic.AltSet == 0)
 				{
 					OTG_EndpointInterruptDisable(DEVICE_ISO_IN_EP);
@@ -298,7 +299,6 @@ void OTG_DeviceStandardRequest()
 					OTG_EndpointInterruptEnable(DEVICE_ISO_IN_EP,OnDeviceAudioSendIsoPacket);
 					OTG_DeviceISOSend(DEVICE_ISO_IN_EP,0,0);
 				}
-				UsbAudioMic.ByteSet = MicByteSet[UsbAudioMic.AltSet];
 			}
 #endif
 #ifdef CFG_OTG_MODE_AUDIO_EN
@@ -446,6 +446,11 @@ void OTG_DeviceClassRequest()
 			{
 				//OTG_DBG("AUDIO_ATL_INTERFACE_NUM\n");
 				OTG_DeviceAudioInterfaceRequest();
+			}
+			else if(Setup[4] ==  InterfaceNum[AUDIO_SRM_IN_INTERFACE_NUM])
+			{
+				//OTG_DBG("AUDIO_SRM_IN_INTERFACE_NUM\n");
+				OTG_DeviceAudioStreamInterfaceRequest();
 			}
 #ifdef CFG_OTG_MODE_AUDIO1_EN
 			else if(Setup[4] ==  InterfaceNum[AUDIO1_ATL_INTERFACE_NUM])
@@ -596,6 +601,14 @@ void hid_recive_data(void)
 			FlashParamUsb_Rx(Request+3,256-3);
 		else
 			FlashSn_Rx(Request+3,256-3);
+	}
+#endif
+#ifdef CFG_UPGRADE_BY_UART
+	if((Request[0] == 0xA5 && Request[1] == 0x5A) &&
+		(Request[2] == 0x22))
+	{
+		extern void UsbToUartProc(uint8_t *buf);
+		UsbToUartProc(Request);
 	}
 #endif
 }

@@ -40,20 +40,11 @@
 #include "otg_host_standard_enum.h"
 
 #ifdef CFG_IDLE_MODE_DEEP_SLEEP
-HDMIInfo  			 *gHdmiCt;
 void GIE_ENABLE(void);
 void WakeupMain(void);
 void SleepMain(void);
 void LogUartConfig(bool InitBandRate);
-
 #define CHECK_SCAN_TIME				5000		//醒来确认有效唤醒源 扫描限时ms。
-TIMER   waitCECTime;
-uint8_t	waitCECTimeFlag = 0;
-
-#define DPLL_QUICK_START_SLOPE	(*(volatile unsigned long *) 0x40026028)
-//DPLL 快速启动参数获取。
-void Clock_GetDPll(uint32_t* NDAC, uint32_t* OS, uint32_t* K1, uint32_t* FC);
-
 static uint32_t sources;
 #ifdef CFG_PARA_WAKEUP_SOURCE_RTC
 uint32_t alarm = 0;
@@ -232,7 +223,6 @@ void DeepSleeping(void)
 //	GpioBPD_Back = GPIO_RegGet(GPIO_B_PD);
 	WakeupSourceSet();
 	SleepMain();
-	waitCECTimeFlag = 0;
 	WDG_Disable();
 	Power_GotoDeepSleep();
 	WDG_Enable(WDG_STEP_4S);
@@ -240,7 +230,6 @@ void DeepSleeping(void)
 	{
 		Power_WakeupDisable(0xff);
 		WakeupSourceSet();
-		waitCECTimeFlag = 0;
 		WDG_Disable();
 		Power_GotoDeepSleep();
 		WDG_Enable(WDG_STEP_4S);
@@ -393,8 +382,12 @@ bool SystermWackupSourceCheck(void)
 //	SysTickDeInit();
 	return FALSE;
 }
+/**
 
-#ifdef BT_SNIFF_DEEPSLEEP_ENABLE
+
+#endif//CFG_FUNC_DEEPSLEEP_EN
+
+ */
 static void SystermBTWakeupConfig(void)
 {
 	NVIC_EnableIRQ(Wakeup_IRQn);
@@ -403,7 +396,7 @@ static void SystermBTWakeupConfig(void)
 	Power_WakeupSourceSet(SYSWAKEUP_SOURCE15_BT, 0, 0);//设置蓝牙为唤醒源，无需IO所以随便填了0
 	Power_WakeupEnable(SYSWAKEUP_SOURCE15_BT);
 }
-#endif
+
 
 #endif//CFG_FUNC_DEEPSLEEP_EN
 

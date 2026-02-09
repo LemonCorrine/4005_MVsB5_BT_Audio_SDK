@@ -1128,11 +1128,11 @@ void BtHfpManufactoryInfo(BT_HFP_CALLBACK_PARAMS * param)
 	if(strstr(param->params.hfpRemoteManufactory,"Apple Inc."))
 	{
 		printf("get remote device time is Apple\n");
-		extern uint16_t gBtMapEnable;
+		extern uint32_t gBtMapEnable;
 		gBtMapEnable = 0;
 		HfpGetRemoteDevTime(BtCurIndex_Get());//get time
 	}else{
-		extern uint16_t gBtMapEnable;
+		extern uint32_t gBtMapEnable;
 		gBtMapEnable = 1;
 	}
 #endif

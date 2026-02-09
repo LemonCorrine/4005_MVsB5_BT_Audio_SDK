@@ -427,9 +427,9 @@ void CtrlVarsInit(void)
 //各个模块默认参数设置函数
 void DefaultParamgsInit(void)
 {
-	memset(&gCtrlVars,  0, sizeof(gCtrlVars));
+//	memset(&gCtrlVars,  0, sizeof(gCtrlVars));
 	//for system control 0x01
-	gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
+	gCtrlVars.AutoRefresh = AutoRefresh_NONE;
 
 	if(AudioEffect.context_memory)
 	{

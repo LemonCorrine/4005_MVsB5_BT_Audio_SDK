@@ -85,8 +85,10 @@
 
 #else
 	#define	SYS_CORE_APLL_FREQ			240*1000		//kHZ
-	
-	#if (SYS_CORE_SET_MODE == CORE_HIGH_MODE) || defined(CFG_AI_DENOISE_EN)
+
+	#if defined(CFG_WIRELESS_EN)
+		#define	SYS_CORE_DPLL_FREQ			360*1000
+	#elif (SYS_CORE_SET_MODE == CORE_HIGH_MODE) || defined(CFG_AI_DENOISE_EN)
 		#define	SYS_CORE_DPLL_FREQ			288*1000		//kHZ only allow 240M、264M and 288M
 	#else
 		#define	SYS_CORE_DPLL_FREQ			240*1000		//kHZ only allow 240M、264M and 288M
@@ -99,7 +101,11 @@
 	#define SYS_SPDIF_CLK_SELECT		APLL_CLK_MODE //APLL_CLK_MODE
 	//flash 时钟配置，频率必须为APLL_FREQ/DPLL_FREQ整数分频（不大于96M）
 	#define SYS_FLASH_CLK_SELECT		FSHC_PLL_CLK_MODE //FSHC_APLL_CLK_MODE
-	#define SYS_FLASH_FREQ_SELECT		((SYS_CORE_DPLL_FREQ/3)*1000) 	//Hz
+	#if defined(CFG_WIRELESS_EN)
+		#define SYS_FLASH_FREQ_SELECT		((SYS_CORE_DPLL_FREQ/4)*1000) 	//Hz
+	#else
+		#define SYS_FLASH_FREQ_SELECT		((SYS_CORE_DPLL_FREQ/3)*1000) 	//Hz
+	#endif
 
 	//音频时钟
 	#define	SYS_AUDIO_CLK_SELECT		APLL_CLK_MODE

@@ -48,9 +48,6 @@
 volatile uint32_t gInsertEventDelayActTimer = 2000; // ms
 volatile uint32_t gChangeModeTimeOutTimer = CHANGE_MODE_TIMEOUT_COUNT;
 volatile uint32_t gDeviceCheckTimer = DEVICE_DETECT_TIMER; //ms
-#ifdef CFG_FUNC_USB_HOST_AUDIO_MIX_MODE
-volatile uint32_t gHostUsbMicUnMuteTimer;//ms
-#endif
 #ifdef CFG_FUNC_CARD_DETECT	
 volatile uint32_t gDeviceCardTimer = DEVICE_CARD_DETECT_TIMER ;//ms
 #endif
@@ -74,6 +71,7 @@ extern const unsigned char *GetLibVersionFatfsACC(void);
 extern void UsbAudioTimer1msProcess(void);
 extern char *effect_lib_version_return(void);
 
+uint32_t critical_sec_cnt;
 //void _printf_float()
 //{
 //
@@ -91,9 +89,6 @@ void OneMSTimer(void)
 #endif
 #ifdef HDMI_HPD_CHECK_DETECT_EN
 	if(gDevicehdmiTimer > 1)gDevicehdmiTimer--;
-#endif
-#ifdef CFG_FUNC_USB_HOST_AUDIO_MIX_MODE
-	if(gHostUsbMicUnMuteTimer > 1)gHostUsbMicUnMuteTimer--;
 #endif
 #ifdef CFG_FUNC_BREAKPOINT_EN	
 	if(gBreakPointTimer > 1)gBreakPointTimer--;
@@ -238,6 +233,9 @@ void LogUartConfig(bool InitBandRate)
 	}
 #endif
 #endif
+#ifdef CFG_APP_BIS_BT_DUAL_CHIP_MODE_EN
+	UartFuncInit();
+#endif
 }
 
 /*For deepsleep power save*/
@@ -321,7 +319,7 @@ void DeepSleepIOConfig()
     GPIO_RegSet(GPIO_B_PD, 0x1DF); // B5,B9可能作为外部32K晶振IO，不配置下拉，保持默认值
     GPIO_RegSet(GPIO_B_PU, 0x00); 
     GPIO_RegSet(GPIO_B_ANA_EN, 0x000);
-    GPIO_RegSet(GPIO_B_PULLDOWN0, 0x000);
+    GPIO_RegSet(GPIO_B_PULLDOWN0, 0x000);//GPIO_B_PULLDOWN0
 }
 
 #ifdef CFG_IDLE_MODE_DEEP_SLEEP
@@ -396,6 +394,33 @@ void bt_em_size_init(void)
 }
 #endif
 
+
+#if 0//(BP15_ROM_VERSION == BP15_ROM_V2)
+
+void RomFix_LC3(void)
+{
+#define     REG_ROM_FIX_ADDR0              (*(volatile unsigned long *) 0x400400D4)
+#define     REG_ROM_FIX_DATA0              (*(volatile unsigned long *) 0x400400E0)
+#define     REG_ROM_FIX_ENABLE             (*(volatile unsigned long *) 0x400400D0)
+
+	//lc3_ltpf_analyse() __attribute__((section(".lc3_section")))
+	//flash addr： 0x108
+	//Rom addr 0x00807ea8
+	extern void lc3_ltpf_analyse(void);
+	void (*funcPtr)(void) = lc3_ltpf_analyse;
+	uint32_t offset = (((int)funcPtr - (int)0x00807ea8) >> 1) & 0x00FFFFFF;
+	uint32_t data = 0x48 | (offset & 0xFF) << 24 | (offset& 0xFF00) << 8 | (offset & 0xFF0000) >> 8;
+
+    REG_ROM_FIX_ADDR0 = 0x00807ea8 / 4;
+//    REG_ROM_FIX_DATA0 = 0x30C1BF48;
+    REG_ROM_FIX_DATA0 = data;
+
+    REG_ROM_FIX_ENABLE |= 0x01;
+    __nds32__isb();
+}
+
+#endif
+
 /*****************************************************************
  * main function
  *****************************************************************/
@@ -404,6 +429,9 @@ int main(void)
 	uint16_t RstFlag = 0;
 	extern char __sdk_code_start;
 
+#if 0//(BP15_ROM_VERSION == BP15_ROM_V2)
+	RomFix_LC3();
+#endif
 	Chip_Init(1);
 	Chip_MemInit();
 	WDG_Enable(WDG_STEP_4S);
@@ -425,11 +453,14 @@ int main(void)
 #endif
 	
 	DBUS_Access_Area_Init(0);//设置Databus访问区间为codesize
-
-	//0.4.0及以后驱动版本，flash api需要remap
-//	DBG("\nTCM_SRAM_START_ADDR_1 = %x, TCM_SIZE = %d KB\n", TCM_SRAM_START_ADDR_1, DRV_REMAP_SIZE/1024);
-	Remap_InitTcm((uint32_t)(&__sdk_code_start), BB_MPU_START_ADDR, DRV_REMAP_SIZE/1024);
 	
+#if defined(TCM_EN) && defined(CFG_WIRELESS_EN)
+	DBG("TCM_SRAM_START_ADDR_1 = %x, TCM_SIZE = %d KB\n", TCM_SRAM_START_ADDR_1, WIRELESS_TCM_SIZE);
+	Remap_InitTcm((uint32_t)(&__sdk_code_start),TCM_SRAM_START_ADDR_1, WIRELESS_TCM_SIZE);
+#else
+	Remap_InitTcm((uint32_t)(&__sdk_code_start), TCM_SRAM_START_ADDR_2, DRV_REMAP_SIZE/1024);
+#endif
+
 	//考虑到大容量的8M flash，写之前需要Unlock，SDK默认不做加锁保护
 	//用户为了增加flash 安全性，请根据自己flash大小和实际情况酌情做flash加锁保护机制
 //	SpiFlashIOCtrl(IOCTL_FLASH_PROTECT, FLASH_LOCK_RANGE_HALF);//加锁保护code区域
@@ -505,8 +536,11 @@ int main(void)
 #ifdef CFG_FUNC_LRC_EN
     APP_DBG("Lrc Version: %s\n", GetLibVersionLrc()); 
 #endif
-#ifdef CFG_APP_BT_MODE_EN
+#if defined(CFG_APP_BT_MODE_EN) || defined(CFG_WIRELESS_EN)
     APP_DBG("BtLib Version: %s\n", (unsigned char *)GetLibVersionBt());
+#endif
+#ifdef CFG_WIRELESS_EN
+    APP_DBG("wireless2 Version: %s\n", (unsigned char *)GetLibVersionWireless2());
 #endif
 #ifdef CFG_RES_FLASHFS_EN
 	APP_DBG("FlashFSLib Version: %s\n", (unsigned char *)GetLibVersionFlashFS());
@@ -528,8 +562,8 @@ int main(void)
 	APP_DBG("SPI_Flash_ReadMID=%x\n",SPI_Flash_ReadMID());
 #endif
 
-#ifdef LED_IO_TOGGLE
-	LedPortInit();  //在此之后可以使用LedOn LedOff 观测 调试时序 特别是逻分
+#ifdef DBG_IO_TGL
+	DbgPortInit(); //deepsleep唤醒后要重新初始化
 #endif
 #ifdef CFG_FUNC_RTC_EN
 	RTC_ServiceInit(RstFlag&0x01);

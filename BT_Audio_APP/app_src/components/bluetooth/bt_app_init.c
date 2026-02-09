@@ -105,7 +105,7 @@ static bool GetBtDefaultAddr(uint8_t *devAddr)
 			
 			Remap_AddrRemapDisable(3);
 			memcpy((void *)tcm_addr_1k, (void *)&__sdk_code_start, 1*1024);
-			Remap_AddrRemapSet(3, (uint32_t)&__sdk_code_start, tcm_addr_1k, 1);
+			Remap_AddrRemapSet(3, &__sdk_code_start, tcm_addr_1k, 1);
 			{
 				uint8_t u8a_tmpBuf[16];
 				int j;
@@ -703,6 +703,7 @@ bool BtStackInit(void)
 		return FALSE;
 	}
 #endif
+
 	return TRUE;
 }
 

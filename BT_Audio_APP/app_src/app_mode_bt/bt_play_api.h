@@ -19,7 +19,7 @@
 #ifndef __BT_PLAY_API_H__
 #define __BT_PLAY_API_H__
 
-#define SBC_FIFO_SIZE	10*1024
+#define SBC_FIFO_SIZE	14*1024
 #define SBC_FIFO_LEVEL_HIGH 	(SBC_FIFO_SIZE / 10 * 7) //70% ¿ª²¥
 
 #define BT_AAC_LEVEL_HIGH					(12)//frame ¼ÆÊý

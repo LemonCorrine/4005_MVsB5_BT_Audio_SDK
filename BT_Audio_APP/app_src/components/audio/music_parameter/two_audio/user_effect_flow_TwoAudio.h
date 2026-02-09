@@ -1,9 +1,9 @@
 /***************************************************
- * @file     user_effect_flow_TwoAudio.h                      
- * @brief   auto generated                          
- * @author  ACPWorkbench: 3.16.5                 
- * @version V1.2.0                                  
- * @Created 2025-02-27T15:28:15                                      
+ * @file     user_effect_flow_TwoAudio.h  
+ * @brief   auto generated  
+ * @author  ACPWorkbench: 3.19.1
+ * @version V1.2.0 
+ * @Created 2025-10-09T15:50:37 
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define TWOAUDIO_ROBOEFFECT_LIB_VER "2.27.1"
+#define TWOAUDIO_ROBOEFFECT_LIB_VER "2.32.0"
 
 typedef enum _TWOAUDIO_roboeffect_io_enum
 {

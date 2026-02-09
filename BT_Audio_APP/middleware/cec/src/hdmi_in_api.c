@@ -59,9 +59,6 @@ uint8_t hdmi_osd_name[HDMI_OSD_NAME_LEN] = "Soundbar";
 #define HDMI_CEC_TX_FIFO_LEN				(480 * (HDMI_OSD_NAME_LEN + 3))//如果该长度小于4096，建议设置为4096
 #define HDMI_CEC_RX_FIFO_LEN				(1024)
 
-extern bool    gIsVolSetEnable;
-extern int32_t SetChannel ;
-
 HDMIInfo  			 *gHdmiCt   = NULL;
 uint32_t        	 *gCECRxFIFO;
 uint32_t       	     *gCECTxFIFO;
@@ -933,9 +930,6 @@ void HDMI_CEC_Default_Scan(uint8_t isWorkStatus)
 					break;
 
 				case 0x44:
-					gIsVolSetEnable = TRUE;
-					SetChannel = AUDIO_DAC0_SINK_NUM + AUDIO_CORE_SOURCE_MAX_NUM;
-
 					if(operValue[1] == 0x41)//vol up
 					{
 						gHdmiCt->hdmi_audiomute_flag = 0;
@@ -1288,9 +1282,6 @@ void HDMI_CEC_UserDefined_Scan(uint8_t isWorkStatus)
 					break;
 
 				case 0x44:
-					gIsVolSetEnable = TRUE;
-					SetChannel = AUDIO_DAC0_SINK_NUM + AUDIO_CORE_SOURCE_MAX_NUM;
-
 					if(operValue[1] == 0x41)//vol up
 					{
 						gHdmiCt->hdmi_audiomute_flag = 0;

@@ -63,6 +63,11 @@ typedef struct _MainAppContext
 	uint32_t			I2SFIFO_LEN;
 #endif
 
+#ifdef CFG_APP_BIS_BT_DUAL_CHIP_MODE_EN
+	uint32_t			*LE_AUDIO_I2S_RX_FIFO;
+	uint32_t			LE_AUDIO_I2S_RX_FIFO_LEN;
+#endif
+
 #ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
 	uint32_t			*I2S_MIX_TX_FIFO;
 	uint32_t			I2S_MIX_TX_FIFO_LEN;

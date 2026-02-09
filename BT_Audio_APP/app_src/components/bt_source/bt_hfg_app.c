@@ -134,6 +134,7 @@ void BtHfgCallback(BT_HFG_CALLBACK_EVENT event, BT_HFG_CALLBACK_PARAMS * param)
 		case BT_STACK_EVENT_HFG_SCO_CONNECTED:
 			APP_DBG("BT_STACK_EVENT_HFG_SCO_CONNECTED\n");
 			SetSourceHfgState(BT_HFP_STATE_ACTIVE);
+			SetScoConnectFlag(TRUE);
 
 			if(GetSystemMode() != ModeBtHfPlay)
 			{
@@ -146,6 +147,8 @@ void BtHfgCallback(BT_HFG_CALLBACK_EVENT event, BT_HFG_CALLBACK_PARAMS * param)
 		case BT_STACK_EVENT_HFG_SCO_DISCONNECTED:
 			APP_DBG("BT_STACK_EVENT_HFG_SCO_DISCONNECTED\n");
 			SetSourceHfgState(BT_HFP_STATE_CONNECTED);
+			SetScoConnectFlag(FALSE);
+
 			if(GetSystemMode() == ModeBtHfPlay)
 			{
 				extern void BtHfModeExit(void);

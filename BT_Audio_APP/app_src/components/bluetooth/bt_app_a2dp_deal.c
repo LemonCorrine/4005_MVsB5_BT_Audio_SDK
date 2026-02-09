@@ -180,6 +180,7 @@ void BtA2dpConnectedDev(BT_A2DP_CALLBACK_PARAMS * param)
 
 	BtLinkStateConnect(0, ConnectIndex);
 
+	BtStackServiceMsgSend(MSG_BTSTACK_RECONNECT_REMOTE_PROFILE);
 }
 
 

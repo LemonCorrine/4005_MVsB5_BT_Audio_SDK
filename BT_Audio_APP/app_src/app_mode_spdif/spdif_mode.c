@@ -103,6 +103,11 @@ static const uint8_t DmaChannelMap[6] = {
 	CFG_FUNC_COMMUNICATION_RX_DMA_PORT,
 #endif
 
+#ifdef CFG_UPGRADE_BY_UART
+	CFG_FUNC_UPGRADE_RX_DMA_PORT,
+	CFG_FUNC_UPGRADE_TX_DMA_PORT,
+#endif
+
 #ifdef CFG_FUNC_LINEIN_MIX_MODE
 	PERIPHERAL_ID_AUDIO_ADC0_RX,
 #endif
@@ -298,8 +303,11 @@ bool SpdifPlayInit(void)
 	//Audio init
 	
 	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
-
+#if	defined(CFG_WIRELESS_EN) && defined(CFG_WIRELESS_OUT_ON)
+	AudioIOSet.Adapt = SRC_SRA;
+#else
 	AudioIOSet.Adapt = SRC_ADJUST;//SRC_SRA;
+#endif
 	AudioIOSet.Sync = FALSE;
 	AudioIOSet.Channels = 2;
 	AudioIOSet.Net = DefaultNet;
@@ -410,6 +418,10 @@ bool SpdifPlayInit(void)
 
 void SpdifPlayRun(uint16_t msgId)
 {
+	if(msgId == MSG_EFFECTREINIT || msgId == MSG_EFFECTMODE)
+	{
+		SpdifPlayCt->SpdifMuteCnt = 500;
+	}
 	switch(msgId)
 	{
 		default:
@@ -531,6 +543,11 @@ void SpdifPlayRun(uint16_t msgId)
 		{
 			APP_DBG("Unmute spdif\n");
 			AudioCoreSourceUnmute(SPDIF_SOURCE_NUM, TRUE, TRUE);
+		}
+		else if(SpdifPlayCt->SpdifMuteCnt && !AudioCoreSourceMuteStatusGet(SPDIF_SOURCE_NUM))
+		{
+			APP_DBG("Mute spdif\n");
+			AudioCoreSourceMute(SPDIF_SOURCE_NUM, TRUE, TRUE);
 		}
 		SpdifDataCarry();
 	}

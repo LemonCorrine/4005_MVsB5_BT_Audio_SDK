@@ -1,11 +1,10 @@
+
 #ifndef _ROBOEFFECT_CONFIG_H_
 #define _ROBOEFFECT_CONFIG_H_
-
 
 #ifdef __cplusplus
 extern "C" {
 #endif//__cplusplus
-
 
 #include <stdio.h>
 #include <nds32_intrinsic.h>
@@ -25,6 +24,7 @@ extern "C" {
 #define COMPANDER_ENABLE                        (1)
 #define DC_BLOCKER_ENABLE                       (1)
 #define DISTORTION_DS1_ENABLE                   (1)
+#define DISTORTION_EXP_ENABLE                   (1)
 #define DRC_ENABLE                              (1)
 #define DRC_LEGACY_ENABLE                       (1)
 #define DYNAMIC_EQ_ENABLE                       (1)
@@ -33,6 +33,7 @@ extern "C" {
 #define EQ_ENABLE                               (1)
 #define EQ_DRC_ENABLE                           (1)
 #define FILTER_BUTTERWORTH_ENABLE               (1)
+#define FILTER_FIR_ENABLE                       (1)
 #define FLANGER_ENABLE                          (1)
 #define FREQ_SHIFTER_ENABLE                     (1)
 #define FREQ_SHIFTER_FINE_ENABLE                (1)
@@ -56,6 +57,7 @@ extern "C" {
 #define PHASE_CONTROL_ENABLE                    (1)
 #define PHASE_INVERTER_ENABLE                   (1)
 #define PINGPONG_ENABLE                         (1)
+#define PITCH_DETECTOR_ENABLE                   (1)
 #define PITCH_SHIFTER_ENABLE                    (1)
 #define PITCH_SHIFTER_PRO_ENABLE                (1)
 #define REVERB_ENABLE                           (1)
@@ -69,6 +71,7 @@ extern "C" {
 #define THREE_D_PLUS_ENABLE                     (1)
 #define TREMOLO_ENABLE                          (1)
 #define VAD_ENABLE                              (1)
+#define VIBRATO_ENABLE                          (1)
 #define VIRTUAL_BASS_ENABLE                     (1)
 #define VIRTUAL_BASS_CLASSIC_ENABLE             (1)
 #define VIRTUAL_BASS_TD_ENABLE                  (1)
@@ -142,6 +145,10 @@ extern "C" {
 #define ROBOEFFECT_HOWLING_SUPPRESSOR_SPECIFIED_PARAM_LEN 24
 #define ROBOEFFECT_DRC_LEGACY_PARAM_LEN               18
 #define ROBOEFFECT_PCM_DELAY_MS_PARAM_LEN             3
+#define ROBOEFFECT_DISTORTION_EXP_PARAM_LEN           3
+#define ROBOEFFECT_VIBRATO_PARAM_LEN                  2
+#define ROBOEFFECT_PITCH_DETECTOR_PARAM_LEN           6
+#define ROBOEFFECT_FILTER_FIR_PARAM_LEN               1
 #define ROBOEFFECT_FADER_PARAM_LEN                    3
 #define ROBOEFFECT_DOWNMIX_2TO1_PARAM_LEN             0
 #define ROBOEFFECT_UPMIX_1TO2_PARAM_LEN               0
@@ -534,6 +541,30 @@ bool roboeffect_pcm_delay_ms_config_if(void *node, int16_t *new_param, uint8_t p
 bool roboeffect_pcm_delay_ms_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
 int32_t roboeffect_pcm_delay_ms_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
 
+//distortion_exp interface
+bool roboeffect_distortion_exp_init_if(void *node);
+bool roboeffect_distortion_exp_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
+bool roboeffect_distortion_exp_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
+int32_t roboeffect_distortion_exp_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
+
+//vibrato interface
+bool roboeffect_vibrato_init_if(void *node);
+bool roboeffect_vibrato_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
+bool roboeffect_vibrato_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
+int32_t roboeffect_vibrato_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
+
+//pitch_detector interface
+bool roboeffect_pitch_detector_init_if(void *node);
+bool roboeffect_pitch_detector_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
+bool roboeffect_pitch_detector_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
+int32_t roboeffect_pitch_detector_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
+
+//filter_fir interface
+bool roboeffect_filter_fir_init_if(void *node);
+bool roboeffect_filter_fir_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
+bool roboeffect_filter_fir_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
+int32_t roboeffect_filter_fir_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
+
 //fader interface
 bool roboeffect_fader_init_if(void *node);
 bool roboeffect_fader_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
@@ -570,13 +601,13 @@ bool roboeffect_route_selector_config_if(void *node, int16_t *new_param, uint8_t
 bool roboeffect_route_selector_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
 int32_t roboeffect_route_selector_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
 
+
 //user callback
 uint16_t effect_property_for_robo_size(void);
 roboeffect_effect_property_struct *effect_property_for_robo_get(void);
 char *effect_lib_version_return(void);
 //helper api
 int16_t *roboeffect_get_param_by_raw_data(uint8_t addr, uint8_t *enable, uint8_t *len, const uint8_t *parameters);
-
 
 #ifdef __cplusplus
 }

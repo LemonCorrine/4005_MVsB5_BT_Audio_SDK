@@ -10,6 +10,7 @@
 #include "usb_audio_mode.h"
 #include "idle_mode.h"
 #include "hdmi_in_mode.h"
+#include "wirelessin_play_mode.h"
 
 static void SysModeEntrance(void * param);
 extern unsigned char TaskDeleteCompleted(void);
@@ -64,8 +65,22 @@ const SysModeStrAndRemind ModeNameStr[]=
 	{ModeCardPlayBack,			"ModeCardPlayBack"},//SD
 #endif
 #endif
+
+#ifdef CFG_APP_WIRELESSIN_MODE_EN
+	{ModeWirelessinPlay,		"ModeWirelessinPlay"},//
+#endif
+#ifdef CFG_APP_BIS_BT_DUAL_CHIP_MODE_EN
+	{ModeLeAudioSinkPlay,	"LeAudio Sink"},
+	{ModeLeAudioLinein,		"LeAudio LineIn"},
+	{ModeLeAudioBT,			"LeAudio BT"},
+#endif
 };
 
+#ifdef CFG_APP_IDLE_MODE_EN
+	void DualChipIdleRun(uint16_t msgId);
+	bool DualChipIdleInit(void);
+	bool DualChipIdleDeinit(void);
+#endif
 /**
  * @brief mode Struct array
  */
@@ -73,7 +88,12 @@ volatile SysModeStruct SysMode[]=
 {
 #ifdef CFG_APP_IDLE_MODE_EN
 	{ModeIdle		,			IdleModeInit,			IdleModeDeinit,			IdleModeRun,		ModeStateReady}, // 0 idle 
-#endif	
+#endif
+#ifdef CFG_APP_BIS_BT_DUAL_CHIP_MODE_EN
+	{ModeLeAudioSinkPlay,		DualChipIdleInit,		DualChipIdleDeinit,		DualChipIdleRun,	ModeStateSusend},
+	{ModeLeAudioLinein,			DualChipIdleInit,		DualChipIdleDeinit,		DualChipIdleRun,	ModeStateReady},
+	{ModeLeAudioBT,				DualChipIdleInit,		DualChipIdleDeinit,		DualChipIdleRun,	ModeStateReady},
+#endif
 #ifdef CFG_APP_BT_MODE_EN
 	{ModeBtAudioPlay,			BtPlayInit, 			BtPlayDeinit,			BtPlayRun,			ModeStateInit  },//BT
 #endif
@@ -124,6 +144,9 @@ volatile SysModeStruct SysMode[]=
 #ifdef CFG_APP_HDMIIN_MODE_EN
 	{ModeHdmiAudioPlay,			HdmiInPlayInit,			HdmiInPlayDeinit,		HdmiInPlayRun,		ModeStateReady},//12-hdmi mode
 #endif
+#ifdef CFG_APP_WIRELESSIN_MODE_EN
+	{ModeWirelessinPlay,		WirelessinPlayInit,		WirelessinPlayDeinit,	WirelessinPlayRun,	ModeStateReady},
+#endif
 };
 
 const uint32_t ModeKeyInvalid[]=// 
@@ -131,52 +154,64 @@ const uint32_t ModeKeyInvalid[]=//
 #ifdef CFG_APP_IDLE_MODE_EN
 	ModeIdle,
 #endif
-
+#ifdef CFG_APP_BIS_BT_DUAL_CHIP_MODE_EN
+	ModeLeAudioSinkPlay,
+#endif
 #if (BT_HFP_SUPPORT && defined(CFG_APP_BT_MODE_EN))
 	ModeBtHfPlay,
 #endif
+
+
 };
+
+/** mask all plusin msg but self **/
+#define		PLUSIN_MASK_MODE				(BIT(ModeBtHfPlay) | BIT(ModeTwsSlavePlay) | BIT(ModeIdle) | BIT(ModeLeAudioSinkPlay))
 
 /**
  * @brief plug event  array
  */
 const DeviceEventMsgTable DeviceEventMsgTableArray[]=
 {
-//plug event msg 								support mode																				enter mode
-{MSG_DEVICE_SERVICE_BTHF_IN,        			~(BIT(ModeBtHfPlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),					        		ModeBtHfPlay},
-{MSG_DEVICE_SERVICE_BTHF_OUT,					BIT(ModeBtHfPlay),																			ENTERR_PREV_MODE},
+//plug event msg 								support mode										enter mode
+{MSG_DEVICE_SERVICE_BTHF_IN,        			~(PLUSIN_MASK_MODE),					        	ModeBtHfPlay},
+{MSG_DEVICE_SERVICE_BTHF_OUT,					BIT(ModeBtHfPlay),									ENTERR_PREV_MODE},
 
 #ifndef CFG_FUNC_APP_USB_CARD_IDLE
 #ifdef CFG_APP_USB_PLAY_MODE_EN
-{MSG_DEVICE_SERVICE_U_DISK_IN,					~(BIT(ModeBtHfPlay)|BIT(ModeUDiskAudioPlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),			ModeUDiskAudioPlay},
-{MSG_DEVICE_SERVICE_U_DISK_OUT,					BIT(ModeUDiskAudioPlay),																	ENTERR_PREV_MODE},
+{MSG_DEVICE_SERVICE_U_DISK_IN,					~(BIT(ModeUDiskAudioPlay) | PLUSIN_MASK_MODE),		ModeUDiskAudioPlay},
+{MSG_DEVICE_SERVICE_U_DISK_OUT,					BIT(ModeUDiskAudioPlay),							ENTERR_PREV_MODE},
 #endif
 #ifdef CFG_APP_CARD_PLAY_MODE_EN
-{MSG_DEVICE_SERVICE_CARD_IN, 					~(BIT(ModeBtHfPlay)|BIT(ModeCardAudioPlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),			ModeCardAudioPlay},
-{MSG_DEVICE_SERVICE_CARD_OUT, 					BIT(ModeCardAudioPlay),																		ENTERR_PREV_MODE},
+{MSG_DEVICE_SERVICE_CARD_IN, 					~(BIT(ModeCardAudioPlay) | PLUSIN_MASK_MODE),		ModeCardAudioPlay},
+{MSG_DEVICE_SERVICE_CARD_OUT, 					BIT(ModeCardAudioPlay),								ENTERR_PREV_MODE},
 #endif
 #endif
 
-{MSG_DEVICE_SERVICE_USB_DEVICE_IN,				~(BIT(ModeBtHfPlay)|BIT(ModeUsbDevicePlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),			ModeUsbDevicePlay},
-{MSG_DEVICE_SERVICE_USB_DEVICE_OUT,				BIT(ModeUsbDevicePlay), 																	ENTERR_PREV_MODE},
+{MSG_DEVICE_SERVICE_USB_DEVICE_IN,				~(BIT(ModeUsbDevicePlay)| PLUSIN_MASK_MODE),		ModeUsbDevicePlay},
+{MSG_DEVICE_SERVICE_USB_DEVICE_OUT,				BIT(ModeUsbDevicePlay), 							ENTERR_PREV_MODE},
 
-{MSG_DEVICE_SERVICE_LINE_IN, 					~(BIT(ModeBtHfPlay)|BIT(ModeLineAudioPlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),			ModeLineAudioPlay},
-{MSG_DEVICE_SERVICE_LINE_OUT, 					BIT(ModeLineAudioPlay),																		ENTERR_PREV_MODE},
+{MSG_DEVICE_SERVICE_LINE_IN, 					~(BIT(ModeLineAudioPlay) | PLUSIN_MASK_MODE),		ModeLineAudioPlay},
+{MSG_DEVICE_SERVICE_LINE_OUT, 					BIT(ModeLineAudioPlay),								ENTERR_PREV_MODE},
 
-{MSG_DEVICE_SERVICE_TWS_SLAVE_CONNECTED, 		~(BIT(ModeBtHfPlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),									ModeTwsSlavePlay},
-{MSG_DEVICE_SERVICE_TWS_SLAVE_DISCONNECT, 		BIT(ModeTwsSlavePlay),																		ENTERR_PREV_MODE},
+{MSG_DEVICE_SERVICE_TWS_SLAVE_CONNECTED, 		~(PLUSIN_MASK_MODE),								ModeTwsSlavePlay},
+{MSG_DEVICE_SERVICE_TWS_SLAVE_DISCONNECT, 		BIT(ModeTwsSlavePlay),								ENTERR_PREV_MODE},
 
 #ifdef CFG_FUNC_RECORDER_EN
-{MSG_DEVICE_SERVICE_U_DISK_BACK_IN, 			~(BIT(ModeBtHfPlay)|BIT(ModeUDiskPlayBack)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),			ModeUDiskPlayBack},
-{MSG_DEVICE_SERVICE_U_DISK_BACK_OUT, 			BIT(ModeUDiskPlayBack),																		ENTERR_PREV_MODE},
+{MSG_DEVICE_SERVICE_U_DISK_BACK_IN, 			~(BIT(ModeUDiskPlayBack) | PLUSIN_MASK_MODE),		ModeUDiskPlayBack},
+{MSG_DEVICE_SERVICE_U_DISK_BACK_OUT, 			BIT(ModeUDiskPlayBack),								ENTERR_PREV_MODE},
 
-{MSG_DEVICE_SERVICE_CARD_BACK_IN, 				~(BIT(ModeBtHfPlay)|BIT(ModeCardPlayBack)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),				ModeCardPlayBack},
-{MSG_DEVICE_SERVICE_CARD_BACK_OUT, 				BIT(ModeCardPlayBack),																		ENTERR_PREV_MODE},
+{MSG_DEVICE_SERVICE_CARD_BACK_IN, 				~(BIT(ModeCardPlayBack) | PLUSIN_MASK_MODE),		ModeCardPlayBack},
+{MSG_DEVICE_SERVICE_CARD_BACK_OUT, 				BIT(ModeCardPlayBack),								ENTERR_PREV_MODE},
 #endif
 
 #ifdef CFG_APP_HDMIIN_MODE_EN
-{MSG_DEVICE_SERVICE_HDMI_IN, 					~(BIT(ModeBtHfPlay)|BIT(ModeHdmiAudioPlay)|BIT(ModeTwsSlavePlay)|BIT(ModeIdle)),			ModeHdmiAudioPlay},
-{MSG_DEVICE_SERVICE_HDMI_OUT, 					BIT(ModeHdmiAudioPlay),																		ENTERR_PREV_MODE},
+{MSG_DEVICE_SERVICE_HDMI_IN, 					~(BIT(ModeHdmiAudioPlay) | PLUSIN_MASK_MODE),		ModeHdmiAudioPlay},
+{MSG_DEVICE_SERVICE_HDMI_OUT, 					BIT(ModeHdmiAudioPlay),								ENTERR_PREV_MODE},
+#endif
+
+#ifdef CFG_APP_BIS_BT_DUAL_CHIP_MODE_EN
+{MSG_DEVICE_SERVICE_BIS_SLAVE_CONNECTED, 		~(BIT(ModeLeAudioSinkPlay) | PLUSIN_MASK_MODE),		ModeLeAudioSinkPlay},
+{MSG_DEVICE_SERVICE_BIS_SLAVE_DISCONNECT, 		BIT(ModeLeAudioSinkPlay),							ENTERR_PREV_MODE},
 #endif
 
 };

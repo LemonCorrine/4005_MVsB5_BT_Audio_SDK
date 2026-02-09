@@ -32,9 +32,6 @@
 #include "clk.h"
 #include "audio_core_service.h"
 #include "audio_adc.h"
-#include "adc_interface.h"
-
-extern void SystemTimerInit(void);
 
 /**
  * @brief  sniff休眠应用处理
@@ -69,7 +66,7 @@ void BtSniffLowPower(void)
 #else
 	Power_LDO11DConfig(PWD_LDO11_LVL_0V95); // 降低到0.95V  VDD使用SarADC功能，最低电压只能到1.05V
 #endif
-	Power_LDO33DConfig(1);
+	Power_LDO33DConfig(3);
 #if CFG_RES_MIC_SELECT
 	AudioADC_DeInit(ADC1_MODULE);
 	AudioCoreSourceDisable(MIC_SOURCE_NUM);

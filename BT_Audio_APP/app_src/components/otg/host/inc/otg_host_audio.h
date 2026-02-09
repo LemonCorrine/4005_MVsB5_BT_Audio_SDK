@@ -21,22 +21,11 @@ extern "C"{
 #include "otg_host_audiox.h"
 #include "otg_host_hid.h"
 
-typedef enum
-{
-  AUDIO_PLAYBACK_INIT = 0,
-  AUDIO_PLAYBACK_PLAY,
-  AUDIO_PLAYBACK_IDLE,
-}
-AUDIO_PlayStateTypeDef;
-
 typedef struct _AUDIO_Process
 {
 	USBH_AudioStreamFormatInfo   		Speaker;
 	USBH_AudioStreamFormatInfo   		Mic;
 	HID_ClassSpecificDescTypedef		Hid;
-
-	AUDIO_PlayStateTypeDef				SpeakerPlay;
-	AUDIO_PlayStateTypeDef				MicPlay;
 }
 AUDIO_HandleTypeDef;
 

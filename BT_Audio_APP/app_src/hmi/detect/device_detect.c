@@ -88,8 +88,6 @@ extern bool i2c_work;
 void BreakPointSave(uint16_t device_msgId);
 #endif
 
-extern uint8_t OTG_HostUnInit(void);
-
 #ifdef HDMI_HPD_CHECK_DETECT_EN
 static  DETECT_STATE HDMI_Device_State = DETECT_STATE_IDLE;
 TIMER	HDMIDetectTimer;
@@ -669,6 +667,11 @@ void DeviceServicePocess(uint16_t device_msgId)
 #ifdef CFG_FUNC_BREAKPOINT_EN
 	BreakPointSave(device_msgId);
 #endif
+#if defined(CFG_LOCK_PAIRED_TXRX) && defined(CFG_SYNC_TO_TX_SDK) //CFG_WIRELESS_EN
+	TX_PairedInfoSetFlash();
+#elif defined(CFG_LOCK_PAIRED_TXRX)
+	RX_PairedInfoSetFlash();
+#endif
 	if(gDeviceCheckTimer == 0)
 	{
 		gDeviceCheckTimer = DEVICE_DETECT_TIMER;
@@ -750,7 +753,9 @@ void BreakPointSave(uint16_t device_msgId)
 #ifdef CFG_APP_BT_MODE_EN
 			pBpSysInfo->HfVolume     = mainAppCt.HfVolume;
 #endif
-			if(mainAppCt.EffectMode != EFFECT_MODE_HFP_AEC)//蓝牙通话模式下，不保存音效模式
+			extern uint8_t GetCurEffectModeState(uint8_t effect_mode);
+//			if(mainAppCt.EffectMode != EFFECT_MODE_HFP_AEC || mainAppCt.EffectMode != EFFECT_MODE_TDM)//蓝牙通话模式下，不保存音效模式
+			if(GetCurEffectModeState(mainAppCt.EffectMode))
 			{
 				pBpSysInfo->EffectMode   = mainAppCt.EffectMode;
 			}

@@ -23,7 +23,7 @@
 /*****************************************************************
  * 蓝牙功能开关(经典蓝牙BT和低功耗蓝牙BLE模块)
  *****************************************************************/
-#define BLE_SUPPORT					DISABLE
+#define BLE_SUPPORT					DISABLE//DISABLE//
 #define BT_SUPPORT			        ENABLE
 
 /*****************************************************************
@@ -56,6 +56,13 @@
 #define A2DP_INQUIRY_TIMEOUT		10 //unit:s   default:10s
 
 #endif /* BT_SOURCE_SUPPORT */
+
+
+/*****************************************************************
+ * 2.4G功能配置
+ * 关联script_copy.ini,无BLE、无BT_SOURCE_SUPPORT
+ *****************************************************************/
+#define WIRELESS_SUPPORT			DISABLE//ENABLE//
 
 /*****************************************************************
  * 蓝牙通用功能配置
@@ -214,14 +221,17 @@ enum
 
 #define BT_AUTO_PLAY_MUSIC				(0)		//AVRCP连接成功后，自动播放歌曲
 
-#endif /* BT_A2DP_SUPPORT */
-
 /*****************************************************************
+ *
  * get remote device time
  * android: map
  * ios:hfp
+ *
  *****************************************************************/
 //#define BT_GETTIME_SUPPORT
+
+
+#endif /* BT_A2DP_SUPPORT */
 
 /*****************************************************************
  * HFP profile
@@ -284,5 +294,9 @@ enum
 	#include "bt_source.h"
 #endif
 
+#if WIRELESS_SUPPORT  && !(BLE_SUPPORT || BT_SOURCE_SUPPORT)
+	#include "wireless_config.h" //仅在此引用
+	#define  CFG_WIRELESS_EN	//for App config
+#endif
 #endif /*__BT_DEVICE_CFG_H__*/
 

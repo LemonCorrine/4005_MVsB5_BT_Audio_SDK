@@ -2,6 +2,7 @@
 #define __FLASH_TABLE_H__
 #include "type.h"
 
+#define WIRELESS_BP_EN		0//1//因h文件层次宏组合, 在此开功能
 // 8  --> 8Mb		
 // 4/8/16/32/64/128
 #define FLASH_CAPACTITY_TYPE	CHIP_FLASH_CAPACTITY
@@ -27,6 +28,9 @@ typedef struct _FLASH_DATA_MAP_
 #endif
 	uint8_t	bt_data			[1024 * 8];		//size:8KB  bt数据 配对记录等
 	uint8_t	bp_data			[1024 * 8];		//size:8KB	breakpoint数据
+#if WIRELESS_BP_EN
+	uint8_t wireless_bp		[1024 * 4];		//size:4KB  wireless配对
+#endif
 }FLASH_DATA_MAP;
 
 #define GET_MEMBER_SIZE(member)		sizeof(((FLASH_DATA_MAP *)0)->member)
@@ -39,7 +43,7 @@ typedef struct _FLASH_DATA_MAP_
 #define BP_DATA_OFFSET     			GET_MEMBER_OFFSET(bp_data)
 #define SYS_PARA_OFFSET				GET_MEMBER_OFFSET(sys_parameter)
 #define EFFECT_DATA_OFFSET			GET_MEMBER_OFFSET(effect_data)
-
+#define BP_WIRELESS_OFFSET			GET_MEMBER_OFFSET(wireless_bp)
 #define BP_DATA_FLASH_SIZE			GET_MEMBER_SIZE(bp_data)
 #define BTDB_USERDATA_SIZE			GET_MEMBER_SIZE(bt_data)
 #define BTDB_CONFIGDATA_SIZE		GET_MEMBER_SIZE(reserve_1)
@@ -49,6 +53,7 @@ void flash_table_init(void);
 bool flash_table_is_valid(void);
 
 uint32_t get_remind_addr(void);			//提示音地址
+uint32_t get_wireless_bp_addr(void);	//2.4G 配对记忆 //CFG_WIRELESS_EN
 uint32_t get_bp_data_addr(void);		//BT数据（配对记录/linkkey等）
 uint32_t get_bt_data_addr(void);		//系统数据（模式/音量/断点播放等）
 uint32_t get_user_config_addr(void);	//用户数据（配合烧录器等工具使用，SN码等信息）
@@ -57,6 +62,9 @@ uint32_t get_sys_parameter_addr(void);	//flash 参量化数据地址
 uint32_t get_effect_data_addr(void);	//音效参数数据地址
 
 #define REMIND_FLASH_STORE_BASE				(get_remind_addr())
+//CFG_WIRELESS_EN
+#define WIRELEDD_CONFIG_ADDR				(get_wireless_bp_addr())
+#define WIRELESS_CAP_ADDR					(get_bt_config_addr())
 
 /////////////////////////////////////////////////////////////////
 //下面flash的定义是无效的，只是暂时解决编译错误

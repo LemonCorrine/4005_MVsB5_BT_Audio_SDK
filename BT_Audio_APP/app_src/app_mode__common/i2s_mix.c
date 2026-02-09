@@ -81,16 +81,11 @@ bool I2S_MixInit(bool hf_mode_flag)
 		i2s_set.IsMasterMode=CFG_RES_MIX_I2S_MODE;// 0:master 1:slave
 		i2s_set.SampleRate=CFG_PARA_MIX_I2S_SAMPLERATE;
 		i2s_set.I2sFormat=I2S_FORMAT_I2S;
-		if(hf_mode_flag)
-			i2s_set.I2sBits = I2S_LENGTH_16BITS;
-		else
-		{
-		#ifdef	CFG_AUDIO_WIDTH_24BIT
-			i2s_set.I2sBits = I2S_LENGTH_24BITS;
-		#else
-			i2s_set.I2sBits = I2S_LENGTH_16BITS;
-		#endif
-		}
+	#ifdef	CFG_AUDIO_WIDTH_24BIT
+		i2s_set.I2sBits = I2S_LENGTH_24BITS;
+	#else
+		i2s_set.I2sBits = I2S_LENGTH_16BITS;
+	#endif
 		i2s_set.I2sTxRxEnable = 2;
 
 		i2s_set.RxPeripheralID = PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX_I2S_MODULE;
@@ -165,11 +160,15 @@ bool I2S_MixInit(bool hf_mode_flag)
 		}
 
 	#ifdef	CFG_AUDIO_WIDTH_24BIT
+		AudioIOSet.IOBitWidth = 1;//0,16bit,1:24bit
 		if(hf_mode_flag)
-			AudioIOSet.IOBitWidth = 0;//0,16bit,1:24bit
+		{
+			AudioIOSet.IOBitWidthConvFlag = 1;//需要数据进行位宽扩展
+		}
 		else
-			AudioIOSet.IOBitWidth = 1;//0,16bit,1:24bit
-		AudioIOSet.IOBitWidthConvFlag = 0;//需要数据进行位宽扩展
+		{
+			AudioIOSet.IOBitWidthConvFlag = 0;//不需要数据进行位宽扩展
+		}
 	#endif
 		if(!AudioCoreSourceInit(&AudioIOSet, I2S_MIX_SOURCE_NUM))
 		{
@@ -185,8 +184,16 @@ bool I2S_MixInit(bool hf_mode_flag)
 	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
 	AudioIOSet.Depth = AudioCore.FrameSize[DefaultNet] * 2 ;
 #ifdef	CFG_AUDIO_WIDTH_24BIT
-	AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
-	AudioIOSet.IOBitWidthConvFlag = 0;//不需要做位宽转换处理
+	if(hf_mode_flag)
+	{
+		AudioIOSet.IOBitWidth = PCM_DATA_16BIT_WIDTH;//0,16bit,1:24bit
+		AudioIOSet.IOBitWidthConvFlag = 1;//需要做位宽转换处理
+	}
+	else
+	{
+		AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
+		AudioIOSet.IOBitWidthConvFlag = 0;//不需要做位宽转换处理
+	}
 #endif
 	if(!AudioCoreSinkIsInit(AUDIO_I2S_MIX_OUT_SINK_NUM))
 	{
@@ -359,16 +366,11 @@ bool I2S_Mix2Init(bool hf_mode_flag)
 		i2s_set.IsMasterMode=CFG_RES_MIX2_I2S_MODE;// 0:master 1:slave
 		i2s_set.SampleRate=CFG_PARA_MIX2_I2S_SAMPLERATE;
 		i2s_set.I2sFormat=I2S_FORMAT_I2S;
-		if(hf_mode_flag)
-			i2s_set.I2sBits = I2S_LENGTH_16BITS;
-		else
-		{
-		#ifdef	CFG_AUDIO_WIDTH_24BIT
-			i2s_set.I2sBits = I2S_LENGTH_24BITS;
-		#else
-			i2s_set.I2sBits = I2S_LENGTH_16BITS;
-		#endif
-		}
+	#ifdef	CFG_AUDIO_WIDTH_24BIT
+		i2s_set.I2sBits = I2S_LENGTH_24BITS;
+	#else
+		i2s_set.I2sBits = I2S_LENGTH_16BITS;
+	#endif
 		i2s_set.I2sTxRxEnable = 2;
 
 		i2s_set.RxPeripheralID = PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX2_I2S_MODULE;
@@ -443,11 +445,15 @@ bool I2S_Mix2Init(bool hf_mode_flag)
 		}
 
 	#ifdef	CFG_AUDIO_WIDTH_24BIT
+		AudioIOSet.IOBitWidth = 1;//0,16bit,1:24bit
 		if(hf_mode_flag)
-			AudioIOSet.IOBitWidth = 0;//0,16bit,1:24bit
+		{
+			AudioIOSet.IOBitWidthConvFlag = 1;//需要数据进行位宽扩展
+		}
 		else
-			AudioIOSet.IOBitWidth = 1;//0,16bit,1:24bit
-		AudioIOSet.IOBitWidthConvFlag = 0;//需要数据进行位宽扩展
+		{
+			AudioIOSet.IOBitWidthConvFlag = 0;//不需要数据进行位宽扩展
+		}
 	#endif
 		if(!AudioCoreSourceInit(&AudioIOSet, I2S_MIX2_SOURCE_NUM))
 		{
@@ -463,8 +469,16 @@ bool I2S_Mix2Init(bool hf_mode_flag)
 	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
 	AudioIOSet.Depth = AudioCore.FrameSize[DefaultNet] * 2 ;
 #ifdef	CFG_AUDIO_WIDTH_24BIT
-	AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
-	AudioIOSet.IOBitWidthConvFlag = 0;//不需要做位宽转换处理
+	if(hf_mode_flag)
+	{
+		AudioIOSet.IOBitWidth = PCM_DATA_16BIT_WIDTH;//0,16bit,1:24bit
+		AudioIOSet.IOBitWidthConvFlag = 1;//需要做位宽转换处理
+	}
+	else
+	{
+		AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
+		AudioIOSet.IOBitWidthConvFlag = 0;//不需要做位宽转换处理
+	}
 #endif
 	if(!AudioCoreSinkIsInit(AUDIO_I2S_MIX2_OUT_SINK_NUM))
 	{

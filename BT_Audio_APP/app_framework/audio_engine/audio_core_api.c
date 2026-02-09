@@ -267,7 +267,17 @@ void AudioProcessMain(void)
 			}
 		}
 	}	
-		
+	if(AudioCore.AudioSource[USB_HOST_SOURCE_NUM].Active == TRUE)////music buff
+	{
+		if(AudioCore.AudioSource[USB_HOST_SOURCE_NUM].Channels == 1)
+		{
+			uint16_t i;
+			for(i = SOURCEFRAME(USB_HOST_SOURCE_NUM) * 2 - 1; i > 0; i--)
+			{
+				AudioCore.AudioSource[USB_HOST_SOURCE_NUM].PcmInBuf[i] = AudioCore.AudioSource[USB_HOST_SOURCE_NUM].PcmInBuf[i / 2];
+			}
+		}
+	}
 #if defined(CFG_FUNC_REMIND_SOUND_EN)
 	if(AudioCore.AudioSource[REMIND_SOURCE_NUM].Active == TRUE)////remind buff
 	{
@@ -322,7 +332,8 @@ void AudioCoreSourceMuteApply(void)
 
 	for(j = 0; j < AUDIO_CORE_SOURCE_MAX_NUM; j++)
 	{
-		mute = AudioCore.AudioSource[j].LeftMuteFlag || AudioCore.AudioSource[j].RightMuteFlag || mainAppCt.gSysVol.MuteFlag;
+		mute = AudioCore.AudioSource[j].LeftMuteFlag || AudioCore.AudioSource[j].RightMuteFlag || mainAppCt.gSysVol.MuteFlag
+				|| IsAudioCorePause || (!AudioCore.AudioSource[j].FrameReady);
 		if((!AudioCore.AudioSource[j].Active) || (!AudioCore.AudioSource[j].Enable) || (mute == AudioCore.AudioSource[j].MuteFlagbk))
 		{
 			if(AudioCoreSourceToRoboeffect(j) != AUDIOCORE_SOURCE_SINK_ERROR)
@@ -332,6 +343,7 @@ void AudioCoreSourceMuteApply(void)
 				{
 					memset(roboeffect_get_source_buffer(AudioEffect.context_memory, AudioCoreSourceToRoboeffect(j)),
 										0, roboeffect_get_buffer_size(AudioEffect.context_memory));
+					AudioCore.AudioSource[j].FrameReady = FALSE;
 				}
 			}
 			AudioCore.AudioSource[j].MuteFlagbk = mute;
@@ -407,7 +419,7 @@ void AudioCoreSinkMuteApply(void)
 
 	for(j = 0; j < AUDIO_CORE_SINK_MAX_NUM; j++)
 	{
-		mute = AudioCore.AudioSink[j].LeftMuteFlag || AudioCore.AudioSink[j].RightMuteFlag || mainAppCt.gSysVol.MuteFlag;
+		mute = AudioCore.AudioSink[j].LeftMuteFlag || AudioCore.AudioSink[j].RightMuteFlag || mainAppCt.gSysVol.MuteFlag || IsAudioCorePause;
 		if((!AudioCore.AudioSink[j].Active) || (!AudioCore.AudioSink[j].Enable) || (mute == AudioCore.AudioSink[j].MuteFlagbk))
 		{
 			if(AudioCoreSinkToRoboeffect(j) != AUDIOCORE_SOURCE_SINK_ERROR)

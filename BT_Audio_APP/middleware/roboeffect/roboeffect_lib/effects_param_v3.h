@@ -5,9 +5,9 @@
 #include "type.h"
 
 /*
-	Roboeffect Version: 2.28.0
-	Audio Effect Lib Version: 2.45.6
-	Protocol Version: 0.4.0
+	Roboeffect Version: 2.32.0
+	Audio Effect Lib Version: 2.49.0
+	Protocol Version: 0.5.0
 */
 typedef struct _param_auto_tune
 {
@@ -642,6 +642,34 @@ typedef struct _param_pcm_delay_ms
 	int16_t max_delay;
 	int16_t high_quality_enable;
 }param_pcm_delay_ms;
+
+typedef struct _param_distortion_exp
+{
+	int16_t gain;
+	int16_t dry;
+	int16_t wet;
+}param_distortion_exp;
+
+typedef struct _param_vibrato
+{
+	int16_t mod_depth;
+	int16_t mod_rate;
+}param_vibrato;
+
+typedef struct _param_pitch_detector
+{
+	int16_t pitch_min;
+	int16_t pitch_max;
+	int16_t window_size;
+	int16_t confidence_threshold;
+	int16_t confidence;
+	int16_t pcm_amplitude;
+}param_pitch_detector;
+
+typedef struct _param_filter_fir
+{
+	int16_t coefficients_index;
+}param_filter_fir;
 
 typedef struct _param_fader
 {
@@ -1295,6 +1323,34 @@ typedef enum _PCM_DELAY_MS_PARAMS_ENUM
 	INDEX_PCM_DELAY_MS_MAX_DELAY = 1,
 	INDEX_PCM_DELAY_MS_HIGH_QUALITY_ENABLE = 2,
 }PCM_DELAY_MS_PARAMS_ENUM;
+
+typedef enum _DISTORTION_EXP_PARAMS_ENUM
+{
+	INDEX_DISTORTION_EXP_GAIN = 0,
+	INDEX_DISTORTION_EXP_DRY = 1,
+	INDEX_DISTORTION_EXP_WET = 2,
+}DISTORTION_EXP_PARAMS_ENUM;
+
+typedef enum _VIBRATO_PARAMS_ENUM
+{
+	INDEX_VIBRATO_MOD_DEPTH = 0,
+	INDEX_VIBRATO_MOD_RATE = 1,
+}VIBRATO_PARAMS_ENUM;
+
+typedef enum _PITCH_DETECTOR_PARAMS_ENUM
+{
+	INDEX_PITCH_DETECTOR_PITCH_MIN = 0,
+	INDEX_PITCH_DETECTOR_PITCH_MAX = 1,
+	INDEX_PITCH_DETECTOR_WINDOW_SIZE = 2,
+	INDEX_PITCH_DETECTOR_CONFIDENCE_THRESHOLD = 3,
+	INDEX_PITCH_DETECTOR_CONFIDENCE = 4,
+	INDEX_PITCH_DETECTOR_PCM_AMPLITUDE = 5,
+}PITCH_DETECTOR_PARAMS_ENUM;
+
+typedef enum _FILTER_FIR_PARAMS_ENUM
+{
+	INDEX_FILTER_FIR_COEFFICIENTS_INDEX = 0,
+}FILTER_FIR_PARAMS_ENUM;
 
 typedef enum _FADER_PARAMS_ENUM
 {

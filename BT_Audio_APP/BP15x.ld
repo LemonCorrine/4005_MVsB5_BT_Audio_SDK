@@ -234,6 +234,7 @@ SECTIONS
 	".sdata2_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.sdata2 .sdata2.* .gnu.linkonce.s2.* ) }
 	".sbss2_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.sbss2 .sbss2.* .gnu.linkonce.sb2.* ) }
 	".eh_frame_hdr_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.eh_frame_hdr ) }
+	.lc3_section 	: { KEEP(*(.lc3_section )) }
 	.tcm_section 	: { KEEP(*(.tcm_section )) }
 	".nds32_init_*tws_time_sync.o" 	: { KEEP(*tws_time_sync.o(.nds32_init )) }
 	".interp_*tws_time_sync.o" 	: { KEEP(*tws_time_sync.o(.interp )) }
@@ -403,6 +404,7 @@ SECTIONS
 	".sdata2_*co_utils.o" 	: { KEEP(*co_utils.o(.sdata2 .sdata2.* .gnu.linkonce.s2.* )) }
 	".sbss2_*co_utils.o" 	: { KEEP(*co_utils.o(.sbss2 .sbss2.* .gnu.linkonce.sb2.* )) }
 	".eh_frame_hdr_*co_utils.o" 	: { KEEP(*co_utils.o(.eh_frame_hdr )) }
+	.deepsleep_section 	: { KEEP(*(.deepsleep_section )) }
 	.startup_section 	: { KEEP(*(.startup_section )) }
 	.driver.isr 	: { KEEP(*(.driver.isr )) }
 	.nds32_vector 	: { KEEP(*(.nds32_vector )) KEEP(*(SORT(.nds32_vector.* ))) }
@@ -466,13 +468,25 @@ SECTIONS
 	.sdata2 	: { *(.sdata2 .sdata2.* .gnu.linkonce.s2.* ) }
 	.sbss2 	: { *(.sbss2 .sbss2.* .gnu.linkonce.sb2.* ) }
 	.eh_frame_hdr 	: { *(.eh_frame_hdr ) }
+	. = . + 0;
+	__ram_code_start =  LOADADDR (.ram.code);
+	.ram.code 	: { *(.ram.code ) }
+	__ram_code_end =  LOADADDR (.ram.code) + SIZEOF (.ram.code);
+	. = . + 0;
+	__rand_code_start =  LOADADDR (.rand.code);
+	.rand.code 	: { *(.rand.code ) }
+	__rand_code_end =  LOADADDR (.rand.code) + SIZEOF (.rand.code);
+	. = . + 0;
+	__ctxt_code_start =  LOADADDR (.ctxt.code);
+	.ctxt.code 	: { *(.ctxt.code ) }
+	__ctxt_code_end =  LOADADDR (.ctxt.code) + SIZEOF (.ctxt.code);
 	. = 0x20001500;
 	_SDA_BASE_ = 0x20028000;
 	PROVIDE (_stack = 0x20001500);
 	. = ALIGN(0x20);
 	__data_lmastart =  LOADADDR (.eh_frame);
 	__data_start = ADDR(.eh_frame);
-	.eh_frame 	: AT(ALIGN(LOADADDR (.eh_frame_hdr) + SIZEOF (.eh_frame_hdr), 32))
+	.eh_frame 	: AT(ALIGN(LOADADDR (.ctxt.code) + SIZEOF (.ctxt.code), 32))
 		{ KEEP(*(.eh_frame )) }
 	.gcc_except_table 	: AT(ALIGN(LOADADDR (.eh_frame) + SIZEOF (.eh_frame), ALIGNOF(.gcc_except_table)))
 		{ KEEP(*(.gcc_except_table )) *(.gcc_except_table.* ) }

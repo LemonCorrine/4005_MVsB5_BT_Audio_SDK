@@ -19,4 +19,9 @@
 5. xxxx_default_params.txt包含缺省参数，以及4个接口函数的实现模板，可以自行拷贝到源文件进行填充代码。
 6. 将roboeffect_library_info_v2.xx.xx_3rdparty.bin拷贝到调音工具的\ACPWorkbench_V3.X.X\roboeffect_library_info_set\目录下，可以做离线调音使用。
 
+可能会碰到的问题：
+在使用某些非标准的编辑器（如WPS）编辑UserLibsData.xlsx文件后，有可能会出现xlsx文件不识别的问题。
+可以尝试对UserLibsData.xlsx进行若干无效编辑后保存再尝试，无效编辑可以是对某个单元格增加一个空格再删除这个空格，保存文件即可。
+但根本解决之法是使用Microsoft Excel软件进行编辑。
+
 

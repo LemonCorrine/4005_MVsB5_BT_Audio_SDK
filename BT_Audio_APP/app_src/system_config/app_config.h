@@ -17,6 +17,8 @@
 #include "chip_config.h"
 #include "spi_flash.h"
 #include "debug.h"
+#include "bt_config.h"
+#include "chip_info.h"
 //************************************************************************************************************
 //    本系统默认开启2个系统全局宏，在IDE工程配置(Build Settings-Compiler-Symbols)，此处用于提醒
 //*CFG_APP_CONFIG 和 FUNC_OS_EN*/
@@ -39,11 +41,15 @@
  *实际存储字节序：1A 01 00 00 ，略区别于sdk版本*/
 /*开启flash_boot时，用flashboot升级usercode后，boot明码区和code明码(如0xB8和0xB8+0x10000)两个值会不同，
  * 前者是burner烧录时版本，后者是mva版本需关注*/
+#if BP15_ROM_VERSION == BP15_ROM_V1
 #define	 CFG_SDK_VER_CHIPID			(0xB5)
-#define  CFG_SDK_MAJOR_VERSION		(1)
-#define  CFG_SDK_MINOR_VERSION		(1)
-#define  CFG_SDK_PATCH_VERSION	    (2)
+#elif BP15_ROM_VERSION == BP15_ROM_V2
+#define	 CFG_SDK_VER_CHIPID			(0x35)
+#endif
 
+#define  CFG_SDK_MAJOR_VERSION		(1)
+#define  CFG_SDK_MINOR_VERSION		(3)
+#define  CFG_SDK_PATCH_VERSION	    (0)
 
 //****************************************************************************************
 // 系统App功能模式选择
@@ -59,8 +65,11 @@
 #define	CFG_APP_OPTICAL_MODE_EN	// SPDIF 光纤模式
 #define CFG_APP_COAXIAL_MODE_EN	// SPDIF 同轴模式
 //#define CFG_APP_HDMIIN_MODE_EN
+#if defined(CFG_WIRELESS_EN) && (DECODE_CH != 0)
+	#define CFG_APP_WIRELESSIN_MODE_EN
+#endif
 
-#ifdef CHIP_BT_DISABLE
+#if defined(CHIP_BT_DISABLE)
 	#undef CFG_APP_BT_MODE_EN
 #endif
 
@@ -165,12 +174,25 @@
 #ifdef CFG_RES_AUDIO_SPDIFOUT_EN
 	#define SPDIF_OUT_NUM			SPDIF1
 	#define SPDIF_OUT_DMA_ID		PERIPHERAL_ID_SPDIF1_TX
+	#define	SPDIF_OUT_GPIO_SET()	GPIO_PortAModeSet(GPIOA29, 0x0b)
 //	#define CFG_I2S_SLAVE_TO_SPDIFOUT_EN	//Just support I2S1 and AUDIO_CLK must select DPLL
 	#ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
 		#define CFG_FUNC_EFFECT_BYPASS_EN
 		#undef 	CFG_RES_AUDIO_DAC0_EN
 		#undef 	CFG_RES_MIC_SELECT
 		#define CFG_RES_MIC_SELECT      (0)
+	#endif
+#endif
+
+#if defined(CFG_WIRELESS_EN) && (ENCODE_CH != 0) && (DECODE_CH == 0)
+	#define CFG_WIRELESS_OUT_EN //配置转译，勿关闭/注销
+
+	#define CFG_WIRELESS_OUT_ON //单向Tx 支持上电常驻
+	#if defined(CFG_WIRELESS_OUT_ON) && defined(CFG_APP_BT_MODE_EN)
+		#define CFG_RF_TO_BT //切回蓝牙用于射频测试
+	#endif
+	#if defined(CFG_APP_BT_MODE_EN) && !defined(CFG_RF_TO_BT)//单向Tx端,不带测试配置时，不支持BT
+		#undef CFG_APP_BT_MODE_EN
 	#endif
 #endif
 
@@ -195,13 +217,17 @@
 		#define I2S_DIN_GPIO				I2S1_DIN_A10
 	#endif
 #else
-	#define I2S_MCLK_GPIO					I2S0_MCLK_OUT_A24 //选择MCLK_OUT/MCLK_IN脚，I2S自动配置成master/slave
+	#ifdef CFG_APP_BIS_BT_DUAL_CHIP_MODE_EN
+		#define I2S_MCLK_GPIO					I2S0_MCLK_IN_A24 //选择MCLK_OUT/MCLK_IN脚，I2S自动配置成master/slave
+	#else
+		#define I2S_MCLK_GPIO					I2S0_MCLK_OUT_A24 //选择MCLK_OUT/MCLK_IN脚，I2S自动配置成master/slave
+	#endif
 	#define I2S_LRCLK_GPIO					I2S0_LRCLK_A20
 	#define I2S_BCLK_GPIO					I2S0_BCLK_A21
 	#ifdef CFG_RES_AUDIO_I2SOUT_EN
 		#define I2S_DOUT_GPIO				I2S0_DOUT_A22
 	#endif
-	#ifdef CFG_APP_I2SIN_MODE_EN
+	#if defined(CFG_APP_I2SIN_MODE_EN) || defined(CFG_APP_BIS_BT_DUAL_CHIP_MODE_EN)
 		#define I2S_DIN_GPIO				I2S0_DIN_A23
 	#endif
 #endif
@@ -209,7 +235,12 @@
 																		//也可以手动配置成1或者0  0:master mode ;1:slave mode
 #define	CFG_RES_I2S_MODULE				GET_I2S_I2S_PORT(I2S_MCLK_GPIO)	//根据I2S_MCLK_GPIO自动配置i2s1/i2s0
 																		//也可以手动配置成1或者0  0 ---> i2s0  1 ---> i2s1
-#define CFG_PARA_I2S_SAMPLERATE			44100
+
+#ifdef CFG_APP_BIS_BT_DUAL_CHIP_MODE_EN
+	#define CFG_PARA_I2S_SAMPLERATE			48000
+#else
+	#define CFG_PARA_I2S_SAMPLERATE			44100
+#endif
 #define CFG_FUNC_I2S_IN_SYNC_EN			//缺省为SRA
 #define CFG_FUNC_I2S_OUT_SYNC_EN
 #endif
@@ -248,7 +279,6 @@
 #endif
 
 //usb host uac 框图demo 在默认框图中增加了 USB_HOST_SOURCE_NUM 和 AUDIO_USB_HOST_SINK_NUM
-//双声卡框图 demo 在默认框图中，使用USB_SOURCE_NUM 和 APP_SOURCE_NUM 分别作为两个usb下行通道
 //音效DEMO配置说明：
 //	1.使用DEMO的方式配置音效主要是因为使用率低，切占用内存较多，暂时不加入到默认框图中。
 //	2.音效demo主要是以展示效果用，各demo功能之间切勿同时打开。因为音效框图并不一致。
@@ -410,6 +440,7 @@
 //#define CFG_FUNC_RECORDER_EN
 #ifdef CFG_FUNC_RECORDER_EN
 	#define CFG_FUNC_RECORD_SD_UDISK	//录音到SD卡或者U盘
+//	#define	CFG_FUNC_RECORD_EXTERN_FLASH_EN
 	//录制多段提示音到外置flash/内部flash用于特效音录制和播放，和CFG_FUNC_RECORD_SD_UDISK只能2选1
 	//关闭USE_EXTERN_FLASH_SPACE宏，录制特效音到内部flash，还需要到 \BT_Audio_APP\tools\merge_script\merge.ini配置地址
 	//merge.ini中开启如下配置，	maxlen长度需要配置为 CFG_PARA_RECORDS_MAX_SIZE * CFG_PARA_RECORDS_INDEX
@@ -418,7 +449,10 @@
 	//	fullpath=..\merge_script\rec_data.bin
 	//	maxlen = 0x30000
 	//	enable = 1
-//	#define	CFG_FUNC_RECORD_EXTERN_FLASH_EN
+	#define WAV_BIT_PER_SAMPLE					16	//WAV格式采样位数16，24
+	#define RECORD_FORMAT_WAV					1	//录音格式WAV
+	#define RECORD_FORMAT_MP2					2	//录音为mp2格式
+	#define RECORD_FORMAT_MP3					3	//录音为mp3格式
 
 	#ifdef CFG_FUNC_RECORD_SD_UDISK
 		#define CFG_FUNC_RECORD_UDISK_FIRST				//U盘和卡同时存在时，录音设备优先选择U盘，否则优先选择录音到SD卡。
@@ -429,11 +463,10 @@
 		#define MEDIAPLAYER_SUPPORT_REC_FILE            // U盘或TF卡模式下，打开此功能，则支持播放录音文件；否则，只能在录音回放模式下播放录音文件
         //#define AUTO_DEL_REC_FILE_FUNCTION            //录音文件达到最大数后，自动删除全部录音文件的功能选项
 	#endif
-
 	#define DEL_REC_FILE_EN
 
 	#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
-		//#define USE_EXTERN_FLASH_SPACE		//使用外置flash空间(屏蔽这行使用芯片内置flash)
+//		#define USE_EXTERN_FLASH_SPACE		//使用外置flash空间(屏蔽这行使用芯片内置flash)
 		#define CFG_PARA_RECORDS_MAX_SIZE			(0x30000) 	// 定义为一个录音文件的大小192K
 		#define CFG_PARA_RECORDS_INFO_SIZE			256				// 定义256BYTE空间，用来放置一些想保存的录音信息，例如录音时长、录音大小等等等
 		#define	EXTERN_FLASH_RECORDER_FILE_SECOND	30				//单个文件录音时间
@@ -445,9 +478,10 @@
 			#define SpiErase(a)							SPI_Flash_Erase_4K(a)
 		#else
 			#define CFG_PARA_RECORDS_INDEX				1			// 定义最大的允许录音数量
-			#define	SpiWrite(a,b,c)						SpiFlashWrite(a,b,c,1)
-			#define	SpiRead(a,b,c)						SpiFlashRead(a,b,c,1)
-			#define SpiErase(a)							SpiFlashErase(SECTOR_ERASE, a, 1)
+			#define CFG_FLASH_MUTEX_USE
+			#define	SpiWrite(a,b,c)						SpiFlashWriteWpr(a,b,c,1)
+			#define	SpiRead(a,b,c)						SpiFlashReadWpr(a,b,c,1)
+			#define SpiErase(a)							SpiFlashEraseWpr(SECTOR_ERASE, a, 1)
 		#endif
 	#endif
 
@@ -458,15 +492,22 @@
 	#ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
 		#define MEDIA_RECORDER_CHANNEL				1
 		#define MEDIA_RECORDER_BITRATE				48 //Kbps
-		#define MEDIA_RECORDER_ENC_FORMAT_MP2		//录音为mp2格式
+		#define MEDIA_RECORDER_FORMAT				RECORD_FORMAT_MP2
 	#else
 	#define MEDIA_RECORDER_CHANNEL				2
 	#define MEDIA_RECORDER_BITRATE				96 //Kbps
+	#define MEDIA_RECORDER_FORMAT				RECORD_FORMAT_MP3	// RECORD_FORMAT_WAV //RECORD_FORMAT_MP3 //RECORD_FORMAT_MP2
 	#endif
-	#define MEDIA_RECODER_IO_BLOCK_TIME			1000//ms
+
+
 	//FIFO_Len=(码率(96) / 8 * 缓冲时间ms(1000) （码率单位Kbps,等效毫秒）
 	//根据SDIO协议，写卡阻塞存在250*2ms阻塞 可能，实测部分U盘存在785ms周期性写入阻塞，要求编码数据fifo空间 确保超过这个长度的两倍(含同步)。
-	#define FILE_WRITE_FIFO_LEN					((((MEDIA_RECORDER_BITRATE / 8) * MEDIA_RECODER_IO_BLOCK_TIME ) / 512) * 512)//(依据U盘/Card兼容性需求和RAM资源可选400~1500ms。按扇区512对齐
+	#if MEDIA_RECORDER_FORMAT == RECORD_FORMAT_WAV	//录音格式WAV
+		#define FILE_WRITE_FIFO_LEN					((((48*MEDIA_RECORDER_CHANNEL*(WAV_BIT_PER_SAMPLE/8)) * 200 ) / 512) * 512) //200ms
+	#else
+		#define MEDIA_RECODER_IO_BLOCK_TIME			1000//ms
+		#define FILE_WRITE_FIFO_LEN					((((MEDIA_RECORDER_BITRATE / 8) * MEDIA_RECODER_IO_BLOCK_TIME ) / 512) * 512)//(依据U盘/Card兼容性需求和RAM资源可选400~1500ms。按扇区512对齐
+	#endif
 #endif //CFG_FUNC_RECORDER_EN
 //****************************************************************************************
 //                 U盘或SD卡模式相关功能配置
@@ -557,6 +598,22 @@
 		//UART RX配置,需要和串口日志打印为同一个UART组
 		#define CFG_FUNC_SHELL_RX_PORT 		DEBUG_RX_A9
 	#endif
+#else
+	#define	APP_DBG(format, ...)
+	#define	DBG(format, ...)
+	#define	OTG_DBG(format, ...)
+	#define	BT_DBG(format, ...)
+#endif
+
+#ifndef CFG_COMMUNICATION_BY_UART
+//#define CFG_UPGRADE_BY_UART
+#endif
+#ifdef CFG_UPGRADE_BY_UART
+		#define CFG_FUNC_UPGRADE_RX_PORT 			DEBUG_RX_A5		//需要和打印配置成不同的UART
+		#define CFG_FUNC_UPGRADE_TX_PORT 			DEBUG_TX_A6
+		#define CFG_FUNC_UPGRADE_UART_BAUDRATE 		DEBUG_BAUDRATE_2000000
+		#define	CFG_FUNC_UPGRADE_RX_DMA_PORT		PERIPHERAL_ID_UART0_RX
+		#define	CFG_FUNC_UPGRADE_TX_DMA_PORT		PERIPHERAL_ID_UART0_TX
 #endif
 
 //****************************************************************************************

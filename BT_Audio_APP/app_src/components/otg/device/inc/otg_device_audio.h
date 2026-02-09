@@ -283,6 +283,11 @@ extern uint8_t Request[];
 #define GET_RANGE	0xA102
 #define GET_CUR_2	0xA101
 
+#define CS_SAM_FREQ_CONTROL 	0x01
+#define CS_CLOCK_VALID_CONTROL 	0x02
+
+#define AS_VAL_ALT_SETTINGS_CONTROL 0x02
+
 #define AUDIO_VOL_UP      BIT(0)
 #define AUDIO_VOL_DN      BIT(1)
 #define AUDIO_PP          BIT(2)

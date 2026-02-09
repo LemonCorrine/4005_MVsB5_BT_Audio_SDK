@@ -30,8 +30,8 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 	uint16_t n = AudioCoreFrameSizeGet(AudioCore.CurrentMix);
 //	PCM_DATA_TYPE *monitor_out	= NULL;
 //	PCM_DATA_TYPE *mic_in	= NULL;
-#ifdef CFG_APP_USB_AUDIO_MODE_EN
-	PCM_DATA_TYPE *usb_out	= NULL;
+#if	defined(CFG_APP_USB_AUDIO_MODE_EN) || (defined(CFG_WIRELESS_EN) && defined(PACKET_AUDIO_CH_BACKWARD))
+	PCM_DATA_TYPE *mode_out	= NULL;
 #endif
 
 //	for(s = 0; s < AUDIO_CORE_SOURCE_MAX_NUM; s++)
@@ -46,30 +46,30 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 //		}
 //	}
 
-#ifdef CFG_APP_USB_AUDIO_MODE_EN
-	if(pAudioCore->AudioSink[USB_AUDIO_SINK_NUM].Active == TRUE)
+#if	defined(CFG_APP_USB_AUDIO_MODE_EN) || (defined(CFG_WIRELESS_EN) && defined(PACKET_AUDIO_CH_BACKWARD))
+	if(pAudioCore->AudioSink[AUDIO_APP_SINK_NUM].Active == TRUE)
 	{
-		usb_out = pAudioCore->AudioSink[USB_AUDIO_SINK_NUM].PcmOutBuf;
+		mode_out = pAudioCore->AudioSink[AUDIO_APP_SINK_NUM].PcmOutBuf;
 	}
-#ifdef CFG_FUNC_USB_AUDIO_MIX_MODE
+	#ifdef CFG_FUNC_USB_AUDIO_MIX_MODE
 	if(IsBtHfpSink())
-		usb_out = NULL;
-#endif
+		mode_out = NULL;
+	#endif
 #endif
 
 	roboeffect_apply(AudioEffect.context_memory);
 
-#ifdef CFG_APP_USB_AUDIO_MODE_EN
-	if(usb_out)
+#if	defined(CFG_APP_USB_AUDIO_MODE_EN) || (defined(CFG_WIRELESS_EN) && defined(PACKET_AUDIO_CH_BACKWARD))
+	if(mode_out)
 	{
-		if(pAudioCore->AudioSink[USB_AUDIO_SINK_NUM].Channels == 1)
+		if(pAudioCore->AudioSink[AUDIO_APP_SINK_NUM].Channels == 1)
 		{
 			for(s = 0; s < n; s++)
 			{
 #ifdef CFG_AUDIO_WIDTH_24BIT
-				usb_out[s] = __nds32__clips(((int32_t)usb_out[2*s] + (int32_t)usb_out[2*s + 1] +1 ) >>1, 24-1);
+				mode_out[s] = __nds32__clips(((int32_t)mode_out[2*s] + (int32_t)mode_out[2*s + 1] +1 ) >>1, 24-1);
 #else
-				usb_out[s] = __nds32__clips(((int32_t)usb_out[2*s] + (int32_t)usb_out[2*s + 1] +1 ) >>1, 16-1);
+				mode_out[s] = __nds32__clips(((int32_t)mode_out[2*s] + (int32_t)mode_out[2*s + 1] +1 ) >>1, 16-1);
 #endif
 			}
 		}
@@ -138,8 +138,8 @@ void AudioBypassProcess(AudioCoreContext *pAudioCore)
 	PCM_DATA_TYPE *mic_pcm    	= NULL;//pBuf->mic_in;///mic input
 	PCM_DATA_TYPE *monitor_out  = NULL;//pBuf->dac0_out;
 	PCM_DATA_TYPE *music_pcm    = NULL;//pBuf->app_in;
-#ifdef CFG_APP_USB_AUDIO_MODE_EN
-	PCM_DATA_TYPE *usb_out  	= NULL;//pBuf->app_out;
+#if	(defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT)) || defined(CFG_APP_USB_AUDIO_MODE_EN) || (defined(CFG_WIRELESS_EN) && defined(PACKET_AUDIO_CH_BACKWARD))
+	PCM_DATA_TYPE *mode_out  	= NULL;//pBuf->app_out;
 #endif
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 	PCM_DATA_TYPE *remind_in 	= NULL;
@@ -170,10 +170,10 @@ void AudioBypassProcess(AudioCoreContext *pAudioCore)
 		i2s_out = pAudioCore->AudioSink[AUDIO_STEREO_SINK_NUM].PcmOutBuf;
 	}
 #endif
-#ifdef CFG_APP_USB_AUDIO_MODE_EN
-	if(pAudioCore->AudioSink[USB_AUDIO_SINK_NUM].Active == TRUE)
+#if	(defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT)) || defined(CFG_APP_USB_AUDIO_MODE_EN) || (defined(CFG_WIRELESS_EN) && defined(PACKET_AUDIO_CH_BACKWARD))
+	if(pAudioCore->AudioSink[AUDIO_APP_SINK_NUM].Active == TRUE)
 	{
-		usb_out = pAudioCore->AudioSink[USB_AUDIO_SINK_NUM].PcmOutBuf;
+		mode_out = pAudioCore->AudioSink[AUDIO_APP_SINK_NUM].PcmOutBuf;
 	}
 #endif
 
@@ -215,11 +215,11 @@ void AudioBypassProcess(AudioCoreContext *pAudioCore)
 					for(s = 0; s < n; s++)
 					{
 	#ifdef CFG_AUDIO_WIDTH_24BIT
-						monitor_out[2 * s + 0] = __nds32__clips(((int32_t)music_pcm[2 * s + 0] + (int32_t)mic_pcm[2 * s + 0] +1 ) >>1, 24-1);
-						monitor_out[2 * s + 1] = __nds32__clips(((int32_t)music_pcm[2 * s + 1] + (int32_t)mic_pcm[2 * s + 1] +1 ) >>1, 24-1);
+						monitor_out[2 * s + 0] = __nds32__clips(((int32_t)music_pcm[2 * s + 0] + (int32_t)mic_pcm[2 * s + 0]), 24-1);
+						monitor_out[2 * s + 1] = __nds32__clips(((int32_t)music_pcm[2 * s + 1] + (int32_t)mic_pcm[2 * s + 1]), 24-1);
 	#else
-						monitor_out[2 * s + 0] = __nds32__clips(((int32_t)music_pcm[2 * s + 0] + (int32_t)mic_pcm[2 * s + 0] +1 ) >>1, 16-1);
-						monitor_out[2 * s + 1] = __nds32__clips(((int32_t)music_pcm[2 * s + 1] + (int32_t)mic_pcm[2 * s + 1] +1 ) >>1, 16-1);
+						monitor_out[2 * s + 0] = __nds32__clips(((int32_t)music_pcm[2 * s + 0] + (int32_t)mic_pcm[2 * s + 0]), 16-1);
+						monitor_out[2 * s + 1] = __nds32__clips(((int32_t)music_pcm[2 * s + 1] + (int32_t)mic_pcm[2 * s + 1]), 16-1);
 	#endif
 					}
 				}
@@ -244,17 +244,17 @@ void AudioBypassProcess(AudioCoreContext *pAudioCore)
 		}
 	}
 
-#ifdef CFG_APP_USB_AUDIO_MODE_EN
-	if(usb_out)
+#if	(defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT)) || defined(CFG_APP_USB_AUDIO_MODE_EN) || (defined(CFG_WIRELESS_EN) && defined(PACKET_AUDIO_CH_BACKWARD))
+	if(mode_out)
 	{
-		if(pAudioCore->AudioSink[USB_AUDIO_SINK_NUM].Channels == 1)
+		if(pAudioCore->AudioSink[AUDIO_APP_SINK_NUM].Channels == 1)
 		{
 			for(s = 0; s < n; s++)
 			{
 #ifdef CFG_AUDIO_WIDTH_24BIT
-				usb_out[s] = __nds32__clips(((int32_t)mic_pcm[2 * s] + (int32_t)mic_pcm[2 * s + 1] +1 ) >>1, 24-1);
+				mode_out[s] = __nds32__clips(((int32_t)mic_pcm[2 * s] + (int32_t)mic_pcm[2 * s + 1] +1 ) >>1, 24-1);
 #else
-				usb_out[s] = __nds32__clips(((int32_t)mic_pcm[2 * s] + (int32_t)mic_pcm[2 * s + 1] +1 ) >>1, 16-1);
+				mode_out[s] = __nds32__clips(((int32_t)mic_pcm[2 * s] + (int32_t)mic_pcm[2 * s + 1] +1 ) >>1, 16-1);
 #endif
 			}
 		}
@@ -262,8 +262,8 @@ void AudioBypassProcess(AudioCoreContext *pAudioCore)
 		{
 			for(s = 0; s < n; s++)
 			{
-				usb_out[2 * s + 0] = mic_pcm[s];
-				usb_out[2 * s + 1] = mic_pcm[s];
+				mode_out[2 * s + 0] = mic_pcm[2 * s + 0];
+				mode_out[2 * s + 1] = mic_pcm[2 * s + 1];
 			}
 		}
 	}

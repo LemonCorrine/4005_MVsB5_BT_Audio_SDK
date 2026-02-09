@@ -25,9 +25,9 @@
 #define BB_EM_START_PARAMS			0
 #endif
 
-#define BB_MPU_START_ADDR			((0x20040000 + CFG_D16KMEM16K_RAM_SIZE - BB_EM_SIZE) - DRV_REMAP_SIZE)
+#define BB_MPU_START_ADDR			(0x20040000 + CFG_D16KMEM16K_RAM_SIZE - BB_EM_SIZE)
 
-
+#define TCM_SRAM_START_ADDR_2		(BB_MPU_START_ADDR - DRV_REMAP_SIZE)
 /*
  * RF SPI part
  ****************************************************************************************

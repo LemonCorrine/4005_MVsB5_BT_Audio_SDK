@@ -73,6 +73,11 @@ static const uint8_t DmaChannelMap[6] = {
 	CFG_FUNC_COMMUNICATION_RX_DMA_PORT,
 #endif
 
+#ifdef CFG_UPGRADE_BY_UART
+	CFG_FUNC_UPGRADE_RX_DMA_PORT,
+	CFG_FUNC_UPGRADE_TX_DMA_PORT,
+#endif
+
 #ifdef CFG_FUNC_LINEIN_MIX_MODE
 	PERIPHERAL_ID_AUDIO_ADC0_RX,
 #endif
@@ -750,7 +755,7 @@ bool MediaPlayDeinit(void)
 	
 	//PortFree
 	ffpresearch_deinit();
-	if(gMediaPlayer->AccRamBlk!= NULL)
+	if(gMediaPlayer != NULL && gMediaPlayer->AccRamBlk!= NULL)
 	{
 		osPortFree(gMediaPlayer->AccRamBlk);
 		gMediaPlayer->AccRamBlk = NULL;

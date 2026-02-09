@@ -28,6 +28,10 @@ extern "C" {
 
 #include "type.h"
 
+#define BP15_ROM_V1			0x01
+#define BP15_ROM_V2			0x02
+#define BP15_ROM_VERSION BP15_ROM_V1
+
 //Ð¾Æ¬ECO±àºÅ
 uint16_t Chip_Version(void);
 

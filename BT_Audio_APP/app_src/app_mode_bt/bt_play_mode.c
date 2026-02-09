@@ -27,6 +27,7 @@
 #include "audio_effect.h"
 #include "bt_interface.h"
 #include "mode_task.h"
+#include "communication.h"
 
 
 #ifdef CFG_APP_BT_MODE_EN
@@ -85,6 +86,11 @@ static const uint8_t DmaChannelMap[6] = {
 
 #ifdef CFG_DUMP_DEBUG_EN
 	CFG_DUMP_UART_TX_DMA_CHANNEL,
+#endif
+
+#ifdef CFG_UPGRADE_BY_UART
+	CFG_FUNC_UPGRADE_RX_DMA_PORT,
+	CFG_FUNC_UPGRADE_TX_DMA_PORT,
 #endif
 
 	PERIPHERAL_ID_SDIO_RX,
@@ -498,6 +504,10 @@ bool BtPlayInit(void)
 
 	ret = BtPlayInitRes();
 	APP_DBG("Bt Play mode\n");
+	if(!SoftFlagGet(SoftFlagSysCurModeReboot) && mainAppCt.SysPrevMode == ModeBtHfPlay)
+	{
+		AudioEffect_CommunicationQueue_Send(AutoRefresh_ALL_PARA);
+	}
 
 	AudioCodecGainUpdata();//update hardware config
 

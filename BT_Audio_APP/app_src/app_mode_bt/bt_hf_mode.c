@@ -30,6 +30,7 @@
 #include "bt_app_hfp_deal.h"
 #include "bt_stack_service.h"
 #include "remind_sound.h"
+#include "communication.h"
 
 /*******************************************************************************************************************************************************************
 *           		SaveScoData	 			   		   InAdapter	  	    CoreProcess			   OutAdapter			SaveScoData
@@ -629,9 +630,11 @@ bool BtHfInit(void)
 	BtHfActiveTimeInit();
 #endif
 
+	gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
+	AudioEffect_CommunicationQueue_Send(gCtrlVars.AutoRefresh);
+
 	SetBtHfSyncVolume(mainAppCt.HfVolume);
 	AudioHfVolSet(mainAppCt.HfVolume);
-	gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
 	
 	BtHfModeRunningConfig();
 #ifdef CFG_FUNC_REMIND_SOUND_EN

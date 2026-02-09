@@ -132,8 +132,8 @@ bool roboeffect_effect_update_params_entrance(uint8_t addr, uint8_t *buf, uint32
 	if(len == 0)//require parameters
 	{
         const int16_t *params;
-        if(((params = roboeffect_get_effect_parameter(AudioEffect.context_memory, addr, 0xff)) != NULL)
-        		&& (gCtrlVars.AutoRefresh != AutoRefresh_ALL_PARA) && (gCtrlVars.AutoRefresh != AutoRefresh_ALL_EFFECTS_PARA))
+        if(((params = roboeffect_get_effect_parameter(AudioEffect.context_memory, addr, 0xff)) != NULL))
+//        		&& (gCtrlVars.AutoRefresh != AutoRefresh_ALL_PARA) && (gCtrlVars.AutoRefresh != AutoRefresh_ALL_EFFECTS_PARA))
         {
             int16_t len = roboeffect_get_effect_parameter_count(AudioEffect.context_memory, addr);
             if(len >= 0)//= 0 when only enable/disable existed
@@ -157,12 +157,13 @@ bool roboeffect_effect_update_params_entrance(uint8_t addr, uint8_t *buf, uint32
         }
         else
         {
-        	if(gCtrlVars.AutoRefresh != AutoRefresh_ALL_EFFECTS_PARA)
-        	{
-        		gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
-        	}
-    		extern void Communication_Effect_0x02(void);
-    		Communication_Effect_0x02();
+//        	if(gCtrlVars.AutoRefresh != AutoRefresh_ALL_EFFECTS_PARA)
+//        	{
+//        		gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
+//        	}
+//    		AudioEffect_CommunicationQueue_Send(gCtrlVars.AutoRefresh);
+//    		extern void Communication_Effect_0x02(void);
+//    		Communication_Effect_0x02();
             return FALSE;
         }
 	}
@@ -289,7 +290,7 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 			{
 				g_status_machine.data = effect_property_for_display;
 				g_status_machine.total_len = sizeof_effect_property_for_display();
-				// printf("first display\n");
+				// printf("first audio effect info\n");
 			}
 			else if(buf[0] == V3_PACKAGE_TYPE_STREAM)
 			{
@@ -321,7 +322,7 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 
 			if(g_status_machine.remain_len > 0)
 			{
-				temp[10 + len] = 0x00;//EOM
+				temp[10 + len] = 0x00;//not EOM
 				g_status_machine.package_id ++;
 			}
 			else
@@ -351,7 +352,7 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 
 			if(g_status_machine.remain_len > 0)
 			{
-				temp[5 + len] = 0x00;//EOM
+				temp[5 + len] = 0x00;//not EOM
 				g_status_machine.package_id ++;
 			}
 			else
@@ -387,26 +388,27 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 			else
 				len = remain_len;
 
-			temp[3] = len + 5;
+			temp[3] = len + 6;
 			temp[5] = 0xFF;
 			temp[6] = 0x00;
 			temp[7] = V3_PACKAGE_TYPE_EFFECT_NAME;//type
+			temp[8] = 0x00;
 
-			GetEffectNameCurPackageforCommunication(0 , &temp[8]);
+			GetEffectNameCurPackageforCommunication(0 , &temp[9]);
 
 			remain_len -= len;
 
 			if(remain_len > 0)
 			{
-				temp[8 + len] = 0x00;//EOM
+				temp[9 + len] = 0x00;//EOM
 				package_id ++;
 			}
 			else
 			{
-				temp[8 + len] = 0x01;//EOM
+				temp[9 + len] = 0x01;//EOM
 				package_id = 0;
 			}
-			temp[8 + len + 1] = 0x16;
+			temp[9 + len + 1] = 0x16;
 
 			Communication_Effect_Send(temp, temp[3] + 5);
 		}
@@ -507,7 +509,7 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 			else
 			{
 				temp[3] = temp[3] + 4;
-				*((uint32_t*)(&temp[8])) = g_status_machine.total_len;
+				*((uint32_t*)(&temp[8 + len])) = AudioEffect_GetUserEffectParamCRCLen(AudioEffect.user_effect_parameters);
 				temp[8 + len + 4] = 0x01;//EOM
 				temp[8 + len + 4 + 1] = 0x16;
 				init_status_matchin(&g_status_machine);//reset for next field
@@ -538,6 +540,7 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 			else
 			{
 				temp[3] = temp[3] + 4;
+				*((uint32_t*)(&temp[5 + len])) = AudioEffect_GetUserEffectParamCRCLen(AudioEffect.user_effect_parameters);
 				temp[5 + len + 4] = 0x01;//EOM
 				temp[5 + len + 4 + 1] = 0x16;
 				init_status_matchin(&g_status_machine);//reset for next field
@@ -545,89 +548,104 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 			Communication_Effect_Send(temp, temp[3] + 5);
 		}
 	}
-	else if (buf[0] == V3_PACKAGE_EFFECT_ALL_PARAM_CODEC)
+//	else if (buf[0] == V3_PACKAGE_EFFECT_ALL_PARAM_CODEC)
+//	{
+//		temp[0] = 0xA5;
+//		temp[1] = 0x5A;
+//		temp[2] = 0x80;
+//		//len later
+//
+//		if(g_status_machine.old_cmd != buf[0])//if not get EOM, a new cmd is alway the first package
+//		{
+//			uint16_t len;
+//
+//			init_status_matchin(&g_status_machine);
+//			g_status_machine.old_cmd = buf[0];
+//
+//			g_status_machine.data = (const uint8_t *)&gCtrlVars.HwCt;
+//			g_status_machine.total_len = sizeof(HardwareConfigContext);
+//			// printf("first audio effect info\n");
+//
+//			g_status_machine.remain_len = g_status_machine.total_len;//init remain_len
+//			if(g_status_machine.remain_len >= STREAM_CLIPS_LEN)
+//				len = STREAM_CLIPS_LEN;
+//			else
+//				len = g_status_machine.remain_len;
+//
+//			temp[3] = len + 5;
+//
+//			//[package_id, 0xFF, 0x00, type, len_H, len_L, data...data, EOM]
+//			temp[4] = g_status_machine.package_id;
+//			temp[5] = 0xFF;
+//			temp[6] = 0x00;
+//			temp[7] = buf[0];//message type
+//
+//			memcpy(&temp[8], g_status_machine.data, len);
+//
+//			g_status_machine.remain_len -= len;
+//			g_status_machine.data += len;
+//
+//			if(g_status_machine.remain_len > 0)
+//			{
+//				temp[8 + len] = 0x00;//not EOM
+//				g_status_machine.package_id ++;
+//				temp[8 + len + 1] = 0x16;
+//			}
+//			else
+//			{
+//				temp[3] = temp[3] + 4;
+//				*((uint32_t*)(&temp[8 + len])) = AudioEffect_GetUserHWCfgCRCLen((uint8_t *)&gCtrlVars.HwCt);
+//				temp[8 + len + 4] = 0x01;//EOM
+//				temp[8 + len + 4 + 1] = 0x16;
+//				init_status_matchin(&g_status_machine);//reset for next field
+//			}
+//			Communication_Effect_Send(temp, temp[3] + 5);
+//		}
+//		else
+//		{
+//			uint16_t len;
+//			if(g_status_machine.remain_len >= STREAM_CLIPS_LEN)
+//				len = STREAM_CLIPS_LEN;
+//			else
+//				len = g_status_machine.remain_len;
+//
+//			temp[3] = len + 2;
+//			temp[4] = g_status_machine.package_id;
+//			memcpy(&temp[5], g_status_machine.data, len);
+//
+//			g_status_machine.remain_len -= len;
+//			g_status_machine.data += len;
+//
+//			if(g_status_machine.remain_len > 0)
+//			{
+//				temp[5 + len] = 0x00;//not EOM
+//				g_status_machine.package_id ++;
+//				temp[5 + len + 1] = 0x16;
+//			}
+//			else
+//			{
+//				temp[3] = temp[3] + 4;
+//				*((uint32_t*)(&temp[5 + len])) = AudioEffect_GetUserHWCfgCRCLen((uint8_t *)&gCtrlVars.HwCt);
+//				temp[5 + len + 4] = 0x01;//EOM
+//				temp[5 + len + 4 + 1] = 0x16;
+//				init_status_matchin(&g_status_machine);//reset for next field
+//			}
+//			Communication_Effect_Send(temp, temp[3] + 5);
+//		}
+//	}
+	else if (buf[0] == V3_PACKAGE_EFFECT_SOURCESINK_STATUS)
 	{
 		temp[0] = 0xA5;
 		temp[1] = 0x5A;
 		temp[2] = 0x80;
-		//len later
-
-		if(g_status_machine.old_cmd != buf[0])//if not get EOM, a new cmd is alway the first package
-		{
-			uint16_t len;
-
-			init_status_matchin(&g_status_machine);
-			g_status_machine.old_cmd = buf[0];
-
-			g_status_machine.data = (const uint8_t *)&gCtrlVars.HwCt;
-			g_status_machine.total_len = sizeof(HardwareConfigContext);
-			// printf("first audio effect info\n");
-
-			g_status_machine.remain_len = g_status_machine.total_len;//init remain_len
-			if(g_status_machine.remain_len >= STREAM_CLIPS_LEN)
-				len = STREAM_CLIPS_LEN;
-			else
-				len = g_status_machine.remain_len;
-
-			temp[3] = len + 5;
-
-			//[package_id, 0xFF, 0x00, type, len_H, len_L, data...data, EOM]
-			temp[4] = g_status_machine.package_id;
-			temp[5] = 0xFF;
-			temp[6] = 0x00;
-			temp[7] = buf[0];//message type
-
-			memcpy(&temp[8], g_status_machine.data, len);
-
-			g_status_machine.remain_len -= len;
-			g_status_machine.data += len;
-
-			if(g_status_machine.remain_len > 0)
-			{
-				temp[8 + len] = 0x00;//not EOM
-				g_status_machine.package_id ++;
-				temp[8 + len + 1] = 0x16;
-			}
-			else
-			{
-				temp[3] = temp[3] + 4;
-				*((uint32_t*)(&temp[8])) = g_status_machine.total_len;
-				temp[8 + len + 4] = 0x01;//EOM
-				temp[8 + len + 4 + 1] = 0x16;
-				init_status_matchin(&g_status_machine);//reset for next field
-			}
-			Communication_Effect_Send(temp, temp[3] + 5);
-		}
-		else
-		{
-			uint16_t len;
-			if(g_status_machine.remain_len >= STREAM_CLIPS_LEN)
-				len = STREAM_CLIPS_LEN;
-			else
-				len = g_status_machine.remain_len;
-
-			temp[3] = len + 2;
-			temp[4] = g_status_machine.package_id;
-			memcpy(&temp[5], g_status_machine.data, len);
-
-			g_status_machine.remain_len -= len;
-			g_status_machine.data += len;
-
-			if(g_status_machine.remain_len > 0)
-			{
-				temp[5 + len] = 0x00;//not EOM
-				g_status_machine.package_id ++;
-				temp[5 + len + 1] = 0x16;
-			}
-			else
-			{
-				temp[3] = temp[3] + 4;
-				temp[5 + len + 4] = 0x01;//EOM
-				temp[5 + len + 4 + 1] = 0x16;
-				init_status_matchin(&g_status_machine);//reset for next field
-			}
-			Communication_Effect_Send(temp, temp[3] + 5);
-		}
+		temp[3] = 5;//len including EOM
+		temp[4] = 0x00;//package id
+		temp[5] = 0xFF;
+		temp[6] = 0x00;
+		temp[7] = V3_PACKAGE_EFFECT_SOURCESINK_STATUS;//type
+		temp[8] = 0x01;//EOM
+		temp[9] = 0x16;
+		Communication_Effect_Send(temp, temp[3] + 5);
 	}
 }
 
@@ -712,14 +730,14 @@ void Communication_Effect_0x02(void)///systme ram
 	memcpy(&tx_buf[5], &UsedRamSize, 2);
 	memcpy(&tx_buf[7], &cpu_mips, 2);
 	//是否自动刷新数据，后续需要改进 Sam mask
-	tx_buf[9] = gCtrlVars.AutoRefresh;
-	gCtrlVars.AutoRefresh = AutoRefresh_NONE;
+	tx_buf[9] = (uint8_t)AudioEffect_CommunicationQueue_Recv();
+//	gCtrlVars.AutoRefresh = AutoRefresh_NONE;
 
 	memcpy(&tx_buf[10], &CpuMaxFreq, 2);
 	memcpy(&tx_buf[12], &CpuMaxRamSize, 2);
 	memcpy(&tx_buf[14], &RoboeffectErrCode, 2);
 	tx_buf[16] = gCtrlVars.EffectRefresh;
-	gCtrlVars.EffectRefresh = 0;
+//	gCtrlVars.EffectRefresh = 0;
 	tx_buf[17] = 0x16;
 	Communication_Effect_Send(tx_buf, tx_buf[3] + 5);
 }
@@ -879,6 +897,9 @@ void Comm_ADC0_0x04(uint8_t * buf)
 #endif
 		    break;
 		case 9://hpc0 en
+			memcpy(&TmpData, &buf[1], 2);
+			gCtrlVars.HwCt.ADC0DigitalCt.adc_dc_blocker_en = !!TmpData;
+			AudioADC_HighPassFilterSet(ADC0_MODULE, gCtrlVars.HwCt.ADC0DigitalCt.adc_dc_blocker_en);
 			break;
 		 default:
 		   break;
@@ -1168,7 +1189,7 @@ void Comm_AGC1_0x08(uint8_t * buf)
 		case 7://hold time
 			memcpy(&TmpData, &buf[1], 2);
 			gCtrlVars.HwCt.ADC1AGCCt.adc_agc_hold_time = TmpData > 31? 31 : TmpData;
-			AudioADC_AGCHoldTime(ADC1_MODULE,(uint32_t)gCtrlVars.HwCt.ADC1AGCCt.adc_agc_hold_time);
+			AudioADC_AGCHoldFrames(ADC1_MODULE,(uint32_t)gCtrlVars.HwCt.ADC1AGCCt.adc_agc_hold_time);
 			break;
 		case 8://attack time
 			memcpy(&TmpData, &buf[1], 2);
@@ -1397,11 +1418,11 @@ void Communication_Effect_0x0B(uint8_t *buf, uint32_t len)//I2S0
 	if(len == 0) //ask
 	{
 		memset(tx_buf, 0, sizeof(tx_buf));
-#if defined(CFG_APP_I2SIN_MODE_EN) || defined(CFG_RES_AUDIO_I2SOUT_EN) || defined(CFG_RES_AUDIO_I2S_MIX_IN_EN) || defined(CFG_RES_AUDIO_I2S_MIX_OUT_EN)
 		tx_buf[0]  = 0xa5;
 		tx_buf[1]  = 0x5a;
 		tx_buf[2]  = 0x0b;
 		tx_buf[3]  = 1 + 11*2;///1 + len * sizeof(int16)
+#if defined(CFG_APP_I2SIN_MODE_EN) || defined(CFG_RES_AUDIO_I2SOUT_EN) || defined(CFG_RES_AUDIO_I2S_MIX_IN_EN) || defined(CFG_RES_AUDIO_I2S_MIX_OUT_EN)
 		tx_buf[4]  = 0xff;
 #if (defined(CFG_RES_AUDIO_I2SOUT_EN) && (CFG_RES_I2S_MODULE == 0)) || (defined(CFG_RES_AUDIO_I2S_MIX_OUT_EN) && (CFG_RES_MIX_I2S_MODULE == 0))
 		tx_buf[5] = 1;
@@ -1420,8 +1441,8 @@ void Communication_Effect_0x0B(uint8_t *buf, uint32_t len)//I2S0
 		tx_buf[17] = 0;
 		tx_buf[19] = 90;
 		tx_buf[21] = 1;
-		tx_buf[27] = 0x16;
 #endif
+		tx_buf[3 + tx_buf[3] + 1] = 0x16;
 		Communication_Effect_Send(tx_buf, tx_buf[3] + 5);
 	}
 	else
@@ -1469,11 +1490,11 @@ void Communication_Effect_0x0C(uint8_t *buf, uint32_t len)//I2S1
 	if(len == 0) //ask
 	{
 		memset(tx_buf, 0, sizeof(tx_buf));
-#if defined(CFG_APP_I2SIN_MODE_EN) || defined(CFG_RES_AUDIO_I2SOUT_EN) || defined(CFG_RES_AUDIO_I2S_MIX_IN_EN) || defined(CFG_RES_AUDIO_I2S_MIX_OUT_EN)
 		tx_buf[0]  = 0xa5;
 		tx_buf[1]  = 0x5a;
 		tx_buf[2]  = 0x0c;
 		tx_buf[3]  = 1 + 11*2;///1 + len * sizeof(int16)
+#if defined(CFG_APP_I2SIN_MODE_EN) || defined(CFG_RES_AUDIO_I2SOUT_EN) || defined(CFG_RES_AUDIO_I2S_MIX_IN_EN) || defined(CFG_RES_AUDIO_I2S_MIX_OUT_EN)
 		tx_buf[4]  = 0xff;
 #if (defined(CFG_RES_AUDIO_I2SOUT_EN) && (CFG_RES_I2S_MODULE == 1)) || (defined(CFG_RES_AUDIO_I2S_MIX_OUT_EN) && (CFG_RES_MIX_I2S_MODULE == 1))
 		tx_buf[5] = 1;
@@ -1492,8 +1513,8 @@ void Communication_Effect_0x0C(uint8_t *buf, uint32_t len)//I2S1
 		tx_buf[17] = 0;
 		tx_buf[19] = 90;
 		tx_buf[21] = 2;
-		tx_buf[27] = 0x16;
 #endif
+		tx_buf[3 + tx_buf[3] + 1] = 0x16;
 		Communication_Effect_Send(tx_buf, tx_buf[3] + 5);
 	}
 	else
@@ -1757,7 +1778,7 @@ void uart_data_entry(void)
 
 void Communication_Effect_Config(uint8_t Control, uint8_t *buf, uint32_t len)
 {
-	// printf("see:%02X\n", Control);
+//	 printf("see:%02X\n", Control);
 	switch(Control)
 	{
 		case 0x00:
@@ -1834,6 +1855,7 @@ void Communication_Effect_Config(uint8_t Control, uint8_t *buf, uint32_t len)
 	{
 		package_id = 0;		//重新开始计数;
 		gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
+		AudioEffect_CommunicationQueue_Send(gCtrlVars.AutoRefresh);
 	}
 	if((Control > 2)&&(Control != 0x80))
 	{
@@ -1845,4 +1867,56 @@ void Communication_Effect_Config(uint8_t Control, uint8_t *buf, uint32_t len)
 		}
 	}
 }
+
+void AudioEffect_CommunicationQueue_Init()
+{
+	uint8_t queueNum = 20;
+	gCtrlVars.RefreshMsgHandle = MessageRegister(queueNum);
+}
+
+void AudioEffect_CommunicationQueue_Deinit()
+{
+	if(gCtrlVars.RefreshMsgHandle)
+		MessageDeregister(gCtrlVars.RefreshMsgHandle);
+	gCtrlVars.RefreshMsgHandle = NULL;
+}
+
+bool AudioEffect_CommunicationQueue_Send(uint32_t sendMsgType)
+{
+	MessageContext sendMsg;
+	sendMsg.msgId = sendMsgType;
+
+	if(gCtrlVars.RefreshMsgHandle == NULL || sendMsgType == 0)
+	{
+		return  FALSE;
+	}
+
+	if(sendMsgType == AutoRefresh_ALL_PARA || sendMsgType == AutoRefresh_ALL_EFFECTS_PARA || sendMsgType == 0x80)
+	{
+		MessageClear(gCtrlVars.RefreshMsgHandle);
+	}
+
+	if (MessageSend(gCtrlVars.RefreshMsgHandle, &sendMsg) != pdTRUE)
+	{
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+uint32_t AudioEffect_CommunicationQueue_Recv()
+{
+	MessageContext recvMsg;
+	recvMsg.msgId = AutoRefresh_NONE;
+
+	if (gCtrlVars.RefreshMsgHandle == NULL)
+	{
+		printf("RefreshMsgHandle == NULL\n");
+		return recvMsg.msgId;
+	}
+
+	MessageRecv(gCtrlVars.RefreshMsgHandle, &recvMsg, 1);
+	return recvMsg.msgId;
+}
+
 #endif

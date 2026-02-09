@@ -26,13 +26,16 @@
 #include "watchdog.h"
 #include "can_func.h"
 #include "otg_device_standard_request.h"
+#include "uart_cmd.h"
 
 #define SYS_MODE_NUM_MESSAGE_QUEUE			20
 #define SYS_MODE_MSG_TIMEOUT 				1
 #define MODE_TASK_PRIO						4
 #define MODE_TASK_STACK_SIZE				768//1024
 
+//å…³è”CFG_APP_WIRELESSIN_MODE_EN + CFG_WIRELESS_EN
 #define	ALWAY_PLUG_OUT_MODE					(BIT(ModeIdle) | BIT(ModeBtHfPlay))
+
 
 static SysModeContext SysModeCt = {NULL,NULL};
 static uint32_t sPlugOutMode = ALWAY_PLUG_OUT_MODE;
@@ -56,8 +59,8 @@ void StartEventSendAgain(uint16_t Msg,SysModeNumber EnterMode)
 	if(EventSendAgain.Msg != Msg)
 	{
 		EventSendAgain.Msg			= Msg; 			//
-		EventSendAgain.cnt 			= 10;  			//ÖØĞÂ·¢ËÍ´ÎÊı
-		EventSendAgain.delay 		= 200; 			// ·¢ËÍµÄ¼ä¸ô
+		EventSendAgain.cnt 			= 10;  			//é‡æ–°å‘é€æ¬¡æ•°
+		EventSendAgain.delay 		= 200; 			// å‘é€çš„é—´éš”
 		EventSendAgain.EnterMode 	= EnterMode; 	//
 	}	
 }
@@ -282,7 +285,7 @@ void SetSysModeState(SysModeNumber sys_mode,SysModeState sys_mode_state)
  */
 SysModeState GetSysModeState(SysModeNumber sys_mode)
 {
-	if(!GetModeDefineState(sys_mode)) //Ã»ÓĞ±»¶¨ÒåµÄÄ£Ê½
+	if(!GetModeDefineState(sys_mode)) //æ²¡æœ‰è¢«å®šä¹‰çš„æ¨¡å¼
 		return ModeStateSusend;
 	return SysMode[GetModeIndexInModeLoop(&sys_mode)].ModeState;
 }
@@ -348,7 +351,7 @@ static void SysModeGenerateByPlugEvent(uint16_t Msg)
 {
 	uint32_t i_count=0;
 	uint32_t i;
-	
+
 	for(;i_count < SYS_DEVICE_DETECT_MAX_NUMBER;i_count++)
 	{
 		if(Msg == DeviceEventMsgTableArray[i_count].MsgID)
@@ -359,11 +362,11 @@ static void SysModeGenerateByPlugEvent(uint16_t Msg)
 			{
 				SysModeNumber mode = SysMode[i].ModeNumber;
 
-				//²»ÔÊĞí²å°ÎÊÂ¼şµÄÄ£Ê½
+				//ä¸å…è®¸æ’æ‹”äº‹ä»¶çš„æ¨¡å¼
 				if( ((!(BIT(mode) & DeviceEventMsgTableArray[i_count].SupportMode)) &&
 					(GetSysModeState(mode) == ModeStateInit || GetSysModeState(mode) == ModeStateRunning))
 #ifdef	CFG_FUNC_RECORDER_EN
-					|| SoftFlagGet(SoftFlagRecording)	//Â¼ÒôÆÁ±Î°Î²åÊÂ¼ş
+					|| SoftFlagGet(SoftFlagRecording)	//å½•éŸ³å±è”½æ‹”æ’äº‹ä»¶
 #endif
 					)
 				{
@@ -377,7 +380,7 @@ static void SysModeGenerateByPlugEvent(uint16_t Msg)
 				if(DeviceEventMsgTableArray[i_count].EnterMode != ENTERR_PREV_MODE)
 				{
 					SysModeEnter(DeviceEventMsgTableArray[i_count].EnterMode);
-					// plug in½øÈëÄ£Ê½Ê§°Ü£¬Æô¶¯ÏûÏ¢ÖØĞÂ·¢ËÍ
+					// plug inè¿›å…¥æ¨¡å¼å¤±è´¥ï¼Œå¯åŠ¨æ¶ˆæ¯é‡æ–°å‘é€
 					if(GetSysModeState(DeviceEventMsgTableArray[i_count].EnterMode) != ModeStateInit)
 					{
 						StartEventSendAgain(Msg,DeviceEventMsgTableArray[i_count].EnterMode);
@@ -394,7 +397,6 @@ static void SysModeGenerateByPlugEvent(uint16_t Msg)
 			osMutexUnlock(SysModeMutex);
 		}
 	}
-
 }
 
 /**
@@ -413,7 +415,7 @@ void SysModeGenerate(uint16_t Msg)
 	if(GetMediaRecorderState() == TaskStateRunning &&
 	  (Msg == MSG_MODE||Msg ==MSG_SOFT_MODE || Msg == MSG_ENTER_IDLE_MODE || Msg == MSG_QUIT_IDLE_MODE ||
 		Msg == MSG_DEVICE_SERVICE_BTHF_IN || Msg == MSG_DEVICE_SERVICE_BTHF_OUT)
-	   )//Í£Ö¹Â¼Òô
+	   )//åœæ­¢å½•éŸ³
 	{
 		RecServierToParentAgain(Msg);
 		return;
@@ -424,7 +426,7 @@ void SysModeGenerate(uint16_t Msg)
 	{
 		if(Msg == MSG_MODE)
 		{
-			if(IsEventSendAgain()) // ÒÑ¾­ÔÚplug inÏûÏ¢ÖØ·¢Á÷³ÌÖĞ ÔİÊ±ÆÁ±Î°´¼üÏûÏ¢
+			if(IsEventSendAgain()) // å·²ç»åœ¨plug inæ¶ˆæ¯é‡å‘æµç¨‹ä¸­ æš‚æ—¶å±è”½æŒ‰é”®æ¶ˆæ¯
 				return;
 			for(count = 0;count < MODE_KEY_INVALID_MAX_NUMBER;count++)
 			{
@@ -459,7 +461,7 @@ void SysModeGenerate(uint16_t Msg)
 			&& (mainAppCt.SysCurrentMode == ModeUDiskPlayBack) || (mainAppCt.SysCurrentMode == ModeCardPlayBack))
 		{
 			APP_DBG("ModeUDiskPlayBack deinit back pre mode!");
-			SysModeEnter(mainAppCt.SysPrevMode);//Â¼Òô»Ø·Å½áÊøĞèÒª»Øµ½Ö®Ç°µÄÄ£Ê½
+			SysModeEnter(mainAppCt.SysPrevMode);//å½•éŸ³å›æ”¾ç»“æŸéœ€è¦å›åˆ°ä¹‹å‰çš„æ¨¡å¼
 		}else{
 			SysModeEnter(SysMode[mode_search_count].ModeNumber);	
 		}	
@@ -598,7 +600,7 @@ static void SysModeInit(void)
 		if(SysMode[init_count].ModeState == ModeStateInit)
 		{
 			osMutexLock(SysModeMutex);
-			//ÏÈÅĞ¶ÏÓĞÃ»ÓĞÄ£Ê½ĞèÒª Deinit £¬ÓĞµÄ»°Ö±½Ó·µ»ØµÈÏÂÒ»¸öÂÖ»ØÔÚinit
+			//å…ˆåˆ¤æ–­æœ‰æ²¡æœ‰æ¨¡å¼éœ€è¦ Deinit ï¼Œæœ‰çš„è¯ç›´æ¥è¿”å›ç­‰ä¸‹ä¸€ä¸ªè½®å›åœ¨init
 			for(count = 0;count < SYS_MODE_MAX_NUMBER;count++)
 			{
 				if(SysMode[count].ModeState == ModeStateDeinit)
@@ -622,7 +624,15 @@ static void SysModeInit(void)
 				{
 					ModeInputFunction.AudioCoreResume();
 				}
-				
+#ifdef CFG_APP_BIS_BT_DUAL_CHIP_MODE_EN
+				if(GetBisRole() == LE_BIS_SRC
+				   || GetBisRole() == LE_BIS_SINK
+				   || mainAppCt.SysCurrentMode == ModeLeAudioLinein
+				   || mainAppCt.SysCurrentMode == ModeLeAudioBT)
+					Audio_BisDACSwtichChannal(1);
+				else
+					Audio_BisDACSwtichChannal(0);
+#endif
 			}
 			else
 			{				
@@ -632,6 +642,10 @@ static void SysModeInit(void)
 				break;
 			}
 			osMutexUnlock(SysModeMutex);
+
+	#ifdef CFG_APP_BIS_BT_DUAL_CHIP_MODE_EN
+			SendCurModeToSlave();
+	#endif
 		}
 	}
 }
@@ -704,6 +718,9 @@ static void SysModeEntrance(void * param)
 #ifdef CFG_COMMUNICATION_BY_UART
 		uart_data_entry();
 #endif
+#ifdef CFG_UPGRADE_BY_UART
+		uartupgrade_data_entry();
+#endif
 #endif
 #ifdef CFG_FUNC_RECORDER_EN
 		RecServierMsg(&msg.msgId);
@@ -713,6 +730,9 @@ static void SysModeEntrance(void * param)
 
 #ifdef CFG_FUNC_CAN_DEMO_EN
 		CAN_FuncEntrance();
+#endif
+#ifdef CFG_APP_BIS_BT_DUAL_CHIP_MODE_EN
+		UART_FuncEntrance(msg.msgId);
 #endif
 	}
 }

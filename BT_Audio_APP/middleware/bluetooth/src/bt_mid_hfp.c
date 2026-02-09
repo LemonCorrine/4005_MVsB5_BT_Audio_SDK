@@ -286,7 +286,7 @@ void BtHfpCallback(BT_HFP_CALLBACK_EVENT event, BT_HFP_CALLBACK_PARAMS * param)
 
 		case BT_STACK_EVENT_HFP_DEVICE_TIME:
 			{
-				APP_DBG("%s\n", param->params.hfpRemoteDeviceTime);
+				APP_DBG("hfp time :%s\n", param->params.hfpRemoteDeviceTime);
 			}
 			break;
 

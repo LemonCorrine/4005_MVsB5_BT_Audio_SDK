@@ -30,6 +30,8 @@ enum
 	USB_SOURCE_NUM,             //USB MIX通道
 	USB_HOST_SOURCE_NUM,		//USB HOST MIX通道
 	LINEIN_MIX_SOURCE_NUM,      //Line in MIX通道
+	I2S_TDM0_SOURCE_NUM,        //I2S TDM0通道
+	I2S_TDM1_SOURCE_NUM,        //I2S TDM1通道
 	AUDIO_CORE_SOURCE_MAX_NUM,
 };
 
@@ -47,7 +49,7 @@ enum
 #ifdef CFG_FUNC_RECORDER_EN
 	AUDIO_RECORDER_SINK_NUM,	//录音专用通道		 不叠加提示音音源。
 #endif
-#if	(defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT)) || defined(CFG_APP_USB_AUDIO_MODE_EN)
+#if	(defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT)) || defined(CFG_APP_USB_AUDIO_MODE_EN) || (defined(CFG_WIRELESS_EN) && defined(PACKET_AUDIO_CH_BACKWARD))
 	AUDIO_APP_SINK_NUM,
 #endif
 #if defined(CFG_RES_AUDIO_I2SOUT_EN) || defined(CFG_RES_AUDIO_I2S_MIX2_OUT_EN)
@@ -59,7 +61,7 @@ enum
 #ifdef CFG_RES_AUDIO_SPDIFOUT_EN
 	AUDIO_SPDIF_SINK_NUM,
 #endif
-#if BT_SOURCE_SUPPORT
+#if BT_SOURCE_SUPPORT || (defined(CFG_WIRELESS_EN) && (ENCODE_CH != 0) && (DECODE_CH == 0))
 	AUDIO_BT_SOURCE_SINK_NUM,
 #endif
 #ifdef CFG_FUNC_USB_HOST_AUDIO_MIX_MODE
@@ -70,6 +72,13 @@ enum
 //随模式调用的共用sink
 #define AUDIO_HF_SCO_SINK_NUM 	AUDIO_APP_SINK_NUM
 #define USB_AUDIO_SINK_NUM		AUDIO_APP_SINK_NUM
+
+#if defined(CFG_WIRELESS_EN) && (ENCODE_CH != 0) && (DECODE_CH == 0)
+	//无共存场景
+	#define WIRELESS_AUDIO_SINK_NUM		AUDIO_BT_SOURCE_SINK_NUM
+#elif defined(CFG_WIRELESS_EN) && defined(PACKET_AUDIO_CH_BACKWARD)
+	#define WIRELESS_AUDIO_SINK_NUM		AUDIO_APP_SINK_NUM
+#endif
 
 #if defined(CFG_RES_AUDIO_I2SOUT_EN)
 #define AUDIO_I2SOUT_SINK_NUM	AUDIO_STEREO_SINK_NUM//i2s_out通道 常驻
@@ -107,6 +116,7 @@ typedef struct _AudioCoreSource
 	bool						LeftMuteFlag;//静音标志
 	bool						RightMuteFlag;//静音标志
 	bool						MuteFlagbk;//静音标志
+	bool						FrameReady;//播放标志
 	bool						Active;//混音组合的数据/空间帧完备，发起AudioProcessMain，此通路激活。
 	MIX_NET						Net;//缺省DefaultNet/0,  使能条件下同步帧输入和输出
 	AUDIO_ADAPT					Adapt;//缺省:STD,通路采样和微调功能设置
@@ -122,6 +132,7 @@ typedef struct _AudioCoreSource
 	void						*AdjAdapter;//微调适配器
 	bool						InitFlag;	 //初始化标志
 	bool						PcmBufFlag;	//为1的时候，PcmInBuf由audiocore申请，需要audiocore释放
+	bool						SrcAdapterRomFlag;	//转采样用rom代码
 }AudioCoreSource;
 
 
@@ -150,6 +161,7 @@ typedef struct _AudioCoreSink
 
 	bool							InitFlag;	 //初始化标志
 	bool							PcmBufFlag;	//为1的时候，PcmOutBuf由audiocore申请，需要audiocore释放
+	bool							SrcAdapterRomFlag;	//转采样用rom代码
 }AudioCoreSink;
 
 

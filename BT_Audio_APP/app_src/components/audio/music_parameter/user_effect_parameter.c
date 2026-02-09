@@ -65,71 +65,109 @@ void AudioEffect_effect_enable(uint8_t effect_addr, uint8_t enable)
 uint8_t AudioCoreSourceToRoboeffect(int8_t source)
 {
 	AUDIOEFFECT_SOURCE_SINK_NUM *param = get_user_effect_source_sink();
+	uint8_t source_id = AUDIOCORE_SOURCE_SINK_ERROR;
 
 	switch (source)
 	{
 		case MIC_SOURCE_NUM:
-			return param->mic_source;
+			source_id = param->mic_source;
+			break;
 		case APP_SOURCE_NUM:
-			return param->app_source;
+			source_id = param->app_source;
+			break;
 		case REMIND_SOURCE_NUM:
-			return param->remind_source;
+			source_id = param->remind_source;
+			break;
 		case PLAYBACK_SOURCE_NUM:
-			return param->rec_source;
+			source_id = param->rec_source;
+			break;
 		case I2S_MIX_SOURCE_NUM:
-			return param->i2s_mix_source;
+			source_id = param->i2s_mix_source;
+			break;
 		case I2S_MIX2_SOURCE_NUM:
-			return param->i2s_mix2_source;
+			source_id = param->i2s_mix2_source;
+			break;
 		case USB_SOURCE_NUM:
-			return param->usb_source;
+			source_id = param->usb_source;
+			break;
 		case USB_HOST_SOURCE_NUM:
-			return param->usb_host_source;
+			source_id = param->usb_host_source;
+			break;
 		case LINEIN_MIX_SOURCE_NUM:
-			return param->linein_mix_source;
+			source_id = param->linein_mix_source;
+			break;
+		case I2S_TDM0_SOURCE_NUM:
+			source_id = param->i2s_tdm0_source;
+			break;
+		case I2S_TDM1_SOURCE_NUM:
+			source_id = param->i2s_tdm1_source;
+			break;
 		default:
 			break;// handle error
 	}
-	return AUDIOCORE_SOURCE_SINK_ERROR;
+
+	if(AudioEffect.context_memory == NULL ||
+	   (roboeffect_get_source_buffer(AudioEffect.context_memory, source_id) == NULL)) //source not exist or CH_NONE
+	{
+		return AUDIOCORE_SOURCE_SINK_ERROR;
+	}
+
+	return source_id;
 }
 
 uint8_t AudioCoreSinkToRoboeffect(int8_t sink)
 {
 	AUDIOEFFECT_SOURCE_SINK_NUM *param = get_user_effect_source_sink();
+	uint8_t sink_id = AUDIOCORE_SOURCE_SINK_ERROR;
 
 	switch (sink)
 	{
 		case AUDIO_DAC0_SINK_NUM:
-			return param->dac0_sink;
+			sink_id = param->dac0_sink;
+			break;
 #if	(defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT)) || defined(CFG_APP_USB_AUDIO_MODE_EN)
 		case AUDIO_APP_SINK_NUM:
-			return param->app_sink;
+			sink_id = param->app_sink;
+			break;
 #endif
 
 #ifdef CFG_FUNC_RECORDER_EN
 		case AUDIO_RECORDER_SINK_NUM:
-			return param->rec_sink;
+			sink_id = param->rec_sink;
+			break;
 #endif
 #if defined(CFG_RES_AUDIO_I2SOUT_EN) || defined(CFG_RES_AUDIO_I2S_MIX2_OUT_EN)
 		case AUDIO_STEREO_SINK_NUM:
-			return param->stereo_sink;
+			sink_id = param->stereo_sink;
+			break;
 #endif
 #ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
 		case AUDIO_I2S_MIX_OUT_SINK_NUM:
-			return param->i2s_mix_sink;
+			sink_id = param->i2s_mix_sink;
+			break;
 #endif
 #ifdef CFG_RES_AUDIO_SPDIFOUT_EN
 		case AUDIO_SPDIF_SINK_NUM:
-			return param->spdif_sink;
+			sink_id = param->spdif_sink;
+			break;
 #endif
 #ifdef CFG_FUNC_USB_HOST_AUDIO_MIX_MODE
 		case AUDIO_USB_HOST_SINK_NUM:
-			return param->usb_host_mix_sink;
+			sink_id = param->usb_host_mix_sink;
+			break;
 #endif
 		default:
 			// handle error
 			break;
 	}
-	return AUDIOCORE_SOURCE_SINK_ERROR;
+
+	if(AudioEffect.context_memory == NULL ||
+	   roboeffect_get_sink_buffer(AudioEffect.context_memory, sink_id) == NULL) //source not exist or CH_NONE
+	{
+		return AUDIOCORE_SOURCE_SINK_ERROR;
+	}
+
+	return sink_id;
 }
 
 void AudioEffect_update_local_params(uint8_t addr, uint8_t param_index, int16_t *param_input, uint8_t param_len)
@@ -368,7 +406,7 @@ bool AudioEffect_CheckFlashEffectParam(void)
 	{
 		for(i = 0; i < EFFECT_MODE_COUNT; i++)
 		{
-//			DBG("### %d - Hwcfg:%d, param:%d\n", i, flashParam[i], flashParam[i + 1]);
+//			DBG("### %d - Hwcfg:%d, param:%d\n", i, flashParam[i*2], flashParam[i*2 + 1]);
 			para = get_user_effect_parameters(i);
 			if((flashParam[i*2] != 0xffff) && (flashParam[i*2 + 1] != 0xffff)
 				&& (flashParam[i*2] - flashParam[i*2 + 1] != get_user_effect_parameters_len(para->user_effect_parameters)))
@@ -398,9 +436,38 @@ EffectValidParamUnit AudioEffect_GetUserEffectValidParam(uint8_t *effect_param)
 	uint16_t third_data_len = *(uint16_t *)(effect_param + 8);
 
 	unit.params_first_address = effect_param + 8 + third_data_len + 2;
-	unit.data_len = *(uint16_t *)effect_param - 8 - third_data_len - 2;
+	unit.data_len = *(uint16_t *)effect_param - 8 - third_data_len;
 
 	return unit;
 }
 
+uint32_t AudioEffect_GetUserEffectParamCRCLen(uint8_t *effect_param)
+{
+	EffectValidParamUnit unit;
+	uint16_t third_data_len = *(uint16_t *)(effect_param + 8);
+	uint32_t crcLen = 0;
 
+	unit.params_first_address = effect_param + 8 + third_data_len + 2;
+	uint8_t *params = unit.params_first_address;
+	unit.data_len = *(uint16_t *)effect_param - 8 - third_data_len;
+
+	for(uint32_t i = 0; i < unit.data_len; i++)
+	{
+		crcLen += params[i];
+	}
+
+	return crcLen;
+}
+
+uint32_t AudioEffect_GetUserHWCfgCRCLen(uint8_t *effect_param)
+{
+	uint32_t crcLen = 0;
+	uint32_t paramsLen = sizeof(gCtrlVars.HwCt);
+
+	for(uint32_t i = 0; i < paramsLen; i++)
+	{
+		crcLen += effect_param[i];
+	}
+
+	return crcLen;
+}

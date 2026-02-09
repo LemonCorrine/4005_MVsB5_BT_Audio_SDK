@@ -498,7 +498,7 @@ void MediaPlayerDeinitialize(void)
 {
 #ifdef CFG_FUNC_RECORDER_EN
 #ifdef CFG_FUNC_RECORD_SD_UDISK
-	if(gMediaPlayer->RecFileList)
+	if(gMediaPlayer != NULL && gMediaPlayer->RecFileList)
 	{
 		osPortFree(gMediaPlayer->RecFileList);
 		gMediaPlayer->RecFileList = NULL;
@@ -729,13 +729,14 @@ static void MediaPlayerSongInfoLog(void)
 
     switch(mp3_decoder_get_mpeg_version(gAudioDecoders[DECODER_MODE_CHANNEL]))
     {
-        case MPEG_VER2d5:
+    //1:MPEG-1, 2:MPEG-2, 3:MPEG-2.5
+        case 3://MPEG_VER2d5:
             APP_DBG("MPEG_2_5");
             break;
-        case MPEG_VER1:
+        case 1://MPEG_VER1:
             APP_DBG("MPEG_1");
             break;
-        case MPEG_VER2:
+        case 2://MPEG_VER2:
             APP_DBG("MPEG_2");
             break;
         default:
@@ -864,7 +865,11 @@ bool MediaPlayerDecoderInit(void)
 #if defined(CFG_FUNC_RECORD_SD_UDISK)
 	if(GetSystemMode() == ModeUDiskPlayBack || GetSystemMode() == ModeCardPlayBack)
 	{
+#if MEDIA_RECORDER_FORMAT  == RECORD_FORMAT_WAV
+		if(DecoderInit(&gMediaPlayer->PlayerFile,DECODER_MODE_CHANNEL, (int32_t)IO_TYPE_FILE, (int32_t)FILE_TYPE_WAV) != RT_SUCCESS)
+#elif MEDIA_RECORDER_FORMAT  == RECORD_FORMAT_MP2 || MEDIA_RECORDER_FORMAT  == RECORD_FORMAT_MP3
 		if(DecoderInit(&gMediaPlayer->PlayerFile,DECODER_MODE_CHANNEL, (int32_t)IO_TYPE_FILE, (int32_t)FILE_TYPE_MP3) != RT_SUCCESS)
+#endif
 		{
 			APP_DBG("Decoder Init Err\n");
 			return FALSE;

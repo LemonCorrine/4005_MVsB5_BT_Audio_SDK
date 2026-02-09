@@ -11,10 +11,6 @@
  * 1. 接收到的PBAP数据,不能直接在callback中直接进行处理,如解码等操作,避免阻塞导致蓝牙运行异常;
  * 2. 建议是缓存在临时buffer中,在其他任务中进行处理;
  ******************************************************************************************************************************************************/
-
-
-
-
 #define PBAP_MTU_SIZE		3*1024	//3K
 
 /**
@@ -25,6 +21,12 @@ enum {
 	SIM1,
 	SIM2,
 };
+
+/**
+ * PbapVcardFormat type
+ */
+#define VCARD_FORMAT_21        0x00       /* Version 2.1 format */
+#define VCARD_FORMAT_30        0x01       /* Version 3.0 format */
 
 /**
  * PBAP releate event
@@ -45,6 +47,7 @@ typedef enum{
 	BT_STACK_EVENT_PBAP_DATA_SINGLE,//单包完整的数据
 	BT_STACK_EVENT_PBAP_PACKET_END,//数据接收完成
 	BT_STACK_EVENT_PBAP_CONTINUE_FLAG,//继续接收数据标志
+	BT_STACK_EVENT_PBAP_APP_PARAM,//extended application request & response information
 }BT_PBAP_CALLBACK_EVENT;
 
 /*
@@ -114,6 +117,10 @@ bool PBAPDisconnect(void);
  * @param 
  *		sel: patch(phone,sim1,sim2)
  *		buf: pointer to type info 
+ *		vcardFormat: 0=v2.1, 1=v3.0
+ *		maxListCount: 关联宏定义 PBAP_GET_LIST_NUMBER_STEP 
+ *					  0=getMaxListCount, 0xffff=getAllList; (可以根据需要填写每次获取的数量)
+ *		listStartOffset: 偏移地址,根据需要继续获取信息
  *
  * @return
  *		NONE
@@ -121,32 +128,69 @@ bool PBAPDisconnect(void);
  * @note
  *		NONE
  */
-void PBAP_PullPhoneBook(uint8_t Sel,uint8_t *buf);
+void PBAP_PullPhoneBook(uint8_t Sel, uint8_t *buf, uint8_t vcardFormat, uint16_t maxListCount, uint16_t listStartOffset);
+
+/**
+ * @brief
+ *  	pbap pull phone book continue
+ *
+ * @param 
+ * 		NONE
+ *
+ * @return
+ *		NONE
+ *
+ * @note
+ *		NONE
+ */
 void PBAP_PullPhoneBook_Continue(void);
 
 int8_t PBAP_MtuSizeSet(uint16_t size);
 
 bool PbapAppInit(BTPbapCallbackFunc callback);
 
+
+/**
+ * @note 使用流程
+ * 	方式1: 根据需求,每次获取特定数量的电话簿信息
+ *		1. 先获取电话簿信息的数量,如:调用函数GetSim1CardPhoneBookMaxListCount,会收到event: BT_STACK_EVENT_PBAP_APP_PARAM，返回当前的信息数量
+ *		2. 然后再根据数量和需要，每次获取 特定长度/整个 电话簿信息(修改 PBAP_GET_LIST_NUMBER_STEP)
+ *
+ *	方式2: 获取整个电话簿信息
+ *		修改 PBAP_GET_LIST_NUMBER_STEP 为0xffff, 直接获取 整个 电话簿信息
+ */
 //获取卡1电话簿信息 
 void GetSim1CardPhoneBook(void);
+//获取卡1电话簿信息数量
+void GetSim1CardPhoneBookMaxListCount(void);
 
 //获取卡2电话簿信息 
 void GetSim2CardPhoneBook(void);
+//获取卡2电话簿信息数量
+void GetSim2CardPhoneBookMaxListCount(void);
 
 //获取手机自身电话簿信息 
 void GetMobilePhoneBook(void);
+//获取手机自身电话簿信息数量
+void GetMobilePhoneBookMaxListCount(void);
 
 //获取呼入电话信息 
 void GetIncomingCallBook(void);
+//获取呼入电话簿信息数量
+void GetIncomingCallBookMaxListCount(void);
 
 //获取呼出电话簿信息 
 void GetOutgoingCallBook(void);
+//获取呼出电话簿信息数量
+void GetOutgoingCallBookMaxListCount(void);
 
 //获取未接电话簿信息 
 void GetMissedCallBook(void);
+//获取未接电话簿信息数量
+void GetMissedCallBookMaxListCount(void);
 
 void GetCombinedCallBook(void);
+void GetCombinedCallBookMaxListCount(void);
 
 #endif /* __BT_PBAP_API_H_ */ 
 

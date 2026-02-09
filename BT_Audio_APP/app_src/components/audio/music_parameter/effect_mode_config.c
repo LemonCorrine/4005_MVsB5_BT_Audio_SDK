@@ -63,6 +63,14 @@ extern const AUDIOEFFECT_EFFECT_PARA TwoAudio_effect_para;
 extern const AUDIOEFFECT_SOURCE_SINK_NUM TwoAudio_mode;
 extern const uint8_t TwoAudio_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX];
 
+extern const AUDIOEFFECT_EFFECT_PARA bis_effect_para;
+extern const AUDIOEFFECT_SOURCE_SINK_NUM bis_mode;
+extern const uint8_t bis_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX];
+
+extern const AUDIOEFFECT_EFFECT_PARA tdm_effect_para;
+extern const AUDIOEFFECT_SOURCE_SINK_NUM tdm_mode;
+extern const uint8_t tdm_effect_ctrl[AUDIOEFFECT_EFFECT_CONTROL_MAX];
+
 #ifndef CFG_FLOWCHART_KARAOKE_ENABLE
 uint8_t msg_process_Karaoke(int msg)
 {
@@ -74,6 +82,9 @@ uint8_t msg_process_Karaoke(int msg)
 //包含音效参数节点，MSG消息处理
 static const UserEffectModeValidConfig EffectModeToggleMap[] =
 {
+#ifdef CFG_APP_BIS_BT_DUAL_CHIP_MODE_EN
+	{EFFECT_MODE_BIS,		EffectModeStateReady,	&bis_mode,		&bis_effect_para,		bis_effect_ctrl,	NULL	},
+#else
 #if defined(CFG_FUNC_USB_HOST_AUDIO_MIX_MODE)		//host uac 音效框图DEMO
 	{EFFECT_MODE_UAC,		EffectModeStateReady,	&uac_mode,		&uac_effect_para,		uac_effect_ctrl,	NULL	},
 #elif defined(CFG_APP_USB_AUDIO_MODE_EN) && (CFG_PARA_USB_MODE == AUDIO_MIC_AUDIO) //双声卡框图 demo
@@ -96,10 +107,12 @@ static const UserEffectModeValidConfig EffectModeToggleMap[] =
 	#else
 		{EFFECT_MODE_MIC,		EffectModeStateReady,	&mic_mode,		&mic_effect_para,		mic_effect_ctrl,	NULL	},
 		{EFFECT_MODE_MUSIC,		EffectModeStateReady,	&music_mode,	&music_effect_para,		music_effect_ctrl,	NULL	},
+		{EFFECT_MODE_TDM,		EffectModeStateSuspend,	&tdm_mode,		&tdm_effect_para,		tdm_effect_ctrl,	NULL	},
 	#endif
 #endif
 #if defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT)
 	{EFFECT_MODE_HFP_AEC,	EffectModeStateSuspend,	&hfp_mode,		&hfp_effect_para,	hfp_effect_ctrl,	NULL},
+#endif
 #endif
 #endif
 };
@@ -418,4 +431,14 @@ void GetEffectNameCurPackageforCommunication(uint32_t done_len, uint8_t *p)
         }
         name_len = 0; // Reset for next iteration
     }
+}
+
+uint8_t GetCurEffectModeState(uint8_t effect_mode)
+{
+	for(uint8_t i = 0; i < EffectModeToggleMapMaxIndex; i++)
+	{
+		if(effect_mode == EffectModeToggleMap[i].effect_mode)
+			return EffectModeToggleMap[i].effect_mode_state;
+	}
+	return EffectModeStateSuspend;
 }

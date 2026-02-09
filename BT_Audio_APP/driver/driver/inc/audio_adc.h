@@ -454,11 +454,11 @@ void AudioADC_AGCFrameTime(ADC_MODULE ADCModule, uint16_t FrameTime);
 /**
  * @brief  AGC模块保持时间，开始AGC算法自适应增益之前的保持时间。
  * @param  ADCModule    0,ADC0模块; 1,ADC1模块
- * @param  HoldTime		AGC开始算法之前的保持时间。单位：ms。范围【0*FrameTime ~ 31*FrameTime】
- * @note   HoldTime必须为FrameTimer的整数倍，否则内部也会四舍五入。
+ * @param  HoldFrames	AGC开始算法之前的保持时间。单位：Frames。范围【0 ~ 31】
+ * @note   HoldTime = HoldFrames * FrameTime
  * @return 无
  */
-void AudioADC_AGCHoldTime(ADC_MODULE ADCModule, uint32_t HoldTime);
+void AudioADC_AGCHoldFrames(ADC_MODULE ADCModule, uint32_t HoldFrames);
 
 /**
  * @brief  AGC模块当输入信号太大时，AGC增益衰减的步进时间设置。

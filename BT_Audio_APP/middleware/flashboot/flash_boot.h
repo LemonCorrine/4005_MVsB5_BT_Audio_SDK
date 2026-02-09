@@ -8,6 +8,7 @@
 	#include "upgrade.h"
 	#include "app_config.h"
 	#include "flash_table.h"
+	#include "chip_info.h"
 #endif
 
 #define FLASH_BOOT_NONE			0 //ÎÞflashboot

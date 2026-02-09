@@ -9,7 +9,7 @@
 #include "bt_config.h"
 #include "breakpoint.h"
 #include "audio_vol.h"
-#include "audio_core_service.h"
+#include "communication.h"
 
 extern uint8_t GetEffectControlIndex(AUDIOEFFECT_EFFECT_CONTROL type);
 
@@ -47,6 +47,7 @@ uint8_t AudioEqSync(void)
 		else
 			refresh_addr = 0;
 	}
+	AudioEffect_update_local_block_params(refresh_addr);
 
 	return refresh_addr;
 }
@@ -123,6 +124,10 @@ uint8_t AudioCommonMsgProcess(uint16_t Msg)
 			AudioMicVolDown();
 		}
 		break;
+	default:
+		refresh_addr = EffectModeMsgProcess(Msg);
+		AudioEffect_CommunicationQueue_Send(refresh_addr);
+		break;
 #endif
 	}
 
@@ -133,21 +138,15 @@ uint8_t AudioMsgProccess(uint16_t Msg)
 {
 	uint8_t 	refresh_addr = 0;
 
-	refresh_addr = AudioCommonMsgProcess(Msg);   //Msg优先发给SDK代码 处理
-	if(refresh_addr == 0)
-	{
-		//转发Msg到脚本生成的代码 中处理
-		refresh_addr = EffectModeMsgProcess(Msg);
-	}
+	refresh_addr = AudioCommonMsgProcess(Msg);
 
-	if(refresh_addr)
-	{
-		gCtrlVars.AutoRefresh = refresh_addr;
-#ifdef CFG_FUNC_BREAKPOINT_EN
-		SystemVolSync();
-		BackupInfoUpdata(BACKUP_SYS_INFO);
-#endif
-	}
+//	if(refresh_addr)
+//	{
+//#ifdef CFG_FUNC_BREAKPOINT_EN
+////		SystemVolSync();
+//		BackupInfoUpdata(BACKUP_SYS_INFO);
+//#endif
+//	}
 
 	return refresh_addr;
 }

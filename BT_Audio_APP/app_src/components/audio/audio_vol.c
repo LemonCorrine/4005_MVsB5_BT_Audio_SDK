@@ -45,20 +45,15 @@
 #include "delay.h"
 #include "hdmi_in_api.h"
 #include "user_effect_parameter.h"
+#include "communication.h"
 
-bool gIsVolSetEnable = FALSE;
-int32_t SetChannel = 0xff;
-static int32_t Cnt = -1;
-
-uint8_t ChannelValid[ AUDIO_CORE_SOURCE_MAX_NUM + AUDIO_CORE_SINK_MAX_NUM] = {0};
 extern HDMIInfo *gHdmiCt;
-TIMER MenuTimer;//菜单键 时间控制，如果超过一定时间无相关按键触发，关闭菜单功能。
 
-uint8_t gBtAbsVolTable[17]={
+const uint8_t gBtAbsVolTable[17]={
 	0x00, 0x07, 0x0f, 0x17, 0x1f, 0x27, 0x2f, 0x37, 0x3f, 0x47,
 	0x4f, 0x57, 0x5f, 0x67, 0x6f, 0x77, 0x7f};
 
-uint8_t gBtAbsVolSetTable[17]={
+const uint8_t gBtAbsVolSetTable[17]={
 	0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38, 0x40, 0x48,
 	0x50, 0x58, 0x60, 0x68, 0x70, 0x78, 0x7f};
 
@@ -72,7 +67,7 @@ static const int16_t VolumeTable[CFG_PARA_MAX_VOLUME_NUM + 1] = {
 #elif (CFG_PARA_MAX_VOLUME_NUM == 16)
 static const int16_t VolumeTable[CFG_PARA_MAX_VOLUME_NUM + 1] = {
 	-7200, -5600, -4400, -3600, -2900, -2400, -2000, -1600, -1300, -1000,
-	-800, -600, -400, -200, -100, 0
+	-800, -600, -400, -300,-200, -100, 0
 };
 #endif
 
@@ -87,12 +82,13 @@ const int16_t AudioModeDigitalGianTable[][2]=
 	{ModeOpticalAudioPlay,	0/*dB*/},
 	{ModeCoaxialAudioPlay,	0/*dB*/},
 };
+
+extern uint8_t GetEffectControlIndex(AUDIOEFFECT_EFFECT_CONTROL type);
 //app通路数字预增益处理
 void AudioAPPDigitalGianProcess(SysModeNumber AppMode)
 {
 	uint32_t i;
 	int16_t preGain = 0;
-	extern uint8_t GetEffectControlIndex(AUDIOEFFECT_EFFECT_CONTROL type);
 	uint8_t refresh_addr = GetEffectControlIndex(APPMODE_PREGAIN);
 
 	for(i = 0; i < sizeof(AudioModeDigitalGianTable)/(sizeof(int16_t)*2); i++)
@@ -105,8 +101,28 @@ void AudioAPPDigitalGianProcess(SysModeNumber AppMode)
 	}
 
 	if(refresh_addr)
+	{
 		roboeffect_set_effect_parameter(AudioEffect.context_memory, refresh_addr, 1, (int16_t *)&preGain);
+		AudioEffect_update_local_params(refresh_addr, 1, (int16_t *)&preGain, 2);
+	}
 }
+
+#ifdef CFG_APP_BIS_BT_DUAL_CHIP_MODE_EN
+void Audio_BisDACSwtichChannal(uint8_t channal)
+{
+	int16_t Swtich;
+	if(channal == 1)
+	{
+		Swtich = 0;
+	}
+	else
+	{
+		Swtich = 1;
+	}
+
+	roboeffect_set_effect_parameter(AudioEffect.context_memory, GetBisEffectRouteSelector(), 0, (int16_t *)&Swtich);
+}
+#endif
 
 void AudioEffect_SourceGain_Update(uint8_t source, uint8_t vol)
 {
@@ -156,9 +172,13 @@ void AudioEffect_SourceGain_Update(uint8_t source, uint8_t vol)
 	if(vol > CFG_PARA_MAX_VOLUME_NUM)
 		vol = CFG_PARA_MAX_VOLUME_NUM;
 	if(effect_addr != 0)
+	{
 		roboeffect_set_effect_parameter(AudioEffect.context_memory, effect_addr, 1, (int16_t *)&VolumeTable[vol]);
+		AudioEffect_update_local_params(effect_addr, 1, (int16_t *)&VolumeTable[vol], 2);
+	}
 
-//	gCtrlVars.AutoRefresh = effect_addr;
+	gCtrlVars.AutoRefresh = effect_addr;
+	AudioEffect_CommunicationQueue_Send(gCtrlVars.AutoRefresh);
 
 #ifdef CFG_FUNC_BREAKPOINT_EN
 	BackupInfoUpdata(BACKUP_SYS_INFO);
@@ -205,94 +225,6 @@ void HardWareMuteOrUnMute(void)
 bool IsAudioPlayerMute(void)
 {
 	return mainAppCt.gSysVol.MuteFlag;
-}
-
-void AudioPlayerMenu(void)
-{
-	uint32_t ValidNum = 0;;
-	uint32_t i;
-	
-	TimeOutSet(&MenuTimer, 5000);
-	gIsVolSetEnable = TRUE;
-
-	for(i=0; i<AUDIO_CORE_SOURCE_MAX_NUM; i++)
-	{
-		if(AudioCoreSourceIsEnable(i))
-		{
-			ChannelValid[ValidNum] =  i;
-			ValidNum++;
-		}
-	}
-	for(i=0; i<AUDIO_CORE_SINK_MAX_NUM; i++)
-	{
-		if(AudioCoreSinkIsEnable(i))
-		{
-			ChannelValid[ValidNum] = AUDIO_CORE_SOURCE_MAX_NUM + i;//VOL_SET_CHANNEL_BASE_SINK
-			ValidNum++;
-		}
-	}
-
-	APP_DBG("Cnt=%d\n", (int)Cnt);
-	SetChannel = ChannelValid[Cnt > ValidNum ? ValidNum : Cnt];
-
-	Cnt++;
-	if(Cnt > ValidNum)
-	{
-		Cnt = 0;
-	}
-	
-	//APP_DBG
-	{
-	switch(SetChannel)
-	{
-		  case MIC_SOURCE_NUM:
-			APP_DBG("MIC_SOURCE_NUM vol set\n");
-		break;
-		  case APP_SOURCE_NUM:
-			APP_DBG("APP_SOURCE_NUM vol set\n");
-		break;
-#ifdef  CFG_FUNC_REMIND_SOUND_EN
-		  case REMIND_SOURCE_NUM:
-			APP_DBG("REMIND_SOURCE_NUM vol set\n");
-#endif
-		break;
-//		  case PLAYBACK_SOURCE_NUM:
-//			APP_DBG("PLAYBACK_SOURCE_NUM vol set\n");
-//		break;
-
-
-	      case AUDIO_DAC0_SINK_NUM + AUDIO_CORE_SOURCE_MAX_NUM:
-		       APP_DBG("Sink0 vol set(dac0)\n");
-		break;
-
-          #if defined(CFG_RES_AUDIO_DACX_EN )
-	      case AUDIO_DACX_SINK_NUM + AUDIO_CORE_SOURCE_MAX_NUM:
-		APP_DBG("Sink2 vol set(DACX)\n");
-		break;
-          #endif
-		      default:
-		         break;
-	    }
-	}
-}
-
-//检查Menu 定时器超时
-void AudioPlayerMenuCheck(void)
-{
-	if(gIsVolSetEnable && IsTimeOut(&MenuTimer))
-	{
-		gIsVolSetEnable = FALSE;
-		SetChannel = 0xff;
-		if(Cnt > 0)
-		{
-			Cnt--;
-		}
-		else
-		{
-			Cnt = AUDIO_CORE_SOURCE_MAX_NUM + AUDIO_CORE_SINK_MAX_NUM;
-		}
-		APP_DBG("Menu Timer OUT\n");
-	}
 }
 
 uint8_t AudioMusicVolGet(void)

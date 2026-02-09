@@ -101,8 +101,10 @@ bool MessageRecv(MessageHandle msgHandle, MessageContext * msgContext, uint32_t 
 //系统使用的ram结束地址和em的使用大小有关系
 #if defined(CFG_APP_CONFIG) && defined(CFG_WIRELESS_EN)
 static uint32_t gB1xSramEndAddr = TCM_SRAM_START_ADDR_1;
+#elif defined(CFG_APP_CONFIG) && defined(TCM_ENABLE)
+static uint32_t gB1xSramEndAddr = TCM_SRAM_START_ADDR_1;
 #elif defined(CFG_APP_CONFIG)
-static uint32_t gB1xSramEndAddr = BB_MPU_START_ADDR;//(CFG_CHIP_RAM_SIZE + 0x20000000);//0x20030000;
+static uint32_t gB1xSramEndAddr = TCM_SRAM_START_ADDR_2;//(CFG_CHIP_RAM_SIZE + 0x20000000);//0x20030000;
 #endif
 void prvInitialiseHeap(void)
 {
@@ -418,8 +420,8 @@ void trace_TASK_SWITCHED_IN(void)
 		}
 	}
 #endif
-#ifdef OS_INT_TOGGLE
-	DbgTaskTGL_set();
+#ifdef TASK_TGL
+	DbgTaskTGL_in();
 #endif
 }
 
@@ -470,8 +472,8 @@ void trace_TASK_SWITCHED_OUT(void)
 		AllTaskCycle=0;
 	}
 #endif
-#ifdef OS_INT_TOGGLE
-	DbgTaskTGL_clr();
+#ifdef TASK_TGL
+	DbgTaskTGL_out();
 #endif
 }
 #endif

@@ -21,6 +21,7 @@
 
 #include "simple_gain.h" 
 
+
 #ifdef CFG_APP_CONFIG
 	#include "app_config.h"
 	#ifdef CFG_AI_DENOISE_EN
@@ -31,38 +32,45 @@
 #else
 	#define AI_DENOISE_ENABLE                  (1)
 #endif
-
-#define SIMPLE_GAIN_ENABLE                 (0)
+#ifndef SIMPLE_GAIN_ENABLE
+#define SIMPLE_GAIN_ENABLE                 (1)
+#endif
 
 
 //Add AI_DENOISE_INFO_DATA to USER_DEFINED_LIBS_DATA
 #define AI_DENOISE_INFO_DATA \
-0x41, 0x00, \
-0x01, 0x02, 0x00, \
-0x0A, \
-0x61, 0x69, 0x5F, 0x64, 0x65, 0x6E, 0x6F, 0x69, 0x73, 0x65, \
-0x00, \
-0x00, \
-0x01, \
-0x00, \
-0x01, \
-0x01, \
-0x01, \
-0x0D, \
-0x64, 0x65, 0x6E, 0x6F, 0x69, 0x73, 0x65, 0x5F, 0x6C, 0x65, 0x76, 0x65, 0x6C, \
-0x02, \
+0x48, 0x00, \
+0x01, 0x02, 0x00, /*version*/\
+0x0A, /*name length*/\
+0x61, 0x69, 0x5F, 0x64, 0x65, 0x6E, 0x6F, 0x69, 0x73, 0x65, /*ai_denoise*/\
+0x00, /*not node*/\
+0x00, /*bitwidth:16*/\
+0x06, /*frame size formula length*/\
+0x46, 0x5A, 0x5F, 0x41, 0x4E, 0x59, /*FZ_ANY*/\
+0x01, /*input counter:1*/\
+0x00, /*no input discript*/\
+0x01, /*in1 ch:mono*/\
+0x01, /*output channel*/\
+/*parameter start--->*/\
+0x01, /*effect param number:1*/\
+/*param name: denoise_level*/\
+0x0D, /*name size:13*/\
+0x64, 0x65, 0x6E, 0x6F, 0x69, 0x73, 0x65, 0x5F, 0x6C, 0x65, 0x76, 0x65, 0x6C, /*denoise_level*/\
+0x02, /*param type:value*/\
+/*value:0,90,1*/ \
 0x00, 0x00, \
 0x5A, 0x00, \
 0x01, 0x00, \
 0x1E, 0x00, \
 0x02, 0x00, \
-0x00, \
-0x00, \
-0x00, \
-0x01, 0x00, \
-0x0C, \
+/*ui display--->*/\
+0x00, /*type:value,spinbox*/\
+0x00, /*no unit content*/\
+0x00, /*fract*/\
+0x01, 0x00, /*ratio*/\
+0x0C, /*tips:denoise deep*/\
 0x64, 0x65, 0x6E, 0x6F, 0x69, 0x73, 0x65, 0x20, 0x64, 0x65, 0x65, 0x70, \
-0x00, 
+0x00, /*ui layout:auto*/
 
 
 //ai_denoise interface
@@ -75,50 +83,72 @@ int32_t roboeffect_ai_denoise_memory_size_if(roboeffect_memory_size_query *query
 //Add AI_DENOISE_INTERFACE to USER_DEFINED_INTERFACE
 #if AI_DENOISE_ENABLE
 #define AI_DENOISE_INTERFACE \
-	{ROBOEFFECT_AI_DENOISE, ROBOEFFECT_CH_MONO, FZ_ANY, 1, 4,\
+	{ROBOEFFECT_AI_DENOISE, ROBOEFFECT_CH_MONO, 1, FZ_ANY, 0, {0},\
 	roboeffect_ai_denoise_init_if, roboeffect_ai_denoise_config_if, roboeffect_ai_denoise_apply_if, roboeffect_ai_denoise_memory_size_if,\
 	},
 #else
 #define AI_DENOISE_INTERFACE \
-	{ROBOEFFECT_AI_DENOISE, ROBOEFFECT_CH_MONO, FZ_ANY, 1, 4,\
+	{ROBOEFFECT_AI_DENOISE, ROBOEFFECT_CH_MONO, 1, FZ_ANY, 0, {0},\
 	roboeffect_null_init_if, roboeffect_null_config_if, roboeffect_null_apply_if, roboeffect_null_memory_size_if,\
 	},
 #endif
 
 //Add SIMPLE_GAIN_INFO_DATA to USER_DEFINED_LIBS_DATA
 #define SIMPLE_GAIN_INFO_DATA \
-0x3A, 0x00, \
-0x01, 0x00, 0x00, \
-0x0B, \
-0x73, 0x69, 0x6D, 0x70, 0x6C, 0x65, 0x5F, 0x67, 0x61, 0x69, 0x6E, \
-0x00, \
-0x02, \
-0x01, \
-0x00, \
-0x03, \
-0x03, \
-0x02, \
-0x04, \
-0x6D, 0x75, 0x74, 0x65, \
-0x00, \
+0x58, 0x00, \
+0x01, 0x00, 0x00, /*version*/\
+0x0B, /*name length*/\
+0x73, 0x69, 0x6D, 0x70, 0x6C, 0x65, 0x5F, 0x67, 0x61, 0x69, 0x6E, /*simple_gain*/\
+0x00, /*not node*/\
+0x02, /*bitwidth:16/24*/\
+0x06, /*frame size formula length*/\
+0x46, 0x5A, 0x5F, 0x41, 0x4E, 0x59, /*FZ_ANY*/\
+0x01, /*input counter:1*/\
+0x00, /*no input discript*/\
+0x03, /*in1 ch:mono/stereo*/\
+0x03, /*output channel*/\
+/*parameter start--->*/\
+0x03, /*effect param number:3*/\
+/*param name: mute*/\
+0x04, /*name size:4*/\
+0x6D, 0x75, 0x74, 0x65, /*mute*/\
+0x00, /*param type:bool*/\
 0x00, 0x00, \
 0x00, 0x00, \
-0x04, \
-0x67, 0x61, 0x69, 0x6E, \
-0x02, \
+/*param name: gain*/\
+0x04, /*name size:4*/\
+0x67, 0x61, 0x69, 0x6E, /*gain*/\
+0x02, /*param type:value*/\
+/*value:-9000,1200,10*/ \
 0xD8, 0xDC, \
 0xB0, 0x04, \
 0x0A, 0x00, \
 0x00, 0x00, \
 0x00, 0x00, \
-0x00, \
-0x01, \
-0x02, \
+/*param name: filter0*/\
+0x07, /*name size:7*/\
+0x66, 0x69, 0x6C, 0x74, 0x65, 0x72, 0x30, /*filter0*/\
+0x05, /*param type:vector*/\
+0x08, /*vector:float*/\
+0x00, 0x00, \
+0x01, 0x00, \
+/*ui display--->*/\
+0x00, /*type:bool,check_box*/\
+/*ui display--->*/\
+0x01, /*type:value,hslider*/\
+0x02, /*unit content size:2*/\
 0x64, 0x42, \
-0x02, \
-0x64, 0x00, \
-0x00, \
-0x00, 
+0x02, /*fract*/\
+0x64, 0x00, /*ratio*/\
+0x00, /*no tips*/\
+/*ui display--->*/\
+0x00, /*type:vector,push_button*/\
+0x01, /*ui layout:manual*/\
+/*ui layout*/\
+0x02, 0x0C, /*row size, column size*/\
+0x01, 0x03, /*grid row, grid column*/\
+0x01, 0xFF, /*grid row, grid column*/\
+0x02, 0x01, /*grid row, grid column*/
 
 
 //simple_gain interface
@@ -131,12 +161,12 @@ int32_t roboeffect_simple_gain_memory_size_if(roboeffect_memory_size_query *quer
 //Add SIMPLE_GAIN_INTERFACE to USER_DEFINED_INTERFACE
 #if SIMPLE_GAIN_ENABLE
 #define SIMPLE_GAIN_INTERFACE \
-	{ROBOEFFECT_SIMPLE_GAIN, ROBOEFFECT_CH_MONO_STEREO, FZ_ANY, 2, 4,\
+	{ROBOEFFECT_SIMPLE_GAIN, ROBOEFFECT_CH_MONO_STEREO, 3, FZ_ANY, 0, {0},\
 	roboeffect_simple_gain_init_if, roboeffect_simple_gain_config_if, roboeffect_simple_gain_apply_if, roboeffect_simple_gain_memory_size_if,\
 	},
 #else
 #define SIMPLE_GAIN_INTERFACE \
-	{ROBOEFFECT_SIMPLE_GAIN, ROBOEFFECT_CH_MONO_STEREO, FZ_ANY, 2, 4,\
+	{ROBOEFFECT_SIMPLE_GAIN, ROBOEFFECT_CH_MONO_STEREO, 3, FZ_ANY, 0, {0},\
 	roboeffect_null_init_if, roboeffect_null_config_if, roboeffect_null_apply_if, roboeffect_null_memory_size_if,\
 	},
 #endif

@@ -8,8 +8,12 @@
 
 #if (BT_PBAP_SUPPORT)
 
+//vcard format : v3.0 or v2.1
+#define PBAP_VCARD_FORMAT_SELECT		VCARD_FORMAT_30
+#define PBAP_GET_LIST_NUMBER_STEP		50	//每次获取50条数据	//0xffff： 全部获取
+
 //显示PBAP接收的数据
-//#define PBAP_INFO_DEBUG
+#define PBAP_INFO_DEBUG
 
 uint8_t gBtPbapGetContinueFlag = 0;	//接收到数据后,延时发送Get标志
 
@@ -19,6 +23,10 @@ char *vcard_begin = "BEGIN:VCARD";//"N;CHARSET=UTF-8:";
 char *vcard_end = "END:VCARD";
 char *pb_name = "PRINTABLE:";
 #endif
+
+uint16_t gBtPbapGetMaxListCount = 0;
+uint16_t gBtPbapListStartOffset = 0;
+
 /////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
 static void SetPbapState(BT_PBAP_STATE state)
@@ -264,6 +272,8 @@ void BtPbapCallback(BT_PBAP_CALLBACK_EVENT event, BT_PBAP_CALLBACK_PARAMS * para
 		case BT_STACK_EVENT_PBAP_CONNECTED:
 			APP_DBG("PBAP EVENT:connected\n");
 			gBtPbapGetContinueFlag = 0;
+			gBtPbapGetMaxListCount = 0;
+			gBtPbapListStartOffset = 0;
 			SetPbapState(BT_PBAP_STATE_CONNECTED);
 		#ifdef PBAP_INFO_DEBUG
 			memset(temp,0,1024);
@@ -327,12 +337,30 @@ void BtPbapCallback(BT_PBAP_CALLBACK_EVENT event, BT_PBAP_CALLBACK_PARAMS * para
 			//可以延时调用此函数,待PBAP数据缓存结束后,再继续获取后续PBAP数据
 			PBAP_PullPhoneBook_Continue();
 			break;
+
+		case BT_STACK_EVENT_PBAP_APP_PARAM:
+			{
+				// uint16_t k;
+				// APP_DBG("recv app parameters [%d]:  \n", param->length);
+				// for(k=0;k<param->length;k++)
+				// {
+				// 	printf("0x%02x, ", param->buffer[k]);
+				// }
+				// printf("\n");
+				
+				//maxlistcount
+				gBtPbapGetMaxListCount = (uint16_t)param->buffer[5]<<8 & 0xff00;
+				gBtPbapGetMaxListCount |= param->buffer[6];
+
+				printf("maxListCount = 0x%x\n", gBtPbapGetMaxListCount);
+			}
+			break;
 	}
 }
 
 
 /////////////////////////////////////////////////////////////////////////////////
-//获取SIM卡上电话簿信息 
+//获取SIM1电话簿信息 
 void GetSim1CardPhoneBook(void)
 {
 	if(GetPbapState() != BT_PBAP_STATE_CONNECTED)
@@ -340,17 +368,48 @@ void GetSim1CardPhoneBook(void)
 	
 	APP_DBG("sim1 card:\n");
 	//PhoneCnt = 0;
-	PBAP_PullPhoneBook(SIM1, "pb.vcf");
+	PBAP_PullPhoneBook(SIM1, "pb.vcf", PBAP_VCARD_FORMAT_SELECT, PBAP_GET_LIST_NUMBER_STEP, gBtPbapListStartOffset);
+	gBtPbapListStartOffset += PBAP_GET_LIST_NUMBER_STEP;
+	if(gBtPbapListStartOffset >= gBtPbapGetMaxListCount)
+		gBtPbapListStartOffset = 0;
 }
 
+//获取SIM1电话簿的数量
+void GetSim1CardPhoneBookMaxListCount(void)
+{
+	if(GetPbapState() != BT_PBAP_STATE_CONNECTED)
+		return;
+	
+	PhoneCnt = 0;
+	gBtPbapGetMaxListCount = 0;
+	gBtPbapListStartOffset = 0;
+	PBAP_PullPhoneBook(SIM1, "pb.vcf", PBAP_VCARD_FORMAT_SELECT, 0, gBtPbapListStartOffset);
+}
+
+//获取SIN2电话簿信息 
 void GetSim2CardPhoneBook(void)
 {
 	if(GetPbapState() != BT_PBAP_STATE_CONNECTED)
 		return;
 	
-	APP_DBG("sim2 card:\n");
+	APP_DBG("sim2 card: %d\n", gBtPbapListStartOffset);
 	//PhoneCnt = 0;
-	PBAP_PullPhoneBook(SIM2, "pb.vcf");
+	PBAP_PullPhoneBook(SIM2, "pb.vcf", PBAP_VCARD_FORMAT_SELECT, PBAP_GET_LIST_NUMBER_STEP, gBtPbapListStartOffset);
+	gBtPbapListStartOffset += PBAP_GET_LIST_NUMBER_STEP;
+	if(gBtPbapListStartOffset >= gBtPbapGetMaxListCount)
+		gBtPbapListStartOffset = 0;
+}
+
+//获取SIM2电话簿的数量
+void GetSim2CardPhoneBookMaxListCount(void)
+{
+	if(GetPbapState() != BT_PBAP_STATE_CONNECTED)
+		return;
+	
+	PhoneCnt = 0;
+	gBtPbapGetMaxListCount = 0;
+	gBtPbapListStartOffset = 0;
+	PBAP_PullPhoneBook(SIM2, "pb.vcf", PBAP_VCARD_FORMAT_SELECT, 0, gBtPbapListStartOffset);
 }
 
 //获取手机自身电话簿信息 
@@ -359,9 +418,24 @@ void GetMobilePhoneBook(void)
 	if(GetPbapState() != BT_PBAP_STATE_CONNECTED)
 		return;
 	
-	APP_DBG("phone book:\n");
+	APP_DBG("phone book: %d\n", gBtPbapListStartOffset);
 	//PhoneCnt = 0;
-	PBAP_PullPhoneBook(PHONE, "pb.vcf");
+	PBAP_PullPhoneBook(PHONE, "pb.vcf", PBAP_VCARD_FORMAT_SELECT, PBAP_GET_LIST_NUMBER_STEP, gBtPbapListStartOffset);
+	gBtPbapListStartOffset += PBAP_GET_LIST_NUMBER_STEP;
+	if(gBtPbapListStartOffset >= gBtPbapGetMaxListCount)
+		gBtPbapListStartOffset = 0;
+}
+
+//获取手机自身电话簿的数量
+void GetMobilePhoneBookMaxListCount(void)
+{
+	if(GetPbapState() != BT_PBAP_STATE_CONNECTED)
+		return;
+	
+	PhoneCnt = 0;
+	gBtPbapGetMaxListCount = 0;
+	gBtPbapListStartOffset = 0;
+	PBAP_PullPhoneBook(PHONE, "pb.vcf", PBAP_VCARD_FORMAT_SELECT, 0, gBtPbapListStartOffset);
 }
 
 //获取呼入电话信息 
@@ -371,7 +445,22 @@ void GetIncomingCallBook(void)
 		return;
 	
 	APP_DBG("Incoming Call:\n");
-	PBAP_PullPhoneBook(PHONE, "ich.vcf");
+	PBAP_PullPhoneBook(PHONE, "ich.vcf", PBAP_VCARD_FORMAT_SELECT, PBAP_GET_LIST_NUMBER_STEP, gBtPbapListStartOffset);
+	gBtPbapListStartOffset += PBAP_GET_LIST_NUMBER_STEP;
+	if(gBtPbapListStartOffset >= gBtPbapGetMaxListCount)
+		gBtPbapListStartOffset = 0;
+}
+
+//获取呼入电话信息数量
+void GetIncomingCallBookMaxListCount(void)
+{
+	if(GetPbapState() != BT_PBAP_STATE_CONNECTED)
+		return;
+	
+	PhoneCnt = 0;
+	gBtPbapGetMaxListCount = 0;
+	gBtPbapListStartOffset = 0;
+	PBAP_PullPhoneBook(PHONE, "ich.vcf", PBAP_VCARD_FORMAT_SELECT, 0, gBtPbapListStartOffset);
 }
 
 //获取呼出电话簿信息 
@@ -381,7 +470,22 @@ void GetOutgoingCallBook(void)
 		return;
 	
 	APP_DBG("Outgoing Call:\n");
-	PBAP_PullPhoneBook(PHONE, "och.vcf");
+	PBAP_PullPhoneBook(PHONE, "och.vcf", PBAP_VCARD_FORMAT_SELECT, PBAP_GET_LIST_NUMBER_STEP, gBtPbapListStartOffset);
+	gBtPbapListStartOffset += PBAP_GET_LIST_NUMBER_STEP;
+	if(gBtPbapListStartOffset >= gBtPbapGetMaxListCount)
+		gBtPbapListStartOffset = 0;
+}
+
+//获取呼出电话信息数量
+void GetOutgoingCallBookMaxListCount(void)
+{
+	if(GetPbapState() != BT_PBAP_STATE_CONNECTED)
+		return;
+	
+	PhoneCnt = 0;
+	gBtPbapGetMaxListCount = 0;
+	gBtPbapListStartOffset = 0;
+	PBAP_PullPhoneBook(PHONE, "och.vcf", PBAP_VCARD_FORMAT_SELECT, 0, gBtPbapListStartOffset);
 }
 
 //获取未接电话簿信息 
@@ -391,7 +495,22 @@ void GetMissedCallBook(void)
 		return;
 	
 	APP_DBG("Missed Call:\n");
-	PBAP_PullPhoneBook(PHONE, "mch.vcf");
+	PBAP_PullPhoneBook(PHONE, "mch.vcf", PBAP_VCARD_FORMAT_SELECT, PBAP_GET_LIST_NUMBER_STEP, gBtPbapListStartOffset);
+	gBtPbapListStartOffset += PBAP_GET_LIST_NUMBER_STEP;
+	if(gBtPbapListStartOffset >= gBtPbapGetMaxListCount)
+		gBtPbapListStartOffset = 0;
+}
+
+//获取未接电话信息数量
+void GetMissedCallBookMaxListCount(void)
+{
+	if(GetPbapState() != BT_PBAP_STATE_CONNECTED)
+		return;
+	
+	PhoneCnt = 0;
+	gBtPbapGetMaxListCount = 0;
+	gBtPbapListStartOffset = 0;
+	PBAP_PullPhoneBook(PHONE, "mch.vcf", PBAP_VCARD_FORMAT_SELECT, 0, gBtPbapListStartOffset);
 }
 
 void GetCombinedCallBook(void)
@@ -400,7 +519,21 @@ void GetCombinedCallBook(void)
 		return;
 	
 	APP_DBG("Combined Call:\n");
-	PBAP_PullPhoneBook(PHONE, "cch.vcf");
+	PBAP_PullPhoneBook(PHONE, "cch.vcf", PBAP_VCARD_FORMAT_SELECT, PBAP_GET_LIST_NUMBER_STEP, gBtPbapListStartOffset);
+	gBtPbapListStartOffset += PBAP_GET_LIST_NUMBER_STEP;
+	if(gBtPbapListStartOffset >= gBtPbapGetMaxListCount)
+		gBtPbapListStartOffset = 0;
+}
+
+void GetCombinedCallBookMaxListCount(void)
+{
+	if(GetPbapState() != BT_PBAP_STATE_CONNECTED)
+		return;
+	
+	PhoneCnt = 0;
+	gBtPbapGetMaxListCount = 0;
+	gBtPbapListStartOffset = 0;
+	PBAP_PullPhoneBook(PHONE, "cch.vcf", PBAP_VCARD_FORMAT_SELECT, 0, gBtPbapListStartOffset);
 }
 
 #endif

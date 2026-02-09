@@ -951,6 +951,13 @@ bool RemindSoundRun(SysModeState ModeState)
 			{
 				RemindSoundCt.ItemState = REMIND_ITEM_MUTE;
 			}
+
+#ifndef CFG_REMIND_SOUND_DECODING_USE_LIBRARY
+			if(RemindSoundCt.EmptyIndex && RemindSoundCt.player_init == MP2_DECODE_IDLE)
+			{
+				RemindSoundCt.ItemState = REMIND_ITEM_IDLE;
+			}
+#endif
 			break;
 
 		case REMIND_ITEM_UNMUTE:
@@ -985,7 +992,8 @@ bool RemindSoundRun(SysModeState ModeState)
 
 		case REMIND_ITEM_MUTE:
 #ifndef CFG_REMIND_SOUND_DECODING_USE_LIBRARY
-			if(Mp2Decode->dec_last_len < AudioCoreFrameSizeGet(DefaultNet))
+			if(Mp2Decode->dec_last_len < AudioCoreFrameSizeGet(DefaultNet)
+			 && RemindSoundCt.player_init == MP2_DECODE_IDLE)
 #endif
 			{
 				RemindSoundCt.Request[0].Attr |= REMIND_ATTR_CLEAR;

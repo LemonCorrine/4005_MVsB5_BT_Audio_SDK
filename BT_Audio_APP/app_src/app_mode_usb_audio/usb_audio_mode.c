@@ -62,6 +62,11 @@ static const uint8_t DmaChannelMap[6] = {
 	CFG_FUNC_COMMUNICATION_RX_DMA_PORT,
 #endif
 
+#ifdef CFG_UPGRADE_BY_UART
+	CFG_FUNC_UPGRADE_RX_DMA_PORT,
+	CFG_FUNC_UPGRADE_TX_DMA_PORT,
+#endif
+
 #ifdef CFG_FUNC_LINEIN_MIX_MODE
 	PERIPHERAL_ID_AUDIO_ADC0_RX,
 #endif
@@ -226,10 +231,10 @@ bool UsbDevicePlayResInit(void)
 #if !defined(CFG_PARA_AUDIO_USB_IN_SRC)
 	AudioIOSet.Adapt = SRA_ONLY;//CLK_ADJUST_ONLY;
 #else
-#ifdef CFG_FUNC_USB_ADJUST_UNION_EN
+#if defined(CFG_FUNC_USB_ADJUST_UNION_EN) && !(defined(CFG_WIRELESS_EN) && defined(CFG_WIRELESS_OUT_ON))
 	AudioIOSet.Adapt = SRC_ADJUST;//SRC_ADJUST;
 #else
-	AudioIOSet.Adapt = SRC_SRA;//STD;//SRC_ADJUST;
+	AudioIOSet.Adapt = SRC_SRA;//SRC_ADJUST;
 #endif
 #endif
 #endif
@@ -276,7 +281,7 @@ bool UsbDevicePlayResInit(void)
 #if !defined(CFG_PARA_AUDIO_USB_OUT_SRC)
 	AudioIOSet.Adapt = SRA_ONLY;//CLK_ADJUST_ONLY;
 #else
-#ifdef CFG_FUNC_USB_ADJUST_UNION_EN
+#if defined(CFG_FUNC_USB_ADJUST_UNION_EN) && !(defined(CFG_WIRELESS_EN) && defined(CFG_WIRELESS_OUT_ON))
 	AudioIOSet.Adapt = SRC_ADJUST;//SRC_ADJUST;
 #else
 	AudioIOSet.Adapt = SRC_SRA;//SRC_ADJUST;

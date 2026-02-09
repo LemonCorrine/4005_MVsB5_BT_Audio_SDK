@@ -62,11 +62,17 @@ typedef enum
 	ModeBtHfPlay, 
 	ModeTwsSlavePlay,
 	ModeOpticalAudioPlay,// 10
-	
+
 	ModeCoaxialAudioPlay,
 	ModeHdmiAudioPlay,
+	ModeWirelessinPlay, //นุมช CFG_APP_WIRELESSIN_MODE_EN + CFG_WIRELESS_EN
 	ModeUDiskPlayBack,
 	ModeCardPlayBack,
+
+	ModeLeAudioSinkPlay,
+	ModeLeAudioLinein,
+	ModeLeAudioBT,
+
 	SysModeMax,
 }SysModeNumber;
 #define ENTERR_PREV_MODE	SysModeMax

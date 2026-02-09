@@ -7,6 +7,7 @@
 
 
 #include "string.h"
+#include "chip_info.h"
 #include "resampler_polyphase.h"
 #include "clk.h"
 #include "rtos_api.h"
@@ -29,13 +30,162 @@
 extern bool GIE_STATE_GET(void);
 extern uint16_t AudioDAC0DataLenGet(void);
 extern bool gain_control_apply(int16_t *pcm_in, int16_t *pcm_out, uint32_t n, int16_t mute, int16_t gain, int8_t ch_num);
+extern int32_t resampler_rom_polyphase_init(ResamplerPolyphaseContext *ct, int32_t num_channels, int32_t src_ratio);
+extern int32_t resampler_rom_polyphase_apply(ResamplerPolyphaseContext *ct, int16_t *pcm_in, int16_t *pcm_out, int32_t n);
 #define AUDIO_CORE_DEBUG 	//强化配置安全检测和定位
 
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+/* Common use of sampling rate conversion
+	Target		Original	SRC_RATIO
+	44100	<--	8000	RESAMPLER_POLYPHASE_SRC_RATIO_441_80
+	44100	<--	11025	RESAMPLER_POLYPHASE_SRC_RATIO_4_1
+	44100	<--	12000	RESAMPLER_POLYPHASE_SRC_RATIO_147_40
+	44100	<--	16000	RESAMPLER_POLYPHASE_SRC_RATIO_441_160
+	44100	<--	22050	RESAMPLER_POLYPHASE_SRC_RATIO_2_1
+	44100	<--	24000	RESAMPLER_POLYPHASE_SRC_RATIO_147_80
+	44100	<--	32000	RESAMPLER_POLYPHASE_SRC_RATIO_441_320
+	44100	<--	48000	RESAMPLER_POLYPHASE_SRC_RATIO_147_160
+	44100	<--	88200	RESAMPLER_POLYPHASE_SRC_RATIO_1_2
+	44100	<--	96000	RESAMPLER_POLYPHASE_SRC_RATIO_147_320
+	44100	<--	176400	RESAMPLER_POLYPHASE_SRC_RATIO_1_4
+	44100	<--	33075	RESAMPLER_POLYPHASE_SRC_RATIO_4_3
+	33075	<--	44100	RESAMPLER_POLYPHASE_SRC_RATIO_3_4
+	16000	<--	48000	RESAMPLER_POLYPHASE_SRC_RATIO_1_3
+	16000	<--	44100	RESAMPLER_POLYPHASE_SRC_RATIO_160_441
+	16000	<--	8000	RESAMPLER_POLYPHASE_SRC_RATIO_2_1
+	8000	<--	16000	RESAMPLER_POLYPHASE_SRC_RATIO_1_2
+	48000	<--	8000	RESAMPLER_POLYPHASE_SRC_RATIO_6_1
+	48000	<--	11025	RESAMPLER_POLYPHASE_SRC_RATIO_640_147
+	48000	<--	12000	RESAMPLER_POLYPHASE_SRC_RATIO_4_1
+	48000	<--	16000	RESAMPLER_POLYPHASE_SRC_RATIO_3_1
+	48000	<--	22050	RESAMPLER_POLYPHASE_SRC_RATIO_320_147
+	48000	<--	24000	RESAMPLER_POLYPHASE_SRC_RATIO_2_1
+	48000	<--	32000	RESAMPLER_POLYPHASE_SRC_RATIO_3_2
+	48000	<--	44100	RESAMPLER_POLYPHASE_SRC_RATIO_160_147
+	48000	<--	96000	RESAMPLER_POLYPHASE_SRC_RATIO_1_2
+	48000	<--	192000	RESAMPLER_POLYPHASE_SRC_RATIO_1_4
+	32000	<--	48000	RESAMPLER_POLYPHASE_SRC_RATIO_2_3
+*/
+/** ratio of sampling rate conversion */
+typedef enum _RESAMPLER_POLYPHASE_SRC_RATIO_ROM
+{
+	//sam: rom list
+	// RESAMPLER_POLYPHASE_SRC_RATIO_3_4_ROM,		// target:original = 3:4
+	// RESAMPLER_POLYPHASE_SRC_RATIO_4_3_ROM,		// target:original = 4:3
+	// RESAMPLER_POLYPHASE_SRC_RATIO_1_2_ROM,		// target:original = 1:2
+	// RESAMPLER_POLYPHASE_SRC_RATIO_2_1_ROM,		// target:original = 2:1
+	// RESAMPLER_POLYPHASE_SRC_RATIO_4_1_ROM,		// target:original = 4:1
+	// RESAMPLER_POLYPHASE_SRC_RATIO_1_4_ROM,		// target:original = 1:4
+	// RESAMPLER_POLYPHASE_SRC_RATIO_147_40_ROM,	// target:original = 147:40
+	// RESAMPLER_POLYPHASE_SRC_RATIO_147_80_ROM,	// target:original = 147:80
+	// RESAMPLER_POLYPHASE_SRC_RATIO_160_147_ROM,	// target:original = 160:147
+	// RESAMPLER_POLYPHASE_SRC_RATIO_147_160_ROM,	// target:original = 147:160
+	// RESAMPLER_POLYPHASE_SRC_RATIO_441_320_ROM,	// target:original = 441:320
+	// RESAMPLER_POLYPHASE_SRC_RATIO_441_160_ROM,	// target:original = 441:160
+	// RESAMPLER_POLYPHASE_SRC_RATIO_441_80_ROM,	// target:original = 441:80
+	// RESAMPLER_POLYPHASE_SRC_RATIO_160_441_ROM,	// target:original = 160:441
+	// RESAMPLER_POLYPHASE_SRC_RATIO_147_320_ROM,	// target:original = 147:320
+	// RESAMPLER_POLYPHASE_SRC_RATIO_6_1_ROM,		// target:original = 6:1
+	// RESAMPLER_POLYPHASE_SRC_RATIO_640_147_ROM,	// target:original = 640:147
+	// RESAMPLER_POLYPHASE_SRC_RATIO_3_1_ROM,		// target:original = 3:1
+	// RESAMPLER_POLYPHASE_SRC_RATIO_320_147_ROM,	// target:original = 320:147
+	// RESAMPLER_POLYPHASE_SRC_RATIO_3_2_ROM,		// target:original = 3:2
+	// RESAMPLER_POLYPHASE_SRC_RATIO_1_3_ROM,		// target:original = 1:3
+	// RESAMPLER_POLYPHASE_SRC_RATIO_2_3_ROM,		// target:original = 2:3
 
-RESAMPLER_POLYPHASE_SRC_RATIO GetRatioEnum(uint32_t Scale1000)
+	//KK: 发现rom转采样出现问题,初步核对和SRC_RATIO返回值相关
+	//flash list(default)
+	RESAMPLER_POLYPHASE_SRC_RATIO_3_4_ROM,		// target:original = 3:4
+	RESAMPLER_POLYPHASE_SRC_RATIO_4_3_ROM,		// target:original = 4:3
+	RESAMPLER_POLYPHASE_SRC_RATIO_1_2_ROM,		// target:original = 1:2
+	RESAMPLER_POLYPHASE_SRC_RATIO_2_1_ROM,		// target:original = 2:1
+	RESAMPLER_POLYPHASE_SRC_RATIO_4_1_ROM,		// target:original = 4:1
+	RESAMPLER_POLYPHASE_SRC_RATIO_1_4_ROM,		// target:original = 1:4
+	RESAMPLER_POLYPHASE_SRC_RATIO_147_40_ROM,	// target:original = 147:40
+	RESAMPLER_POLYPHASE_SRC_RATIO_147_80_ROM,	// target:original = 147:80
+	RESAMPLER_POLYPHASE_SRC_RATIO_160_147_ROM,	// target:original = 160:147
+	RESAMPLER_POLYPHASE_SRC_RATIO_147_160_ROM,	// target:original = 147:160
+	RESAMPLER_POLYPHASE_SRC_RATIO_441_320_ROM,	// target:original = 441:320
+	RESAMPLER_POLYPHASE_SRC_RATIO_441_160_ROM,	// target:original = 441:160
+	RESAMPLER_POLYPHASE_SRC_RATIO_441_80_ROM,	// target:original = 441:80
+	RESAMPLER_POLYPHASE_SRC_RATIO_160_441_ROM,	// target:original = 160:441
+	RESAMPLER_POLYPHASE_SRC_RATIO_147_320_ROM,	// target:original = 147:320
+	RESAMPLER_POLYPHASE_SRC_RATIO_147_640_ROM,	// target:original = 147:640
+	RESAMPLER_POLYPHASE_SRC_RATIO_6_1_ROM,		// target:original = 6:1
+	RESAMPLER_POLYPHASE_SRC_RATIO_640_147_ROM,	// target:original = 640:147
+	RESAMPLER_POLYPHASE_SRC_RATIO_3_1_ROM,		// target:original = 3:1
+	RESAMPLER_POLYPHASE_SRC_RATIO_320_147_ROM,	// target:original = 320:147
+	RESAMPLER_POLYPHASE_SRC_RATIO_3_2_ROM,		// target:original = 3:2
+	RESAMPLER_POLYPHASE_SRC_RATIO_40_147_ROM,	// target:original = 40:147
+	RESAMPLER_POLYPHASE_SRC_RATIO_80_147_ROM,	// target:original = 80:147
+	RESAMPLER_POLYPHASE_SRC_RATIO_1_3_ROM,		// target:original = 1:3
+	RESAMPLER_POLYPHASE_SRC_RATIO_320_441_ROM,	// target:original = 320:441
+	RESAMPLER_POLYPHASE_SRC_RATIO_2_3_ROM,		// target:original = 2:3
+
+	RESAMPLER_POLYPHASE_SRC_RATIO_UNSUPPORTED_ROM = 0xff,
+} RESAMPLER_POLYPHASE_SRC_RATIO_ROM;
+
+//rom代码中固化的10种转采样
+RESAMPLER_POLYPHASE_SRC_RATIO_ROM GetRatioEnumRom(uint32_t Scale1000)
 {
 	switch(Scale1000)
 	{
+		case (1000 * 3 / 4):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_3_4_ROM;
+		case (1000 * 4 / 3):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_4_3_ROM;
+		case (1000 / 2):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_1_2_ROM;
+		case (1000 * 2):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_2_1_ROM;
+		case (1000 * 4):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_4_1_ROM;
+		case (1000 / 4):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_1_4_ROM;
+		case (1000 * 147 / 40):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_147_40_ROM;
+		case (1000 * 147 / 80):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_147_80_ROM;
+		case (1000 * 160 / 147):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_160_147_ROM;
+		case (1000 * 147 / 160):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_147_160_ROM;
+		case (1000 * 441 / 320):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_441_320_ROM;
+		case (1000 * 441 / 160):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_441_160_ROM;
+		case (1000 * 441 / 80):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_441_80_ROM;
+		case (1000 * 160 / 441):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_160_441_ROM;
+		case (1000 * 147 / 320):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_147_320_ROM;
+		case (1000 * 6):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_6_1_ROM;
+		case (1000 * 640 / 147):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_640_147_ROM;
+		case (1000 * 3):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_3_1_ROM;
+		case (1000 * 320 / 147):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_320_147_ROM;
+		case (1000 * 3 / 2):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_3_2_ROM;
+		case (1000 / 3):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_1_3_ROM;
+		case (1000 * 2 / 3):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_2_3_ROM;
+		default:
+			return RESAMPLER_POLYPHASE_SRC_RATIO_UNSUPPORTED_ROM;
+	}
+}
+#endif
+
+RESAMPLER_POLYPHASE_SRC_RATIO GetRatioEnumFlash(uint32_t Scale1000)
+{
+	switch(Scale1000)
+	{
+#if (BP15_ROM_VERSION != BP15_ROM_V2)
+		//flash
 		case (1000 * 6):
 			return RESAMPLER_POLYPHASE_SRC_RATIO_6_1;
 		case (1000 * 441 / 80):
@@ -89,6 +239,18 @@ RESAMPLER_POLYPHASE_SRC_RATIO GetRatioEnum(uint32_t Scale1000)
 			return RESAMPLER_POLYPHASE_SRC_RATIO_320_441;
 		case (1000 * 2 / 3):
 			return RESAMPLER_POLYPHASE_SRC_RATIO_2_3;
+#else
+/*****************************************************************/
+		case (1000 * 80 / 147):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_80_147;
+		case (1000 * 40 / 147):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_40_147;
+		case (1000 * 147 / 640):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_147_640;
+		case (1000 * 320 / 441):
+			return RESAMPLER_POLYPHASE_SRC_RATIO_320_441;
+#endif
+/*****************************************************************/
 		default:
 #ifdef AUDIO_CORE_DEBUG
 			if(Scale1000 != 1000)
@@ -99,6 +261,20 @@ RESAMPLER_POLYPHASE_SRC_RATIO GetRatioEnum(uint32_t Scale1000)
 			return RESAMPLER_POLYPHASE_SRC_RATIO_UNSUPPORTED;
 	}
 }
+
+bool GetRatioEnum(uint32_t Scale1000,int32_t *src_ratio)
+{
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+	*src_ratio = GetRatioEnumRom(Scale1000);
+	if(*src_ratio != RESAMPLER_POLYPHASE_SRC_RATIO_UNSUPPORTED_ROM)
+	{
+		return 1;	//使用rom中的转采样代码
+	}
+#endif
+	*src_ratio = GetRatioEnumFlash(Scale1000);
+	return 0;		//使用flash中的转采样代码
+}
+
 //根据转采样比例，输入数据和输出空间，获取合适的输入长度，返回 SRC_INPUT_MIN~MAX_FRAME_SAMPLES
 uint16_t	SRCValidLenGet(uint32_t SampleRateIn, uint32_t AudioLen, uint32_t SampleRateOut, uint32_t SpaceLen)
 {
@@ -303,7 +479,18 @@ bool AudioCoreSourceInit(AudioCoreIO * AudioIO, uint8_t Index)
 			if(SrcAdapter->SampleRate != AudioCore.SampleRate[AudioIO->Net])
 			{
 #ifndef CFG_FUNC_SRC_HIGHER_EN
-				resampler_polyphase_init(&SrcAdapter->SrcCt, AudioIO->Channels, GetRatioEnum(1000 * AudioCore.SampleRate[AudioIO->Net] / SrcAdapter->SampleRate));
+				int32_t src_ratio;
+				Source->SrcAdapterRomFlag = GetRatioEnum(1000 * AudioCore.SampleRate[AudioIO->Net] / SrcAdapter->SampleRate, &src_ratio);
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+				if(Source->SrcAdapterRomFlag)
+				{
+					resampler_rom_polyphase_init(&SrcAdapter->SrcCt, AudioIO->Channels, src_ratio);
+				}
+				else
+#endif
+				{
+					resampler_polyphase_init(&SrcAdapter->SrcCt, AudioIO->Channels, src_ratio);
+				}
 #else
 				resampler_init(&SrcAdapter->SrcCt,AudioIO->Channels,SrcAdapter->SampleRate,AudioCore.SampleRate[AudioIO->Net],1,0);
 #endif
@@ -450,7 +637,14 @@ bool AudioCoreSourceInit(AudioCoreIO * AudioIO, uint8_t Index)
 			if(SrcAdapter->SampleRate != AudioCore.SampleRate[AudioIO->Net])
 			{
 #ifndef CFG_FUNC_SRC_HIGHER_EN
-				resampler_polyphase_init(&SrcAdapter->SrcCt, AudioIO->Channels, GetRatioEnum(1000 * AudioCore.SampleRate[AudioIO->Net] / SrcAdapter->SampleRate));
+				int32_t src_ratio;
+				Source->SrcAdapterRomFlag = GetRatioEnum(1000 * AudioCore.SampleRate[AudioIO->Net] / SrcAdapter->SampleRate,&src_ratio);
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+				if(Source->SrcAdapterRomFlag)
+					resampler_rom_polyphase_init(&SrcAdapter->SrcCt, AudioIO->Channels, src_ratio);
+				else
+#endif
+					resampler_polyphase_init(&SrcAdapter->SrcCt, AudioIO->Channels, src_ratio);
 #else
 				resampler_init(&SrcAdapter->SrcCt,AudioIO->Channels,SrcAdapter->SampleRate,AudioCore.SampleRate[AudioIO->Net],1,0);
 #endif
@@ -514,7 +708,14 @@ bool AudioCoreSourceInit(AudioCoreIO * AudioIO, uint8_t Index)
 			if(SrcAdapter->SampleRate != AudioCore.SampleRate[AudioIO->Net])
 			{
 #ifndef CFG_FUNC_SRC_HIGHER_EN
-				resampler_polyphase_init(&SrcAdapter->SrcCt, AudioIO->Channels, GetRatioEnum(1000 * AudioCore.SampleRate[AudioIO->Net] / SrcAdapter->SampleRate));
+				int32_t src_ratio;
+				Source->SrcAdapterRomFlag = GetRatioEnum(1000 * AudioCore.SampleRate[AudioIO->Net] / SrcAdapter->SampleRate,&src_ratio);
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+				if(Source->SrcAdapterRomFlag)
+					resampler_rom_polyphase_init(&SrcAdapter->SrcCt, AudioIO->Channels, src_ratio);
+				else
+#endif
+					resampler_polyphase_init(&SrcAdapter->SrcCt, AudioIO->Channels, src_ratio);
 #else
 				resampler_init(&SrcAdapter->SrcCt,AudioIO->Channels,SrcAdapter->SampleRate,AudioCore.SampleRate[AudioIO->Net],1,0);
 #endif
@@ -678,7 +879,14 @@ bool AudioCoreSinkInit(AudioCoreIO * AudioIO, uint8_t Index)
 			if(SrcAdapter->SampleRate != AudioCore.SampleRate[AudioIO->Net])
 			{
 #ifndef CFG_FUNC_SRC_HIGHER_EN
-				resampler_polyphase_init(&SrcAdapter->SrcCt, AudioIO->Channels, GetRatioEnum(1000 * SrcAdapter->SampleRate / AudioCore.SampleRate[AudioIO->Net]));
+				int32_t src_ratio;
+				Sink->SrcAdapterRomFlag = GetRatioEnum(1000 * SrcAdapter->SampleRate / AudioCore.SampleRate[AudioIO->Net],&src_ratio);
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+				if(Sink->SrcAdapterRomFlag)
+					resampler_rom_polyphase_init(&SrcAdapter->SrcCt, AudioIO->Channels, src_ratio);
+				else
+#endif
+					resampler_polyphase_init(&SrcAdapter->SrcCt, AudioIO->Channels, src_ratio);
 #else
 				resampler_init(&SrcAdapter->SrcCt,AudioIO->Channels,AudioCore.SampleRate[AudioIO->Net],SrcAdapter->SampleRate,1,0);
 #endif
@@ -844,7 +1052,14 @@ bool AudioCoreSinkInit(AudioCoreIO * AudioIO, uint8_t Index)
 			if(SrcAdapter->SampleRate != AudioCore.SampleRate[AudioIO->Net])
 			{
 #ifndef CFG_FUNC_SRC_HIGHER_EN
-				resampler_polyphase_init(&SrcAdapter->SrcCt, AudioIO->Channels, GetRatioEnum(1000 * SrcAdapter->SampleRate / AudioCore.SampleRate[AudioIO->Net]));
+				int32_t src_ratio;
+				Sink->SrcAdapterRomFlag = GetRatioEnum(1000 * SrcAdapter->SampleRate / AudioCore.SampleRate[AudioIO->Net],&src_ratio);
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+				if(Sink->SrcAdapterRomFlag)
+					resampler_rom_polyphase_init(&SrcAdapter->SrcCt, AudioIO->Channels, src_ratio);
+				else
+#endif
+					resampler_polyphase_init(&SrcAdapter->SrcCt, AudioIO->Channels, src_ratio);
 #else
 				resampler_init(&SrcAdapter->SrcCt,AudioIO->Channels,AudioCore.SampleRate[AudioIO->Net],SrcAdapter->SampleRate,1,0);
 #endif
@@ -913,7 +1128,14 @@ bool AudioCoreSinkInit(AudioCoreIO * AudioIO, uint8_t Index)
 			if(SrcAdapter->SampleRate != AudioCore.SampleRate[AudioIO->Net])
 			{
 #ifndef CFG_FUNC_SRC_HIGHER_EN
-				resampler_polyphase_init(&SrcAdapter->SrcCt, AudioIO->Channels, GetRatioEnum(1000 * SrcAdapter->SampleRate / AudioCore.SampleRate[AudioIO->Net]));
+				int32_t src_ratio;
+				Sink->SrcAdapterRomFlag = GetRatioEnum(1000 * SrcAdapter->SampleRate / AudioCore.SampleRate[AudioIO->Net],&src_ratio);
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+				if(Sink->SrcAdapterRomFlag)
+					resampler_rom_polyphase_init(&SrcAdapter->SrcCt, AudioIO->Channels, src_ratio);
+				else
+#endif
+					resampler_polyphase_init(&SrcAdapter->SrcCt, AudioIO->Channels, src_ratio);
 #else
 				resampler_init(&SrcAdapter->SrcCt,AudioIO->Channels,AudioCore.SampleRate[AudioIO->Net],SrcAdapter->SampleRate,1,0);
 #endif
@@ -1112,8 +1334,18 @@ void AudioCoreIOLenProcess(void)
 								if(Source->BitWidth == PCM_DATA_24BIT_WIDTH)
 								{
 							#ifndef	CFG_FUNC_SRC_HIGHER_EN
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+								if(Source->SrcAdapterRomFlag)
+								{
+									SrcAudioLen = resampler_rom_polyphase_apply24(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+									if(SrcAudioLen < 0) SrcAudioLen = 0;
+								}
+								else
+#endif
+								{
 									SrcAudioLen = resampler_polyphase_apply24(&SrcAdapter->SrcCt, (int32_t *)AudioCore.AdaptIn, (int32_t *)AudioCore.AdaptOut, SrcAudioLen);
 									if(SrcAudioLen < 0) SrcAudioLen = 0;
+								}
 							#else
 									AudioCorePcmDataBitWidthConv((int32_t *)AudioCore.AdaptIn,SrcAudioLen * PcmDataLen,PCM_DATA_24BIT_WIDTH);
 									SrcAudioLen = resampler_apply(&SrcAdapter->SrcCt,(int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
@@ -1126,8 +1358,18 @@ void AudioCoreIOLenProcess(void)
 							#endif
 								{
 							#ifndef	CFG_FUNC_SRC_HIGHER_EN
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+								if(Source->SrcAdapterRomFlag)
+								{
+									SrcAudioLen = resampler_rom_polyphase_apply(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+									if(SrcAudioLen < 0) SrcAudioLen = 0;
+								}
+								else
+#endif
+								{
 									SrcAudioLen = resampler_polyphase_apply(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
 									if(SrcAudioLen < 0) SrcAudioLen = 0;
+								}
 							#else
 									SrcAudioLen = resampler_apply(&SrcAdapter->SrcCt,(int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
 									if(SrcAudioLen < 0) SrcAudioLen = 0;
@@ -1238,8 +1480,18 @@ void AudioCoreIOLenProcess(void)
 								if(Source->BitWidth == PCM_DATA_24BIT_WIDTH)
 								{
 #ifndef	CFG_FUNC_SRC_HIGHER_EN
-									SrcAudioLen = resampler_polyphase_apply24(&SrcAdapter->SrcCt, (int32_t *)AudioCore.AdaptIn, (int32_t *)AudioCore.AdaptOut, SrcAudioLen);
-									if(SrcAudioLen < 0) SrcAudioLen = 0;
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+									if(Source->SrcAdapterRomFlag)
+									{
+										SrcAudioLen = resampler_rom_polyphase_apply24(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+										if(SrcAudioLen < 0) SrcAudioLen = 0;
+									}
+									else
+#endif
+									{
+										SrcAudioLen = resampler_polyphase_apply24(&SrcAdapter->SrcCt, (int32_t *)AudioCore.AdaptIn, (int32_t *)AudioCore.AdaptOut, SrcAudioLen);
+										if(SrcAudioLen < 0) SrcAudioLen = 0;
+									}
 #else
 									AudioCorePcmDataBitWidthConv((int32_t *)AudioCore.AdaptIn,SrcAudioLen * PcmDataLen,PCM_DATA_24BIT_WIDTH);
 									SrcAudioLen = resampler_apply(&SrcAdapter->SrcCt,(int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
@@ -1252,8 +1504,18 @@ void AudioCoreIOLenProcess(void)
 							#endif
 								{
 #ifndef	CFG_FUNC_SRC_HIGHER_EN
-									SrcAudioLen = resampler_polyphase_apply(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
-									if(SrcAudioLen < 0) SrcAudioLen = 0;
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+									if(Source->SrcAdapterRomFlag)
+									{
+										SrcAudioLen = resampler_rom_polyphase_apply(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+										if(SrcAudioLen < 0) SrcAudioLen = 0;
+									}
+									else
+#endif
+									{
+										SrcAudioLen = resampler_polyphase_apply(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+										if(SrcAudioLen < 0) SrcAudioLen = 0;
+									}
 #else
 									SrcAudioLen = resampler_apply(&SrcAdapter->SrcCt,(int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
 									if(SrcAudioLen < 0) SrcAudioLen = 0;
@@ -1372,8 +1634,18 @@ void AudioCoreIOLenProcess(void)
 								if(Sink->BitWidth == PCM_DATA_24BIT_WIDTH)
 								{
 #ifndef	CFG_FUNC_SRC_HIGHER_EN
-									SrcAudioLen = resampler_polyphase_apply24(&SrcAdapter->SrcCt, (int32_t *)AudioCore.AdaptIn, (int32_t *)AudioCore.AdaptOut, SrcAudioLen);
-									if(SrcAudioLen < 0) SrcAudioLen = 0;
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+									if(Source->SrcAdapterRomFlag)
+									{
+										SrcAudioLen = resampler_rom_polyphase_apply24(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+										if(SrcAudioLen < 0) SrcAudioLen = 0;
+									}
+									else
+#endif
+									{
+										SrcAudioLen = resampler_polyphase_apply24(&SrcAdapter->SrcCt, (int32_t *)AudioCore.AdaptIn, (int32_t *)AudioCore.AdaptOut, SrcAudioLen);
+										if(SrcAudioLen < 0) SrcAudioLen = 0;
+									}
 #else
 									AudioCorePcmDataBitWidthConv((int32_t *)AudioCore.AdaptIn,SrcAudioLen * PcmDataLen,PCM_DATA_24BIT_WIDTH);
 									SrcAudioLen = resampler_apply(&SrcAdapter->SrcCt,(int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
@@ -1386,8 +1658,18 @@ void AudioCoreIOLenProcess(void)
 					#endif
 								{
 #ifndef	CFG_FUNC_SRC_HIGHER_EN
-									SrcAudioLen = resampler_polyphase_apply(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
-									if(SrcAudioLen < 0) SrcAudioLen = 0;
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+									if(Sink->SrcAdapterRomFlag)
+									{
+										SrcAudioLen = resampler_rom_polyphase_apply(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+										if(SrcAudioLen < 0) SrcAudioLen = 0;
+									}
+									else
+#endif
+									{
+										SrcAudioLen = resampler_polyphase_apply(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+										if(SrcAudioLen < 0) SrcAudioLen = 0;
+									}
 #else
 									SrcAudioLen = resampler_apply(&SrcAdapter->SrcCt,(int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
 									if(SrcAudioLen < 0) SrcAudioLen = 0;
@@ -1422,6 +1704,7 @@ void AudioCoreIOLenProcess(void)
 								Sink->DataSetFunc(AudioCore.AdaptOut, SrcAudioLen);
 							}
 						}
+
 						if(MCUCircular_GetSpaceLen(&SrcAdapter->SrcBufHandler) / PcmDataLen >= SINKFRAME(Index))
 						{
 							SINK_BIT_EN(AudioCore.FrameReady, Index);
@@ -1531,7 +1814,7 @@ void AudioCoreIOLenProcess(void)
 							{
 								SraAudioLen = MCUCircular_GetData(&AdjAdapter->SraBufHandler, AudioCore.AdaptIn, SraAudioLen * PcmDataLen) / PcmDataLen;
 								//sra_apply(&AdjAdapter->SraCt, AudioCore.AdaptIn, AudioCore.AdaptOut, AdjAdapter->AdjustVal);
-//								printf("val %d Sra %d %d\n",AdjAdapter->AdjustVal,SraAudioLen,AdjAdapter->SraResFarCt.kc);
+//								printf("val %d Sra %d\n",AdjAdapter->AdjustVal,SraAudioLen);
 				#ifdef CFG_AUDIO_WIDTH_24BIT
 								if(Sink->BitWidth == PCM_DATA_24BIT_WIDTH)
 									resampler_farrow_over_frames_apply24(&AdjAdapter->SraResFarCt, (int32_t *)AudioCore.AdaptIn, (int32_t *)AudioCore.AdaptOut, ADJUST_GROUP_FRAME(AdjAdapter->AdjustVal), AdjAdapter->AdjustVal,128, (int32_t*)&SraAudioLen);
@@ -1579,7 +1862,12 @@ void AudioCoreIOLenProcess(void)
 								if(Sink->BitWidth == PCM_DATA_24BIT_WIDTH)
 								{
 #ifndef	CFG_FUNC_SRC_HIGHER_EN
-									SrcAudioLen = resampler_polyphase_apply24(&SrcAdapter->SrcCt, (int32_t *)AudioCore.AdaptIn, (int32_t *)AudioCore.AdaptOut, SrcAudioLen);
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+									if(Source->SrcAdapterRomFlag)
+										SrcAudioLen = resampler_rom_polyphase_apply24(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+									else
+#endif
+										SrcAudioLen = resampler_polyphase_apply24(&SrcAdapter->SrcCt, (int32_t *)AudioCore.AdaptIn, (int32_t *)AudioCore.AdaptOut, SrcAudioLen);
 									if(SrcAudioLen < 0) SrcAudioLen = 0;
 #else
 									AudioCorePcmDataBitWidthConv((int32_t *)AudioCore.AdaptIn,SrcAudioLen * PcmDataLen,PCM_DATA_24BIT_WIDTH);
@@ -1593,7 +1881,12 @@ void AudioCoreIOLenProcess(void)
 						#endif
 								{
 #ifndef	CFG_FUNC_SRC_HIGHER_EN
-									SrcAudioLen = resampler_polyphase_apply(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+									if(Sink->SrcAdapterRomFlag)
+										SrcAudioLen = resampler_rom_polyphase_apply(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+									else
+#endif
+										SrcAudioLen = resampler_polyphase_apply(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
 									if(SrcAudioLen < 0) SrcAudioLen = 0;
 #else
 									SrcAudioLen = resampler_apply(&SrcAdapter->SrcCt,(int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
@@ -1900,7 +2193,7 @@ void AudioCoreSourceGet(uint8_t Index)
 					uint32_t ValidDepth = ((uint64_t)AudioCore.SampleRate[AudioCore.AudioSource[Index].Net] * AdjAdapter->Depth) / SrcAdapter->SampleRate
 											+ SrcAdapter->SrcBufHandler.BufDepth / PcmDataLen
 											- SOURCEFRAME(Index);
-//					printf("\n %d %d val %d\n",ValidDepth,AdjAdapter->TotalNum / AdjAdapter->Count,AdjAdapter->AdjustVal);
+//					printf("%d Source %d %d val %d\n",MasterSlaveFlag,ValidDepth,AdjAdapter->TotalNum / AdjAdapter->Count,AdjAdapter->AdjustVal);
 #ifndef CFG_FUNC_USB_ADJUST_UNION_EN
 					ClkAdjust(AdjAdapter, ValidDepth, 1);
 #else
@@ -2126,6 +2419,7 @@ bool AudioCoreSourceSync(void)
 					SOURCE_BIT_DIS(AudioCore.FrameReady, i);
 					AudioCore.AudioSource[i].Active = TRUE;
 					AudioCoreSourceGet(i);
+					AudioCore.AudioSource[i].FrameReady = TRUE;
 				}
 			}
 
@@ -2188,7 +2482,14 @@ void AudioCoreSourceChange(uint8_t Index, uint8_t Channels, uint32_t SampleRate)
 		if(SampleRate != AudioCore.SampleRate[AudioCore.AudioSource[Index].Net])
 		{
 #ifndef CFG_FUNC_SRC_HIGHER_EN
-			resampler_polyphase_init(&SrcAdapter->SrcCt, AudioCore.AudioSource[Index].Channels, GetRatioEnum(1000 * AudioCore.SampleRate[AudioCore.AudioSource[Index].Net] / SrcAdapter->SampleRate));
+			int32_t src_ratio;
+			AudioCore.AudioSource[Index].SrcAdapterRomFlag = GetRatioEnum(1000 * AudioCore.SampleRate[AudioCore.AudioSource[Index].Net] / SrcAdapter->SampleRate,&src_ratio);
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+			if(AudioCore.AudioSource[Index].SrcAdapterRomFlag)
+				resampler_rom_polyphase_init(&SrcAdapter->SrcCt, AudioCore.AudioSource[Index].Channels, src_ratio);
+			else
+#endif
+				resampler_polyphase_init(&SrcAdapter->SrcCt, AudioCore.AudioSource[Index].Channels, src_ratio);
 #else
 			resampler_init(&SrcAdapter->SrcCt,AudioCore.AudioSource[Index].Channels,SampleRate,AudioCore.SampleRate[AudioCore.AudioSource[Index].Net],1,0);
 #endif
@@ -2208,7 +2509,6 @@ void AudioCoreSourceFifoReset(uint8_t Index)
 	{
 		return;
 	}
-
 	switch(Adapt)
 	{
 		case STD:
@@ -2225,7 +2525,14 @@ void AudioCoreSourceFifoReset(uint8_t Index)
 			if(SrcAdapter->SampleRate != AudioCore.SampleRate[AudioCore.AudioSource[Index].Net])
 			{
 	#ifndef CFG_FUNC_SRC_HIGHER_EN
-				resampler_polyphase_init(&SrcAdapter->SrcCt, AudioCore.AudioSource[Index].Channels, GetRatioEnum(1000 * AudioCore.SampleRate[AudioCore.AudioSource[Index].Net] / SrcAdapter->SampleRate));
+				int32_t src_ratio;
+				AudioCore.AudioSource[Index].SrcAdapterRomFlag = GetRatioEnum(1000 * AudioCore.SampleRate[AudioCore.AudioSource[Index].Net] / SrcAdapter->SampleRate,&src_ratio);
+	#if (BP15_ROM_VERSION == BP15_ROM_V2)
+				if(AudioCore.AudioSource[Index].SrcAdapterRomFlag)
+					resampler_rom_polyphase_init(&SrcAdapter->SrcCt, AudioCore.AudioSource[Index].Channels, src_ratio);
+				else
+	#endif
+					resampler_polyphase_init(&SrcAdapter->SrcCt, AudioCore.AudioSource[Index].Channels, src_ratio);
 	#else
 				resampler_init(&SrcAdapter->SrcCt,AudioCore.AudioSource[Index].Channels,SrcAdapter->SampleRate,AudioCore.SampleRate[AudioCore.AudioSource[Index].Net],1,0);
 	#endif
@@ -2252,7 +2559,14 @@ void AudioCoreSourceFifoReset(uint8_t Index)
 			if(SrcAdapter->SampleRate != AudioCore.SampleRate[AudioCore.AudioSource[Index].Net])
 			{
 	#ifndef CFG_FUNC_SRC_HIGHER_EN
-				resampler_polyphase_init(&SrcAdapter->SrcCt, AudioCore.AudioSource[Index].Channels, GetRatioEnum(1000 * AudioCore.SampleRate[AudioCore.AudioSource[Index].Net] / SrcAdapter->SampleRate));
+				int32_t src_ratio;
+				AudioCore.AudioSource[Index].SrcAdapterRomFlag = GetRatioEnum(1000 * AudioCore.SampleRate[AudioCore.AudioSource[Index].Net] / SrcAdapter->SampleRate,&src_ratio);
+	#if (BP15_ROM_VERSION == BP15_ROM_V2)
+				if(AudioCore.AudioSource[Index].SrcAdapterRomFlag)
+					resampler_rom_polyphase_init(&SrcAdapter->SrcCt, AudioCore.AudioSource[Index].Channels, src_ratio);
+				else
+	#endif
+					resampler_polyphase_init(&SrcAdapter->SrcCt, AudioCore.AudioSource[Index].Channels, src_ratio);
 	#else
 				resampler_init(&SrcAdapter->SrcCt,AudioCore.AudioSource[Index].Channels,SrcAdapter->SampleRate,AudioCore.SampleRate[AudioCore.AudioSource[Index].Net],1,0);
 	#endif
@@ -2291,7 +2605,14 @@ void AudioCoreSinkChange(uint8_t Index, uint8_t Channels, uint32_t SampleRate)
 		if(SampleRate != AudioCore.SampleRate[AudioCore.AudioSink[Index].Net])
 		{
 #ifndef CFG_FUNC_SRC_HIGHER_EN
-			resampler_polyphase_init(&SrcAdapter->SrcCt, AudioCore.AudioSink[Index].Channels, GetRatioEnum(1000 * SrcAdapter->SampleRate / AudioCore.SampleRate[AudioCore.AudioSink[Index].Net]));
+			int32_t src_ratio;
+			AudioCore.AudioSink[Index].SrcAdapterRomFlag = GetRatioEnum(1000 * SrcAdapter->SampleRate / AudioCore.SampleRate[AudioCore.AudioSink[Index].Net],&src_ratio);
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+			if(AudioCore.AudioSink[Index].SrcAdapterRomFlag)
+				resampler_rom_polyphase_init(&SrcAdapter->SrcCt, AudioCore.AudioSink[Index].Channels,src_ratio );
+			else
+#endif
+				resampler_polyphase_init(&SrcAdapter->SrcCt, AudioCore.AudioSink[Index].Channels,src_ratio );
 #else
 			resampler_init(&SrcAdapter->SrcCt,AudioCore.AudioSink[Index].Channels,AudioCore.SampleRate[AudioCore.AudioSink[Index].Net],SrcAdapter->SampleRate,1,0);
 #endif
@@ -2327,7 +2648,14 @@ void AudioCoreSinkFifoReset(uint8_t Index)
 			if(SrcAdapter->SampleRate != AudioCore.SampleRate[AudioCore.AudioSink[Index].Net])
 			{
 	#ifndef CFG_FUNC_SRC_HIGHER_EN
-				resampler_polyphase_init(&SrcAdapter->SrcCt, AudioCore.AudioSink[Index].Channels, GetRatioEnum(1000 * SrcAdapter->SampleRate / AudioCore.SampleRate[AudioCore.AudioSink[Index].Net]));
+				int32_t src_ratio;
+				AudioCore.AudioSink[Index].SrcAdapterRomFlag = GetRatioEnum(1000 * SrcAdapter->SampleRate / AudioCore.SampleRate[AudioCore.AudioSink[Index].Net],&src_ratio);
+	#if (BP15_ROM_VERSION == BP15_ROM_V2)
+				if(AudioCore.AudioSink[Index].SrcAdapterRomFlag)
+					resampler_rom_polyphase_init(&SrcAdapter->SrcCt, AudioCore.AudioSink[Index].Channels,src_ratio );
+				else
+	#endif
+					resampler_polyphase_init(&SrcAdapter->SrcCt, AudioCore.AudioSink[Index].Channels,src_ratio );
 	#else
 				resampler_init(&SrcAdapter->SrcCt,AudioCore.AudioSink[Index].Channels,AudioCore.SampleRate[AudioCore.AudioSink[Index].Net],SrcAdapter->SampleRate,1,0);
 	#endif
@@ -2354,7 +2682,14 @@ void AudioCoreSinkFifoReset(uint8_t Index)
 			if(SrcAdapter->SampleRate != AudioCore.SampleRate[AudioCore.AudioSink[Index].Net])
 			{
 	#ifndef CFG_FUNC_SRC_HIGHER_EN
-				resampler_polyphase_init(&SrcAdapter->SrcCt, AudioCore.AudioSink[Index].Channels, GetRatioEnum(1000 * SrcAdapter->SampleRate / AudioCore.SampleRate[AudioCore.AudioSink[Index].Net]));
+				int32_t src_ratio;
+				AudioCore.AudioSink[Index].SrcAdapterRomFlag = GetRatioEnum(1000 * SrcAdapter->SampleRate / AudioCore.SampleRate[AudioCore.AudioSink[Index].Net],&src_ratio);
+	#if (BP15_ROM_VERSION == BP15_ROM_V2)
+				if(AudioCore.AudioSink[Index].SrcAdapterRomFlag)
+					resampler_rom_polyphase_init(&SrcAdapter->SrcCt, AudioCore.AudioSink[Index].Channels,src_ratio );
+				else
+	#endif
+					resampler_polyphase_init(&SrcAdapter->SrcCt, AudioCore.AudioSink[Index].Channels,src_ratio );
 	#else
 				resampler_init(&SrcAdapter->SrcCt,AudioCore.AudioSink[Index].Channels,AudioCore.SampleRate[AudioCore.AudioSink[Index].Net],SrcAdapter->SampleRate,1,0);
 	#endif
@@ -2558,6 +2893,7 @@ uint16_t AudioCoreFrameSizeGet(MIX_NET MixNet)
 void AudioCoreMixSampleRateSet(MIX_NET MixNet, uint32_t SampleRate)
 {
 	uint8_t i;
+	int32_t src_ratio;
 
 	if(AudioCore.SampleRate[MixNet] != SampleRate)
 	{
@@ -2567,7 +2903,13 @@ void AudioCoreMixSampleRateSet(MIX_NET MixNet, uint32_t SampleRate)
 			if(AudioCore.AudioSource[i].SrcAdapter && AudioCore.AudioSource[i].Net == MixNet)
 			{
 #ifndef CFG_FUNC_SRC_HIGHER_EN
-				resampler_polyphase_init(&(AudioCore.AudioSource[i].SrcAdapter->SrcCt), AudioCore.AudioSource[i].Channels, GetRatioEnum(1000 * SampleRate / AudioCore.AudioSource[i].SrcAdapter->SampleRate));
+				AudioCore.AudioSource[i].SrcAdapterRomFlag = GetRatioEnum(1000 * SampleRate / AudioCore.AudioSource[i].SrcAdapter->SampleRate,&src_ratio);
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+				if(AudioCore.AudioSource[i].SrcAdapterRomFlag)
+					resampler_rom_polyphase_init(&(AudioCore.AudioSource[i].SrcAdapter->SrcCt), AudioCore.AudioSource[i].Channels,src_ratio);
+				else
+#endif
+					resampler_polyphase_init(&(AudioCore.AudioSource[i].SrcAdapter->SrcCt), AudioCore.AudioSource[i].Channels,src_ratio);
 #else
 				resampler_init(&(AudioCore.AudioSource[i].SrcAdapter->SrcCt),AudioCore.AudioSource[i].Channels,AudioCore.AudioSource[i].SrcAdapter->SampleRate,SampleRate,1,0);
 #endif
@@ -2578,7 +2920,13 @@ void AudioCoreMixSampleRateSet(MIX_NET MixNet, uint32_t SampleRate)
 			if(AudioCore.AudioSink[i].SrcAdapter && AudioCore.AudioSink[i].Net == MixNet)
 			{
 #ifndef CFG_FUNC_SRC_HIGHER_EN
-				resampler_polyphase_init(&(AudioCore.AudioSink[i].SrcAdapter->SrcCt), AudioCore.AudioSink[i].Channels, GetRatioEnum(1000 * AudioCore.AudioSink[i].SrcAdapter->SampleRate / SampleRate));
+				AudioCore.AudioSink[i].SrcAdapterRomFlag = GetRatioEnum(1000 * AudioCore.AudioSink[i].SrcAdapter->SampleRate / SampleRate,&src_ratio);
+#if (BP15_ROM_VERSION == BP15_ROM_V2)
+				if(AudioCore.AudioSink[i].SrcAdapterRomFlag)
+					resampler_rom_polyphase_init(&(AudioCore.AudioSink[i].SrcAdapter->SrcCt), AudioCore.AudioSink[i].Channels, src_ratio);
+				else
+#endif
+					resampler_polyphase_init(&(AudioCore.AudioSink[i].SrcAdapter->SrcCt), AudioCore.AudioSink[i].Channels, src_ratio);
 #else
 				resampler_init(&(AudioCore.AudioSink[i].SrcAdapter->SrcCt), AudioCore.AudioSink[i].Channels,SampleRate,AudioCore.AudioSink[i].SrcAdapter->SampleRate,1,0);
 #endif

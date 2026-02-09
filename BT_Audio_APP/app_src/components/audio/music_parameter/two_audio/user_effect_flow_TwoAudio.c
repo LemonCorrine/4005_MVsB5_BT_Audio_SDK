@@ -1,12 +1,12 @@
 /***************************************************
  * @file    user_effect_flow_TwoAudio.c                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.16.6                  
+ * @author  ACPWorkbench: 3.19.1  
  * @version V1.2.0                                 
  * @graphics: TwoAudio   
- * @Effect Version: 2.45.6
- * @RoboEffect Version: 2.28.0
- * @Created 2025-03-11T17:06:28                                      
+ * @Effect Version: 2.49.0
+ * @RoboEffect Version: 2.32.0
+ * @Created 2025-10-09T15:50:37                                      
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
 
@@ -177,13 +177,19 @@ uint32_t get_user_effects_script_len_TwoAudio(void)
 char *parameter_group_name_TwoAudio[1] = { "Mic" };
 
 const unsigned char user_effect_parameters_TwoAudio_Mic[] = {
-0x82, 0x03, /*total data length*/
-0x02, 0x2d, 0x06, /*Effect Version*/
+0x9f, 0x03, /*total data length*/
+0x02, 0x31, 0x00, /*Effect Version*/
 
-0x02, 0x1c, 0x00, /* Roboeffect Version*/
+0x02, 0x20, 0x00, /* Roboeffect Version*/
 
-0x01, 0x00, /*3rd part data total length  */
-0x00, /*number of 3rd part items*/
+0x1e, 0x00, /*3rd part data total length  */
+0x02, /*number of 3rd part items*/
+0x0a, /* ai_denoise name length*/
+0x01, 0x02, 0x00, /* effect version*/
+0x61, 0x69, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x69, 0x73, 0x65, /* ai_denoise*/
+0x0b, /* simple_gain name length*/
+0x01, 0x00, 0x00, /* effect version*/
+0x73, 0x69, 0x6d, 0x70, 0x6c, 0x65, 0x5f, 0x67, 0x61, 0x69, 0x6e, /* simple_gain*/
 0x81, /*upmix_1to2_0*/
 0x01,/*length*/
 0x01, /*enable*/

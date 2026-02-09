@@ -21,32 +21,25 @@
 */
 bool roboeffect_simple_gain_init_if(void *node)
 {
-//	uint8_t *context_ptr;
+	uint8_t *context_ptr;
 	roboeffect_user_defined_effect_info info;
 	simple_gain_struct *gain_info;
 
 	/**
-	 * get information struct from instance
+	 * get information struct from instance and save to info
 	*/
 	roboeffect_user_defined_get_info(node, &info);
 
 	/**
-	 * get user defined struct context
+	 * get user defined context memory
 	*/
 	gain_info = info.context_memory;
 
 	/**
-	 * dummy initialize the context of the user_gain
+	 * initialize the context of the effect
 	*/
 	gain_info->data_a = 0xAB;
 	gain_info->data_b = 0xCD;
-
-	/**
-	 * get additional memory pointer
-	*/
-	gain_info->ptr = roboeffect_user_defined_malloc(node, 16);
-
-	/*Use gain_info->ptr to cache something*/
 
 	// printf("%s called.", __func__);
 	return TRUE;
@@ -54,9 +47,10 @@ bool roboeffect_simple_gain_init_if(void *node)
 
 bool roboeffect_simple_gain_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len)
 {
+	int ret;
 	uint8_t method_flag = 0;
 	roboeffect_user_defined_effect_info info;
-//	simple_gain_struct *gain_info;
+	simple_gain_struct *gain_info;
 
 	/**
 	 * check parameters and update to effect instance
@@ -74,11 +68,11 @@ bool roboeffect_simple_gain_config_if(void *node, int16_t *new_param, uint8_t pa
 	/**
 	 * get user defined struct context
 	*/
-//	gain_info = info.context_memory;
+	gain_info = info.context_memory;
 
 	if((method_flag & METHOD_CFG_1) && info.is_active)
 	{
-
+		//Call APIs for changed parameters that have the METHOD_CFG_1 tag.
 	}
 
 	return TRUE;
@@ -92,10 +86,10 @@ static inline uint32_t db_to_scaling(float db, uint32_t scaling_max)
 
 bool roboeffect_simple_gain_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n)
 {
-	int s;
-	int32_t pregain, *pcm_in_24 = (int32_t*)pcm_in1, *pcm_out_24 = (int32_t*)pcm_out;
+	int i, s;
+	int32_t pregain, *pcm_in_24 = (int32_t*)pcm_in1, *pcm_out_24 = (int32_t*)pcm_out, block, bits_with;
 	roboeffect_user_defined_effect_info info;
-//	simple_gain_struct *gain_info;
+	simple_gain_struct *gain_info;
 
 	/**
 	 * get information struct from instance
@@ -105,44 +99,58 @@ bool roboeffect_simple_gain_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_
 	/**
 	 * get user defined struct context
 	*/
-//	gain_info = info.context_memory;
+	gain_info = info.context_memory;
 	
 	/**
 	 * apply data
 	*/
 
-	//info.parameters[0] is a dB, convert it to Q12.
-	
+	//info.parameters[0] is dB, convert it to Q3.12.
 	pregain = db_to_scaling(((float)info.parameters[1])/100, SCALING_Q12_MAX);
 
-	if(info.width == BITS_24)
+	//apply effect in segments
+	block = n / info.framesize_running;
+
+	bits_with = (info.width == BITS_24) ? (2) : (1);
+
+	//process gain controller
+	if(block > 0)
 	{
-		for(s = 0; s < n; s++)
+		while(block--)
 		{
-			if(info.ch_num == 2)
+			if(info.width == BITS_24)
 			{
-				pcm_out_24[2 * s + 0] = __nds32__clips((((int64_t)pcm_in_24[2 * s + 0] * pregain + 2048) >> 12), (24)-1);
-				pcm_out_24[2 * s + 1] = __nds32__clips((((int64_t)pcm_in_24[2 * s + 1] * pregain + 2048) >> 12), (24)-1);
+				for(s = 0; s < n; s++)
+				{
+					if(info.ch_num == 2)
+					{
+						pcm_out_24[2 * s + 0] = __nds32__clips((((int64_t)pcm_in_24[2 * s + 0] * pregain + 2048) >> 12), (24)-1);
+						pcm_out_24[2 * s + 1] = __nds32__clips((((int64_t)pcm_in_24[2 * s + 1] * pregain + 2048) >> 12), (24)-1);
+					}
+					else
+					{
+						pcm_out_24[s] = __nds32__clips((((int64_t)pcm_in_24[s] * pregain + 2048) >> 12), (24)-1);
+					}
+				}
 			}
-			else
+			else if(info.width == BITS_16)
 			{
-				pcm_out_24[s] = __nds32__clips((((int64_t)pcm_in_24[s] * pregain + 2048) >> 12), (24)-1);
+				for(s = 0; s < n; s++)
+				{
+					if(info.ch_num == 2)
+					{
+						pcm_out[2 * s + 0] = __nds32__clips((((int32_t)pcm_in1[2 * s + 0] * pregain + 2048) >> 12), (16)-1);
+						pcm_out[2 * s + 1] = __nds32__clips((((int32_t)pcm_in1[2 * s + 1] * pregain + 2048) >> 12), (16)-1);
+					}
+					else
+					{
+						pcm_out[s] = __nds32__clips((((int32_t)pcm_in1[s] * pregain + 2048) >> 12), (16)-1);
+					}
+				}
 			}
-		}
-	}
-	else if(info.width == BITS_16)
-	{
-		for(s = 0; s < n; s++)
-		{
-			if(info.ch_num == 2)
-			{
-				pcm_out[2 * s + 0] = __nds32__clips((((int32_t)pcm_in1[2 * s + 0] * pregain + 2048) >> 12), (16)-1);
-				pcm_out[2 * s + 1] = __nds32__clips((((int32_t)pcm_in1[2 * s + 1] * pregain + 2048) >> 12), (16)-1);
-			}
-			else
-			{
-				pcm_out[s] = __nds32__clips((((int32_t)pcm_in1[s] * pregain + 2048) >> 12), (16)-1);
-			}
+
+			pcm_in1 += info.framesize_running * info.ch_num * bits_with;
+			pcm_out += info.framesize_running * info.ch_num * bits_with;
 		}
 	}
 
@@ -155,14 +163,7 @@ bool roboeffect_simple_gain_memory_size_if(roboeffect_memory_size_query *query, 
 
 	response->context_memory_size = sizeof(simple_gain_struct);
 
-	if(query->params[0] == 0)
-	{
-		response->additional_memory_size = ceilf(max_delay_samples/32.0f)*19;
-	}
-	else if(query->params[0] == 1)
-	{
-		response->additional_memory_size = max_delay_samples * 2;
-	}
+	response->additional_memory_size = 0;
 
 	response->scratch_memory_size = 0;
 

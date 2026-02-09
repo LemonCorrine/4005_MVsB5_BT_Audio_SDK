@@ -13,7 +13,7 @@
 #define __ROBOEFFECT_API_H__
 
 /*Roboeffect Library version*/
-#define ROBOEFFECT_LIB_VER "2.28.1"
+#define ROBOEFFECT_LIB_VER "2.32.0"
 
 #include <stdio.h>
 #include <nds32_intrinsic.h>
@@ -115,6 +115,10 @@ typedef enum _roboeffect_effect_type_enum
 	ROBOEFFECT_HOWLING_SUPPRESSOR_SPECIFIED,
 	ROBOEFFECT_DRC_LEGACY,
 	ROBOEFFECT_PCM_DELAY_MS,
+	ROBOEFFECT_DISTORTION_EXP,
+	ROBOEFFECT_VIBRATO,
+	ROBOEFFECT_PITCH_DETECTOR,
+	ROBOEFFECT_FILTER_FIR,
 
 	/*node type below*/
 	ROBOEFFECT_FADER,//
@@ -151,6 +155,11 @@ typedef enum _ROBOEFFECT_ERROR_CODE
 	ROBOEFFECT_CONTEXT_MEMORY_ERROR,//roboeffect context memory error, maybe a NULL
 	ROBOEFFECT_PARAMBIN_DATA_NOT_FOUND,//
 	ROBOEFFECT_PARAMBIN_DATA_VER_ERROR,//
+
+	ROBOEFFECT_MSG_VALUE_NAME_NOT_FOUND,//msg value name not found
+	ROBOEFFECT_MSG_DATA_ERROR,//msg data error
+
+	ROBOEFFECT_FLUSH_FIFO_FULL,//flush fifo is full
 
 	// No Error
 	ROBOEFFECT_ERROR_OK = 0,					/**< no error */
@@ -211,11 +220,10 @@ typedef enum _roboeffect_param_cfg_method
 
 typedef enum _roboeffect_frame_size
 {
-	FZ_64 = 0x01,//64 samples
-	FZ_128 = 0x02,//128 samples
-	FZ_256 = 0x04,//256 samples
-	FZ_512 = 0x08,//512 samples
-	FZ_ANY = 0xffff
+	FZ_ANY = 0,
+	FZ_GEAR,
+	FZ_RANGE,
+	FZ_ERROR,
 }roboeffect_frame_size;
 
 typedef enum _roboeffect_frame_operation
@@ -294,6 +302,8 @@ typedef struct _roboeffect_memory_size_query
 	uint32_t ch_num;
 	uint32_t data_width;
 	int16_t *params;
+	uint8_t *preset_entry;//for get vectors
+	uint8_t address;
 } roboeffect_memory_size_query;
 
 typedef struct _roboeffect_memory_size_response
@@ -303,13 +313,17 @@ typedef struct _roboeffect_memory_size_response
 	uint32_t scratch_memory_size;
 } roboeffect_memory_size_response;
 
-
+typedef struct _roboeffect_frame_size_response
+{
+	uint32_t calced_frame_size;
+	uint32_t effect_frame_size;;
+} roboeffect_frame_size_response;
 
 
 typedef bool (*roboeffect_effect_apply_func)(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
 typedef bool (*roboeffect_effect_init_func)(void *node);
 typedef bool (*roboeffect_effect_config_func)(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);//can be all param(param_num=0xff) or only ONE param(param_num=1)
-typedef int32_t (*roboeffect_effect_memory_size_func)(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
+typedef bool (*roboeffect_effect_memory_size_func)(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
 
 /*********************************************parambin start*********************************************************/
 #define PARAMBIN_LEN_WIDTH (4)
@@ -319,8 +333,8 @@ typedef int32_t (*roboeffect_effect_memory_size_func)(roboeffect_memory_size_que
 #define PARAMBIN_MAGIC_NUM (0xA55AB44B)
 
 #define PARAMBIN_VER_H 0
-#define PARAMBIN_VER_M 7
-#define PARAMBIN_VER_L 0
+#define PARAMBIN_VER_M 8
+#define PARAMBIN_VER_L 3
 
 typedef enum _roboeffect_parambin_sub_type
 {
@@ -336,6 +350,7 @@ typedef enum _roboeffect_parambin_sub_type
 	ROBO_PB_SUBTYPE_IO_NAME,
 	ROBO_PB_SUBTYPE_MODE_PARAMS,
 	ROBO_PB_SUBTYPE_EFFECT_NAME,
+	ROBO_PB_SUBTYPE_MSG_DATA,
 	ROBO_PB_SUBTYPE_MAX,
 
 
@@ -346,8 +361,31 @@ typedef enum _roboeffect_mode_params_type
 	ROBO_PB_MP_TYPE_BRIEF = 0x01,
 	ROBO_PB_MP_TYPE_MODE_DATA,
 	ROBO_PB_MP_TYPE_PRESET_DATA,
+	ROBO_PB_MP_TYPE_VECTOR_DATA,
 
 } roboeffect_mode_params_type;
+
+typedef enum _roboeffect_msg_entry_type
+{
+	ROBO_MG_ET_TYPE_BRIEF = 0x01,
+	ROBO_MG_ET_TYPE_SESSTION,
+	ROBO_PB_MP_TYPE_MESSAGE,
+
+} roboeffect_msg_entry_type;
+
+typedef enum _roboeffect_vector_type
+{
+	VECTOR_TYPE_INT8 = 0x00,
+	VECTOR_TYPE_UINT8,
+	VECTOR_TYPE_INT16,
+	VECTOR_TYPE_UINT16,
+	VECTOR_TYPE_INT32,
+	VECTOR_TYPE_UINT32,
+	VECTOR_TYPE_INT64,
+	VECTOR_TYPE_UINT64,
+	VECTOR_TYPE_FLOAT,
+	VECTOR_TYPE_DOUBLE,
+} roboeffect_vector_type;
 
 #pragma pack(1)
 typedef struct _roboeffect_parambin_header
@@ -368,6 +406,13 @@ typedef struct _roboeffect_parambin_flow_pair
 	uint16_t flow_index;
 	uint16_t param_mode_index;
 } roboeffect_parambin_flow_pair;
+
+typedef struct _roboeffect_vector_data
+{
+	uint16_t size;
+	uint8_t type;
+	uint8_t data[];
+} roboeffect_vector_data;
 
 #pragma pack()
 
@@ -393,9 +438,11 @@ typedef struct _roboeffect_effect_property_struct
 {
 	uint8_t type_num;
 	uint8_t channel_support;//1=only mono, 2=only stereo, 3=mono or stereo
-	uint16_t frame_size;//0xffff=anything
 	uint16_t param_size;//param numbers one as half-word
-	uint32_t cn_size;
+	uint8_t fz_type;
+	uint8_t fz_cnt;
+	uint16_t fz_list[8];
+	// uint32_t cn_size;
 
 	roboeffect_effect_init_func init_func;
 	roboeffect_effect_config_func config_func;//if parameter change in init, should call init_func
@@ -414,6 +461,7 @@ typedef struct _roboeffect_user_defined_effect_info
 	uint8_t ch_num;
 	uint8_t parameters_len;
 	roboeffect_width width;
+	uint16_t framesize_running;
 	void* context_memory;
 	void* additional_memory;
 
@@ -619,6 +667,16 @@ ROBOEFFECT_ERROR_CODE roboeffect_get_effect_version(void *main_context, uint8_t 
  * @return ROBOEFFECT_ERROR_CODE 
  */
 ROBOEFFECT_ERROR_CODE roboeffect_get_error_code(void *main_context);
+
+
+/**
+ * @brief Set roboeffect error code
+ * 
+ * @param main_context : context memory allocated by user  
+ * @param error_code : error code to be set.
+ * @return ROBOEFFECT_ERROR_CODE 
+ */
+ROBOEFFECT_ERROR_CODE roboeffect_set_error_code(void *main_context, int32_t error_code);
 
 /**
  * @brief Get effect context memory pointer
@@ -865,6 +923,8 @@ ROBOEFFECT_ERROR_CODE roboeffect_parambin_get_mode_data_by_index(const uint8_t *
  */
 ROBOEFFECT_ERROR_CODE roboeffect_parambin_get_mode_param_by_name(const uint8_t *sub_type_data, const char *mode_name, uint8_t **mode_param_out, uint32_t *mode_param_size);
 
+
+
 /**
  * @brief Get mode parameter data by name string
  * 
@@ -882,12 +942,24 @@ ROBOEFFECT_ERROR_CODE roboeffect_parambin_get_codec_param_by_name(const uint8_t 
  * @param sub_type_data : sub type data address, maybe returned by roboeffect_parambin_get_sub_type()
  * @param effect_addr : address of the effect to be searched
  * @param param_index : parameter index to be searched
- * @param mode_name : preset name string to be searched
+ * @param *preset_name : preset name string to be searched
  * @param **preset_param_out : output pointer, point to preset parameter data
  * @param *preset_param_size: output, the preset parameter data size in bytes
  * @return ROBOEFFECT_ERROR_CODE
  */
 ROBOEFFECT_ERROR_CODE roboeffect_parambin_get_preset_param_by_name(const uint8_t *sub_type_data, uint8_t effect_addr, uint8_t param_index, const char *preset_name, uint8_t **preset_param_out, uint32_t *preset_param_size);
+
+/**
+ * @brief Get vector parameter data by index
+ * 
+ * @param sub_type_data : sub type data address, maybe returned by roboeffect_parambin_get_sub_type()
+ * @param effect_addr : address of the effect to be searched
+ * @param param_index : parameter index to be searched
+ * @param vector_index : vector index to be searched
+ * @param **vector_data_out : output pointer, point to vector parameter data
+ * @return ROBOEFFECT_ERROR_CODE
+ */
+ROBOEFFECT_ERROR_CODE roboeffect_parambin_get_vector_param_by_index(const uint8_t *sub_type_data, uint8_t effect_addr, uint8_t param_index, uint16_t vector_index, const roboeffect_vector_data **vector_data_out);
 
 
 /*********************************************parambin end*********************************************************/

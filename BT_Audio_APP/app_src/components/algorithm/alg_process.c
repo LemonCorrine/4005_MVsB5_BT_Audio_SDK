@@ -1,6 +1,14 @@
 #include "alg_user_api.h"
 #include "debug.h"
 
+const PLATFORM_INTERFACE_ALG_T AlgFlashApi =
+{
+	.AlgFlashInit = SpiFlashInit,
+	.AlgFlashErase = SpiFlashErase,
+	.AlgFlashRead = SpiFlashRead,
+	.AlgFlashWrite = SpiFlashWrite,
+};
+
 void AlgUserDemo(void)
 {
 	unsigned char buf[40];

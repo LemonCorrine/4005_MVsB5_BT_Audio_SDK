@@ -320,6 +320,7 @@ void AudioDAC_DigitalMute(DAC_MODULE DACModule, bool LeftMuteEn, bool RightMuteE
  * @param LeftMuteEn left channel for DAC0
  * @param RightMuteEn right channel for DAC0
  * @return NONE
+ * @note You must have already used SysTickInit before using this API
  */
 void AudioDAC_SoftMute(DAC_MODULE DACModule, bool LeftMuteEn, bool RightMuteEn);
 

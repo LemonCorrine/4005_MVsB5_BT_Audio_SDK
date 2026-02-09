@@ -463,7 +463,6 @@ void BtStackCallback(BT_STACK_CALLBACK_EVENT event, BT_STACK_CALLBACK_PARAMS * p
 			break;
 
 		case BT_STACK_EVENT_COMMON_MODE_CHANGE:
-#ifdef  BT_SNIFF_ENABLE
 			APP_DBG("mode - %d, addrs -  %02x:%02x:%02x:%02x:%02x:%02x\n",
 					param->params.modeChange.mode,
 					(param->params.modeChange.addr)[0],
@@ -472,6 +471,7 @@ void BtStackCallback(BT_STACK_CALLBACK_EVENT event, BT_STACK_CALLBACK_PARAMS * p
 					(param->params.modeChange.addr)[3],
 					(param->params.modeChange.addr)[4],
 					(param->params.modeChange.addr)[5]);
+#ifdef  BT_SNIFF_ENABLE
 			BtChangePowerMode(param->params.modeChange.mode);
 #endif
 			break;
@@ -787,5 +787,4 @@ void map_time_callback(char *str)
 	MAP_Disconnect();
 }
 #endif
-
 

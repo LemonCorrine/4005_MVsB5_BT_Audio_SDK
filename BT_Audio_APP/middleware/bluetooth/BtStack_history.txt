@@ -25,6 +25,50 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 联系山景的技术工程人员，谢谢！
 --------------------------------------------------------------------------------------
 版本历史：（采用倒序排列，最新版置顶）
+
+2025-11-4【v15_1.6.0】
+1）完善PBAP协议获取电话簿功能；
+2）完善PBAP_PullPhoneBook接口，增加参数vcardFormat,maxListCount,listStartOffset的设置；以及maxlistcount的获取
+
+2025-10-29【v15_1.5.0】
+1）调整rf/modem参数；优化性能；
+2）bt source：优化对端设备名字出现的内存异常问题；
+3）HFP电池电量设置HfpSetBatteryState函数增加参数边界保护；
+4）完善 page超时时间设置 函数；
+
+2025-8-29【v15_1.4.1】
+1）蓝牙sniff请求，增加管控；默认拒绝对方sniff请求
+
+2025-8-12【v15_1.4.0】
+1）修复AAC解码格式下codec info问题
+
+2025-8-6【v15_1.3.1】
+1）修复蓝牙DUT功能某些问题
+2）新增MAP协议，修缮HFP协议获取不到时间问题
+
+2025-7-23【v15_1.3.0】
+1）Wireless库：同步带内优化，FCC定频接口，PA接口等内容；
+2）修复BLE发送消息错误；
+3）优化RF AGC，更新LNA/PA控制参数；
+4）关闭BLE的版本，蓝牙核心协议修正为v5.3；
+
+2025-7-9【v15_1.2.0】
+1）修复一处内存申请未释放问题
+2）修复双KEY方案加密后，指针异常问题；
+
+2025-6-5【v15_1.1.0】
+1）修复bt sniff状态反馈异常问题，并完善 bt sniff下deepsleep参数配置
+2）修复某些场景下通话无声的问题；
+3）调整蓝牙发射功率范围
+4）修复AVRCP重复注册Notify导致部分手机歌词不推送问题
+5）bt source完善48K和44.1K采样率配置接口；
+
+2025-4-7【v15_1.0.0】
+1）增加DID服务；
+2）更新RF相关参数；
+3）集成Wireless相关功能；
+4）修复128bit UUID自定义服务问题；
+
 2025-9-13【15_0.9.8_p3459】
 1) 增加map协议
 
@@ -50,6 +94,7 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 6.解决bt sniff状态反馈异常问题
 7.将蓝牙发射功率范围从 16~23 改为 12~23 
 8.update RF_REAL_RX_GAIN_TBL for rssi more ok
+
 
 2025-2-8【v15_0.9.8】
 1）增加HID协议和应用，默认关闭

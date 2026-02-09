@@ -188,21 +188,31 @@ static bool SystemPowerKeyDetectEvt(POWERKEY_LONGORSHORT_PRESS_SEL ePressMode)
 	switch(SystemPowerKeyGetMode())
 	{
 		case E_PWRKEY_MODE_SLIDESWITCH_HON:
+			if ((PMU_PowerKeyPinStateGet()== FALSE)&& PMU_PowerKeyTrigStateGet())
+			{
+				bIsFlagSet = TRUE;
+			}
+			break;
+
 		case E_PWRKEY_MODE_SLIDESWITCH_LON:
-			bIsFlagSet = PMU_PowerKeyTrigStateGet();
+			if ((PMU_PowerKeyPinStateGet()== TRUE) && PMU_PowerKeyTrigStateGet())
+			{
+				bIsFlagSet = TRUE;
+			}
 			break;
 
 		case E_PWRKEY_MODE_PUSHBUTTON:
-			if (POWERKEY_LONG_PRESS_MODE == ePressMode)
+			if ((FALSE == PMU_PowerKeyPinStateGet()) && (PMU_PowerKeyActiveLevelGet() == LOW_INDICATE_POWERON))
 			{
-				bIsFlagSet = PMU_PowerKeyLongPressTrigStateGet();
+				if (POWERKEY_LONG_PRESS_MODE == ePressMode)
+				{
+					bIsFlagSet = PMU_PowerKeyLongPressTrigStateGet();
+				}
+				else
+				{
+					bIsFlagSet = PMU_PowerKeyShortPressTrigStateGet();
+				}
 			}
-			else
-			{
-				bIsFlagSet = PMU_PowerKeyShortPressTrigStateGet();
-			}
-
-
 			break;
 
 		default:

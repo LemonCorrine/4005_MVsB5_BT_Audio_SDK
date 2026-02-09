@@ -58,7 +58,7 @@ void AudioSpdifOutParamsSet(void)
 #ifdef CFG_I2S_SLAVE_TO_SPDIFOUT_EN
 	SyncModule_Init();
 #endif
-	GPIO_PortAModeSet(GPIOA29, 0x0b);
+	SPDIF_OUT_GPIO_SET();
 	Clock_SpdifClkSelect(PLL_CLK_MODE);//DPLL
 	SPDIF_TXInit(SPDIF_OUT_NUM,1, 1, 0, 0);
 	DMA_CircularConfig(SPDIF_OUT_DMA_ID, sizeof(SpdifAddr)/4, SpdifAddr, sizeof(SpdifAddr));

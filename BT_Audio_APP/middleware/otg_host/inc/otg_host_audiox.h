@@ -42,6 +42,8 @@ typedef USBH_StatusTypeDef(*USBH_AudioSampleRateCheckCallback)(uint32_t FreqIn,u
 void USBH_AudioSampleRateCheckCallbackSet(USBH_AudioSampleRateCheckCallback func);
 USBH_StatusTypeDef USBH_AudioClassDevEnum(USBH_AudioStreamFormatInfo *Speaker,USBH_AudioStreamFormatInfo *Mic);
 USBH_StatusTypeDef USBH_AudioSetVolume(USBH_AudioStreamFormatInfo *Stream,uint8_t Volume);
+USBH_StatusTypeDef USBH_AudioSetVolumeIncrement(USBH_AudioStreamFormatInfo *Stream,uint8_t stepPercent);
+USBH_StatusTypeDef USBH_AudioSetVolumeDecrement(USBH_AudioStreamFormatInfo *Stream,uint8_t stepPercent);
 USBH_StatusTypeDef USBH_AudioSetSampleFreq(USBH_AudioStreamFormatInfo *Stream, uint32_t frequency);
 #ifdef __cplusplus
 }

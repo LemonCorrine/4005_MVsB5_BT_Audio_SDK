@@ -481,7 +481,7 @@ void RadioPlayResInit(void)
 #ifdef CFG_FUNC_AUDIO_EFFECT_EN
 	AudioCoreProcessConfig((AudioCoreProcessFunc)AudioMusicProcess);
 #else
-	AudioCoreProcessConfig(AudioCoreProcessFunc)AudioBypassProcess);
+	AudioCoreProcessConfig((AudioCoreProcessFunc)AudioBypassProcess);
 #endif
 
 	//LineIn4  analog (ADC)

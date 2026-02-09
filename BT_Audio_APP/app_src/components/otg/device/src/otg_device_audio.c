@@ -53,24 +53,24 @@ bool OTG_DeviceAudioSendPcCmd(uint16_t Cmd)
 {
 	AudioCmd[1] = Cmd;
 	AudioCmd[2] = Cmd >> 8;
-	OTG_DeviceInterruptSend(0x01,AudioCmd, 3,1000);
+	OTG_DeviceInterruptSend(0x01,AudioCmd, 3,1);
 	AudioCmd[1] = 0;
 	AudioCmd[2] = 0;
-	OTG_DeviceInterruptSend(0x01,AudioCmd, 3,1000);
+	OTG_DeviceInterruptSend(0x01,AudioCmd, 3,1);
 	return TRUE;
 }
 bool OTG_DeviceAudioSendHidKeyDown(uint16_t Cmd)
 {
 	AudioCmd[1] = Cmd;
 	AudioCmd[2] = Cmd >> 8;
-	OTG_DeviceInterruptSend(0x01,AudioCmd, 3,1000);
+	OTG_DeviceInterruptSend(0x01,AudioCmd, 3,1);
 	return TRUE;
 }
 bool OTG_DeviceAudioSendHidKeyUp(void)
 {
 	AudioCmd[1] = 0;
 	AudioCmd[2] = 0;
-	OTG_DeviceInterruptSend(0x01,AudioCmd, 3,1000);
+	OTG_DeviceInterruptSend(0x01,AudioCmd, 3,1);
 	return TRUE;
 }
 //////////////////////////////////////////////////audio core api/////////////////////////////////////////////////////
@@ -263,6 +263,7 @@ uint16_t UsbAudioMicSpaceLenGet(void)
 	}
 	Len = MCUCircular_GetSpaceLen(&UsbAudioMic.CircularBuf);
 	Len = Len / (sizeof(PCM_DATA_TYPE) * UsbAudioMic.Channels);
+//	APP_DBG("Len: %d\r\n",Len);
 	return Len;
 }
 
@@ -642,6 +643,13 @@ void OTG_DeviceAudioInterfaceRequest(void)
 	}
 #endif
 }
+
+//usb声卡音频流接口相关请求处理
+void OTG_DeviceAudioStreamInterfaceRequest(void)
+{
+
+}
+
 //usb声卡端点相关请求处理
 void OTG_DeviceAudioEpRequest(void)
 {
@@ -829,7 +837,21 @@ static void AudioSampleRateRequest(UsbAudio *Stream,uint8_t Num,uint8_t AudioCor
 	}
 	else if(RequestCmd == GET_CUR_2)
 	{
-		OTG_DeviceControlSend((uint8_t*)&Stream->AudioSampleRate, wLength,3);
+		if(Control == CS_CLOCK_VALID_CONTROL)
+		{
+			uint8_t Valid;
+			if(Stream->AudioSampleRate == 0)
+			{
+				Valid = 0;
+			}else{
+				Valid = 1;
+			}
+			OTG_DeviceControlSend(&Valid,wLength,3);
+		}
+		else
+		{
+			OTG_DeviceControlSend((uint8_t*)&Stream->AudioSampleRate, wLength,3);
+		}
 	}
 	else if(RequestCmd == GET_RANGE)
 	{
@@ -878,6 +900,31 @@ void OTG_DeviceAudioInterfaceRequest(void)
 		return AudioSampleRateRequest(&UsbAudioSpeaker,0,USB_AUDIO_SOURCE_NUM);
 	}
 }
+
+const uint8_t para_block_Alt[] = {
+	0x01,
+#ifdef MIC_ALT2_EN
+	0x07
+#else
+	0x03
+#endif
+};
+
+//usb声卡音频流接口相关请求处理
+void OTG_DeviceAudioStreamInterfaceRequest(void)
+{
+	if((Entity == 0))
+	{
+		if(Channel == 0 && Control == AS_VAL_ALT_SETTINGS_CONTROL)
+		{
+			if(RequestCmd == GET_CUR_2)
+			{
+				OTG_DeviceControlSend((uint8_t*)para_block_Alt,sizeof(para_block_Alt),3);
+			}
+		}
+	}
+}
+
 //usb声卡端点相关请求处理
 void OTG_DeviceAudioEpRequest(void)
 {

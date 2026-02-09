@@ -61,6 +61,9 @@ typedef struct _FlashTablePackage
 struct
 {
 	uint32_t 	remind_addr;
+#if defined(CFG_WIRELESS_EN) && WIRELESS_BP_EN
+	uint32_t	wireless_bp_addr;
+#endif
 	uint32_t	bp_data_addr;
 	uint32_t	bt_data_addr;
 	uint32_t	user_config_addr;
@@ -86,6 +89,9 @@ static const struct
 	{"sys_parameter",	&flash_table_info.sys_parameter_addr,		SYS_PARA_OFFSET},
 	{"bp_data",			&flash_table_info.bp_data_addr,				BP_DATA_OFFSET},
 	{"bt_data",			&flash_table_info.bt_data_addr,				BT_DATA_OFFSET},
+#if defined(CFG_WIRELESS_EN) && WIRELESS_BP_EN
+	{"wireless_bp",		&flash_table_info.wireless_bp_addr,			BP_WIRELESS_OFFSET},
+#endif
 	{"remind",			&flash_table_info.remind_addr,				0},
 #ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
 	{"effect_data",		&flash_table_info.effect_data_addr,			EFFECT_DATA_OFFSET},
@@ -265,6 +271,13 @@ uint32_t get_remind_addr(void)
 {
 	return flash_table_info.remind_addr;
 }
+
+#if defined(CFG_WIRELESS_EN) && WIRELESS_BP_EN
+uint32_t get_wireless_bp_addr(void)
+{
+	return flash_table_info.wireless_bp_addr;
+}
+#endif
 
 uint32_t get_bp_data_addr(void)
 {

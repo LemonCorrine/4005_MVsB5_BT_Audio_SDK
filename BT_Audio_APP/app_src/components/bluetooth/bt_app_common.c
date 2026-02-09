@@ -302,7 +302,10 @@ void BtGetRemoteName(BT_STACK_CALLBACK_PARAMS * param)
 #endif
 
 #if BT_SOURCE_SUPPORT
-	BtSourceGetRemoteName(param);
+	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
+	{
+		BtSourceGetRemoteName(param);
+	}
 #endif
 
 	if((param->params.remDevName.name[0] == 'M')
