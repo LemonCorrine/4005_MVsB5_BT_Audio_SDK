@@ -3,7 +3,7 @@
 #include "efuse.h"
 #include "debug.h"
 #include "clk.h"
-
+#include "dac.h"
 /**
  * @brief     Powerkey 参数设置
  *
@@ -119,11 +119,35 @@ static TE_PWRKEYINIT_RET SystemPowerKeySetting(TE_PWRKEY_MODE eMode, uint8_t u8_
 
 	if((KeyState == 1) && (E_PWRKEY_MODE_SLIDESWITCH_LON == eMode))
 	{
+		AudioDAC_AllPowerDown();
+		PMU_PowerkeySarADCDis();
+		PMU_PowerkeyPullup22K();
+		extern void GIE_DISABLE(void);
+		GIE_DISABLE();
+		//切时钟到RC 12M
+		SpiFlashInit(80000000, MODE_1BIT, 0, FSHC_RC_CLK_MODE);
+		Clock_SysClkSelect(RC_CLK_MODE);
+		Clock_APllClose();
+#if !defined(CFG_RES_RTC_EN)
+		Clock_HOSCDisable(); // 若有RTC应用并且RTC所用时钟是HOSC，则不关闭HOSC，即24M晶振
+#endif		
 		PMU_SystemPowerDown();
 		while(1);
 	}
 	else if((KeyState == 0) && (E_PWRKEY_MODE_SLIDESWITCH_HON == eMode))
 	{
+		AudioDAC_AllPowerDown();
+		PMU_PowerkeySarADCDis();
+		PMU_PowerkeyPullup22K();
+		extern void GIE_DISABLE(void);
+		GIE_DISABLE();
+		//切时钟到RC 12M
+		SpiFlashInit(80000000, MODE_1BIT, 0, FSHC_RC_CLK_MODE);
+		Clock_SysClkSelect(RC_CLK_MODE);
+		Clock_APllClose();
+#if !defined(CFG_RES_RTC_EN)
+		Clock_HOSCDisable(); // 若有RTC应用并且RTC所用时钟是HOSC，则不关闭HOSC，即24M晶振
+#endif				
 		PMU_SystemPowerDown();
 		while(1);
 	}

@@ -110,9 +110,9 @@ typedef enum
 	UART_IOCTL_FUNC_RESET,
 	UART_IOCTL_MODULE_RESET,
     
-    //Enable Uart overtime interrupt
+    //set to 1 to enable rx overtime function.
     UART_IOCTL_OVERTIME_SET,    
-    //Disable Uart overtime interrupt
+    //set to 1 to clear the overtime flag.
     UART_IOCTL_OVERTIME_CLR,    
     //Set Uart overtime count value, its unit is baud_rate.
     UART_IOCTL_OVERTIME_NUM,

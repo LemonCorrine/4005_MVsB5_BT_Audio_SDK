@@ -46,7 +46,7 @@ extern "C"{
 #define SpiFlashReadUniqueID    SpiFlashReadUniqueID_rom
 #define FshcClkSwitchCallBackSet FshcClkSwitchCallBackSet_rom
 
-#define DRV_REMAP_SIZE          (1*1024)     //1K
+#define DRV_REMAP_SIZE          (2*1024)     //2K
 
 #else
 #define SpiFlashInit            SpiFlashInit_flash

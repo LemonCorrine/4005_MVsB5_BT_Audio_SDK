@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_uac.h  
  * @brief   auto generated  
- * @author  ACPWorkbench: 3.19.1
+ * @author  ACPWorkbench: 5.1.8
  * @version V1.2.0 
- * @Created 2025-10-09T15:50:37 
+ * @Created 2026-04-22T17:53:43 
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define UAC_ROBOEFFECT_LIB_VER "2.32.0"
+#define UAC_ROBOEFFECT_LIB_VER "2.44.0"
 
 typedef enum _UAC_roboeffect_io_enum
 {
@@ -38,30 +38,30 @@ typedef enum _UAC_roboeffect_io_enum
 typedef enum _UAC_roboeffect_effect_list_enum{
 
     UAC_upmix_1to2_0_ADDR = 0x81,
-    UAC_silence_detector_mic_ADDR,
-    UAC_preGain_ADDR,
-    UAC_silence_detector_music_ADDR,
-    UAC_remind_gain_control_ADDR,
-    UAC_mic_eq0_ADDR,
-    UAC_mic_ns_ADDR,
-    UAC_mic_EQ_ADDR,
-    UAC_mic_drc_ADDR,
-    UAC_mic_gain_ADDR,
-    UAC_gain_control0_ADDR,
-    UAC_noise_suppressor_expander0_ADDR,
-    UAC_gain_control2_ADDR,
-    UAC_eq1_ADDR,
-    UAC_compander_ADDR,
-    UAC_low_level_compressor1_ADDR,
-    UAC_harmonic_exciter0_ADDR,
-    UAC_mvbass_ADDR,
-    UAC_3D_ADDR,
-    UAC_eq2_ADDR,
-    UAC_music_drc_ADDR,
-    UAC_music_EQ_ADDR,
-    UAC_gain_control1_ADDR,
-    UAC_eq0_ADDR,
-    UAC_low_level_compressor0_ADDR,
+    UAC_silence_detector_mic_ADDR = 0x82,
+    UAC_preGain_ADDR = 0x83,
+    UAC_silence_detector_music_ADDR = 0x84,
+    UAC_remind_gain_control_ADDR = 0x85,
+    UAC_mic_eq0_ADDR = 0x86,
+    UAC_mic_ns_ADDR = 0x87,
+    UAC_mic_EQ_ADDR = 0x88,
+    UAC_mic_drc_ADDR = 0x89,
+    UAC_mic_gain_ADDR = 0x8a,
+    UAC_gain_control0_ADDR = 0x8b,
+    UAC_noise_suppressor_expander0_ADDR = 0x8c,
+    UAC_gain_control2_ADDR = 0x8d,
+    UAC_eq1_ADDR = 0x8e,
+    UAC_compander_ADDR = 0x8f,
+    UAC_low_level_compressor1_ADDR = 0x90,
+    UAC_harmonic_exciter0_ADDR = 0x91,
+    UAC_mvbass_ADDR = 0x92,
+    UAC_3D_ADDR = 0x93,
+    UAC_eq2_ADDR = 0x94,
+    UAC_music_drc_ADDR = 0x95,
+    UAC_music_EQ_ADDR = 0x96,
+    UAC_gain_control1_ADDR = 0x97,
+    UAC_eq0_ADDR = 0x98,
+    UAC_low_level_compressor0_ADDR = 0x99,
     UAC_COUNT_ADDR,
 
 } UAC_roboeffect_effect_list_enum;

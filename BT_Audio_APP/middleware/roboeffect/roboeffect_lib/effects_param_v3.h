@@ -5,8 +5,8 @@
 #include "type.h"
 
 /*
-	Roboeffect Version: 2.32.0
-	Audio Effect Lib Version: 2.49.0
+	Roboeffect Version: 2.44.0
+	Audio Effect Lib Version: 2.54.0
 	Protocol Version: 0.5.0
 */
 typedef struct _param_auto_tune
@@ -670,6 +670,60 @@ typedef struct _param_filter_fir
 {
 	int16_t coefficients_index;
 }param_filter_fir;
+
+typedef struct _param_noise_suppressor_blue_adv
+{
+	int16_t initial_env_time;
+	int16_t smooth_time;
+	int16_t level;
+}param_noise_suppressor_blue_adv;
+
+typedef struct _param_reverb_plate_me
+{
+	int16_t high_cutoff_frequency;
+	int16_t modulation;
+	int16_t predelay;
+	int16_t diffusion;
+	int16_t decay;
+	int16_t damping;
+	int16_t wetdrymix;
+	int16_t max_predelay;
+}param_reverb_plate_me;
+
+typedef struct _param_drc_sc
+{
+	int16_t mode;
+	int16_t cf_type;
+	int16_t q_l;
+	int16_t q_h;
+	int16_t fc_0;
+	int16_t fc_1;
+	int16_t threshold_0;
+	int16_t threshold_1;
+	int16_t threshold_2;
+	int16_t threshold_3;
+	int16_t ratio_0;
+	int16_t ratio_1;
+	int16_t ratio_2;
+	int16_t ratio_3;
+	int16_t attack_0;
+	int16_t attack_1;
+	int16_t attack_2;
+	int16_t attack_3;
+	int16_t release_0;
+	int16_t release_1;
+	int16_t release_2;
+	int16_t release_3;
+	int16_t pregain_0;
+	int16_t pregain_1;
+	int16_t pregain_2;
+	int16_t pregain_3;
+}param_drc_sc;
+
+typedef struct _param_silence_detector_l
+{
+	int16_t pcm_amplitude;
+}param_silence_detector_l;
 
 typedef struct _param_fader
 {
@@ -1351,6 +1405,60 @@ typedef enum _FILTER_FIR_PARAMS_ENUM
 {
 	INDEX_FILTER_FIR_COEFFICIENTS_INDEX = 0,
 }FILTER_FIR_PARAMS_ENUM;
+
+typedef enum _NOISE_SUPPRESSOR_BLUE_ADV_PARAMS_ENUM
+{
+	INDEX_NOISE_SUPPRESSOR_BLUE_ADV_INITIAL_ENV_TIME = 0,
+	INDEX_NOISE_SUPPRESSOR_BLUE_ADV_SMOOTH_TIME = 1,
+	INDEX_NOISE_SUPPRESSOR_BLUE_ADV_LEVEL = 2,
+}NOISE_SUPPRESSOR_BLUE_ADV_PARAMS_ENUM;
+
+typedef enum _REVERB_PLATE_ME_PARAMS_ENUM
+{
+	INDEX_REVERB_PLATE_ME_HIGH_CUTOFF_FREQUENCY = 0,
+	INDEX_REVERB_PLATE_ME_MODULATION = 1,
+	INDEX_REVERB_PLATE_ME_PREDELAY = 2,
+	INDEX_REVERB_PLATE_ME_DIFFUSION = 3,
+	INDEX_REVERB_PLATE_ME_DECAY = 4,
+	INDEX_REVERB_PLATE_ME_DAMPING = 5,
+	INDEX_REVERB_PLATE_ME_WETDRYMIX = 6,
+	INDEX_REVERB_PLATE_ME_MAX_PREDELAY = 7,
+}REVERB_PLATE_ME_PARAMS_ENUM;
+
+typedef enum _DRC_SC_PARAMS_ENUM
+{
+	INDEX_DRC_SC_MODE = 0,
+	INDEX_DRC_SC_CF_TYPE = 1,
+	INDEX_DRC_SC_Q_L = 2,
+	INDEX_DRC_SC_Q_H = 3,
+	INDEX_DRC_SC_FC_0 = 4,
+	INDEX_DRC_SC_FC_1 = 5,
+	INDEX_DRC_SC_THRESHOLD_0 = 6,
+	INDEX_DRC_SC_THRESHOLD_1 = 7,
+	INDEX_DRC_SC_THRESHOLD_2 = 8,
+	INDEX_DRC_SC_THRESHOLD_3 = 9,
+	INDEX_DRC_SC_RATIO_0 = 10,
+	INDEX_DRC_SC_RATIO_1 = 11,
+	INDEX_DRC_SC_RATIO_2 = 12,
+	INDEX_DRC_SC_RATIO_3 = 13,
+	INDEX_DRC_SC_ATTACK_0 = 14,
+	INDEX_DRC_SC_ATTACK_1 = 15,
+	INDEX_DRC_SC_ATTACK_2 = 16,
+	INDEX_DRC_SC_ATTACK_3 = 17,
+	INDEX_DRC_SC_RELEASE_0 = 18,
+	INDEX_DRC_SC_RELEASE_1 = 19,
+	INDEX_DRC_SC_RELEASE_2 = 20,
+	INDEX_DRC_SC_RELEASE_3 = 21,
+	INDEX_DRC_SC_PREGAIN_0 = 22,
+	INDEX_DRC_SC_PREGAIN_1 = 23,
+	INDEX_DRC_SC_PREGAIN_2 = 24,
+	INDEX_DRC_SC_PREGAIN_3 = 25,
+}DRC_SC_PARAMS_ENUM;
+
+typedef enum _SILENCE_DETECTOR_L_PARAMS_ENUM
+{
+	INDEX_SILENCE_DETECTOR_L_PCM_AMPLITUDE = 0,
+}SILENCE_DETECTOR_L_PARAMS_ENUM;
 
 typedef enum _FADER_PARAMS_ENUM
 {

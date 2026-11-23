@@ -1,12 +1,12 @@
 /***************************************************
  * @file    user_effect_flow_Karaoke.c                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.19.1  
+ * @author  ACPWorkbench: 5.1.8  
  * @version V1.2.0                                 
  * @graphics: Karaoke   
- * @Effect Version: 2.49.0
- * @RoboEffect Version: 2.32.0
- * @Created 2025-10-09T15:50:34                                      
+ * @Effect Version: 2.54.0
+ * @RoboEffect Version: 2.44.0
+ * @Created 2026-04-22T17:53:40                                      
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
 
@@ -223,7 +223,7 @@ static const roboeffect_exec_effect_info user_effects_Karaoke[] = {
 };              
 
 roboeffect_effect_list_info user_effect_list_Karaoke = {
-    KARAOKE_COUNT_ADDR - 0x81, //count      
+    49, //count      
     44100, //sample rate
     256, //frame size
     user_effects_Karaoke,
@@ -241,29 +241,29 @@ static const roboeffect_io_unit source_unit_Karaoke[] = {
 
 static const roboeffect_io_unit sink_unit_Karaoke[] = {
     {KARAOKE_SINK_DAC0_SINK           ,   7, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {KARAOKE_SINK_APP_SINK            ,   4, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {KARAOKE_SINK_STEREO_SINK         ,   1, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {KARAOKE_SINK_REC_SINK            ,   0, BITS_16         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {KARAOKE_SINK_I2S_MIX_SINK        ,   8, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {KARAOKE_SINK_SPDIF_SINK          ,   9, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {KARAOKE_SINK_APP_SINK            ,   3, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {KARAOKE_SINK_STEREO_SINK         ,   4, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {KARAOKE_SINK_REC_SINK            ,   2, BITS_16         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {KARAOKE_SINK_I2S_MIX_SINK        ,   5, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {KARAOKE_SINK_SPDIF_SINK          ,   6, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
 };
 
 static const uint32_t effect_flow_Karaoke[] = {
 84214786, 84215172, 101058179, 117900802, 33685762, 84214530, 84215173, 84215174, 
-17106177, 84215175, 16843155, 16843156, 16843157, 50397441, 16843158, 16843159, 
-16843160, 67306241, 50529183, 50529184, 50529185, 16843522, 67372194, 67372195, 
-16843778, 16843161, 50397441, 16843162, 67174657, 16843163, 67372203, 100860673, 
-50529188, 50529189, 134415105, 50529190, 16843522, 101058215, 101058216, 101058217, 
-50726401, 101058218, 16844290, 16843164, 16843165, 16843166, 134742786, 134744236, 
-67373058, 129, 33685506, 131585, 33686146, 136, 137, 50331649, 
-138, 139, 140, 141, 142, 143, 144, 145, 
-146, 100663297, 16842754, 65793, 117899522, 17237761, 134283521, 151521281, 
-101058225, 67372546, 50529200, 67371778, 67372205, 67372206, 67372207, 
+84215175, 84215187, 84215188, 84215189, 17106177, 84215190, 84215191, 84215192, 
+50397441, 16843167, 16843168, 16843169, 84214018, 50529186, 50529187, 84214530, 
+84215193, 17106177, 84215194, 50660609, 84215195, 50529195, 67174657, 16843172, 
+16843173, 100729089, 16843174, 84214018, 67372199, 67372200, 67372201, 17040385, 
+67372202, 84214786, 84215196, 84215197, 84215198, 101056770, 101058220, 50529794, 
+129, 33685506, 33686146, 33686152, 33686153, 131585, 33686154, 33686155, 
+33686156, 33686157, 33686158, 33686159, 33686160, 33686161, 33686162, 16908801, 
+84214274, 33883393, 117900546, 67569409, 84149249, 100992257, 16843185, 50528514, 
+176, 50528258, 50529197, 50529198, 50529199, 
 };
 
 const roboeffect_effect_steps_table user_effect_steps_Karaoke = {
-    79,  //step cnt
-    2,  //mem used
+    77,  //step cnt
+    0,  //mem used
     8,  //src numb
     6,  //des numb
 
@@ -281,9 +281,9 @@ char *parameter_group_name_Karaoke[7] = { "HunXiang", "DianYin", "MoYin", "HanMa
 
 const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
 0xe7, 0x04, /*total data length*/
-0x02, 0x31, 0x00, /*Effect Version*/
+0x02, 0x36, 0x00, /*Effect Version*/
 
-0x02, 0x20, 0x00, /* Roboeffect Version*/
+0x02, 0x2c, 0x00, /* Roboeffect Version*/
 
 0x1e, 0x00, /*3rd part data total length  */
 0x02, /*number of 3rd part items*/
@@ -331,7 +331,7 @@ const unsigned char user_effect_parameters_Karaoke_HunXiang[] = {
 0x87, /*silence_detector0*/
 0x03,/*length*/
 0x01, /*enable*/
-0x5e, 0x2f, /*PCM amplitude*/
+0x00, 0x00, /*PCM amplitude*/
 
 0x88, /*gain_control0*/
 0x05,/*length*/
@@ -1154,9 +1154,9 @@ const unsigned char user_module_parameters_Karaoke_HunXiang[] = {
 
 const unsigned char user_effect_parameters_Karaoke_DianYin[] = {
 0xe7, 0x04, /*total data length*/
-0x02, 0x31, 0x00, /*Effect Version*/
+0x02, 0x36, 0x00, /*Effect Version*/
 
-0x02, 0x20, 0x00, /* Roboeffect Version*/
+0x02, 0x2c, 0x00, /* Roboeffect Version*/
 
 0x1e, 0x00, /*3rd part data total length  */
 0x02, /*number of 3rd part items*/
@@ -2027,9 +2027,9 @@ const unsigned char user_module_parameters_Karaoke_DianYin[] = {
 
 const unsigned char user_effect_parameters_Karaoke_MoYin[] = {
 0xe7, 0x04, /*total data length*/
-0x02, 0x31, 0x00, /*Effect Version*/
+0x02, 0x36, 0x00, /*Effect Version*/
 
-0x02, 0x20, 0x00, /* Roboeffect Version*/
+0x02, 0x2c, 0x00, /* Roboeffect Version*/
 
 0x1e, 0x00, /*3rd part data total length  */
 0x02, /*number of 3rd part items*/
@@ -2900,9 +2900,9 @@ const unsigned char user_module_parameters_Karaoke_MoYin[] = {
 
 const unsigned char user_effect_parameters_Karaoke_HanMai[] = {
 0xe7, 0x04, /*total data length*/
-0x02, 0x31, 0x00, /*Effect Version*/
+0x02, 0x36, 0x00, /*Effect Version*/
 
-0x02, 0x20, 0x00, /* Roboeffect Version*/
+0x02, 0x2c, 0x00, /* Roboeffect Version*/
 
 0x1e, 0x00, /*3rd part data total length  */
 0x02, /*number of 3rd part items*/
@@ -3773,9 +3773,9 @@ const unsigned char user_module_parameters_Karaoke_HanMai[] = {
 
 const unsigned char user_effect_parameters_Karaoke_NanBianNv[] = {
 0xe7, 0x04, /*total data length*/
-0x02, 0x31, 0x00, /*Effect Version*/
+0x02, 0x36, 0x00, /*Effect Version*/
 
-0x02, 0x20, 0x00, /* Roboeffect Version*/
+0x02, 0x2c, 0x00, /* Roboeffect Version*/
 
 0x1e, 0x00, /*3rd part data total length  */
 0x02, /*number of 3rd part items*/
@@ -4646,9 +4646,9 @@ const unsigned char user_module_parameters_Karaoke_NanBianNv[] = {
 
 const unsigned char user_effect_parameters_Karaoke_NvBianNan[] = {
 0xe7, 0x04, /*total data length*/
-0x02, 0x31, 0x00, /*Effect Version*/
+0x02, 0x36, 0x00, /*Effect Version*/
 
-0x02, 0x20, 0x00, /* Roboeffect Version*/
+0x02, 0x2c, 0x00, /* Roboeffect Version*/
 
 0x1e, 0x00, /*3rd part data total length  */
 0x02, /*number of 3rd part items*/
@@ -5519,9 +5519,9 @@ const unsigned char user_module_parameters_Karaoke_NvBianNan[] = {
 
 const unsigned char user_effect_parameters_Karaoke_WaWaYin[] = {
 0xe7, 0x04, /*total data length*/
-0x02, 0x31, 0x00, /*Effect Version*/
+0x02, 0x36, 0x00, /*Effect Version*/
 
-0x02, 0x20, 0x00, /* Roboeffect Version*/
+0x02, 0x2c, 0x00, /* Roboeffect Version*/
 
 0x1e, 0x00, /*3rd part data total length  */
 0x02, /*number of 3rd part items*/

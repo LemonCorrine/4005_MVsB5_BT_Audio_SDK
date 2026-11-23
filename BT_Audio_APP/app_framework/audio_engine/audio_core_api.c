@@ -53,6 +53,7 @@ typedef enum
 
 static AudioCoreRunState AudioState = AC_RUN_CHECK;
 AudioCoreContext		AudioCore;
+osMutexId AudioEffectMutex;
 
 extern uint32_t gSysTick;
 

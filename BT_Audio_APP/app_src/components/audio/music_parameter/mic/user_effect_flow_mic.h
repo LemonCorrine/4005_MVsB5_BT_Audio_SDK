@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_mic.h  
  * @brief   auto generated  
- * @author  ACPWorkbench: 3.19.1
+ * @author  ACPWorkbench: 5.1.8
  * @version V1.2.0 
- * @Created 2025-10-09T15:50:35 
+ * @Created 2026-04-22T17:53:41 
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define MIC_ROBOEFFECT_LIB_VER "2.32.0"
+#define MIC_ROBOEFFECT_LIB_VER "2.44.0"
 
 typedef enum _MIC_roboeffect_io_enum
 {
@@ -36,30 +36,30 @@ typedef enum _MIC_roboeffect_io_enum
 typedef enum _MIC_roboeffect_effect_list_enum{
 
     MIC_upmix_1to2_0_ADDR = 0x81,
-    MIC_silence_detector_mic_ADDR,
-    MIC_preGain_ADDR,
-    MIC_silence_detector_music_ADDR,
-    MIC_remind_gain_control_ADDR,
-    MIC_mic_eq0_ADDR,
-    MIC_mic_ns_ADDR,
-    MIC_mic_EQ_ADDR,
-    MIC_mic_drc_ADDR,
-    MIC_mic_gain_ADDR,
-    MIC_gain_control0_ADDR,
-    MIC_noise_suppressor_expander0_ADDR,
-    MIC_gain_control2_ADDR,
-    MIC_eq1_ADDR,
-    MIC_compander_ADDR,
-    MIC_low_level_compressor1_ADDR,
-    MIC_harmonic_exciter0_ADDR,
-    MIC_mvbass_ADDR,
-    MIC_3D_ADDR,
-    MIC_eq2_ADDR,
-    MIC_music_drc_ADDR,
-    MIC_music_EQ_ADDR,
-    MIC_gain_control1_ADDR,
-    MIC_eq0_ADDR,
-    MIC_low_level_compressor0_ADDR,
+    MIC_silence_detector_mic_ADDR = 0x82,
+    MIC_preGain_ADDR = 0x83,
+    MIC_silence_detector_music_ADDR = 0x84,
+    MIC_remind_gain_control_ADDR = 0x85,
+    MIC_mic_eq0_ADDR = 0x86,
+    MIC_mic_ns_ADDR = 0x87,
+    MIC_mic_EQ_ADDR = 0x88,
+    MIC_mic_drc_ADDR = 0x89,
+    MIC_mic_gain_ADDR = 0x8a,
+    MIC_gain_control0_ADDR = 0x8b,
+    MIC_noise_suppressor_expander0_ADDR = 0x8c,
+    MIC_gain_control2_ADDR = 0x8d,
+    MIC_eq1_ADDR = 0x8e,
+    MIC_compander_ADDR = 0x8f,
+    MIC_low_level_compressor1_ADDR = 0x90,
+    MIC_harmonic_exciter0_ADDR = 0x91,
+    MIC_mvbass_ADDR = 0x92,
+    MIC_3D_ADDR = 0x93,
+    MIC_eq2_ADDR = 0x94,
+    MIC_music_drc_ADDR = 0x95,
+    MIC_music_EQ_ADDR = 0x96,
+    MIC_gain_control1_ADDR = 0x97,
+    MIC_eq0_ADDR = 0x98,
+    MIC_low_level_compressor0_ADDR = 0x99,
     MIC_COUNT_ADDR,
 
 } MIC_roboeffect_effect_list_enum;

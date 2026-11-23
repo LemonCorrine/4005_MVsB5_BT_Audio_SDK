@@ -139,9 +139,9 @@ osMutexId RemindMutex = NULL;
 	static	struct _Mp2DecodeContext
 	{
 		MPADecodeContext  	dec_cnt;
-		int16_t 			dec_fifo[15*128];//3840字节
+		int16_t 			dec_fifo[15*128 * MPA_MAX_CHANNELS];//3840字节
 		uint32_t 			dec_last_len;
-		uint8_t 			dec_buf[626];
+		uint8_t 			dec_buf[626 * MPA_MAX_CHANNELS];
 	}
 	#ifdef CFG_REMIND_MP2_DECODE_BUF_USE_MALLOC
 		* Mp2Decode = NULL;
@@ -159,6 +159,11 @@ osMutexId RemindMutex = NULL;
 uint32_t get_remind_state(void)
 {
 	return RemindSoundCt.player_init;
+}
+
+uint8_t get_remind_channels(void)
+{
+	return MPA_MAX_CHANNELS;
 }
 
 static uint16_t RemindSountItemFind(uint8_t *RemindItem)
@@ -237,6 +242,50 @@ static bool	RemindSoundReadItemInfo(uint16_t ItemRef)
 		REMIND_DBG("\n");
 	}
 	return TRUE;
+}
+
+//当有正在播放的提示且新请求允许打断时，立即中断当前播放并启动新提示
+// 这样可以在第二次按键时立即响应并播放第二个提示音，避免先前提示静默结束再播放
+// 仅在不含 REMIND_ATTR_NEED_HOLD_PLAY 的情况下执行抢占
+// 注意：该逻辑在修改请求队列后直接准备并开启新提示，尽量减少静默时间
+bool RemindSoundServiceItemRequestPreempt(char *SoundItem, uint32_t play_attribute)
+{
+	if(SoftFlagGet(SoftFlagNoRemind) || RemindSoundCt.Disable == TRUE)
+		return FALSE;
+	if(SoundItem == NULL)
+		return FALSE;
+
+	// 仅当当前正在播放且新请求可被打断时执行
+	if(RemindSoundCt.ItemState != REMIND_ITEM_IDLE && (play_attribute & REMIND_ATTR_NEED_HOLD_PLAY) == 0)
+	{
+		// 先将当前播放强制结束
+		RemindSoundAudioPlayEnd();
+
+		// 标记为空闲并要求重构请求队列
+		RemindSoundCt.ItemState = REMIND_ITEM_IDLE;
+		RemindSoundCt.RequestUpdate = TRUE;
+
+		// 重新整理队列使新请求成为第一位
+		RemindRequestsRecast();
+
+		// 如果有待播放项，直接准备并开始播放以减少延迟
+		if(RemindSoundCt.EmptyIndex && RemindSoundReadItemInfo(RemindSoundCt.Request[0].ItemRef))
+		{
+			RemindSoundCt.ItemState = REMIND_ITEM_PREPARE;
+			RemindSoundCt.player_init = MP2_DECODE_HEADER;
+			if(RemindSoundCt.Request[0].Attr & REMIND_ATTR_NEED_MUTE_APP_SOURCE)
+			{
+				RemindSoundCt.MuteAppFlag = TRUE;
+				AudioCoreSourceMute(APP_SOURCE_NUM,TRUE,TRUE);
+			}
+			// 直接启用提醒声源并进入播放状态，Run循环会继续解码填充数据
+			AudioCoreSourceEnable(REMIND_SOURCE_NUM);
+			RemindSoundCt.ItemState = REMIND_ITEM_PLAY;
+		}
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 //提示音条目和数据区完整性校验，影响开机速度。
@@ -359,10 +408,10 @@ static void mp2_play_init(void)
 	}
 	RemindSoundCt.FramSize = Mp2Decode->dec_cnt.frame_size;
 	Mp2Decode->dec_last_len = 0;
-//	REMIND_DBG("sample ramte:%u\n",Mp2Decode.dec_cnt.sample_rate);
-//	REMIND_DBG("fram size   :%u\n",Mp2Decode.dec_cnt.frame_size);
-//	REMIND_DBG("bit rate    :%u\n",Mp2Decode.dec_cnt.bit_rate);
-//	REMIND_DBG("channels    :%u\n",Mp2Decode.dec_cnt.nb_channels);
+	REMIND_DBG("sample ramte:%u\n",Mp2Decode->dec_cnt.sample_rate);
+	REMIND_DBG("fram size   :%u\n",Mp2Decode->dec_cnt.frame_size);
+	REMIND_DBG("bit rate    :%u\n",Mp2Decode->dec_cnt.bit_rate);
+	REMIND_DBG("channels    :%u\n",Mp2Decode->dec_cnt.nb_channels);
 	AudioCoreSourceChange(REMIND_SOURCE_NUM, Mp2Decode->dec_cnt.nb_channels, Mp2Decode->dec_cnt.sample_rate);
 }
 #endif
@@ -513,7 +562,7 @@ void RemindMp2Decode(void)
 				RemindSoundPlayEndNotify();
 			}
 //			REMIND_DBG("%02X,%02X,%02X,%02X\n",Mp2Decode.dec_buf[0],Mp2Decode.dec_buf[1],Mp2Decode.dec_buf[2],Mp2Decode.dec_buf[3]);
-			if(MP2_decode_frame(p+Mp2Decode->dec_last_len*2,Mp2Decode->dec_buf) == FALSE)
+			if(MP2_decode_frame(p+Mp2Decode->dec_last_len*2*Mp2Decode->dec_cnt.nb_channels,Mp2Decode->dec_buf) == FALSE)
 			{
 				REMIND_DBG("MP2_decode_frame error!\n");
 				RemindSoundAudioPlayEnd();
@@ -607,10 +656,10 @@ uint16_t RemindDataGet(void* Buf, uint16_t Samples)
 	if(Mp2Decode != NULL && Mp2Decode->dec_last_len >= Samples)
 	{
 		uint8_t *p = (uint8_t*)Mp2Decode->dec_fifo;
-		memcpy(Buf,p,Samples*2);
+		memcpy(Buf,p,Samples*2*Mp2Decode->dec_cnt.nb_channels);
 //		RemindSoundCt.Samples += Samples;
 		Mp2Decode->dec_last_len = Mp2Decode->dec_last_len-Samples;
-		memcpy(p,p+Samples*2,Mp2Decode->dec_last_len*2);
+		memcpy(p,p+Samples*2*Mp2Decode->dec_cnt.nb_channels,Mp2Decode->dec_last_len*2*Mp2Decode->dec_cnt.nb_channels);
 		return Samples;
 	}
 	return 0;
@@ -674,7 +723,11 @@ bool RemindSoundServiceItemRequest(char *SoundItem, uint32_t play_attribute)
 	}
 
 	osMutexUnlock(RemindMutex);
-
+	// 如果当前正在播放且新请求允许被打断，尝试立即抢占并开始新提示
+	if(RemindSoundServiceItemRequestPreempt(SoundItem, play_attribute))
+	{
+		return TRUE;
+	}
 //	if(play_attribute & REMIND_SOUND_NEED_HOLD_PLAY)
 //	{
 //		if(RemindSoundCt.player_init != MP2_DECODE_IDLE
@@ -1197,7 +1250,22 @@ void RemindServiceItemClear()
 	if(RemindSoundCt.Isflash)
 	{
 		RemindSoundAudioPlayEnd();
+		// Clear audio states
+		APP_DBG("[RemindServiceItemClear] Cleaning up audio states\n");
+		// Stop audio source
+		AudioCoreSourceDisable(REMIND_SOURCE_NUM);
+		// Free decoder resources
+		if(RemindSoundCt.MuteAppFlag)
+		{
+
+			RemindSoundCt.MuteAppFlag = FALSE;
+			AudioCoreSourceUnmute(APP_SOURCE_NUM, TRUE, TRUE);
+			APP_DBG("[RemindServiceItemClear] Unmute APP_SOURCE_NUM\n");
+		}
 	}
+	// Reset remind sound control structure (moved outside if to fix state machine issue)
+	RemindSoundCt.ItemState = REMIND_ITEM_IDLE;// Reset item state
+	RemindSoundCt.RequestUpdate = TRUE;// Mark request update
 	RemindSoundCt.EmptyIndex = 0;
 	RemindSoundCt.Idflash = 0;
 }

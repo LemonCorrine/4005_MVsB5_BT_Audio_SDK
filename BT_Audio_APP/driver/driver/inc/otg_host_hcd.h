@@ -86,6 +86,7 @@ typedef struct _PIPE_INFO
 	uint8_t	EpNum;//endpoint number
 	uint8_t	EpType;//endpoint type
 	uint16_t MaxPacketSize;	//max packet size
+	uint8_t	bInterval;
 } PIPE_INFO;
 /**
  * @brief  usb host Fifo init

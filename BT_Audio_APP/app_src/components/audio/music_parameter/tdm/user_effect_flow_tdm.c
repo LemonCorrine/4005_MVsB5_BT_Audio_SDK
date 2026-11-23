@@ -1,12 +1,12 @@
 /***************************************************
  * @file    user_effect_flow_tdm.c                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.19.1  
+ * @author  ACPWorkbench: 5.1.8  
  * @version V1.2.0                                 
  * @graphics: tdm   
- * @Effect Version: 2.49.0
- * @RoboEffect Version: 2.32.0
- * @Created 2025-10-09T15:50:37                                      
+ * @Effect Version: 2.54.0
+ * @RoboEffect Version: 2.44.0
+ * @Created 2026-04-22T17:53:42                                      
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
 
@@ -97,7 +97,7 @@ static const roboeffect_exec_effect_info user_effects_tdm[] = {
 };              
 
 roboeffect_effect_list_info user_effect_list_tdm = {
-    TDM_COUNT_ADDR - 0x81, //count      
+    15, //count      
     44100, //sample rate
     256, //frame size
     user_effects_tdm,
@@ -112,21 +112,21 @@ static const roboeffect_io_unit source_unit_tdm[] = {
 
 static const roboeffect_io_unit sink_unit_tdm[] = {
     {TDM_SINK_DAC0_SINK           ,   3, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {TDM_SINK_APP_SINK            ,   2, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {TDM_SINK_APP_SINK            ,   0, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
     {TDM_SINK_STEREO_SINK         ,   1, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {TDM_SINK_SPDIF_SINK          ,   6, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {TDM_SINK_REC_SINK            ,   5, BITS_16         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {TDM_SINK_SPDIF_SINK          ,   4, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {TDM_SINK_REC_SINK            ,   2, BITS_16         , CH_STEREO}, //{sink, mem, bit_width, ch}
 };
 
 static const uint32_t effect_flow_tdm[] = {
-16843139, 33686148, 50528770, 129, 33554433, 133, 33686151, 33686152, 
-33686153, 33686154, 33686155, 67372162, 84149249, 67372166, 84215180, 84215181, 
-84215182, 84215183, 16844034, 83951873, 50528514, 16974593, 100729089, 
+16843139, 33686148, 50528770, 129, 133, 135, 136, 137, 
+138, 139, 67372162, 67372166, 67372172, 67372173, 67372174, 67372175, 
+16843778, 33620225, 50528514, 16974593, 67174657, 
 };
 
 const roboeffect_effect_steps_table user_effect_steps_tdm = {
-    23,  //step cnt
-    2,  //mem used
+    21,  //step cnt
+    0,  //mem used
     5,  //src numb
     5,  //des numb
 
@@ -144,9 +144,9 @@ char *parameter_group_name_tdm[1] = { "TDM" };
 
 const unsigned char user_effect_parameters_tdm_TDM[] = {
 0xeb, 0x01, /*total data length*/
-0x02, 0x31, 0x00, /*Effect Version*/
+0x02, 0x36, 0x00, /*Effect Version*/
 
-0x02, 0x20, 0x00, /* Roboeffect Version*/
+0x02, 0x2c, 0x00, /* Roboeffect Version*/
 
 0x1e, 0x00, /*3rd part data total length  */
 0x02, /*number of 3rd part items*/
@@ -181,12 +181,12 @@ const unsigned char user_effect_parameters_tdm_TDM[] = {
 0x85, /*silence_detector_mic*/
 0x03,/*length*/
 0x01, /*enable*/
-0x29, 0x00, /*PCM amplitude*/
+0x00, 0x00, /*PCM amplitude*/
 
 0x86, /*silence_detector_music*/
 0x03,/*length*/
 0x01, /*enable*/
-0xb1, 0x19, /*PCM amplitude*/
+0x00, 0x00, /*PCM amplitude*/
 
 0x87, /*mic_eq0*/
 0x69,/*length*/

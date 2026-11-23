@@ -23,6 +23,18 @@ extern "C"{
 #include "i2c.h"
 
 /**
+ * @brief     I2C初始化配置
+ *
+ * @param[in] I2cClkParam 分频参数设置(范围0x00-0x3f)，详见 # i2c div table
+ * @param[in] port      i2c使用端口选择，详见 # I2C_PORT_MODE
+ * @param[in] OwnAddr   i2c做slave，需要配置自身地址
+ *                      i2c做master，可随意配置
+ *
+ * @return    i2c state  详见 I2C_ErrorState
+ */
+I2C_ErrorState I2C_Config(uint8_t I2cClkParam, I2C_PORT_MODE port, uint8_t OwnAddr);
+
+/**
  * @brief     I2C主模式下发送数据
  *
  * @param[in] SlaveAddr 从设备地址

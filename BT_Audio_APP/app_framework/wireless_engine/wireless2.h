@@ -8,7 +8,7 @@
 #ifndef WIRELESS2_H_
 #define WIRELESS2_H_
 
-#define MVW2_LIB_VERSION	"1.3.87"
+#define MVW2_LIB_VERSION	"1.3.89"
 
 #define NOPAIR_WORD					0xFFFFFFFF
 #define COMPANY_BYTE3				0x38

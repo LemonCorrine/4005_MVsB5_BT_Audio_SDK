@@ -170,6 +170,10 @@ void osSemaphoreMutexCreate(void)
 	{
 		SysModeMutex = osMutexCreate();
 	}
+	if(AudioEffectMutex == NULL)
+	{
+		AudioEffectMutex = osMutexCreate();
+	}
 #ifdef CFG_FUNC_REMIND_SOUND_EN
 	if(RemindMutex == NULL)
 	{
@@ -216,6 +220,10 @@ void osSemaphoreMutexUnlock(void)//bkd add 2021.04.25
 	if(SysModeMutex != NULL)
 	{
 		osMutexUnlock(SysModeMutex);
+	}
+	if(AudioEffectMutex != NULL)
+	{
+		osMutexUnlock(AudioEffectMutex);
 	}
 
 	DecoderOslockUnlock();

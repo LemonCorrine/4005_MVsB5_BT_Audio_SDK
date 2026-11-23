@@ -29,7 +29,7 @@ void AudioEffect_GetAudioEffectValue(void)
 {
 #ifdef CFG_FUNC_MIC_KARAOKE_EN
 	param_echo *Echoparam = (param_echo *)AudioEffectGetAllParameter(ECHO_PARAM);
-	if(Echoparam)
+	if(Echoparam != NULL)
 	{
 		APP_DBG("echo fc:0x%x\n", Echoparam->cutoff_frequency);
 		APP_DBG("echo delay:0x%x\n", Echoparam->delay);
@@ -122,9 +122,11 @@ uint8_t AudioCoreSinkToRoboeffect(int8_t sink)
 
 	switch (sink)
 	{
+#ifdef CFG_RES_AUDIO_DAC0_EN
 		case AUDIO_DAC0_SINK_NUM:
 			sink_id = param->dac0_sink;
 			break;
+#endif			
 #if	(defined(CFG_APP_BT_MODE_EN) && (BT_HFP_SUPPORT)) || defined(CFG_APP_USB_AUDIO_MODE_EN)
 		case AUDIO_APP_SINK_NUM:
 			sink_id = param->app_sink;
@@ -274,15 +276,38 @@ bool AudioEffect_effectAddr_check(uint8_t addr)
 }
 
 #ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
-uint16_t get_EffectParamFlash_WriteAddr(void)
+typedef struct __EffectParamOffsetUnit
 {
-	uint16_t offset = 1024 * CFG_EFFECT_PARAM_IN_FLASH_SIZE;
-	uint16_t flashCnt = 0;
-	for(uint8_t i = 0; i < ((EFFECT_MODE_COUNT - 1) * 2); i++)
+	 uint32_t 	 HwCfgOffset;
+	 uint32_t 	 effectParamOffset;
+	 uint32_t 	 HwCfgCRC;
+	 uint32_t 	 effectParamCRC;
+} EffectParamOffsetUnit;
+
+typedef struct __AudioEffectFlashParamUnit
+{
+	 EffectParamOffsetUnit 	 flashAddr[EFFECT_MODE_COUNT];
+} AudioEffectParamFlashAddrUnit;
+
+uint32_t get_EffectParamFlash_WriteAddr(void)
+{
+	uint32_t offset = 1024 * CFG_EFFECT_PARAM_IN_FLASH_SIZE;
+	uint32_t flashCnt = 0;
+	AudioEffectParamFlashAddrUnit flashParam;
+	
+	if (SpiFlashRead(get_effect_data_addr(), (uint8_t*)&flashParam, sizeof(AudioEffectParamFlashAddrUnit), 1) == FLASH_NONE_ERR)
 	{
-		SpiFlashRead(get_effect_data_addr() + i * 2, (uint8_t*)&flashCnt, 2, 1);
-//		DBG("flashCnt = %d\n", flashCnt);
-		offset = (flashCnt < offset) ? flashCnt : offset;
+		for(uint8_t i = 0; i < EFFECT_MODE_COUNT; i++)
+		{
+			if(flashParam.flashAddr[i].HwCfgOffset != 0xffffffff)
+			{
+				offset = (flashParam.flashAddr[i].HwCfgOffset < offset) ? flashParam.flashAddr[i].HwCfgOffset : offset;
+			}
+			if(flashParam.flashAddr[i].effectParamOffset != 0xffffffff)
+			{
+				offset = (flashParam.flashAddr[i].effectParamOffset < offset) ? flashParam.flashAddr[i].effectParamOffset : offset;
+			}
+		}
 	}
 	return offset;
 }
@@ -318,45 +343,49 @@ void EffectParamFlashUpdata(void)
 {
 //	SPI_FLASH_ERR_CODE ret = 0;
 	int32_t FlashAddr = get_effect_data_addr();
-	uint16_t FlashWriteOffset = 0;
-	uint16_t effectHwCfgOffset = 0;
-	uint16_t effectParamOffset = 0;
+	uint32_t FlashWriteOffset = 0;
+	EffectParamOffsetUnit flashOffsetUnit;
+	uint32_t HwCfgCRC = 0;
+	uint32_t ParamCRC = 0;
 
-	if (((SpiFlashRead(get_effect_data_addr() + ((mainAppCt.EffectMode - 1) * 4), (uint8_t*)&effectHwCfgOffset, 2 ,1)  == FLASH_NONE_ERR)
-			&& (effectHwCfgOffset != 0xffff))
-		&& ((SpiFlashRead(get_effect_data_addr() + ((mainAppCt.EffectMode - 1) * 4) + 2, (uint8_t*)&effectParamOffset, 2 ,1)  == FLASH_NONE_ERR)
-				&& (effectParamOffset != 0xffff)))
+	if ((SpiFlashRead(get_effect_data_addr() + (mainAppCt.EffectMode * sizeof(EffectParamOffsetUnit)), (uint8_t*)&flashOffsetUnit, sizeof(EffectParamOffsetUnit) ,1)  == FLASH_NONE_ERR)
+		&& (flashOffsetUnit.HwCfgOffset != 0xffffffff) && (flashOffsetUnit.effectParamOffset != 0xffffffff))
 	{
 		DBG("EffectData FlashAdd = %lx\n", FlashAddr);
-		DBG("effectHwCfgOffset = %d\n", effectHwCfgOffset);
-		DBG("effectParamOffset = %d\n", effectParamOffset);
+		DBG("effectHwCfgOffset = %ld\n", flashOffsetUnit.HwCfgOffset);
+		DBG("effectParamOffset = %ld\n", flashOffsetUnit.effectParamOffset);
 	}
 	else
 	{
 		FlashWriteOffset = get_EffectParamFlash_WriteAddr();
-		if (FlashWriteOffset < (((EFFECT_MODE_COUNT - 1) * 4) + sizeof(gCtrlVars.HwCt)
+		if (FlashWriteOffset < ((EFFECT_MODE_COUNT * sizeof(EffectParamOffsetUnit)) + sizeof(gCtrlVars.HwCt)
 				+ get_user_effect_parameters_len(AudioEffect.user_effect_parameters)))
 		{
 			APP_DBG("Flash space is not enough!!!\n");
 			return;
 		}
 
-		effectHwCfgOffset = FlashWriteOffset - sizeof(gCtrlVars.HwCt);
-		effectParamOffset = effectHwCfgOffset - get_user_effect_parameters_len(AudioEffect.user_effect_parameters);
+		flashOffsetUnit.HwCfgOffset = FlashWriteOffset - sizeof(gCtrlVars.HwCt);
+		flashOffsetUnit.effectParamOffset = flashOffsetUnit.HwCfgOffset - get_user_effect_parameters_len(AudioEffect.user_effect_parameters);
 
 		DBG("EffectData FlashAdd = %lx\n", FlashAddr);
-		DBG("FlashWriteOffset = %d\n", FlashWriteOffset);
-		DBG("effectHwCfgOffset = %d\n", effectHwCfgOffset);
-		DBG("effectParamOffset = %d\n", effectParamOffset);
+		DBG("FlashWriteOffset = %ld\n", FlashWriteOffset);
+		DBG("effectHwCfgOffset = %ld\n", flashOffsetUnit.HwCfgOffset);
+		DBG("effectParamOffset = %ld\n", flashOffsetUnit.effectParamOffset);
 	}
+	HwCfgCRC = AudioEffect_GetUserHWCfgCRCLen((uint8_t*)&gCtrlVars.HwCt);
+	ParamCRC = AudioEffect_GetUserEffectParamCRCLen(AudioEffect.user_effect_parameters);
+	flashOffsetUnit.HwCfgCRC = HwCfgCRC;
+	flashOffsetUnit.effectParamCRC = ParamCRC;
+//	DBG("HwCfgCRC = %ld\n", HwCfgCRC);
+//	DBG("ParamCRC = %ld\n", ParamCRC);
 
 	//write data
-    SpiFlashWrite(FlashAddr + (mainAppCt.EffectMode - 1) * 4, (uint8_t*)&effectHwCfgOffset, 2, 1);
-    SpiFlashWrite(FlashAddr + (mainAppCt.EffectMode - 1) * 4 + 2, (uint8_t*)&effectParamOffset, 2, 1);
-	if (AudioEffect_FlashWrite(FlashAddr + effectHwCfgOffset, (uint8_t*)&gCtrlVars.HwCt, sizeof(gCtrlVars.HwCt))
-		&& AudioEffect_FlashWrite(FlashAddr + effectParamOffset, (uint8_t*)AudioEffect.user_effect_parameters,
+	if (AudioEffect_FlashWrite(FlashAddr + flashOffsetUnit.HwCfgOffset, (uint8_t*)&gCtrlVars.HwCt, sizeof(gCtrlVars.HwCt))
+		&& AudioEffect_FlashWrite(FlashAddr + flashOffsetUnit.effectParamOffset, (uint8_t*)AudioEffect.user_effect_parameters,
 				get_user_effect_parameters_len(AudioEffect.user_effect_parameters)))
 	{
+		AudioEffect_FlashWrite(FlashAddr + mainAppCt.EffectMode * sizeof(EffectParamOffsetUnit), (uint8_t*)&flashOffsetUnit, sizeof(EffectParamOffsetUnit));
 		APP_DBG("EffectParamFlashUpdata ok!\n");
 	}
 	else
@@ -367,10 +396,12 @@ void EffectParamFlashUpdata(void)
 
 bool AudioEffect_GetFlashHwCfg(uint8_t effectMode, HardwareConfigContext *hw_ct)
 {
-	uint16_t offset = 0;
-	if (SpiFlashRead(get_effect_data_addr() + ((mainAppCt.EffectMode - 1) * 4), (uint8_t*)&offset, 2 ,1) == FLASH_NONE_ERR)
+	EffectParamOffsetUnit flashOffsetUnit;
+	if ((SpiFlashRead(get_effect_data_addr() + (effectMode * sizeof(EffectParamOffsetUnit)), (uint8_t*)&flashOffsetUnit, sizeof(EffectParamOffsetUnit) ,1) == FLASH_NONE_ERR))
 	{
-		if ((offset != 0xffff) && (SpiFlashRead(get_effect_data_addr() + offset, (uint8_t*)hw_ct, sizeof(gCtrlVars.HwCt) ,1) == FLASH_NONE_ERR))
+		if ((flashOffsetUnit.HwCfgOffset != 0xffffffff) && (SpiFlashRead(get_effect_data_addr() + flashOffsetUnit.HwCfgOffset, (uint8_t*)hw_ct, sizeof(gCtrlVars.HwCt) ,1) == FLASH_NONE_ERR)
+				&& (flashOffsetUnit.HwCfgCRC == AudioEffect_GetUserHWCfgCRCLen((uint8_t*)hw_ct))
+				&& AudioEffect_HwCfg_check(hw_ct))
 		{
 			return TRUE;
 		}
@@ -381,15 +412,15 @@ bool AudioEffect_GetFlashHwCfg(uint8_t effectMode, HardwareConfigContext *hw_ct)
 
 bool AudioEffect_GetFlashEffectParam(uint8_t effectMode,  uint8_t *effect_param)
 {
-	uint16_t effectHwCfgOffset = 0;
-	uint16_t effectParamOffset = 0;
-	if ((SpiFlashRead(get_effect_data_addr() + ((mainAppCt.EffectMode - 1) * 4), (uint8_t*)&effectHwCfgOffset, 2 ,1) == FLASH_NONE_ERR)
-			&& (SpiFlashRead(get_effect_data_addr() + ((mainAppCt.EffectMode - 1) * 4) + 2, (uint8_t*)&effectParamOffset, 2 ,1) == FLASH_NONE_ERR)
-			&& (effectHwCfgOffset - effectParamOffset == get_user_effect_parameters_len(effect_param)))
+	EffectParamOffsetUnit flashOffsetUnit;
+	if ((SpiFlashRead(get_effect_data_addr() + (effectMode * sizeof(EffectParamOffsetUnit)), (uint8_t*)&flashOffsetUnit, sizeof(EffectParamOffsetUnit) ,1) == FLASH_NONE_ERR)
+			&& (flashOffsetUnit.HwCfgOffset - flashOffsetUnit.effectParamOffset == get_user_effect_parameters_len(effect_param)))
 	{
-		if (SpiFlashRead(get_effect_data_addr() + effectParamOffset, (uint8_t*)effect_param, get_user_effect_parameters_len(effect_param) ,1) == FLASH_NONE_ERR)
+		if ((SpiFlashRead(get_effect_data_addr() + flashOffsetUnit.effectParamOffset, (uint8_t*)effect_param, get_user_effect_parameters_len(effect_param) ,1) == FLASH_NONE_ERR)
+				&& (flashOffsetUnit.effectParamCRC == AudioEffect_GetUserEffectParamCRCLen(effect_param))
+				&& AudioEffect_effectParam_check(effectMode, effect_param))
 		{
-			return TRUE;
+				return TRUE;
 		}
 	}
 	DBG("flash read EffectParam err\n");
@@ -398,18 +429,19 @@ bool AudioEffect_GetFlashEffectParam(uint8_t effectMode,  uint8_t *effect_param)
 
 bool AudioEffect_CheckFlashEffectParam(void)
 {
-	uint16_t flashParam[EFFECT_MODE_COUNT * 2];
+	AudioEffectParamFlashAddrUnit flashParam;
 	AUDIOEFFECT_EFFECT_PARA *para;
 	uint8_t i, index;
 
-	if ((SpiFlashRead(get_effect_data_addr(), (uint8_t*)flashParam, EFFECT_MODE_COUNT * 4 ,1) == FLASH_NONE_ERR))
+	if ((SpiFlashRead(get_effect_data_addr(), (uint8_t*)&flashParam, sizeof(AudioEffectParamFlashAddrUnit) ,1) == FLASH_NONE_ERR))
 	{
 		for(i = 0; i < EFFECT_MODE_COUNT; i++)
 		{
-//			DBG("### %d - Hwcfg:%d, param:%d\n", i, flashParam[i*2], flashParam[i*2 + 1]);
+//			DBG("### %d - Hwcfg:0x%x, param:0x%x\n", i, flashParam.flashAddr[i].HwCfgOffset, flashParam.flashAddr[i].effectParamOffset);
 			para = get_user_effect_parameters(i);
-			if((flashParam[i*2] != 0xffff) && (flashParam[i*2 + 1] != 0xffff)
-				&& (flashParam[i*2] - flashParam[i*2 + 1] != get_user_effect_parameters_len(para->user_effect_parameters)))
+			if((flashParam.flashAddr[i].HwCfgOffset != 0xffffffff) && (flashParam.flashAddr[i].effectParamOffset != 0xffffffff)
+				&& (flashParam.flashAddr[i].HwCfgCRC != 0xffffffff) && (flashParam.flashAddr[i].effectParamCRC != 0xffffffff)
+				&& (flashParam.flashAddr[i].HwCfgOffset - flashParam.flashAddr[i].effectParamOffset != get_user_effect_parameters_len(para->user_effect_parameters)))
 			{
 //				DBG("flash read effect_mode(%d)EffectParam err %d\n", i, get_user_effect_parameters_len(para->user_effect_parameters));
 				DBG("EffectParam in flash changed, erase all\n");
@@ -428,8 +460,8 @@ bool AudioEffect_CheckFlashEffectParam(void)
 //total data length  	---- 2 Bytes
 //Effect Version		---- 3 Bytes
 //Roboeffect Version  	---- 3 Bytes
-//ACPWorkbench V3.8.15以后版本导出的参数增加了3字节的Roboeffect Version + 3rd part data
-//使用的时候注意参数的版本，修改对应的偏移
+//ACPWorkbench V3.8.15浠ュ悗鐗堟湰瀵煎嚭鐨勫弬鏁板鍔犱簡3瀛楄妭鐨凴oboeffect Version + 3rd part data
+//浣跨敤鐨勬椂鍊欐敞鎰忓弬鏁扮殑鐗堟湰锛屼慨鏀瑰搴旂殑鍋忕Щ
 EffectValidParamUnit AudioEffect_GetUserEffectValidParam(uint8_t *effect_param)
 {
 	EffectValidParamUnit unit;
@@ -470,4 +502,62 @@ uint32_t AudioEffect_GetUserHWCfgCRCLen(uint8_t *effect_param)
 	}
 
 	return crcLen;
+}
+
+bool AudioEffect_effectParam_check(uint8_t effectMode,  uint8_t *effect_param)
+{
+	AUDIOEFFECT_EFFECT_PARA *para = get_user_effect_parameters(effectMode);
+	uint8_t *context = NULL;
+	int32_t memory_size = roboeffect_estimate_memory_size(para->user_effect_steps, para->user_effect_list, effect_param);
+	if(memory_size < 0)
+	{
+		DBG("AudioEffect_effectParam_check memory_size failed. %ld \n", memory_size);
+		return FALSE;
+	}
+	else
+	{
+		context = osPortMallocFromEnd(memory_size);
+		if(context == NULL)
+		{
+			DBG("AudioEffect_effectParam_check failed, memory not enough!\n");
+			return FALSE;
+		}
+	}
+	ROBOEFFECT_ERROR_CODE ret = roboeffect_init(context, memory_size, para->user_effect_steps, para->user_effect_list, effect_param);
+	if(ROBOEFFECT_ERROR_OK !=  ret)
+	{
+		DBG("AudioEffect_effectParam_check failed. %d \n", ret);
+		osPortFree(context);
+		return FALSE;
+	}
+
+	osPortFree(context);
+	return TRUE;
+}
+
+bool AudioEffect_HwCfg_check(HardwareConfigContext *hw_ct)
+{
+    uint32_t total_length = 0;
+    const uint8_t *ptr = (uint8_t *)hw_ct;
+    const uint8_t *end = (uint8_t *)hw_ct + sizeof(HardwareConfigContext);
+
+    while (ptr < end)
+    {
+
+        uint8_t control_code = *ptr++;
+        if (control_code < 0x03 || control_code > 0x0D)
+        {
+            return FALSE;
+        }
+        uint8_t block_length = *ptr++;
+        uint32_t block_total = 2 + block_length;
+        total_length += block_total;
+        ptr += block_length;
+    }
+
+    if (total_length == sizeof(HardwareConfigContext))
+    {
+        return TRUE;;
+    }
+    return FALSE;
 }

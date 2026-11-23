@@ -10,6 +10,7 @@
 #include "type.h"
 #include "resampler_polyphase.h"
 #include "resampler.h"
+#include "resampler_sinc.h"
 #include "mcu_circular_buf.h"
 //#include "sra.h"
 #include "resampler_farrow.h"
@@ -40,7 +41,9 @@ typedef enum _AUDIO_ADAPT_
 typedef struct _SRC_ADAPTER_
 {
 	uint32_t					SampleRate;
-#ifndef CFG_FUNC_SRC_HIGHER_EN
+#if defined(CFG_FUNC_SRC_SINC_EN)
+	uint8_t *					SrcCt;
+#elif defined(CFG_FUNC_SRC_POLYPHASE_EN)
 	ResamplerPolyphaseContext	SrcCt;
 #else
 	ResamplerContext			SrcCt;
@@ -56,6 +59,7 @@ typedef struct _SRA_ADAPTER_
 	uint32_t					TotalNum;//微调水位统计--旨在多次求平均
 	uint16_t					Count;//微调水位统计计数器
 	int8_t						AdjustVal;//软件微调 插点和删点数值，源于周期性水位判断
+	int8_t						GroupAdj;//多帧微调值@ADJUST_GROUP_FRAME,帧组合期间不可变更参数
 	uint32_t					Depth;//LenGetFunc()最大采样点深度
 	uint8_t						HighLevelCent;
 	uint8_t						LowLevelCent;
@@ -115,6 +119,8 @@ typedef struct _AudioCoreIO_
 #define ADJUST_DIV_MAX				100			//硬件微调限幅度对应万分之五的频偏，源于div的小数分频调整。
 #define	ADJUST_SHRESHOLD			2			//2~4 Low～high之间 抑制硬件微调的震荡，连续单向水位变化，反向抑制。
 #define ADJUST_GROUP_FRAME(AdjustVal)	(AdjustVal == 0 ? 1 : 10) //(AdjustVal == 0 ? 1 : ADJUST_PERIOD/128)
+
+#define SRC_QUALITY			0//2//3//(0~10 @resample_sinc.h SRC)
 
 #define SRC_INPUT_MAX		128 //即 MAX_FRAME_SAMPLES @resampler_polyphase.h
 #define SRC_INPUT_MIN		8//低于这两个数值，不做转换处理 减少累积误差

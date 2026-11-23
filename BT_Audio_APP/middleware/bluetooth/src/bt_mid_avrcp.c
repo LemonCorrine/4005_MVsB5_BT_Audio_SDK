@@ -141,13 +141,13 @@ void BtAvrcpCallback(BT_AVRCP_CALLBACK_EVENT event, BT_AVRCP_CALLBACK_PARAMS * p
 				{
 					case AVRCP_REV_PLAY:
 						APP_DBG("AVRCP_STATE: AVRCP_REV_PLAY \n");
-						extern void BtSourcePlay(void);
-						BtSourcePlay();
+						extern void BtSourcePlay(uint8_t index);
+						BtSourcePlay(param->index);
 						break;
 					case AVRCP_REV_PAUSE:
 						APP_DBG("AVRCP_STATE: AVRCP_REV_PAUSE \n");
-						extern void BtSourceStop(void);
-						BtSourceStop();
+						extern void BtSourceStop(uint8_t index);
+						BtSourceStop(param->index);
 						break;
 					case AVRCP_REV_PRE:
 						APP_DBG("AVRCP_STATE: AVRCP_REV_PRE \n");

@@ -389,6 +389,39 @@ bool BtDdb_AddOneRecord(const BT_DB_RECORD * record)
 #if (BT_SOURCE_SUPPORT)
 	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
 	{
+		count = DdbFindRecord((const uint8_t*)&(record->bdAddr));
+#if (BT_SRC_LINK_DEV_NUM >= 2)
+		if (count == DDB_NOT_FOUND)
+		{
+			if(!btManager.btLinkDeviceInfo[0].UsedFlag)
+			{
+				memset(&(btManager.btLinkDeviceInfo[0].device), 0, sizeof(BT_DB_RECORD));
+				memcpy(&(btManager.btLinkDeviceInfo[0].device),record,sizeof(BT_DB_RECORD));
+				btManager.btLinkDeviceInfo[0].UsedFlag = 1;
+			}
+			else if(!btManager.btLinkDeviceInfo[1].UsedFlag)
+			{
+				memset(&(btManager.btLinkDeviceInfo[1].device), 0, sizeof(BT_DB_RECORD));
+				memcpy(&(btManager.btLinkDeviceInfo[1].device),record,sizeof(BT_DB_RECORD));
+				btManager.btLinkDeviceInfo[1].UsedFlag = 1;
+			}
+			else
+			{
+				memset(&(btManager.btLinkDeviceInfo[0].device), 0, sizeof(BT_DB_RECORD));
+				memcpy(&(btManager.btLinkDeviceInfo[0].device),record,sizeof(BT_DB_RECORD));
+			}
+			btManager.ddbUpdate = 1;
+		}
+		else if((memcmp(btManager.btLinkDeviceInfo[count].device.bdAddr, record->bdAddr, 6) != 0)
+			||(memcmp(btManager.btLinkDeviceInfo[count].device.linkKey, record->linkKey, 16) != 0)
+			)
+		{
+			memset(&(btManager.btLinkDeviceInfo[count].device), 0, sizeof(BT_DB_RECORD));
+			memcpy(&(btManager.btLinkDeviceInfo[count].device),record,sizeof(BT_DB_RECORD));
+			btManager.btLinkDeviceInfo[count].UsedFlag = 1;
+			btManager.ddbUpdate = 1;
+		}
+#else
 		if((memcmp(btManager.btLinkDeviceInfo[0].device.bdAddr, record->bdAddr, 6) != 0)
 			||(memcmp(btManager.btLinkDeviceInfo[0].device.linkKey, record->linkKey, 16) != 0)
 			)
@@ -398,6 +431,7 @@ bool BtDdb_AddOneRecord(const BT_DB_RECORD * record)
 			btManager.btLinkDeviceInfo[0].UsedFlag = 1;
 			btManager.ddbUpdate = 1;
 		}
+#endif//(BT_SRC_LINK_DEV_NUM >= 2)
 	}
 	else
 #endif
@@ -413,7 +447,7 @@ bool BtDdb_AddOneRecord(const BT_DB_RECORD * record)
 
 			btManager.ddbUpdate = 1;
 		}
-		else if(count == 0)
+		else if(count == 0||count == 1)//bt source占用2个存储空间
 		{
 			//tws 配对记录，不更新
 			if(memcmp(btManager.btLinkDeviceInfo[count].device.linkKey, record->linkKey, 16) != 0)
@@ -477,8 +511,19 @@ bool BtDdb_UpgradeLastBtAddr(uint8_t *BtLastAddr, uint8_t BtLastProfile)
 	{
 		return 0;
 	}
-	else if(count == 0)
+	else if(count == 0 || count == 1 )
 	{
+		if(count == 1) return 0;
+		//保存之前最后记录
+		memcpy(&record,&(btManager.btLinkDeviceInfo[1].device),sizeof(BT_DB_RECORD));
+
+		//替换位置
+		memcpy(&(btManager.btLinkDeviceInfo[1]),&(btManager.btLinkDeviceInfo[0]),sizeof(BT_LINK_DEVICE_INFO));
+		memcpy(&(btManager.btLinkDeviceInfo[0].device),&record,sizeof(BT_DB_RECORD));
+
+		btManager.btLinkDeviceInfo[1].UsedFlag = 1;
+		btManager.ddbUpdate = 1;
+		btManager.btLinkDeviceInfo[1].remote_profile = ~BtLastProfile;
 		return 0;
 	}
 	else
@@ -631,18 +676,7 @@ bool BtDdb_GetLastBtAddr(uint8_t *BtLastAddr, uint8_t* profile)
 #if (BT_SOURCE_SUPPORT)
 	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
 	{
-		if(btManager.btLinkDeviceInfo[0].UsedFlag) //source paired infor
-		{
-			//从配对列表中获取index-0设备的地址
-			memcpy(BtLastAddr,btManager.btLinkDeviceInfo[0].device.bdAddr,6);
-			*profile = ~btManager.btLinkDeviceInfo[0].remote_profile;
-			return 1;
-		}
-		else
-		{
-			memset(BtLastAddr, 0, 6);
-			return 0;
-		}
+		return;
 	}
 	else
 #endif
@@ -663,6 +697,57 @@ bool BtDdb_GetLastBtAddr(uint8_t *BtLastAddr, uint8_t* profile)
 		}
 	}
 }
+
+
+#if (BT_SOURCE_SUPPORT)
+/**********************************************************************************************
+ * 加载BtSource回连蓝牙设备地址
+ * input:  BtLastAddr - 蓝牙地址
+ * output: 1=success;  0=fail;
+ **********************************************************************************************/
+uint8_t BtDdb_BtSourceReconAddr(uint8_t *Addr1, uint8_t *Addr2, uint8_t* profile1, uint8_t* profile2)
+{
+	uint8_t ret = 0;
+	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
+	{
+		if(btManager.btLinkDeviceInfo[1].UsedFlag) //source paired infor
+		{
+			//从配对列表中获取index-0设备的地址
+			memcpy(Addr1,btManager.btLinkDeviceInfo[1].device.bdAddr,6);
+			*profile1 = ~btManager.btLinkDeviceInfo[1].remote_profile;
+			ret |= 1;
+		}
+#if (BT_SRC_LINK_DEV_NUM >= 2)
+		if(btManager.btLinkDeviceInfo[0].UsedFlag) //source paired infor
+		{
+			//从配对列表中获取index-1设备的地址
+			memcpy(Addr2,btManager.btLinkDeviceInfo[0].device.bdAddr,6);
+			*profile2 = ~btManager.btLinkDeviceInfo[0].remote_profile;
+			ret |= 2;
+		}
+#endif
+		
+	}
+
+	switch(ret)
+	{
+		case 0:
+			memset(Addr1, 0, 6);
+			memset(Addr2, 0, 6);
+		break;
+
+		case 1:
+			memset(Addr2, 0, 6);
+		break;
+
+		case 2:
+			memset(Addr1, 0, 6);
+		break;
+	}
+
+	return ret;
+}
+#endif
 
 /****************************************************************************************/
 /* 清除所有的配对记录 */
@@ -786,8 +871,17 @@ int8_t BtDdb_SaveBtConfigurationParams(BT_CONFIGURATION_PARAMS *params)
 	//1.erase
 	SpiFlashErase(SECTOR_ERASE, (BTDB_CONFIG_ADDR/4096), 1);
 
+	//bt/ble name保存在参数区，最后4K的位置保持为0xff
+	memset(params->bt_LocalDeviceName,0xff,BT_NAME_SIZE);
+	memset(params->ble_LocalDeviceName,0xff,BLE_NAME_SIZE);
+
 	//2.write params
 	ret = SpiFlashWrite(BTDB_CONFIG_ADDR, (uint8_t*)params, sizeof(BT_CONFIGURATION_PARAMS), 1);
+
+	//恢复bt/ble name
+	memcpy(params->bt_LocalDeviceName,sys_parameter.bt_LocalDeviceName,BT_NAME_SIZE);
+	memcpy(params->ble_LocalDeviceName,sys_parameter.ble_LocalDeviceName,BLE_NAME_SIZE);
+
 	if(ret != FLASH_NONE_ERR)
 	{
 		APP_DBG("write error:%d\n", ret);

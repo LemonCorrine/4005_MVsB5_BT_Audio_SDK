@@ -23,7 +23,7 @@
 /*****************************************************************
  * 蓝牙功能开关(经典蓝牙BT和低功耗蓝牙BLE模块)
  *****************************************************************/
-#define BLE_SUPPORT					DISABLE//DISABLE//
+#define BLE_SUPPORT					DISABLE//ENABLE
 #define BT_SUPPORT			        ENABLE
 
 /*****************************************************************
@@ -55,8 +55,20 @@
 #define A2DP_SCAN_NUMBER			10 //扫描设备最大保存个数
 #define A2DP_INQUIRY_TIMEOUT		10 //unit:s   default:10s
 
-#endif /* BT_SOURCE_SUPPORT */
+#define BT_SRC_LINK_DEV_NUM			1 	//蓝牙连接个数 (1 or 2)	!!!注意: 1v2 目前仅适配a2dp, 需要关闭hfp
+#if (BT_SRC_LINK_DEV_NUM >= 2)
+#define BT_SRC_RECONNECT_NUM		2
+#else
+#define BT_SRC_RECONNECT_NUM		1
+#endif
 
+#define BT_SRC_RECONNECTION_SUPPORT			(1)			//蓝牙发射回连开关 0：关闭回连，1：打开回连
+#define BT_SRC_POR_TRY_COUNTS				(10)			//回连尝试次数
+#define BT_SRC_POR_INTERNAL_TIME			(3)			//每次回连间隔时间(in seconds)
+
+#else
+#define BT_SRC_LINK_DEV_NUM			0
+#endif/* BT_SOURCE_SUPPORT */
 
 /*****************************************************************
  * 2.4G功能配置
@@ -136,6 +148,7 @@ enum
 #define BT_OBEX_SUPPORT				(0)		//文件传输(适用于安卓手机通过文件推送进行OTA升级)
 #define BT_PBAP_SUPPORT				(0)		//电话本
 #define BT_HID_SUPPORT				(0)		
+#define BT_MFI_SUPPORT				(0)
 
 #if BT_SOURCE_SUPPORT && BT_HFP_SUPPORT
 #define BT_HFG_SUPPORT				(1)		//语音发射(暂只支持CVSD格式--8KHz)
@@ -264,6 +277,10 @@ enum
 
 #define BT_HFP_CALL_DURATION_DISP		//来电通话时长配置选项
 
+//开启HFP连接，不使能进入HFP相关模式(推送电池电量显示)
+//该应用适用于某些需要连接HFP协议，但是不需要HFP相关功能的场合
+//#define BT_HFP_MODE_DISABLE
+
 #endif /* BT_HFP_SUPPORT */
 
 /*****************************************************************
@@ -294,7 +311,7 @@ enum
 	#include "bt_source.h"
 #endif
 
-#if WIRELESS_SUPPORT  && !(BLE_SUPPORT || BT_SOURCE_SUPPORT)
+#if WIRELESS_SUPPORT  && !(BT_SOURCE_SUPPORT)
 	#include "wireless_config.h" //仅在此引用
 	#define  CFG_WIRELESS_EN	//for App config
 #endif

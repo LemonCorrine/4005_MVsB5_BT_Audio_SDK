@@ -235,6 +235,7 @@ SECTIONS
 	".sbss2_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.sbss2 .sbss2.* .gnu.linkonce.sb2.* ) }
 	".eh_frame_hdr_*spi_flash_flash.o" 	: { SORT(*spi_flash_flash.o)(.eh_frame_hdr ) }
 	.lc3_section 	: { KEEP(*(.lc3_section )) }
+	.deepsleep_section 	: { KEEP(*(.deepsleep_section )) }
 	.tcm_section 	: { KEEP(*(.tcm_section )) }
 	".nds32_init_*tws_time_sync.o" 	: { KEEP(*tws_time_sync.o(.nds32_init )) }
 	".interp_*tws_time_sync.o" 	: { KEEP(*tws_time_sync.o(.interp )) }
@@ -404,7 +405,6 @@ SECTIONS
 	".sdata2_*co_utils.o" 	: { KEEP(*co_utils.o(.sdata2 .sdata2.* .gnu.linkonce.s2.* )) }
 	".sbss2_*co_utils.o" 	: { KEEP(*co_utils.o(.sbss2 .sbss2.* .gnu.linkonce.sb2.* )) }
 	".eh_frame_hdr_*co_utils.o" 	: { KEEP(*co_utils.o(.eh_frame_hdr )) }
-	.deepsleep_section 	: { KEEP(*(.deepsleep_section )) }
 	.startup_section 	: { KEEP(*(.startup_section )) }
 	.driver.isr 	: { KEEP(*(.driver.isr )) }
 	.nds32_vector 	: { KEEP(*(.nds32_vector )) KEEP(*(SORT(.nds32_vector.* ))) }

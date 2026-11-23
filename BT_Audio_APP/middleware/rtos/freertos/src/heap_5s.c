@@ -983,9 +983,8 @@ void vPrintFreeBlocks(void)
     printf("------- Free Blocks List --------\n");
     while (pxBlock != pxEnd)
     {
-        printf("  addr 0x%08X  size %6u (0x%05X)\n",
+        printf("  addr 0x%08X  size %6u\n",
                (uint32_t)pxBlock,
-               (unsigned)(pxBlock->xBlockSize & ~xBlockAllocatedBit),
                (unsigned)(pxBlock->xBlockSize & ~xBlockAllocatedBit));
         pxBlock = pxBlock->pxNextFreeBlock;
     }

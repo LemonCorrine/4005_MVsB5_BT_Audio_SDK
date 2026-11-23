@@ -60,7 +60,7 @@ typedef struct
 typedef void (*USBH_HidInputReportCallback) (USBH_HidReportCallbackInfo *);
 USBH_StatusTypeDef USBH_HidSetIdle(uint16_t interface);
 USBH_StatusTypeDef USBH_HidGetReport(uint16_t interface, uint8_t *buf,uint16_t size);
-USBH_StatusTypeDef USBH_HidDescriptorParse(HID_ClassSpecificDescTypedef *Hid_Handle,uint8_t NumInterfaces, uint8_t *pBuf,uint8_t len);
+USBH_StatusTypeDef USBH_HidDescriptorParse(OTG_HOST_INFO *HostInfo,HID_ClassSpecificDescTypedef *Hid_Handle);
 void  USBH_HidInputReportDataDecode(void *report_buffer,uint8_t report_buffer_len);
 void  USBH_HidInputReportCallbackRegister(USBH_HidInputReportCallback call_back);
 uint8_t  USBH_HidReportDescriptorParse(uint8_t *descriptor, uint32_t length);

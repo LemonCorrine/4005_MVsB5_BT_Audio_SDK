@@ -31,7 +31,7 @@
  * @return 
  * @Note   a2dp协议回调事件/参数
  *****************************************************************/
-void BtA2dpCallback(BT_A2DP_CALLBACK_EVENT event, BT_A2DP_CALLBACK_PARAMS * param)
+void BtA2dpCallback(uint8_t index, BT_A2DP_CALLBACK_EVENT event, BT_A2DP_CALLBACK_PARAMS * param)
 {
 	switch(event)
 	{

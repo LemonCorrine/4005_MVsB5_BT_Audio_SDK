@@ -51,6 +51,13 @@ void BtAvrcpConnectedDev(BT_AVRCP_CALLBACK_PARAMS * param)
 			(param->params.bd_addr)[3],
 			(param->params.bd_addr)[4],
 			(param->params.bd_addr)[5]);
+
+#if BT_SOURCE_SUPPORT
+	if((gSwitchSourceAndSink == A2DP_SET_SOURCE) && (param->index < BT_SRC_LINK_DEV_NUM))
+	{
+		ConnectIndex = param->index;
+	}
+#endif
 	
 #if (BT_LINK_DEV_NUM == 2)
 #if 1

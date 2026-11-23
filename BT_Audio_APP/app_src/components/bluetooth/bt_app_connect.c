@@ -194,8 +194,11 @@ void BtReconnectDevExcute(void)
 	uint8_t i;
 
 #if BT_SOURCE_SUPPORT
-	if(BtSourceReconnectDevExcute())
+	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)//source
+	{
+		BtReconnectDevStop();
 		return;
+	}
 #endif
 	
 	for(i=0;i<BT_LINK_DEV_NUM;i++)
@@ -662,6 +665,13 @@ void BtScanPageStateCheck(void)
 				//BtReconnectDevice();
 				GetBtManager()->btReconnectDelayCount = 1;
 			}
+
+			#if BT_SOURCE_SUPPORT
+			if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
+			{
+				GetBtManager()->btSrcReconnectDelayCount = 1;
+			}
+			#endif
 
 //			if(btManager.btConStateProtectCnt)
 //				BtSetAccessModeApi(BtAccessModeNotAccessible);

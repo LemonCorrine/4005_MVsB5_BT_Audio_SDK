@@ -665,7 +665,7 @@ void Clock_HOSCMosCapSet(uint32_t XICap, uint32_t XOCap);
 
 /**
  * @brief	配置高频晶体的内置起振电容偏置电流
- * @param	Current 电流值，【0x0-0xF】，0xF最大
+ * @param	Current 电流值，【0x0-0x1F】，0x1F最大
  * @return  无
  * @note	注意，电流值的调整会影响24M晶体的震荡频率
  */

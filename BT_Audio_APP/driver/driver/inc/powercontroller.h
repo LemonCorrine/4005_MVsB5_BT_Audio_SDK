@@ -140,10 +140,13 @@ typedef enum __PWR_LVD_Threshold_SEL
 
 typedef enum _PWR_LDO11_LVL_SEL
 {
-    PWD_LDO11_LVL_0V95 = 0, // 0.95V
+    PWD_LDO11_LVL_0V85 = 0, // 0.85V
+    PWD_LDO11_LVL_0V90,     // 0.90V
+    PWD_LDO11_LVL_0V95,     // 0.95V
     PWD_LDO11_LVL_1V0,      // 1.0V
     PWD_LDO11_LVL_1V05,     // 1.05V
     PWD_LDO11_LVL_1V10,     // 1.10V
+    PWD_LDO11_LVL_1V13,     // 1.13V
     PWD_LDO11_LVL_1V15,     // 1.15V
     PWD_LDO11_LVL_1V18,     // 1.18V
     PWD_LDO11_LVL_1V20,     // 1.20V
@@ -151,6 +154,12 @@ typedef enum _PWR_LDO11_LVL_SEL
     PWD_LDO11_LVL_1V25,     // 1.25V
     PWD_LDO11_LVL_MAX       // 请不要用这个值配置！！！仅用来做有效性判断，实际配置请用PWD_LDO11_LVL_0V95~PWD_LDO11_LVL_1V25
 } PWR_LDO11_LVL_SEL;
+
+typedef enum _PWR_DCDC_FREQ_SEL
+{
+    PWR_DCDC_FREQ_1M = 0, // 1M
+    PWR_DCDC_FREQ_2M,     // 2M
+} PWR_DCDC_FREQ_SEL;
 
 /**
  * @brief  Config LDO11D voltage
@@ -367,10 +376,11 @@ typedef enum _PWR_DCDC_LVL_SEL
     PWD_DCDC_LVL_1V5 = 4, // 1.5V
     PWD_DCDC_LVL_1V4 = 5, // 1.4V
     PWD_DCDC_LVL_1V3 = 6, // 1.3V
+    PWD_DCDC_LVL_1V2 = 7, // 1.2V
 } PWR_DCDC_LVL_SEL;
 /**
  * @brief  ldo_switch_to_dcdc, 切换到DCDC模式，配置电压
- * @param  trim_cfg: 3-1.6V;4-1.5V;5-1.4V;6-1.3V
+ * @param  trim_cfg: 3-1.6V;4-1.5V;5-1.4V;6-1.3V,7-1.2V
  * @return void
  * @note
  *          DCDC电感选型： 负载最大电流150mA选择一类电感，负载最大电流100mA选择一类或二类电感
@@ -389,6 +399,14 @@ void ldo_switch_to_dcdc(PWR_DCDC_LVL_SEL trim_cfg);
  * @note   需要在DCDC模式下调用，否则无效。
  */
 void Power_DCDCConfig(PWR_DCDC_LVL_SEL value);
+
+/**
+ * @brief  DCDC16配置频率
+ * @param  freq 频率选择：1M或者2M
+ * @return void
+ * @note   none
+ */
+void Power_DCDC16ConfigFreq(PWR_DCDC_FREQ_SEL freq);
 
 /**
  * @brief  Power config LDO16 voltage

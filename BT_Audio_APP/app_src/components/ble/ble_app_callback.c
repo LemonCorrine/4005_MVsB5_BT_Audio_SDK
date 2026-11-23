@@ -42,7 +42,7 @@ void AppEventCallBack(LE_CB_EVENT event, LE_CB_PARAMS *param)
 #if (BLE_DUAL_ROLE == ENABLE)
     case LE_ADV_REPORT_EVENT:
     {
-    	APP_DBG("LE_ADV_REPORT_EVENT\n");
+    	// APP_DBG("LE_ADV_REPORT_EVENT\n");
         if (!prase_adv_data("BP15_BLE_LYM", param->adv_report.buf, param->adv_report.data_len))
             break;
         le_scan_stop();

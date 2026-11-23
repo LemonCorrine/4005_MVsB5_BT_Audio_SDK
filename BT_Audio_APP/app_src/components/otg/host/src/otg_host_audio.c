@@ -375,9 +375,9 @@ bool UsbHostPlayHardwareInit(void)
 
 	//采样率转换支持检测回调
 	USBH_AudioSampleRateCheckCallbackSet(USBH_AudioSampleRateCheck);
-
+	USBH_RegisterControlCallback(OTG_HostControlWrite,OTG_HostControlRead);
 	//声卡枚举
-	if(USBH_AudioClassDevEnum(&UacAudio.Speaker,&UacAudio.Mic) != USBH_OK)
+	if(USBH_AudioClassDevEnum(&OtgHostInfo,&UacAudio.Speaker,&UacAudio.Mic) != USBH_OK)
 	{
 		OTG_DBG("声卡不支持\n");
 		return FALSE;
@@ -398,16 +398,8 @@ bool UsbHostPlayHardwareInit(void)
 		OTG_DBG("声卡端点不支持\n");
 		return FALSE;
 	}
-
 	//HID枚举
-	for(i=0;i<OtgHostInfo.ConfigDesCriptor.bNumInterfaces;i++)
-	{
-		//解析HID控制接口
-		if(InterfaceDescriptor->bInterfaceClass == USB_CLASS_HID)
-		{
-			USBH_HidDescriptorParse(&UacAudio.Hid,i,(OtgHostInfo.UsbInterface[i].pData),(OtgHostInfo.UsbInterface[i].Length));
-		}
-	}
+	USBH_HidDescriptorParse(&OtgHostInfo,&UacAudio.Hid);
 
 	if(!UacAudio.Hid.HidInterfaceNum)
 	{
@@ -418,7 +410,7 @@ bool UsbHostPlayHardwareInit(void)
 	UacAudio.Hid.ReportDescriptor = (uint8_t*)osPortMalloc(UacAudio.Hid.wDescriptorLength);
 	if(UacAudio.Hid.ReportDescriptor == NULL)
 	{
-		OTG_DBG("UacAudio.Hid.ReportDescriptor == NULL\n");
+		OTG_DBG("UacAudio.Hid.Descriptor == NULL\n");
 		return TRUE;
 	}
 	for(i = 0;i<UacAudio.Hid.HidInterfaceNum;i++)
@@ -447,14 +439,18 @@ void UsbHostPlayStart(void)
 		OTG_EndpointInterruptEnable(HOST_INT_IN_EP,OnHostHidRcvIntPacket);
 		OTG_DBG("UacAudio.Hid.Pipe.EpNum %d\n",UacAudio.Hid.Pipe.EpNum);
 		OTG_DBG("UacAudio.Hid.Pipe.MaxPacketSize %d\n",UacAudio.Hid.Pipe.MaxPacketSize);
+		OTG_DBG("UacAudio.Hid.Pipe.bInterval %d\n",UacAudio.Hid.Pipe.bInterval);
 		OTG_HostInterruptReadStart(&UacAudio.Hid.Pipe);
 		OTG_DBG("UacAudio.Hid.supported\n");
 	}
 	if(UacAudio.Mic.supported == 1)
 	{
 		OTG_EndpointInterruptEnable(HOST_ISO_IN_EP,OnHostAudioRcvIsoPacket);
-		OTG_DBG("UacAudio.Mic.Pipe.EpNum %d\n",UacAudio.Mic.Pipe.EpNum);
+		OTG_DBG("UacAudio.Mic.Pipe.EpNum %x\n",UacAudio.Mic.Pipe.EpNum);
 		OTG_DBG("UacAudio.Mic.Pipe.MaxPacketSize %d\n",UacAudio.Mic.Pipe.MaxPacketSize);
+		OTG_DBG("UacAudio.Mic.Pipe.bInterval %d\n",UacAudio.Mic.Pipe.bInterval);
+		OTG_DBG("UacAudio.Mic.AltSettings %ld\n",UacAudio.Mic.AltSettings);
+		OTG_DBG("UacAudio.Mic.ByteSet %ld\n",UacAudio.Mic.ByteSet);
 //		UacAudio.Mic.Pipe.MaxPacketSize = 288; //bp10芯片需要
 		OTG_HostISOReadStart(&UacAudio.Mic.Pipe);
 		AudioCoreSourceEnable(USB_HOST_SOURCE_NUM);
@@ -462,8 +458,11 @@ void UsbHostPlayStart(void)
 	if(UacAudio.Speaker.supported == 1)
 	{
 		OTG_EndpointInterruptEnable(HOST_ISO_OUT_EP|0x80,OnHostAudioSendIsoPacket);
-		OTG_DBG("UacAudio.Speaker.Pipe.EpNum %d\n",UacAudio.Speaker.Pipe.EpNum);
+		OTG_DBG("UacAudio.Speaker.Pipe.EpNum %x\n",UacAudio.Speaker.Pipe.EpNum);
 		OTG_DBG("UacAudio.Speaker.Pipe.MaxPacketSize %d\n",UacAudio.Speaker.Pipe.MaxPacketSize);
+		OTG_DBG("UacAudio.Speaker.Pipe.bInterval %d\n",UacAudio.Speaker.Pipe.bInterval);
+		OTG_DBG("UacAudio.Speaker.AltSettings %ld\n",UacAudio.Speaker.AltSettings);
+		OTG_DBG("UacAudio.Speaker.ByteSet %ld\n",UacAudio.Speaker.ByteSet);
 		OTG_HostISOWrite(&UacAudio.Speaker.Pipe,iso_buf,UacAudio.Speaker.frequency/1000*UacAudio.Speaker.ByteSet*UacAudio.Speaker.NrChannels,0);
 		AudioCoreSinkEnable(USB_HOST_SINK_NUM);
 	}

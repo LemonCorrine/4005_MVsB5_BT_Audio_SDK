@@ -142,6 +142,7 @@ void __roboeffect_prot_parse_package(roboeffect_prot_parse *parse, uint8_t *buf,
 				/*the raw data, so do not check*/
 				parse->state = ROBOEFFECT_PROT_PARSING_STATE_END;
 				//smaller than PROTOCOL_BODY_LEN
+				memset(parse->raw_data, 0x00, PROTOCOL_BODY_LEN/4);
 				memcpy((void*)parse->raw_data, &buf[parse->data_pos], parse->datalen);
 				parse->inner_pos = 0;
 			}

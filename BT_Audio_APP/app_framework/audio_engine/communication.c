@@ -25,6 +25,7 @@
 #include "ctrlvars.h"
 #include "main_task.h"
 #include "user_effect_parameter.h"
+#include "user_defined_effect_api.h"
 #ifdef BT_PROFILE_BQB_ENABLE
 #include "bt_bqb_test.h"
 #endif
@@ -221,7 +222,9 @@ bool roboeffect_effect_update_params_entrance(uint8_t addr, uint8_t *buf, uint32
 
 //                if(roboeffect_get_effect_status(AudioEffect.context_memory, addr))
                 {
+                	osMutexLock(AudioEffectMutex);
                 	roboeffect_set_effect_parameter(AudioEffect.context_memory, addr, index, params);
+                	osMutexUnlock(AudioEffectMutex);
 
                 	if(len == 3)
                 	{
@@ -645,6 +648,22 @@ void roboeffect_effect_enquiry_stream(uint8_t *buf, uint32_t len)
 		temp[7] = V3_PACKAGE_EFFECT_SOURCESINK_STATUS;//type
 		temp[8] = 0x01;//EOM
 		temp[9] = 0x16;
+		Communication_Effect_Send(temp, temp[3] + 5);
+	}
+	else if(buf[0] == V3_PACKAGE_TYPE_MODE_LIB_CRC)
+	{
+		uint32_t crc32_temp = EFFECT_PROPERTY_BIN_CRC32;
+		temp[0] = 0xA5;
+		temp[1] = 0x5A;
+		temp[2] = 0x80;
+		temp[3] = 0x08;//len including EOM
+		temp[4] = 0x00;//package id
+		temp[5] = 0xFF;
+		temp[6] = 0x00;//
+		temp[7] = 0x0E;
+
+		memcpy(&(temp[8]), &crc32_temp, 4);
+		temp[4 + temp[3]] = 0x16;
 		Communication_Effect_Send(temp, temp[3] + 5);
 	}
 }

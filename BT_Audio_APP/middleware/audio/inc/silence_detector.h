@@ -32,6 +32,11 @@ typedef struct _SilenceDetectorContext
 	int32_t sample_rate;
 	int32_t num_channels;	
 	int32_t state;
+
+	//castle add to buffer frame data
+	uint32_t buf_size;
+	uint32_t buf_ptr;
+	uint8_t buffer[];//when buffer moved, has problem, fix it next version
 	
 } SilenceDetectorContext;
 

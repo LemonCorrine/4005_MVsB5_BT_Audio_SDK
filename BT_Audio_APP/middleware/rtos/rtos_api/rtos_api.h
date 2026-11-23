@@ -137,7 +137,7 @@ extern osMutexId MuteWriteBlock;
 extern osMutexId UART0Mutex;
 extern osMutexId FlashMutex;
 extern osMutexId UART1Mutex;
-//extern osMutexId AudioEffectMutex;
+extern osMutexId AudioEffectMutex;
 //extern osMutexId LoadAudioParamMutex;
 extern osMutexId SbcDecoderMutex;
 extern osMutexId SysModeMutex;

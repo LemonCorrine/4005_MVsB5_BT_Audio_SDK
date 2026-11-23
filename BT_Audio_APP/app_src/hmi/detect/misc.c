@@ -20,6 +20,8 @@
 #include "misc.h"
 #include "i2s.h"
 #include "user_effect_parameter.h"
+#include "delay.h"
+
 
 #define HW_DEVICE_NUMBER		3
 #define  HW_DECTED_DLY	 2
@@ -87,12 +89,24 @@ void SilenceDectorProcess(void)
 	param_silence_detector *Param = NULL;
 
 	Param = AudioEffectGetAllParameter(MUSIC_SILENCE_DETECTOR_PARAM);
-	if(Param)
+	if(Param != NULL)
+	{
 		music_level = Param->pcm_amplitude;
+	}
+	else
+	{
+		return;
+	}
 
 	Param = AudioEffectGetAllParameter(MIC_SILENCE_DETECTOR_PARAM);
-	if(Param)
+	if(Param != NULL)
+	{
 		mic_level = Param->pcm_amplitude;
+	}
+	else
+	{
+		return;
+	}
 
 	if(mic_level < 0)	//没有检测到MIC通道信号，不做关机处理
 		mic_level = SILENCE_THRESHOLD + 1;
@@ -191,8 +205,14 @@ void ShunningModeProcess(void)
 	}
 
 	Param = AudioEffectGetAllParameter(MIC_SILENCE_DETECTOR_PARAM);
-	if(Param)
+	if(Param  != NULL)
+	{
 		mic_level = Param->pcm_amplitude;
+	}
+	else
+	{
+		return;
+	}
 
 	if(mic_level > SHNNIN_VALID_DATA)///vol----
 	{

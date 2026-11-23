@@ -4,7 +4,7 @@
  * @brief	Ping-Pong Delay
  *
  * @author	ZHAO Ying (Alfred)
- * @version	v1.6.0
+ * @version	v1.6.1
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************

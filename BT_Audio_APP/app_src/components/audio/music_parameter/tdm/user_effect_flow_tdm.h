@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_tdm.h  
  * @brief   auto generated  
- * @author  ACPWorkbench: 3.19.1
+ * @author  ACPWorkbench: 5.1.8
  * @version V1.2.0 
- * @Created 2025-10-09T15:50:37 
+ * @Created 2026-04-22T17:53:42 
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define TDM_ROBOEFFECT_LIB_VER "2.32.0"
+#define TDM_ROBOEFFECT_LIB_VER "2.44.0"
 
 typedef enum _TDM_roboeffect_io_enum
 {
@@ -37,20 +37,20 @@ typedef enum _TDM_roboeffect_io_enum
 typedef enum _TDM_roboeffect_effect_list_enum{
 
     TDM_upmix_1to2_0_ADDR = 0x81,
-    TDM_preGain_ADDR,
-    TDM_gain_control1_ADDR,
-    TDM_gain_control3_ADDR,
-    TDM_silence_detector_mic_ADDR,
-    TDM_silence_detector_music_ADDR,
-    TDM_mic_eq0_ADDR,
-    TDM_mic_ns_ADDR,
-    TDM_mic_EQ_ADDR,
-    TDM_mic_drc_ADDR,
-    TDM_mic_gain_ADDR,
-    TDM_gain_control0_ADDR,
-    TDM_noise_suppressor_expander0_ADDR,
-    TDM_gain_control2_ADDR,
-    TDM_eq1_ADDR,
+    TDM_preGain_ADDR = 0x82,
+    TDM_gain_control1_ADDR = 0x83,
+    TDM_gain_control3_ADDR = 0x84,
+    TDM_silence_detector_mic_ADDR = 0x85,
+    TDM_silence_detector_music_ADDR = 0x86,
+    TDM_mic_eq0_ADDR = 0x87,
+    TDM_mic_ns_ADDR = 0x88,
+    TDM_mic_EQ_ADDR = 0x89,
+    TDM_mic_drc_ADDR = 0x8a,
+    TDM_mic_gain_ADDR = 0x8b,
+    TDM_gain_control0_ADDR = 0x8c,
+    TDM_noise_suppressor_expander0_ADDR = 0x8d,
+    TDM_gain_control2_ADDR = 0x8e,
+    TDM_eq1_ADDR = 0x8f,
     TDM_COUNT_ADDR,
 
 } TDM_roboeffect_effect_list_enum;

@@ -631,8 +631,9 @@ bool BtHfInit(void)
 #endif
 
 	gCtrlVars.AutoRefresh = AutoRefresh_ALL_PARA;
+#ifdef CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN	
 	AudioEffect_CommunicationQueue_Send(gCtrlVars.AutoRefresh);
-
+#endif
 	SetBtHfSyncVolume(mainAppCt.HfVolume);
 	AudioHfVolSet(mainAppCt.HfVolume);
 	
@@ -968,6 +969,10 @@ MessageHandle GetBtHfMessageHandle(void)
  ****************************************************************************************/
 void BtHfModeEnter_Index(uint8_t index)
 {
+#if (defined(BT_HFP_MODE_DISABLE) && defined(BT_SUPPORT))
+	return;
+#endif
+
 	if((btManager.btLinked_env[index].btLinkState == 0)||(SoftFlagGet(SoftFlagWaitBtRemindEnd)))
 	{
 		DBG("btManager.btLinked_env[%d].btLinkState = %d   SoftFlagGet(SoftFlagWaitBtRemindEnd) = %d\n", index, btManager.btLinked_env[index].btLinkState, SoftFlagGet(SoftFlagWaitBtRemindEnd));
@@ -1007,6 +1012,10 @@ void BtHfModeEnter_Index(uint8_t index)
 
 void BtHfModeEnter(void)
 {
+#if (defined(BT_HFP_MODE_DISABLE) && defined(BT_SUPPORT))
+	return;
+#endif
+
 #if (BT_LINK_DEV_NUM == 2)
 	if((btManager.btLinked_env[0].btLinkState == 0 && btManager.btLinked_env[1].btLinkState == 0)||(SoftFlagGet(SoftFlagWaitBtRemindEnd)))
 #else
@@ -1057,6 +1066,10 @@ void BtHfModeEnter(void)
  ****************************************************************************************/
 void BtHfModeExit(void)
 {
+#if (defined(BT_HFP_MODE_DISABLE) && defined(BT_SUPPORT))
+	return;
+#endif
+
 	SoftFlagDeregister(SoftFlagDelayEnterBtHf);
 
 	if(flagVoiceDelayExitBtHf &&(flagVoiceDelayExitBtHf<=DELAY_EXIT_BT_HF_TIME))

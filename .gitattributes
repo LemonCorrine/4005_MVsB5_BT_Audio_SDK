@@ -1,0 +1,6 @@
+# Normalize text files to LF in the repository and working tree.
+* text=auto eol=lf
+
+# Keep binary assets from line-ending normalization.
+*.bin binary !eol
+*.mp3 binary !eol

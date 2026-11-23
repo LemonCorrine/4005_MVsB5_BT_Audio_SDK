@@ -15,6 +15,18 @@
 1. 将标准音效信息roboeffect_library_info_v2.xx.xx.bin文件拷贝到此目录下。
 2. 在此新建一个目录，包含自定义音效的所有必要文件，如UserLibsData.xlsx，接口实现源文件，头文件等；目录名请使用英文，按C语言变量规则。
 3. 添加并修改UserLibsData.xlsx，添加参数信息。注意修改UserLibsData.xlsx的sheet名称，请保证新建的目录名和sheet名保持一致。
+典型的目录结构如下：
+.
+├─ readme.txt
+├─ roboeffect_library_info_v2.34.0.bin --> 必须放入这个文件后，执行“third_party_effects_data_gen.exe”
+├─ simple_gain
+│   ├─ simple_gain.c
+│   ├─ simple_gain.h
+│   ├─ simple_gain_default_params.txt
+│   └─ UserLibsData.xlsx
+├─ third_party_effects_data_gen.exe
+└─ user_defined_effect_api.h
+
 4. 双击third_party_effects_data_gen.exe，会自动生成user_defined_effect_api.h，以及每个子目录里的xxxx_default_params.txt
 5. xxxx_default_params.txt包含缺省参数，以及4个接口函数的实现模板，可以自行拷贝到源文件进行填充代码。
 6. 将roboeffect_library_info_v2.xx.xx_3rdparty.bin拷贝到调音工具的\ACPWorkbench_V3.X.X\roboeffect_library_info_set\目录下，可以做离线调音使用。

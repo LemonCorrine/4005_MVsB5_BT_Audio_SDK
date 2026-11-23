@@ -105,8 +105,8 @@ static const uint16_t ADKEY_TAB[][5] =
 	{MSG_NONE,						MSG_MUTE,         				MSG_VB,        				MSG_NONE,                   MSG_NONE},
 	{MSG_NONE,						MSG_EFFECTMODE,   				MSG_VOCAL_CUT, 				MSG_NONE,                   MSG_NONE},
 #if (BT_SOURCE_SUPPORT )
-	{MSG_NONE,						MSG_BT_SOURCE_DISCONNECT,/*MSG_REPEAT,*/  					MSG_REPEAT_AB,              MSG_NONE,                   MSG_NONE},
-	{MSG_NONE,						MSG_BT_SOURCE_INQUIRY,/*MSG_REC,*/     					MSG_REC_PLAYBACK,           MSG_NONE,                   MSG_NONE},
+	{MSG_NONE,						MSG_BT_SOURCE_DISCONNECT,/*MSG_REPEAT,*/  					MSG_BT_SOURCE_AUDIO_MULTICAST,              MSG_NONE,                   MSG_NONE},
+	{MSG_NONE,						MSG_BT_SOURCE_INQUIRY,/*MSG_REC,*/     					MSG_BT_SOURCE_AUDIO_SWITCH,           MSG_NONE,                   MSG_NONE},
 #else	
 #ifdef CFG_FUNC_RECORD_EXTERN_FLASH_EN
 	{MSG_NONE,						MSG_REC1,  						MSG_REC1_PLAYBACK,			MSG_NONE,                   MSG_NONE},

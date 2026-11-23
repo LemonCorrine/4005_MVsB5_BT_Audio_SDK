@@ -54,10 +54,10 @@ volatile DETECT_STATE UdiskStateback = DETECT_STATE_IDLE;
 #endif
 uint8_t UsbHostPortFlag = 0;
 #endif
-#ifdef CFG_FUNC_USB_DEVICE_DETECT
+
 static DETECT_STATE UsbDeviceState = DETECT_STATE_IDLE;
 static uint32_t sDevice_Init_state=0;// 1:inited    0:not init
-#endif
+
 #ifdef CFG_LINEIN_DET_EN
 static DETECT_STATE LineInState = DETECT_STATE_IDLE;
 #endif
@@ -220,19 +220,15 @@ bool IsUDiskLink(void)
 #endif
 
 
-#ifdef CFG_FUNC_USB_DEVICE_DETECT
 bool GetUSBDeviceInitState(void)
 {
 	return sDevice_Init_state; 	
 }
 
-
 void SetUSBDeviceInitState(bool state)
 {
 	 sDevice_Init_state = state; 	
 }
-
-#endif
 
 void InitDeviceDetect(void)
 {
@@ -905,14 +901,25 @@ void BreakPointSave(uint16_t device_msgId)
 	if(gBreakPointTimer == DEVICE_DETECT_ACTTION_POINT)
 	{
 		gBreakPointTimer = 0;	
+
+#ifdef	CFG_WIRELESS_EN
+		if(GetSystemMode() == ModeWirelessinPlay)
+		{
+			gBreakPointTimer = DEVICE_BREAK_POINT_TIMER;
+		}
+		else
+#endif
+
 #ifdef	CFG_FUNC_OPEN_SLOW_DEVICE_TASK
 		{
 			extern void SlowDevice_MsgSend(uint16_t msgId);
 			SlowDevice_MsgSend(MSG_DEVICE_BREAK_POINT_WRITE);
 		}
 #else
-		//printf("old break point save ......\n");
-		BP_SaveInfo(0);
+		{
+			//printf("old break point save ......\n");
+			BP_SaveInfo(0);
+		}
 #endif
 	}
 }

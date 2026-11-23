@@ -29,6 +29,7 @@
 #include "lrc.h"
 #endif
 #include "bt_manager.h"
+#include "string_convert.h"
 
 #if defined(CFG_APP_USB_PLAY_MODE_EN) || defined(CFG_APP_CARD_PLAY_MODE_EN)
 

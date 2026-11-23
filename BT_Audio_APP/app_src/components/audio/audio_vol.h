@@ -38,8 +38,6 @@ void AudioHfVolSet(uint8_t HfVol);
 uint8_t AudioMusicVolGet(void);
 void AudioMusicVolDown(void);
 void AudioMusicVolUp(void);
-void SystemVolUp(void);
-void SystemVolDown(void);
 void SystemVolSet(void);
 void SystemVolSync(void);
 void CommonMsgProccess(uint16_t Msg);

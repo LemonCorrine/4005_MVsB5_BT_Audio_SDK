@@ -4,7 +4,7 @@
  * @brief
  *
  * @author  Cecilia Wang
- * @version V1.0.0
+ * @version V1.3.5
  *
  * $Created: 2018-03-23 13:06:47$
  *
@@ -44,6 +44,7 @@
 #include "reset.h"
 #include "bt_config.h"
 #include "hdmi_in_mode.h"
+#include "i2c_host.h"
 
 #ifdef  CFG_APP_HDMIIN_MODE_EN
 
@@ -86,6 +87,19 @@ const HDMI_TV_Info HDMITvInfo[HDMI_COMPATIBLE_TV_NUM] =
 };
 
 uint8_t HDMI_DDC_GetInfo(void);
+
+#if (CFG_SDK_VER_CHIPID == 0xB1 || CFG_SDK_VER_CHIPID == 0xB5 || CFG_SDK_VER_CHIPID == 0x35)
+void PWM_GpioConfig_adaptor(uint8_t PWMChSel, uint8_t PwmIoSel, uint8_t PWMMode, uint8_t PWMSubSel)
+{
+    (void)PWMSubSel;
+    return PWM_GpioConfig(PWMChSel, PwmIoSel, PWMMode);
+}
+#elif (CFG_SDK_VER_CHIPID == 0xB6)
+void PWM_GpioConfig_adaptor(uint8_t PWMChSel, uint8_t PwmIoSel, uint8_t PWMMode, uint8_t PWMSubSel)
+{
+    return PWM_GpioConfig(PWMChSel, PwmIoSel, PWMMode, PWMSubSel);
+}
+#endif
 
 void HDMI_HPD_CHECK_IO_INIT(void)
 {
@@ -154,7 +168,7 @@ void HDMI_CEC_DDC_Init(void)
 #if (CFG_SDK_VER_CHIPID == 0xB1)
 	gCecInitDef->dma_tx_param.SrcDataWidth 		=  DMA_SRC_DWIDTH_HALF_WORD;
 	gCecInitDef->dma_tx_param.DstDataWidth 		=  DMA_DST_DWIDTH_HALF_WORD;
-#elif (CFG_SDK_VER_CHIPID == 0xB5)
+#elif (CFG_SDK_VER_CHIPID == 0xB5 || CFG_SDK_VER_CHIPID == 0x35 || CFG_SDK_VER_CHIPID == 0xB6)
 	gCecInitDef->dma_tx_param.DataWidth			=  DMA_DWIDTH_HALF_WORD;
 #endif
 	gCecInitDef->dma_tx_param.SrcAddrIncremental=  DMA_SRC_AINCR_SRC_WIDTH;
@@ -166,18 +180,28 @@ void HDMI_CEC_DDC_Init(void)
 
 	if(HDMI_CEC_CLK_MODE == RC_CLK_MODE)
 	{
+#if (CFG_SDK_VER_CHIPID == 0xB1 || CFG_SDK_VER_CHIPID == 0xB5 || CFG_SDK_VER_CHIPID == 0x35)
 		uint32_t tmp_clk = Clock_RcFreqGet(0);
+#elif (CFG_SDK_VER_CHIPID == 0xB6)
+		uint32_t tmp_clk = Clock_InternalClockFreqGet(rc_12m_clk, 0);
+#endif
 		gCecInitDef->pwm_param.FreqDiv 			= (uint32_t)((120.0 / 10) * tmp_clk / (120 * 1000 * 1000 / 10) * 100 +0.5);
 	}
 	else
 	{
 #if (CFG_SDK_VER_CHIPID == 0xB1)
 		gCecInitDef->pwm_param.FreqDiv 			= 14400;
-#elif (CFG_SDK_VER_CHIPID == 0xB5)
+#elif (CFG_SDK_VER_CHIPID == 0xB5 || CFG_SDK_VER_CHIPID == 0x35)
 		gCecInitDef->pwm_param.FreqDiv 			= 12000;
+#elif (CFG_SDK_VER_CHIPID == 0xB6)
+		gCecInitDef->pwm_param.FreqDiv 			= 16800;
 #endif
 	}
-	gCecInitDef->pwm_param.Duty          		=  100;
+#if (CFG_SDK_VER_CHIPID == 0xB1 || CFG_SDK_VER_CHIPID == 0xB5 || CFG_SDK_VER_CHIPID == 0x35)
+	gCecInitDef->pwm_param.Duty		          	=  100;
+#elif (CFG_SDK_VER_CHIPID == 0xB6)
+		gCecInitDef->pwm_param.Duty[0]          =  100;
+#endif
 	gCecInitDef->pwm_param.DMAReqEnable			=  1;
 
 	//gCecInitDef->pwc_io							=   HDMI_CEC_RECV_IO;
@@ -190,7 +214,7 @@ void HDMI_CEC_DDC_Init(void)
 #if (CFG_SDK_VER_CHIPID == 0xB1)
 	gCecInitDef->dma_rx_param.SrcDataWidth   	=   DMA_SRC_DWIDTH_HALF_WORD;
 	gCecInitDef->dma_rx_param.DstDataWidth   	=   DMA_SRC_DWIDTH_HALF_WORD;
-#elif (CFG_SDK_VER_CHIPID == 0xB5)
+#elif (CFG_SDK_VER_CHIPID == 0xB5 || CFG_SDK_VER_CHIPID == 0x35 || CFG_SDK_VER_CHIPID == 0xB6)
 	gCecInitDef->dma_rx_param.DataWidth			= 	DMA_DWIDTH_HALF_WORD;
 #endif
 	gCecInitDef->dma_rx_param.SrcAddrIncremental=   DMA_SRC_AINCR_NO;
@@ -206,14 +230,21 @@ void HDMI_CEC_DDC_Init(void)
 
 	if(HDMI_CEC_CLK_MODE == RC_CLK_MODE)//RC Clk 精度/使用10us
 	{
-		gCecInitDef->pwc_param.TimeScale 		=  (uint32_t)((120.0 / 10) * Clock_RcFreqGet(0) / (120 * 1000 * 1000 / 10) * 10 + 0.5) ;//RC时钟唤醒使用：10us步长
+#if (CFG_SDK_VER_CHIPID == 0xB1 || CFG_SDK_VER_CHIPID == 0xB5 || CFG_SDK_VER_CHIPID == 0x35)
+		uint32_t tmp_clk = Clock_RcFreqGet(0);
+#elif (CFG_SDK_VER_CHIPID == 0xB6)
+		uint32_t tmp_clk = Clock_InternalClockFreqGet(rc_12m_clk, 0);
+#endif
+		gCecInitDef->pwc_param.TimeScale 		=  (uint32_t)((120.0 / 10) * tmp_clk / (120 * 1000 * 1000 / 10) * 10 + 0.5) ;//RC时钟唤醒使用：10us步长
 	}
 	else
 	{
 #if (CFG_SDK_VER_CHIPID == 0xB1)
 		gCecInitDef->pwc_param.TimeScale 		=  1440;//10us
-#elif (CFG_SDK_VER_CHIPID == 0xB5)
+#elif (CFG_SDK_VER_CHIPID == 0xB5 || CFG_SDK_VER_CHIPID == 0x35)
 		gCecInitDef->pwc_param.TimeScale 		=  1200;//10us
+#elif (CFG_SDK_VER_CHIPID == 0xB6)
+		gCecInitDef->pwc_param.TimeScale 		=  1680;//10us
 #endif
 	}
 
@@ -262,7 +293,7 @@ void HDMI_CEC_DDC_Init(void)
 	#else
 	HDMI_DDC_DATA_IO_INIT();
 	HDMI_DDC_CLK_IO_INIT();
-	I2C_Init(0x3F, HDMI_DDC_IO_PIN, 0xA0);
+	I2C_Config(0x3F, HDMI_DDC_IO_PIN, 0xA0);
 	#endif
 
 	mainAppCt.hdmiResetFlg = 0;
@@ -340,7 +371,7 @@ uint8_t HDMI_DDC_GetInfo(void)
 	#ifdef DDC_USE_SW_I2C
 	uint8_t MVDDCReadAddr_sf = 0xA0;
 	#else
-	uint8_t MVDDCReadAddr    = 0x50;
+	uint8_t MVDDCReadAddr    = HDMI_DDC_IO_PIN;//0x50;
 	#endif
 
 	WDG_Feed();
@@ -429,7 +460,7 @@ uint8_t HDMI_DDC_GetInfo(void)
     }
 
 	#else
-	I2C_MasterReceiveData(MVDDCReadAddr, 0x00, &gHdmiCt->edid_buf[0], 128, 1000);
+	I2C_MasterReceiveData(HDMI_DDC_IO_PIN, MVDDCReadAddr, 0x00, &gHdmiCt->edid_buf[0], 128, 1000);
 	#endif
 
 	flag = memcmp(gHdmiCt->edid_buf, MVDDCHeader, 8);
@@ -447,7 +478,7 @@ uint8_t HDMI_DDC_GetInfo(void)
 			#ifdef DDC_USE_SW_I2C
 			I2cReadNByte(DDCI2cHandler, MVDDCReadAddr_sf, 128, &gHdmiCt->edid_buf[128], 128);
 			#else
-			I2C_MasterReceiveData(MVDDCReadAddr, 0x80, &gHdmiCt->edid_buf[128], 128, 1000);
+			I2C_MasterReceiveData(HDMI_DDC_IO_PIN, MVDDCReadAddr, 0x80, &gHdmiCt->edid_buf[128], 128, 1000);
 			#endif
 
 			check_sum = 0;
@@ -619,7 +650,7 @@ void HDMI_ARC_Init(uint16_t *DMAFifoAddr, uint32_t DMAFifoSize, MCU_CIRCULAR_CON
 	DMA_ChannelEnable(PERIPHERAL_ID_SPDIF_RX);
 
 	SPDIF_ModuleEnable();
-#elif (CFG_SDK_VER_CHIPID == 0xB5)
+#elif (CFG_SDK_VER_CHIPID == 0xB5 || CFG_SDK_VER_CHIPID == 0x35)
 	SPDIF_ModuleDisable(CFG_HDMI_SPDIF_NUM);
 
 	GPIO_RegOneBitClear(HDMI_ARC_RECV_IO_OE, HDMI_ARC_RECV_IO_PIN);
@@ -640,6 +671,27 @@ void HDMI_ARC_Init(uint16_t *DMAFifoAddr, uint32_t DMAFifoSize, MCU_CIRCULAR_CON
 	DMA_ChannelEnable(CFG_HDMI_DMA_CHANNEL);
 
 	SPDIF_ModuleEnable(CFG_HDMI_SPDIF_NUM);
+#elif (CFG_SDK_VER_CHIPID == 0xB6)
+	SPDIF_ModuleDisable(CFG_HDMI_SPDIF_NUM);
+
+	GPIO_RegOneBitClear(HDMI_ARC_RECV_IO_OE, HDMI_ARC_RECV_IO_PIN);
+	GPIO_RegOneBitClear(HDMI_ARC_RECV_IO_IE, HDMI_ARC_RECV_IO_PIN);
+	GPIO_RegOneBitSet(HDMI_ARC_RECV_IO_ANA,  HDMI_ARC_RECV_IO_PIN);
+
+#if (CFG_HDMI_SPDIF_NUM == SPDIF0)
+	SPDIF0_AnalogModuleEnable(HDMI_ARC_RECV_ANA_PIN, SPDIF_ANA_LEVEL_300mVpp, SPDIF_ANA_LVL);
+#else
+	SPDIF1_AnalogModuleEnable(HDMI_ARC_RECV_ANA_PIN, SPDIF_ANA_LEVEL_300mVpp, SPDIF_ANA_LVL);
+#endif
+
+	SPDIF_RXInit(CFG_HDMI_SPDIF_NUM,1, 0, 0);
+
+	DMA_ChannelDisable(CFG_HDMI_DMA_CHANNEL);
+	//Reset_FunctionReset(DMAC_FUNC_SEPA);
+	DMA_CircularConfig(CFG_HDMI_DMA_CHANNEL, DMAFifoSize/2, DMAFifoAddr, DMAFifoSize);
+	DMA_ChannelEnable(CFG_HDMI_DMA_CHANNEL);
+
+	SPDIF_ModuleEnable(CFG_HDMI_SPDIF_NUM);
 #endif
 	hdmiMCUCt = ct;
 }
@@ -648,7 +700,7 @@ uint8_t HDMI_ARC_LockStatusGet(void)
 {
 #if (CFG_SDK_VER_CHIPID == 0xB1)
 	return SPDIF_FlagStatusGet(LOCK_FLAG_STATUS);
-#elif (CFG_SDK_VER_CHIPID == 0xB5)
+#elif (CFG_SDK_VER_CHIPID == 0xB5 || CFG_SDK_VER_CHIPID == 0x35 || CFG_SDK_VER_CHIPID == 0xB6)
 	return SPDIF_FlagStatusGet(CFG_HDMI_SPDIF_NUM,LOCK_FLAG_STATUS);
 #endif
 }
@@ -671,7 +723,7 @@ bool HDMI_ARC_IsReady(void)
 
 uint16_t HDMI_ARC_DataLenGet(void)
 {
-#ifdef	CFG_AUDIO_WIDTH_24BIT
+#if defined(CFG_AUDIO_WIDTH_24BIT) || (CFG_DEFAULT_WIDTH == WIDTH_L24BIT)
 	uint8_t bitwidth = AudioCore.AudioSource[HDMI_IN_SOURCE_NUM].BitWidth ? sizeof(int32_t):sizeof(int16_t);
 #else
 	uint8_t bitwidth = sizeof(int16_t);
@@ -689,7 +741,7 @@ uint16_t HDMI_ARC_DataLenGet(void)
 uint16_t HDMI_ARC_DataGet(void *pcm_out, uint16_t MaxSize)
 {
 	uint16_t len;
-#ifdef	CFG_AUDIO_WIDTH_24BIT
+#if defined(CFG_AUDIO_WIDTH_24BIT) || (CFG_DEFAULT_WIDTH == WIDTH_L24BIT)
 	uint8_t bitwidth = AudioCore.AudioSource[HDMI_IN_SOURCE_NUM].BitWidth ? sizeof(int32_t):sizeof(int16_t);
 #else
 	uint8_t bitwidth = sizeof(int16_t);
@@ -713,7 +765,7 @@ void HDMI_ARC_DeInit(void)
 	SPDIF_ModuleDisable();
 	DMA_ChannelDisable(PERIPHERAL_ID_SPDIF_RX);
 	SPDIF_AnalogModuleDisable();
-#elif (CFG_SDK_VER_CHIPID == 0xB5)
+#elif (CFG_SDK_VER_CHIPID == 0xB5 || CFG_SDK_VER_CHIPID == 0x35 || CFG_SDK_VER_CHIPID == 0xB6)
 	SPDIF_ModuleDisable(CFG_HDMI_SPDIF_NUM);
 	DMA_ChannelDisable(CFG_HDMI_DMA_CHANNEL);
 #if (CFG_HDMI_SPDIF_NUM == SPDIF0)
@@ -759,7 +811,6 @@ void HDMI_CEC_Default_Scan(uint8_t isWorkStatus)
 	uint32_t flag;
 	uint8_t  operValue[16];
 	uint8_t  operLen;
-
 
 	if(HDMI_CEC_IsWorking() == CEC_IS_IDLE)
     {

@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_music.h  
  * @brief   auto generated  
- * @author  ACPWorkbench: 3.19.1
+ * @author  ACPWorkbench: 5.1.8
  * @version V1.2.0 
- * @Created 2025-10-09T15:50:37 
+ * @Created 2026-04-22T17:53:42 
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define MUSIC_ROBOEFFECT_LIB_VER "2.32.0"
+#define MUSIC_ROBOEFFECT_LIB_VER "2.44.0"
 
 typedef enum _MUSIC_roboeffect_io_enum
 {
@@ -36,30 +36,30 @@ typedef enum _MUSIC_roboeffect_io_enum
 typedef enum _MUSIC_roboeffect_effect_list_enum{
 
     MUSIC_upmix_1to2_0_ADDR = 0x81,
-    MUSIC_silence_detector_mic_ADDR,
-    MUSIC_preGain_ADDR,
-    MUSIC_silence_detector_music_ADDR,
-    MUSIC_gain_control3_ADDR,
-    MUSIC_mic_eq0_ADDR,
-    MUSIC_mic_ns_ADDR,
-    MUSIC_mic_EQ_ADDR,
-    MUSIC_mic_drc_ADDR,
-    MUSIC_mic_gain_ADDR,
-    MUSIC_gain_control0_ADDR,
-    MUSIC_noise_suppressor_expander0_ADDR,
-    MUSIC_gain_control2_ADDR,
-    MUSIC_eq1_ADDR,
-    MUSIC_compander_ADDR,
-    MUSIC_low_level_compressor1_ADDR,
-    MUSIC_harmonic_exciter0_ADDR,
-    MUSIC_mvbass_ADDR,
-    MUSIC_3D_ADDR,
-    MUSIC_eq2_ADDR,
-    MUSIC_music_drc_ADDR,
-    MUSIC_music_EQ_ADDR,
-    MUSIC_gain_control1_ADDR,
-    MUSIC_eq0_ADDR,
-    MUSIC_low_level_compressor0_ADDR,
+    MUSIC_silence_detector_mic_ADDR = 0x82,
+    MUSIC_preGain_ADDR = 0x83,
+    MUSIC_silence_detector_music_ADDR = 0x84,
+    MUSIC_gain_control3_ADDR = 0x85,
+    MUSIC_mic_eq0_ADDR = 0x86,
+    MUSIC_mic_ns_ADDR = 0x87,
+    MUSIC_mic_EQ_ADDR = 0x88,
+    MUSIC_mic_drc_ADDR = 0x89,
+    MUSIC_mic_gain_ADDR = 0x8a,
+    MUSIC_gain_control0_ADDR = 0x8b,
+    MUSIC_noise_suppressor_expander0_ADDR = 0x8c,
+    MUSIC_gain_control2_ADDR = 0x8d,
+    MUSIC_eq1_ADDR = 0x8e,
+    MUSIC_compander_ADDR = 0x8f,
+    MUSIC_low_level_compressor1_ADDR = 0x90,
+    MUSIC_harmonic_exciter0_ADDR = 0x91,
+    MUSIC_mvbass_ADDR = 0x92,
+    MUSIC_3D_ADDR = 0x93,
+    MUSIC_eq2_ADDR = 0x94,
+    MUSIC_music_drc_ADDR = 0x95,
+    MUSIC_music_EQ_ADDR = 0x96,
+    MUSIC_gain_control1_ADDR = 0x97,
+    MUSIC_eq0_ADDR = 0x98,
+    MUSIC_low_level_compressor0_ADDR = 0x99,
     MUSIC_COUNT_ADDR,
 
 } MUSIC_roboeffect_effect_list_enum;

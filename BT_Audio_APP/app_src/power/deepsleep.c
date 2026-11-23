@@ -40,11 +40,14 @@
 #include "otg_host_standard_enum.h"
 
 #ifdef CFG_IDLE_MODE_DEEP_SLEEP
+HDMIInfo  			 *gHdmiCt;
 void GIE_ENABLE(void);
 void WakeupMain(void);
 void SleepMain(void);
 void LogUartConfig(bool InitBandRate);
 #define CHECK_SCAN_TIME				5000		//醒来确认有效唤醒源 扫描限时ms。
+TIMER   waitCECTime;
+uint8_t	waitCECTimeFlag = 0;
 static uint32_t sources;
 #ifdef CFG_PARA_WAKEUP_SOURCE_RTC
 uint32_t alarm = 0;
@@ -53,6 +56,19 @@ uint32_t alarm = 0;
 __attribute__((section(".driver.isr")))void WakeupInterrupt(void)
 {
 	sources |= Power_WakeupSourceGet();
+
+#if defined(CFG_PARA_WAKEUP_SOURCE_CEC) && defined(CFG_PARA_WAKEUP_GPIO_CEC)
+	if(sources & CFG_PARA_WAKEUP_SOURCE_CEC)
+	{
+		if(waitCECTimeFlag == 0)
+		{
+			SysTickInit();
+			TimeOutSet(&waitCECTime, CHECK_SCAN_TIME);
+			HDMI_HPD_CHECK_IO_INIT();
+			waitCECTimeFlag =  1;
+		}
+	}
+#endif
 
 	Power_WakeupSourceClear();
 }
@@ -202,6 +218,9 @@ void WakeupSourceSet(void)
 #if defined(CFG_PARA_WAKEUP_SOURCE_IR)
 	SystermIRWakeupConfig(CFG_PARA_IR_SEL, CFG_RES_IR_PIN, CFG_PARA_IR_BIT);
 #endif
+#if defined(CFG_PARA_WAKEUP_SOURCE_CEC) && defined(CFG_APP_HDMIIN_MODE_EN)
+	SystermGPIOWakeupConfig(CFG_PARA_WAKEUP_SOURCE_CEC, CFG_PARA_WAKEUP_GPIO_CEC, SYSWAKEUP_SOURCE_BOTH_EDGES_TRIG);
+#endif
 }
 
 
@@ -235,6 +254,10 @@ void DeepSleeping(void)
 		WDG_Enable(WDG_STEP_4S);
 	}
 	Power_WakeupDisable(0xff);
+
+#if defined(CFG_PARA_WAKEUP_SOURCE_CEC) && defined(CFG_PARA_WAKEUP_GPIO_CEC)
+	HDMI_CEC_DDC_DeInit();
+#endif
 	//GPIO恢复上下拉
 //	GPIO_RegSet(GPIO_A_PU, GpioAPU_Back);
 //	GPIO_RegSet(GPIO_A_PD, GpioAPD_Back);
@@ -251,6 +274,7 @@ void DeepSleeping(void)
     APP_DBG("Wakeup!\n");
     WDG_Feed();
 #if defined(CFG_RES_ADC_KEY_SCAN) || defined(CFG_RES_IR_KEY_SCAN) || defined(CFG_RES_CODE_KEY_USE)|| defined(CFG_ADC_LEVEL_KEY_EN) || defined(CFG_RES_IO_KEY_SCAN)
+	SarADC_Init();
 	KeyInit();//Init keys
 #endif	
 
@@ -323,8 +347,16 @@ bool SystermWackupSourceCheck(void)
 	}
 #endif
 
+#if defined(CFG_PARA_WAKEUP_SOURCE_CEC) && defined(CFG_PARA_WAKEUP_GPIO_CEC)
+	bool CecRest = FALSE;//cec空闲状态(18ms消抖)。以免影响后续解析和唤醒。
+	HDMI_HPD_CHECK_IO_INIT();
+#endif
+
 	TimeOutSet(&WaitScan, CHECK_SCAN_TIME);
 	while(!IsTimeOut(&WaitScan)
+#if defined(CFG_PARA_WAKEUP_SOURCE_CEC) && defined(CFG_PARA_WAKEUP_GPIO_CEC)
+			|| !CecRest
+#endif
 		)
 	{
 		WDG_Feed();
@@ -374,10 +406,26 @@ bool SystermWackupSourceCheck(void)
 #endif
 #endif
 
+#if defined(CFG_PARA_WAKEUP_SOURCE_CEC) && defined(CFG_PARA_WAKEUP_GPIO_CEC)
+		if(gHdmiCt)
+		{
+			HDMI_CEC_Scan(0);
+			if(gHdmiCt->hdmi_poweron_flag == 1)
+			{
+				SoftFlagRegister(SoftFlagWakeUpSouceIsCEC);
+				APP_DBG("CEC PowerOn\n");
+				return TRUE;
+			}
+		}
+		if(IsTimeOut(&WaitScan))//超时之后等待下拉电平，同时保持scan。
+		{
+			CecRest = HDMI_CEC_IsReadytoDeepSleep(6);
+		}
+#endif
 	}
 	sources = 0;
 #if defined(CFG_PARA_WAKEUP_SOURCE_ADCKEY)
-	Power_LDO11DConfig(PWD_LDO11_LVL_0V95);
+	Power_LDO11DConfig(PWD_LDO11_LVL_0V85);
 #endif
 //	SysTickDeInit();
 	return FALSE;

@@ -17,6 +17,7 @@
 #include "bt_app_common.h"
 
 #include "bt_stack_service.h"
+#include "bt_source_connect.h"
 
 #if BT_SOURCE_SUPPORT
 uint8_t gBtSourceInquiryStart = 0;
@@ -274,7 +275,10 @@ void BtSourceStartConnect(void)
 	btManager.btReconnectedFlag = 0;
 	//BtReconnectProfile();
 */
-	BtReconnectDevCreate(btManager.conRemoteAddr, 2, 3, 0, (BT_PROFILE_SUPPORTED_HFG | BT_PROFILE_SUPPORTED_A2DP | BT_PROFILE_SUPPORTED_AVRCP));
+//BtReconnectDevStop
+	bt_reconnect_set_dev(BtSourceGetIndexByAddr(btManager.conRemoteAddr)+1, btManager.conRemoteAddr);
+	bt_reconnect_force_index(BtSourceGetIndexByAddr(btManager.conRemoteAddr)+1);
+	//BtReconnectDevCreate(btManager.conRemoteAddr, 2, 3, 0, (BT_PROFILE_SUPPORTED_HFG | BT_PROFILE_SUPPORTED_A2DP | BT_PROFILE_SUPPORTED_AVRCP));
 }
 
 void BtSourceCheckConn(uint8_t *Addr,uint32_t timeout)
@@ -329,7 +333,7 @@ void BtSourceNameMatch(void)
 				&&
 				(
 					(memcmp(btManager.SourceInqResultList[i].name, BT_SINK_NAME, strlen(BT_SINK_NAME))==0)
-					//||(memcmp(btManager.SourceInqResultList[i].name, "BP15", strlen("BP15"))==0)   //增加多个名称匹配连接，在此增加
+					//||(memcmp(btManager.SourceInqResultList[i].name, "BP15_BT", strlen("BP15_BT"))==0)   //增加多个名称匹配连接，在此增加
 				)
 				)
 			{
@@ -395,22 +399,6 @@ void BtReconnectDelay(void)
 	TimeOutSet(&btManager.btReconnectTimer.timerHandle, 500);
 	btManager.btReconnectTimer.timerFlag |= TIMER_STARTED;
 }
-uint32_t BtConnectAvrcpProfile(void)
-{
-	/*APP_DBG("A2dp avrcp : bt address = %02x:%02x:%02x:%02x:%02x:%02x\n",
-							(GetBtManager()->btDdbLastAddr)[0],
-							(GetBtManager()->btDdbLastAddr)[1],
-							(GetBtManager()->btDdbLastAddr)[2],
-							(GetBtManager()->btDdbLastAddr)[3],
-							(GetBtManager()->btDdbLastAddr)[4],
-							(GetBtManager()->btDdbLastAddr)[5]);
-	*/
-	BtAvrcpConnect(0, GetBtManager()->btDdbLastAddr);
-	BtStopReconnect();
-
-	return 0;
-}
-
 
 void BtStopReconnect(void)
 {
@@ -420,33 +408,15 @@ void BtStopReconnect(void)
 	btManager.btReconnectedFlag = 0;
 
 	APP_DBG("Bt Stop connect\n");
-	//当L2CAP异常回连事件触发，连接成功或者超时停止回连时，清除相应的状态标识
-//	if(btCheckEventList&BT_EVENT_L2CAP_LINK_DISCONNECT)
-//	{
-//		btCheckEventList &= ~BT_EVENT_L2CAP_LINK_DISCONNECT;
-//		btEventListB1Count = 0;
-//		if((GetAvrcpState() > BT_AVRCP_STATE_NONE)
-//		&& (GetA2dpState() > BT_A2DP_STATE_NONE)
-//		&& btEventListB1State)
-//		{
-//			if(GetSystemMode()==AppModeBtAudioPlay)
-//				BTCtrlPlay();
-//		}
-//
-//		btEventListB1State = 0;
-//	}
 }
 
-void BtconnectAvrcpStart(void)
-{
-	btManager.btReconnectedFlag = 1;
-	TimeOutSet(&btManager.btReconnectTimer.timerHandle, 1);
-	btManager.btReconnectTimer.timerFlag |= TIMER_STARTED;
-}
 void CheckBtReconnectTimer(void)
 {
+	if(gSwitchSourceAndSink != A2DP_SET_SOURCE)
+		return ;
 	btManager.btReconnectTimer.timerFlag &= ~TIMER_STARTED;
-	BtConnectAvrcpProfile();
+	//bt_reconnect_stop();
+	BtSourceStartConnect();
 }
 #endif
 
@@ -471,6 +441,9 @@ void BtSourceEventInquiryComplete(void)
 void BtSourceEventCommonLinkConnectIND(void * para)
 {
 #ifdef SOURCE_ACCESS_MODE_ENABLE
+	if(gSwitchSourceAndSink != A2DP_SET_SOURCE)
+	return;
+
 	BT_STACK_CALLBACK_PARAMS * param = para;
 	memcpy(btManager.conRemoteAddr, param->params.bd_addr, 6);
 	memcpy(btManager.remoteAddr, param->params.bd_addr, 6);
@@ -529,8 +502,7 @@ void BtSourceGetRemoteName(void * para)
 		BTInquiryCancel();
 		gBtSourceInquiryStart = 0;
 	}
-	if(memcmp(param->params.remDevName.addr,btManager.btDdbLastAddr,6) == 0
-			&& !btManager.btReconnectTimer.timerFlag)
+	if(memcmp(param->params.remDevName.addr,btManager.btDdbLastAddr,6) == 0)
 	{
 		memcpy(btManager.remoteAddr, param->params.remDevName.addr, 6);
 		BtSourceCheckConn(btManager.remoteAddr,3500);
@@ -539,8 +511,7 @@ void BtSourceGetRemoteName(void * para)
 
 	QuiryDelayTimerSet(3000);//有回连，先延时Inquiry
 #else
-	if(memcmp(param->params.remDevName.addr,btManager.btDdbLastAddr,6) == 0
-			&& !btManager.btReconnectTimer.timerFlag)
+	if(memcmp(param->params.remDevName.addr,btManager.btDdbLastAddr,6) == 0)
 	{
 		//修改JBL LIVE PRO+耳机开盖回连，不会连profile需要BP10主动连接profile
 		if(gBtSourceInquiryStart)

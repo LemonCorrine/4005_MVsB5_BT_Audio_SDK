@@ -158,7 +158,7 @@ void SystemClockInit(bool FristPoweron)
 
 #ifndef USB_CRYSTA_FREE_EN
 	if(FristPoweron)
-		Clock_HOSCCurrentSet(15);
+		Clock_HOSCCurrentSet(31);
 #endif
 
 #ifdef USB_CRYSTA_FREE_EN
@@ -331,7 +331,7 @@ void SleepMain(void)
 //    DeepSleepIOConfig();
     Clock_RcFreqGet(1);		//先获取RC时钟，避免在唤醒源检测时启动硬件计数器
 #ifdef CHIP_USE_DCDC
-    ldo_switch_to_dcdc(PWD_DCDC_LVL_1V3); // DCDC 1.3V,降低功耗
+    ldo_switch_to_dcdc(PWD_DCDC_LVL_1V2); // DCDC 1.2V,降低功耗
 #else
 	Power_LDO16Config(0);
 #endif
@@ -348,7 +348,7 @@ void SleepMain(void)
 	Clock_HOSCDisable();//若有RTC应用并且RTC所用时钟是HOSC，则不关闭HOSC，即24M晶振
 #endif
 //	Clock_LOSCDisable(); //若有RTC应用并且RTC所用时钟是LOSC，则不关闭LOSC，即32K晶振
-    Power_LDO11DConfig(PWD_LDO11_LVL_0V95); // 降低到0.95V
+    Power_LDO11DConfig(PWD_LDO11_LVL_0V85); // 降低到0.85V
 }
 
 void WakeupMain(void)

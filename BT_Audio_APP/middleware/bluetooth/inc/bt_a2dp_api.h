@@ -143,7 +143,7 @@ typedef struct _BT_A2DP_CALLBACK_PARAMS
 	}params;
 }BT_A2DP_CALLBACK_PARAMS;
 
-typedef void (*BTA2dpCallbackFunc)(BT_A2DP_CALLBACK_EVENT event, BT_A2DP_CALLBACK_PARAMS * param);
+typedef void (*BTA2dpCallbackFunc)(uint8_t index, BT_A2DP_CALLBACK_EVENT event, BT_A2DP_CALLBACK_PARAMS * param);
 
 typedef struct _A2dpAppFeatures
 {
@@ -163,7 +163,7 @@ typedef struct _A2dpAppFeatures
  * @return 
  * @Note   a2dp协议回调事件/参数
  *****************************************************************/
-void BtA2dpCallback(BT_A2DP_CALLBACK_EVENT event, BT_A2DP_CALLBACK_PARAMS * param);
+void BtA2dpCallback(uint8_t index, BT_A2DP_CALLBACK_EVENT event, BT_A2DP_CALLBACK_PARAMS * param);
 
 #if	BT_SOURCE_SUPPORT
 /*****************************************************************
@@ -173,7 +173,7 @@ void BtA2dpCallback(BT_A2DP_CALLBACK_EVENT event, BT_A2DP_CALLBACK_PARAMS * para
  * @return 
  * @Note   a2dp协议回调事件/参数
  *****************************************************************/
-void BtA2dpSourceCallback(BT_A2DP_CALLBACK_EVENT event, BT_A2DP_CALLBACK_PARAMS * param);
+void BtA2dpSourceCallback(uint8_t index, BT_A2DP_CALLBACK_EVENT event, BT_A2DP_CALLBACK_PARAMS * param);
 #endif
 
 /******************************************************************

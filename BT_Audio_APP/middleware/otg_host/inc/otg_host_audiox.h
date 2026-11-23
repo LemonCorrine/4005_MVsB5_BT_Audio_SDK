@@ -20,7 +20,27 @@ extern "C"{
 #include <string.h>
 #include <otg_host.h>
 #include "otg_host_hcd.h"
+#include "otg_host_standard_enum.h"
 #include "mvintrinsics.h"
+typedef struct
+{
+  uint8_t              mute;
+  uint8_t              muteChannel;
+  int16_t              volume;
+  uint8_t              volumeChannel;
+  uint8_t			   ChannelNum;
+  int16_t              wNumSubRanges;
+  int16_t              volumeMin;
+  int16_t              volumeMax;
+  int16_t              resolution;
+  uint8_t			   SampleFreqblock[256];
+  uint8_t			   interface;
+  uint8_t			   bFeatureUnitID;
+  uint8_t			   bClockID;
+  uint8_t			   bSampleFreqControl;
+}
+AUDIOX_ControlAttributeTypeDef;
+
 typedef struct
 {
 	PIPE_INFO           Pipe;				//∂Àµ„–≈œ¢
@@ -35,12 +55,15 @@ typedef struct
 	uint32_t            frequency;
 	uint8_t				NrChannels;
 	uint8_t				ByteSet;
+
+	uint8_t				AudioVersion;
+	AUDIOX_ControlAttributeTypeDef	attribute;
 }USBH_AudioStreamFormatInfo;
 
 typedef USBH_StatusTypeDef(*USBH_AudioSampleRateCheckCallback)(uint32_t FreqIn,uint32_t FreqOut);
 
 void USBH_AudioSampleRateCheckCallbackSet(USBH_AudioSampleRateCheckCallback func);
-USBH_StatusTypeDef USBH_AudioClassDevEnum(USBH_AudioStreamFormatInfo *Speaker,USBH_AudioStreamFormatInfo *Mic);
+USBH_StatusTypeDef USBH_AudioClassDevEnum(OTG_HOST_INFO *HostInfo, USBH_AudioStreamFormatInfo *Speaker,USBH_AudioStreamFormatInfo *Mic);
 USBH_StatusTypeDef USBH_AudioSetVolume(USBH_AudioStreamFormatInfo *Stream,uint8_t Volume);
 USBH_StatusTypeDef USBH_AudioSetVolumeIncrement(USBH_AudioStreamFormatInfo *Stream,uint8_t stepPercent);
 USBH_StatusTypeDef USBH_AudioSetVolumeDecrement(USBH_AudioStreamFormatInfo *Stream,uint8_t stepPercent);

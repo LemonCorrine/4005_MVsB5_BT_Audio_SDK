@@ -1,8 +1,8 @@
 #ifndef __FLASH_BOOT_H__
 #define __FLASH_BOOT_H__
 /*
-版本说明：当前为V5.3.0版本
-日期：2025年8月13日
+版本说明：当前为V5.3.2版本
+日期：2026年4月22日
 */
 #ifdef CFG_APP_CONFIG
 	#include "upgrade.h"

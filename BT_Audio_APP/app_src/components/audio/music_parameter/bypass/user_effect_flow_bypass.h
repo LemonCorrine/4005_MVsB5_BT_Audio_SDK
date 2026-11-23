@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_bypass.h  
  * @brief   auto generated  
- * @author  ACPWorkbench: 3.19.1
+ * @author  ACPWorkbench: 5.1.8
  * @version V1.2.0 
- * @Created 2025-10-09T15:50:34 
+ * @Created 2026-04-22T17:53:40 
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define BYPASS_ROBOEFFECT_LIB_VER "2.32.0"
+#define BYPASS_ROBOEFFECT_LIB_VER "2.44.0"
 
 typedef enum _BYPASS_roboeffect_io_enum
 {
@@ -36,9 +36,9 @@ typedef enum _BYPASS_roboeffect_io_enum
 typedef enum _BYPASS_roboeffect_effect_list_enum{
 
     BYPASS_upmix_1to2_0_ADDR = 0x81,
-    BYPASS_mic_gain_ADDR,
-    BYPASS_gain_control1_ADDR,
-    BYPASS_gain_control0_ADDR,
+    BYPASS_mic_gain_ADDR = 0x82,
+    BYPASS_gain_control1_ADDR = 0x83,
+    BYPASS_gain_control0_ADDR = 0x84,
     BYPASS_COUNT_ADDR,
 
 } BYPASS_roboeffect_effect_list_enum;

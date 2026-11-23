@@ -270,7 +270,12 @@ void I2SInPlayResFree(void)
 bool I2SInPlayResMalloc(uint16_t SampleLen)
 {
 	//I2SIn  digital (DMA)
-	sI2SInPlayCt->I2SFIFO1 = (uint32_t*)osPortMalloc(SampleLen * sizeof(PCM_DATA_TYPE) * 2 * 2);
+//	sI2SInPlayCt->I2SFIFO1 = (uint32_t*)osPortMalloc(SampleLen * sizeof(PCM_DATA_TYPE) * 2 * 2);
+	sI2SInPlayCt->I2SFIFO1 = (uint32_t*)osPortMalloc(SampleLen * 2 * sizeof(PCM_DATA_TYPE) *
+												((CFG_PARA_I2S_SAMPLERATE <= 48000) ? 2 :
+												 (CFG_PARA_I2S_SAMPLERATE <= 96000) ? 3 :
+												 (CFG_PARA_I2S_SAMPLERATE <= 192000) ? 4 :
+												 (CFG_PARA_I2S_SAMPLERATE <= 384000) ? 8 : 16));
 	if(sI2SInPlayCt->I2SFIFO1 == NULL)
 	{
 		return FALSE;
@@ -309,7 +314,7 @@ bool I2SInPlayResMalloc(uint16_t SampleLen)
 bool I2SInPlayResInit(void)
 {
 	I2SParamCt i2s_set;
-//	uint32_t sampleRate  = AudioCoreMixSampleRateGet(DefaultNet);
+	uint32_t sampleRate  = AudioCoreMixSampleRateGet(DefaultNet);
 
 	sI2SInPlayCt->SampleRate = CFG_PARA_I2S_SAMPLERATE;//根据实际外设选择
 	//Core Source1 para
@@ -335,7 +340,12 @@ bool I2SInPlayResInit(void)
 	i2s_set.RxPeripheralID = PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_I2S_MODULE;
 
 	i2s_set.RxBuf=sI2SInPlayCt->I2SFIFO1;
-	i2s_set.RxLen=AudioCoreFrameSizeGet(DefaultNet) * sizeof(PCM_DATA_TYPE) * 2 * 2 ;//I2SIN_FIFO_LEN;
+//	i2s_set.RxLen=AudioCoreFrameSizeGet(DefaultNet) * sizeof(PCM_DATA_TYPE) * 2 * 2 ;//I2SIN_FIFO_LEN;
+	i2s_set.RxLen=AudioCoreFrameSizeGet(DefaultNet) * 2  * sizeof(PCM_DATA_TYPE) *
+										((CFG_PARA_I2S_SAMPLERATE <= 48000) ? 2 :
+										 (CFG_PARA_I2S_SAMPLERATE <= 96000) ? 3 :
+										 (CFG_PARA_I2S_SAMPLERATE <= 192000) ? 4 :
+										 (CFG_PARA_I2S_SAMPLERATE <= 384000) ? 8 : 16);
 
 #ifdef CFG_RES_AUDIO_I2SOUT_EN
 

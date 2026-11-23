@@ -32,7 +32,7 @@
 
 #ifdef CFG_APP_BT_MODE_EN
 
-#define BT_PLAY_DECODER_SOURCE_NUM		1 
+#define BT_PLAY_DECODER_SOURCE_NUM		APP_SOURCE_NUM
 
 bool GetBtCurPlayState(void);
 
@@ -467,6 +467,8 @@ static void BtPlayRunning(uint16_t msgId)
 				{
 					HardWareMuteOrUnMute();
 				}			
+				extern uint32_t a2dp_unmute_delay_cnt ;
+				a2dp_unmute_delay_cnt = 0;
 				AudioCoreSourceDisable(APP_SOURCE_NUM);
 			}
 			break;
@@ -504,11 +506,12 @@ bool BtPlayInit(void)
 
 	ret = BtPlayInitRes();
 	APP_DBG("Bt Play mode\n");
+#ifdef CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN	
 	if(!SoftFlagGet(SoftFlagSysCurModeReboot) && mainAppCt.SysPrevMode == ModeBtHfPlay)
 	{
 		AudioEffect_CommunicationQueue_Send(AutoRefresh_ALL_PARA);
 	}
-
+#endif
 	AudioCodecGainUpdata();//update hardware config
 
 	if(GetA2dpState(BtCurIndex_Get()) == BT_A2DP_STATE_STREAMING)

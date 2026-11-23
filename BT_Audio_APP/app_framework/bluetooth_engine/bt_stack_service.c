@@ -36,6 +36,7 @@
 #include "bt_app_connect.h"
 #include "bt_app_common.h"
 #include "bt_play_mode.h"
+#include "bt_source_connect.h"
 
 #if (BT_HFP_SUPPORT)
 #include "bt_hf_mode.h"
@@ -90,6 +91,11 @@ extern void SlowDevice_MsgSend(uint16_t msgId);
 
 #ifdef BT_GETTIME_SUPPORT
 uint32_t gBtMapEnable = 1; // TRUE:安卓手机 FALSE:苹果手机 默认使用map协议即安卓手机，部分安卓手机不会返回设备信息。
+#endif
+
+
+#ifdef BT_SOURCE_SUPPORT
+void BtSourceAutoPlayCheck(void);
 #endif
 
 
@@ -214,7 +220,7 @@ void BtFreqOffsetAdjustComplete(unsigned char offset)
 #endif
 	APP_DBG("++++++[BT_OFFSET]  offset:0x%x ++++++\n", offset);
 
-	btManager.btLastAddrUpgradeIgnored = 1;
+	//btManager.btLastAddrUpgradeIgnored = 1;
 
 	//判断是否和当前默认值一致,不一致更新保存到flash
 	if(offset != btStackConfigParams->bt_trimValue)
@@ -337,10 +343,13 @@ void BtMidMessageManage(BtMidMessageId messageId, uint8_t Param)
 
 		case MSG_BT_MID_VOLUME_CHANGE:		
 #if (BT_AVRCP_VOLUME_SYNC)
-			SetBtSyncVolume(Param);
-			// Send message to bt play mode
-			msgSend.msgId		= MSG_BT_PLAY_SYNC_VOLUME_CHANGED;
-			MessageSend(GetMainMessageHandle(), &msgSend);
+			{
+				extern void SetBtSyncVolume(uint8_t volume);
+				SetBtSyncVolume(Param);
+				// Send message to bt play mode
+				msgSend.msgId		= MSG_BT_PLAY_SYNC_VOLUME_CHANGED;
+				MessageSend(GetMainMessageHandle(), &msgSend);
+			}
 #endif
 			break;
 
@@ -412,6 +421,13 @@ static void CheckBtEventTimer(void)
 		}
 	}
 #endif
+#if 1 //disable scan if bt enter dut mode
+	if((get_dut_activate_mode() == 1)&&(GetBtDeviceConnState() != 0))
+	{
+		BtSetAccessModeApi(BtAccessModeNotAccessible);
+		BtAccessModeUpdate(BtAccessModeNotAccessible);
+	}
+#endif
 	//获取蓝牙播放状态
 	if(btManager.avrcpPlayStatusTimer.timerFlag)
 	{
@@ -449,12 +465,43 @@ static void CheckBtEventTimer(void)
 		}
 	}
 
+#if BT_SOURCE_SUPPORT
+	#if BT_SRC_RECONNECTION_SUPPORT
+
+	if(btManager.btSrcReconnectDelayCount)
+	{
+		btManager.btSrcReconnectDelayCount++;
+		if((btManager.btSrcReconnectDelayCount>200)
+#ifdef CFG_FUNC_REMIND_SOUND_EN
+			&&(RemindSoundIsPlay() <= 1 )
+#endif
+			)
+		{
+			btManager.btSrcReconnectDelayCount = 0;
+			BtSourceReconnectDevice();
+		}
+	}
+
+	#endif
+#endif
+
 	BtScanPageStateCheck();
 
 	BtRstStateCheck();
 
 #if	BT_SOURCE_SUPPORT
 	BtSourceNameGetChack();
+
+	BtSourceAutoPlayCheck();
+
+	// source
+	if(GetBtManager()->btReconnectTimer.timerFlag & TIMER_STARTED)
+	{
+		if(IsTimeOut(&GetBtManager()->btReconnectTimer.timerHandle))
+		{
+			CheckBtReconnectTimer();
+		}
+	}
 
 #ifdef SOURCE_AUTO_INQUIRY_AND_CONNECT
 	BtSourceReInquiryChack();
@@ -656,6 +703,15 @@ static void BtStackMsgProcess(uint16_t msgId)
 			{
 				btManager.btReconExcuteSt->ConnectionTimer.timerFlag = TIMER_UNUSED;
 			}
+
+			#if BT_SOURCE_SUPPORT
+				#if BT_SRC_RECONNECTION_SUPPORT
+				if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
+				{
+					bt_reconnect_update(bt_reconnect_get_target(),NULL, 0, 1);
+				}
+				#endif
+			#endif
 			break;
 
 		case MSG_BTSTACK_RUN_START:
@@ -739,6 +795,7 @@ static void BtStackMsgProcess(uint16_t msgId)
 #if (BT_AVRCP_VOLUME_SYNC)
 		case MSG_BTSTACK_MSG_BT_VOLUME_SET:
 			{
+				extern uint8_t GetBtSyncVolume(void);
 				uint8_t VolumePercent = BtLocalVolLevel2AbsVolme(GetBtSyncVolume());
 				BT_DBG("bt msg: volume set %d\n", VolumePercent);
 				BTCtrlSetVol(cur_index, VolumePercent);
@@ -867,6 +924,8 @@ static void BtStackServiceEntrance(void * param)
 	APP_DBG("BtStackServiceEntrance.\n");
 
 #if BT_SOURCE_SUPPORT
+	BT_Source_Init();
+	bt_reconnect_init();
 #ifdef SOURCE_AUTO_INQUIRY_AND_CONNECT
 	QuiryDelayTimerSet(5000);
 #endif
@@ -898,12 +957,12 @@ static void BtStackServiceEntrance(void * param)
 	if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_DISABLE)
 		BtStackServiceMsgSend(MSG_BTSTACK_RUN_START);
 
-#if BT_SOURCE_SUPPORT
-	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
-	{
-		BtConnectCtrl();//sink->source时，增加一次回连
-	}
-#endif
+// #if BT_SOURCE_SUPPORT
+// 	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
+// 	{
+// 		BtConnectCtrl();//sink->source时，增加一次回连
+// 	}
+// #endif
 
 	{//register did service
 		extern void DviceID_Register_SdpService(void);
@@ -913,6 +972,10 @@ static void BtStackServiceEntrance(void * param)
 	while(1)
 	{
 		MessageRecv(btStackServiceCt->msgHandle, &msgRecv, 1);
+
+		#if BT_SOURCE_SUPPORT
+		bt_reconnect_task();
+		#endif
 		
 #if BT_HFP_SUPPORT
 		extern void BtModeEnterDetect(void);
@@ -1357,6 +1420,10 @@ void BtPowerOff(void)
 		BtDisconnectCtrl(TRUE);
 	}
 
+#if BT_SOURCE_SUPPORT
+	BtSourceDisconnect();
+#endif
+
 	//在蓝牙回连时,需要先取消蓝牙回连行为
 	BtReconnectDevStop();
 	vTaskDelay(50);
@@ -1482,6 +1549,72 @@ void BtLocalDeviceNameUpdate(char *deviceName)
 	MessageSend(msgHandle, &msgSend);
 }
 
+#if	BT_SOURCE_SUPPORT
+uint16_t AutoPlayCount[BT_SRC_LINK_DEV_NUM] = {0};
+void BtSourceAutoPlaySet(uint8_t index)
+{
+	if(index>=BT_SRC_LINK_DEV_NUM) index = 0;
+	AutoPlayCount[index] = 300;//300ms
+}
+
+void BtSourceAutoPlayCheck(void)
+{
+	uint8_t  i = 0;
+	if(gSwitchSourceAndSink != A2DP_SET_SOURCE)
+	{
+		for(i = 0;i<BT_SRC_LINK_DEV_NUM;i++)
+		{
+			AutoPlayCount[i] = 0;
+		}
+		return;
+	}
+
+	for(i = 0;i<BT_SRC_LINK_DEV_NUM;i++)
+	{
+		if(AutoPlayCount[i])
+		{
+			AutoPlayCount[i]--;
+			if(!AutoPlayCount[i])
+			{
+				if((btManager.btLinked_env[i].avrcpState != BT_AVRCP_STATE_CONNECTED)
+				||	(GetSourceA2dpState(i) < BT_A2DP_STATE_CONNECTED))
+				{
+					APP_DBG("[%d]Return\n",i);
+					return;
+				}
+				APP_DBG("[%d]Auto Play\n",i);
+				BtSourcePlay(i);
+			}
+		}
+	}
+}
+
+void BtSourceConnectCheck(void)//底层调用
+{
+	uint8_t  i = 0;
+
+	if(gSwitchSourceAndSink != A2DP_SET_SOURCE)
+	{
+		for(i = 0;i<BT_SRC_LINK_DEV_NUM;i++)
+		{
+			AutoPlayCount[i] = 0;
+		}
+		return;
+	}
+
+	printf("BtSourceConnectCheck\n");
+	extern void BtSourceCheckConn(uint8_t *Addr,uint32_t timeout);
+	//BTHciDisconnectCmd(GetBtManager()->remoteAddr); 应该可以加快，但是客户那边已经ok了
+	BtSourceCheckConn(GetBtManager()->remoteAddr,500);
+}
+
+#else
+void BtSourceConnectCheck(void)
+{
+
+}
+#endif
+
 #else
 
 void BBErrorReport(uint8_t mode, uint32_t errorType)
@@ -1493,6 +1626,10 @@ void BBMatchReport(void)
 }
 
 void BtFreqOffsetAdjustComplete(unsigned char offset)
+{
+}
+
+void BtSourceConnectCheck(void)
 {
 }
 

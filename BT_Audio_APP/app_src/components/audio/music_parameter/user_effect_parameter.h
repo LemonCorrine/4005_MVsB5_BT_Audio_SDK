@@ -11,10 +11,6 @@
 #define _USER_EFFECT_PARAMETER_H_
 #include "audio_core_api.h"
 #include "ctrlvars.h"
-#include "eq.h"
-#include "reverb.h"
-#include "reverb_plate.h"
-#include "reverb_pro.h"
 #include "effects_param_v3.h"
 
 #define AUDIOCORE_SOURCE_SINK_ERROR 0xFF
@@ -217,4 +213,8 @@ EffectValidParamUnit AudioEffect_GetUserEffectValidParam(uint8_t *effect_param);
 uint32_t AudioEffect_GetUserEffectParamCRCLen(uint8_t *effect_param);
 
 uint32_t AudioEffect_GetUserHWCfgCRCLen(uint8_t *effect_param);
+
+bool AudioEffect_effectParam_check(uint8_t effectMode,  uint8_t *effect_param);
+
+bool AudioEffect_HwCfg_check(HardwareConfigContext *hw_ct);
 #endif

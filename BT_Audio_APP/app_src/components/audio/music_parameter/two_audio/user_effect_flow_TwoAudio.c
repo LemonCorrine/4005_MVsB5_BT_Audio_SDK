@@ -1,12 +1,12 @@
 /***************************************************
  * @file    user_effect_flow_TwoAudio.c                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.19.1  
+ * @author  ACPWorkbench: 5.1.8  
  * @version V1.2.0                                 
  * @graphics: TwoAudio   
- * @Effect Version: 2.49.0
- * @RoboEffect Version: 2.32.0
- * @Created 2025-10-09T15:50:37                                      
+ * @Effect Version: 2.54.0
+ * @RoboEffect Version: 2.44.0
+ * @Created 2026-04-22T17:53:43                                      
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
 
@@ -129,7 +129,7 @@ static const roboeffect_exec_effect_info user_effects_TwoAudio[] = {
 };              
 
 roboeffect_effect_list_info user_effect_list_TwoAudio = {
-    TWOAUDIO_COUNT_ADDR - 0x81, //count      
+    25, //count      
     44100, //sample rate
     256, //frame size
     user_effects_TwoAudio,
@@ -144,23 +144,23 @@ static const roboeffect_io_unit source_unit_TwoAudio[] = {
 
 static const roboeffect_io_unit sink_unit_TwoAudio[] = {
     {TWOAUDIO_SINK_DAC0_SINK           ,   4, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {TWOAUDIO_SINK_APP_SINK            ,   1, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {TWOAUDIO_SINK_STEREO_SINK         ,   6, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {TWOAUDIO_SINK_SPDIF_SINK          ,   7, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {TWOAUDIO_SINK_REC_SINK            ,   3, BITS_16         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {TWOAUDIO_SINK_APP_SINK            ,   0, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {TWOAUDIO_SINK_STEREO_SINK         ,   3, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {TWOAUDIO_SINK_SPDIF_SINK          ,   5, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {TWOAUDIO_SINK_REC_SINK            ,   1, BITS_16         , CH_STEREO}, //{sink, mem, bit_width, ch}
 };
 
 static const uint32_t effect_flow_TwoAudio[] = {
-50529157, 67371778, 16843139, 33685762, 16908801, 33686148, 16843147, 16843148, 
-50397441, 16843149, 16843150, 50529175, 50529176, 50529177, 16843522, 16843151, 
-16843152, 16843153, 16843154, 16843155, 16843156, 16843157, 16843158, 50397441, 
-67371266, 129, 16777217, 130, 16843142, 16843143, 16843144, 16843145, 
-16843146, 83951873, 100729089, 67372546, 100926465, 117835265, 50529538, 
+50529157, 67371778, 16843139, 33685762, 33686148, 33686155, 33686156, 16908801, 
+33686157, 33686158, 16843159, 16843160, 16843161, 33685762, 33686159, 33686160, 
+33686161, 33686162, 33686163, 33686164, 33686165, 33686166, 16908801, 67371522, 
+129, 130, 134, 135, 136, 137, 138, 33554433, 
+50331649, 67371778, 50594817, 84083457, 16843266, 
 };
 
 const roboeffect_effect_steps_table user_effect_steps_TwoAudio = {
-    39,  //step cnt
-    3,  //mem used
+    37,  //step cnt
+    1,  //mem used
     5,  //src numb
     5,  //des numb
 
@@ -178,9 +178,9 @@ char *parameter_group_name_TwoAudio[1] = { "Mic" };
 
 const unsigned char user_effect_parameters_TwoAudio_Mic[] = {
 0x9f, 0x03, /*total data length*/
-0x02, 0x31, 0x00, /*Effect Version*/
+0x02, 0x36, 0x00, /*Effect Version*/
 
-0x02, 0x20, 0x00, /* Roboeffect Version*/
+0x02, 0x2c, 0x00, /* Roboeffect Version*/
 
 0x1e, 0x00, /*3rd part data total length  */
 0x02, /*number of 3rd part items*/
@@ -197,7 +197,7 @@ const unsigned char user_effect_parameters_TwoAudio_Mic[] = {
 0x82, /*silence_detector_mic*/
 0x03,/*length*/
 0x01, /*enable*/
-0x08, 0x00, /*PCM amplitude*/
+0x00, 0x00, /*PCM amplitude*/
 
 0x83, /*preGain*/
 0x05,/*length*/

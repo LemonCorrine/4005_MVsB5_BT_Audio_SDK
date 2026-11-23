@@ -431,28 +431,31 @@ void DefaultParamgsInit(void)
 	//for system control 0x01
 	gCtrlVars.AutoRefresh = AutoRefresh_NONE;
 
-	if(AudioEffect.context_memory)
+#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
+	if (AudioEffect_GetFlashHwCfg(mainAppCt.EffectMode, &gCtrlVars.HwCt))
 	{
-		memcpy(&gCtrlVars.HwCt, AudioEffect.cur_effect_para->user_module_parameters, sizeof(gCtrlVars.HwCt));
+		DBG("read HwCt from flash ok\n");
 	}
 	else
-	{
-		AUDIOEFFECT_EFFECT_PARA *para;
-		if (mainAppCt.EffectMode  == 0)
-		{
-			extern uint8_t GetFristEffectMode(void);
-            mainAppCt.EffectMode = GetFristEffectMode();
-		}
-
-		para = get_user_effect_parameters(mainAppCt.EffectMode);
-		memcpy(&gCtrlVars.HwCt, para->user_module_parameters, sizeof(gCtrlVars.HwCt));
-	}
-#ifdef CFG_EFFECT_PARAM_IN_FLASH_EN
-		if (AudioEffect_GetFlashHwCfg(mainAppCt.EffectMode, &gCtrlVars.HwCt))
-		{
-			DBG("read HwCt from flash ok\n");
-		}
 #endif
+	{
+		if(AudioEffect.context_memory)
+		{
+			memcpy(&gCtrlVars.HwCt, AudioEffect.cur_effect_para->user_module_parameters, sizeof(gCtrlVars.HwCt));
+		}
+		else
+		{
+			AUDIOEFFECT_EFFECT_PARA *para;
+			if (mainAppCt.EffectMode  == 0)
+			{
+				extern uint8_t GetFristEffectMode(void);
+				mainAppCt.EffectMode = GetFristEffectMode();
+			}
+
+			para = get_user_effect_parameters(mainAppCt.EffectMode);
+			memcpy(&gCtrlVars.HwCt, para->user_module_parameters, sizeof(gCtrlVars.HwCt));
+		}
+	}
 
     //system define
 	gCtrlVars.sample_rate		= AudioCoreMixSampleRateGet(DefaultNet);

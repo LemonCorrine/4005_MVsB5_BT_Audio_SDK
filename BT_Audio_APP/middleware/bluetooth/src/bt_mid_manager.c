@@ -239,7 +239,7 @@ void BtLinkStateConnect(uint8_t flag, uint8_t index)
 	if(((!btManager.btLinked_env[index].btLinkState)
 		&&((btManager.btLinked_env[index].a2dpState >= BT_A2DP_STATE_CONNECTED)
 #if	BT_SOURCE_SUPPORT		
-		|| GetSourceA2dpState() >= BT_A2DP_STATE_CONNECTED
+		|| GetSourceA2dpState(index) >= BT_A2DP_STATE_CONNECTED
 #endif	
 		)
 		&& (btManager.btLinked_env[index].avrcpState >= BT_AVRCP_STATE_CONNECTED))
@@ -255,6 +255,12 @@ void BtLinkStateConnect(uint8_t flag, uint8_t index)
 
 #ifdef BT_MULTI_LINK_SUPPORT
 		btManager.btLinked_env[index].btLinkDisconnFlag = 0;
+#endif
+
+#if BT_SOURCE_SUPPORT
+		BtSourceAutoPlaySet(index);
+		BtStopReconnect();
+		BtReconnectDevStop();
 #endif
 
 		APP_DBG("set btManager.btLinked_env[%d].btLinkState %d\n",index,btManager.btLinked_env[index].btLinkState);
@@ -327,7 +333,7 @@ void BtLinkStateDisconnect(uint8_t index)
 		&& (btManager.btLinked_env[index].avrcpState == BT_AVRCP_STATE_NONE)
 		&& ((btManager.btLinked_env[index].a2dpState == BT_A2DP_STATE_NONE)
 #if	BT_SOURCE_SUPPORT		
-		|| (GetSourceA2dpState()== BT_A2DP_STATE_NONE)
+		|| (GetSourceA2dpState(index)== BT_A2DP_STATE_NONE)
 #endif
 		)
 #if(BT_HFP_SUPPORT)
@@ -344,6 +350,12 @@ void BtLinkStateDisconnect(uint8_t index)
 		SetBtDisconnectProfile(index,BT_CONNECTED_HFP_FLAG | BT_CONNECTED_A2DP_FLAG | BT_CONNECTED_AVRCP_FLAG);
 		APP_DBG("set btManager.btLinked_env[%d].btLinkState %d\n",index,btManager.btLinked_env[index].btLinkState);
 		//BtStopReconnect();
+
+
+#if BT_SOURCE_SUPPORT
+		BtStopReconnect();
+		BT_Source_Disconnect(index);
+#endif
 
 		if((btManager.cur_index != index)&&(IsBtHfMode()))
 		{
@@ -390,6 +402,12 @@ void BtLinkStateDisconnect(uint8_t index)
 		}
 		
 	}
+	else
+	{
+		#if BT_SOURCE_SUPPORT
+		BT_Source_Disconnect(index);
+		#endif
+	}
 }
 
 bool GetBtLinkState(uint8_t index)
@@ -423,7 +441,7 @@ void BtStackCallback(BT_STACK_CALLBACK_EVENT event, BT_STACK_CALLBACK_PARAMS * p
 
 		case BT_STACK_EVENT_COMMON_STACK_FREE_MEM_SIZE:
 		{
-			//APP_DBG("stack mem:%d, %d\n", param->params.stackMemParams.stackMallocMemSize, param->params.stackMemParams.stackFreeMemSize);
+			APP_DBG("stack mem:%d, %d\n", param->params.stackMemParams.stackMallocMemSize, param->params.stackMemParams.stackFreeMemSize);
 		}
 		break;
 

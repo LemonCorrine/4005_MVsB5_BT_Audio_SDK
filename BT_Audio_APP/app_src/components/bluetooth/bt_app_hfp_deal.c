@@ -301,6 +301,15 @@ void BtHfpScoLinkConnected(BT_HFP_CALLBACK_PARAMS * param)
 	if(index < BT_LINK_DEV_NUM && GetHfpState(index) < BT_HFP_STATE_CONNECTED)
 		return;
 	
+#ifdef BT_HFP_MODE_DISABLE
+	{
+		// HfpAudioDisconnect(param->index);
+		btManager.hfpScoDiscIndex = index;
+		btManager.hfpScoDiscDelay = 200; //disconnect sco link delay 200ms
+		return;
+	}
+#endif
+
 	#if (BT_LINK_DEV_NUM == 2)
 	if(btManager.HfpCurIndex == 0xff)
 	{
@@ -360,6 +369,12 @@ void BtHfpScoLinkDisconnected(BT_HFP_CALLBACK_PARAMS * param)
 	APP_DBG("HFP: ScoDisconnect %d\n", param->index);
 	if((gBtHfCt == NULL)||(index < BT_LINK_DEV_NUM && GetHfpState(index) < BT_HFP_STATE_CONNECTED))
 		return;
+
+#ifdef BT_HFP_MODE_DISABLE
+	{
+		return;
+	}
+#endif
 
 #if (BT_LINK_DEV_NUM == 2)
 	extern uint32_t AvrcpStateSuspendCount;
@@ -440,6 +455,12 @@ void BtHfpCallConnected(BT_HFP_CALLBACK_PARAMS * param)
 {
 	APP_DBG("Hfp call connected %d\n", param->index);
 
+#ifdef BT_HFP_MODE_DISABLE
+	{
+		return;
+	}
+#endif
+
 	uint8_t index = GetBtManagerHfpIndex(param->index);
 	
 	if(btManager.HfpCurIndex == 0xff)
@@ -492,6 +513,12 @@ void BtHfpCallDisconnected(BT_HFP_CALLBACK_PARAMS * param)
 {
 	APP_DBG("Hfp call disconnect %d,fpCurIndex %d,hfstate %d\n",param->index,btManager.HfpCurIndex,GetHfpState(param->index));
 	
+#ifdef BT_HFP_MODE_DISABLE
+	{
+		return;
+	}
+#endif
+
 	#if (BT_LINK_DEV_NUM == 2)	
 	//index 不匹配,则只是更新hf的通话状态
 	//if(btManager.cur_index != param->index)
@@ -577,6 +604,12 @@ void BtHfpCallSetupNone(BT_HFP_CALLBACK_PARAMS * param)
 {
 	APP_DBG("Hfp call setup none  %d,hfstate %d\n", param->index,GetHfpState(param->index));
 	
+#ifdef BT_HFP_MODE_DISABLE
+	{
+		return;
+	}
+#endif
+
 	if(GetHfpState(param->index) < BT_HFP_STATE_CONNECTED)
 		return;
 	
@@ -1208,6 +1241,12 @@ void MSBC_PackFix(uint8_t* data,uint16_t len)
 ****************************************************************************************/
 void BtHfpScoDataReceived(BT_HFP_CALLBACK_PARAMS * param)
 {
+#ifdef BT_HFP_MODE_DISABLE
+	{
+		return;
+	}
+#endif
+
 	if(param->index != btManager.cur_index)
 		return;
 

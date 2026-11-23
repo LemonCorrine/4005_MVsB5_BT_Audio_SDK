@@ -137,7 +137,7 @@ uint8_t IR_RepeatCountGet(void);
 /**
  * @brief  IR功能开启之前需要的配置
  * @param  ModeSel  NEC or SONY
- * @param  GpioSel  GPIOA29 or GPIOB6 or GPIOB7
+ * @param  GpioSel  GPIOA1 or GPIOA29 or GPIOA31 or GPIOB6
  * @param  CmdLenSel  when NEC mode, support 32 bits or 16bits;
  *                    when SONY mode, support 12, 15 or 20 bits
  * @return NONE

@@ -22,7 +22,7 @@ void SarADC_Init(void)
 #endif
 
 	ADC_Enable();
-	ADC_ClockDivSet(4);  //120M / (2*4) = 15M
+	ADC_ClockDivSet(Clock_SysClockFreqGet()/1000000/ 12 /2);  //12m
 	ADC_VrefSet(ADC_VREF_VDD);//1:VDDA; 0:VDD
 	ADC_ModeSet(ADC_CON_SINGLE);
 

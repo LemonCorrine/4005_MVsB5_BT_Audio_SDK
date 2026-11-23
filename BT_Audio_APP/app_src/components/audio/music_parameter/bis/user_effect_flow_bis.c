@@ -1,12 +1,12 @@
 /***************************************************
  * @file    user_effect_flow_bis.c                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.19.1  
+ * @author  ACPWorkbench: 5.1.8  
  * @version V1.2.0                                 
  * @graphics: bis   
- * @Effect Version: 2.49.0
- * @RoboEffect Version: 2.32.0
- * @Created 2025-10-09T15:50:34                                      
+ * @Effect Version: 2.54.0
+ * @RoboEffect Version: 2.44.0
+ * @Created 2026-04-22T17:53:39                                      
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
 
@@ -128,7 +128,7 @@ static const roboeffect_exec_effect_info user_effects_bis[] = {
 };              
 
 roboeffect_effect_list_info user_effect_list_bis = {
-    BIS_COUNT_ADDR - 0x81, //count      
+    25, //count      
     48000, //sample rate
     256, //frame size
     user_effects_bis,
@@ -142,23 +142,23 @@ static const roboeffect_io_unit source_unit_bis[] = {
 };
 
 static const roboeffect_io_unit sink_unit_bis[] = {
-    {BIS_SINK_APP_SINK            ,   4, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {BIS_SINK_APP_SINK            ,   0, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
     {BIS_SINK_DAC0_SINK           ,   3, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {BIS_SINK_BIS_SINK            ,   5, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {BIS_SINK_REC_SINK            ,   2, BITS_16         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {BIS_SINK_BIS_SINK            ,   2, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {BIS_SINK_REC_SINK            ,   1, BITS_16         , CH_STEREO}, //{sink, mem, bit_width, ch}
 };
 
 static const uint32_t effect_flow_bis[] = {
-50529161, 33686152, 50528770, 16843141, 33620225, 16843142, 84017665, 100795527, 
-101058192, 33949185, 101058193, 101058194, 101058195, 101058196, 101058197, 101058198, 
-101058199, 101058200, 101058201, 50529794, 129, 130, 131, 67108865, 
-132, 67372170, 67372171, 67372172, 67372173, 67372174, 67372175, 100926465, 
-117835265, 50529794, 33687298, 
+50529161, 33686152, 50528770, 16843141, 16843142, 33620225, 83952775, 84215184, 
+17106177, 84215185, 84215186, 84215187, 84215188, 84215189, 84215190, 84215191, 
+84215192, 84215193, 50529538, 129, 130, 131, 132, 138, 
+139, 140, 141, 142, 143, 67108865, 84149249, 50529282, 
+16844034, 
 };
 
 const roboeffect_effect_steps_table user_effect_steps_bis = {
-    35,  //step cnt
-    3,  //mem used
+    33,  //step cnt
+    1,  //mem used
     5,  //src numb
     4,  //des numb
 
@@ -176,9 +176,9 @@ char *parameter_group_name_bis[1] = { "Bis" };
 
 const unsigned char user_effect_parameters_bis_Bis[] = {
 0xe1, 0x02, /*total data length*/
-0x02, 0x31, 0x00, /*Effect Version*/
+0x02, 0x36, 0x00, /*Effect Version*/
 
-0x02, 0x20, 0x00, /* Roboeffect Version*/
+0x02, 0x2c, 0x00, /* Roboeffect Version*/
 
 0x1e, 0x00, /*3rd part data total length  */
 0x02, /*number of 3rd part items*/
@@ -211,7 +211,7 @@ const unsigned char user_effect_parameters_bis_Bis[] = {
 0x84, /*silence_detector_mic*/
 0x03,/*length*/
 0x01, /*enable*/
-0x1d, 0x00, /*PCM amplitude*/
+0x00, 0x00, /*PCM amplitude*/
 
 0x85, /*preGain*/
 0x05,/*length*/
@@ -222,7 +222,7 @@ const unsigned char user_effect_parameters_bis_Bis[] = {
 0x86, /*silence_detector_music*/
 0x03,/*length*/
 0x01, /*enable*/
-0x19, 0x58, /*PCM amplitude*/
+0x00, 0x00, /*PCM amplitude*/
 
 0x87, /*route_selector0*/
 0x03,/*length*/

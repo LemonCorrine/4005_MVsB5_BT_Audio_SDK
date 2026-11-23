@@ -28,11 +28,12 @@
 #if BT_SOURCE_SUPPORT
 //#define SBC_NUMBER_PER_FRAME 83//119
 #define SBC_SEND_FRAME_NUMBER 5//4//
-#define SBC_NUMBER_PER_FRAME_QUALITY		(13+AppA2dpSourceSbcBitpool()*2)
+#define SBC_NUMBER_PER_FRAME_QUALITY		(13+AppA2dpSourceSbcBitpool(Bt_Source_GetActiveIndex())*2)
 #define SBC_FRAME_BUFF_SIZE					(13+53*2)
 
 static uint8_t sbc_encode_buffer[120];
 static uint8_t sbc_encode_buffer_send[120*SBC_SEND_FRAME_NUMBER];
+static uint8_t sbc_encode_buffer_send2[120*SBC_SEND_FRAME_NUMBER];
 static volatile uint32_t s_operate_only=0;
 static SBCEncoderContext *sbc_source_encode_ct;
 static MCU_CIRCULAR_CONTEXT sAudioSbcCircularBuf;
@@ -42,20 +43,20 @@ static int16_t	*sAudioCircularSbcFifo;
 uint32_t gSbcEncoderReinit = 0;//初始化标志
 static uint32_t gSbcEncoderRegistered = 0;//注册标志
 
-extern void A2DP_StreamSendSbcData(unsigned char *data,uint32_t DataLength, uint8_t frame_size);
-void SbcSourceSendData(void);
+extern void A2DP_StreamSendSbcData(uint8_t index, unsigned char *data,uint32_t DataLength, uint8_t frame_size);
+void SbcSourceSendData(uint8_t index);
 
-extern uint8_t AppA2dpSourceSbcBitpool(void);
-extern uint8_t AppA2dpSourceSbcChannelMode(void);
-extern uint8_t AppA2dpSourceSbcAllocation(void);
-void BtSourceInit(void)
+extern uint8_t AppA2dpSourceSbcBitpool(uint8_t index);
+extern uint8_t AppA2dpSourceSbcChannelMode(uint8_t index);
+extern uint8_t AppA2dpSourceSbcAllocation(uint8_t index);
+void BtSourceInit(uint8_t index)
 {
 //	int32_t SamplePerframe=128;
 
 	if(gSbcEncoderReinit == 0)
 		return;
 
-	APP_DBG("ch mode:%d, bitpool:%d, allocation:%d d:%d \n", AppA2dpSourceSbcChannelMode(),AppA2dpSourceSbcBitpool(),AppA2dpSourceSbcAllocation(),SBC_NUMBER_PER_FRAME_QUALITY);
+	APP_DBG("ch mode:%d, bitpool:%d, allocation:%d d:%d \n", AppA2dpSourceSbcChannelMode(index),AppA2dpSourceSbcBitpool(index),AppA2dpSourceSbcAllocation(index),SBC_NUMBER_PER_FRAME_QUALITY);
 
 	if(sbc_source_encode_ct == NULL)
 		sbc_source_encode_ct = (SBCEncoderContext*)osPortMalloc(sizeof(SBCEncoderContext));
@@ -68,7 +69,7 @@ void BtSourceInit(void)
 
 //	sbc_encoder_initialize_advanced(sbc_source_encode_ct, SBC_ENC_MODE_JOINT_STEREO, CFG_PARA_SAMPLE_RATE, 16, 8, 35, SBC_ENC_AM_LOUDNESS);
 
-	sbc_encoder_initialize_advanced(sbc_source_encode_ct, AppA2dpSourceSbcChannelMode(), AudioCoreMixSampleRateGet(DefaultNet), 16, 8, AppA2dpSourceSbcBitpool(), AppA2dpSourceSbcAllocation());
+	sbc_encoder_initialize_advanced(sbc_source_encode_ct, AppA2dpSourceSbcChannelMode(index), AudioCoreMixSampleRateGet(DefaultNet), 16, 8, AppA2dpSourceSbcBitpool(index), AppA2dpSourceSbcAllocation(index));
 
 	//数据缓存,按照高等质量的buf进行申请
 	if(sAudioCircularSbcFifo == NULL)
@@ -94,7 +95,7 @@ uint16_t SbcSourceEncode(void* InBuf, uint16_t InLen)
 
 	if(gSbcEncoderReinit)
 	{
-		BtSourceInit();
+		BtSourceInit(Bt_Source_GetActiveIndex());
 	}
 
 	if((sAudioCircularSbcFifo == NULL)||(sbc_source_encode_ct == NULL))
@@ -103,7 +104,7 @@ uint16_t SbcSourceEncode(void* InBuf, uint16_t InLen)
 	if((gSbcEncoderRegistered != 1)||(gSbcEncoderReinit != 0))
 		return InLen;
 	
-	if(GetSourceA2dpState()<BT_A2DP_STATE_CONNECTED)
+	if(GetSourceA2dpState(0)<BT_A2DP_STATE_CONNECTED && GetSourceA2dpState(1)<BT_A2DP_STATE_CONNECTED)
 	{
 		return InLen;
 	}
@@ -160,20 +161,46 @@ uint16_t SbcSourceEncode(void* InBuf, uint16_t InLen)
 		}
 	}
 	s_operate_only=0;
-	SbcSourceSendData();
+
+	if(Bt_Source_GetRouteMode() == BT_ROUTE_MODE_MULTICAST)
+	{
+		SbcSourceSendData(3);
+	}
+	else
+	{
+		SbcSourceSendData(Bt_Source_GetActiveIndex());
+	}
 	return InLen;
 	
 }
 extern uint32_t send_ok_bkd;
-void SbcSourceSendData(void)
+void SbcSourceSendData(uint8_t index)
 {
 	uint32_t sbc_data_length=0;
 	
-	//GPIO_RegOneBitSet(GPIO_A_TGL, GPIOA2);
-	if(GetSourceA2dpState()<BT_A2DP_STATE_CONNECTED
-	  || GetAvrcpState(0) < BT_AVRCP_STATE_CONNECTED)
-	{	
-		return;
+	if(index == 3)
+	{
+		//GPIO_RegOneBitSet(GPIO_A_TGL, GPIOA2);
+		if(GetSourceA2dpState(0)<BT_A2DP_STATE_CONNECTED
+		|| GetAvrcpState(0) < BT_AVRCP_STATE_CONNECTED)
+		{	
+			return;
+		}
+
+		// if(GetSourceA2dpState(1)<BT_A2DP_STATE_CONNECTED
+		// || GetAvrcpState(1) < BT_AVRCP_STATE_CONNECTED)
+		// {	
+		// 	return;
+		// }
+	}
+	else
+	{
+				//GPIO_RegOneBitSet(GPIO_A_TGL, GPIOA2);
+		if(GetSourceA2dpState(index)<BT_A2DP_STATE_CONNECTED
+		|| GetAvrcpState(index) < BT_AVRCP_STATE_CONNECTED)
+		{	
+			return;
+		}
 	}
 	
 	if((sAudioCircularSbcFifo == NULL)||(sbc_source_encode_ct == NULL))
@@ -190,8 +217,17 @@ void SbcSourceSendData(void)
 	{
 		//GPIO_RegOneBitSet(GPIO_A_TGL, GPIOA2);
 		MCUCircular_GetData(&sAudioSbcCircularBuf,sbc_encode_buffer_send,SBC_NUMBER_PER_FRAME_QUALITY*SBC_SEND_FRAME_NUMBER);
-		A2DP_StreamSendSbcData(sbc_encode_buffer_send, SBC_NUMBER_PER_FRAME_QUALITY*SBC_SEND_FRAME_NUMBER, SBC_NUMBER_PER_FRAME_QUALITY);
-
+		if(index == 3)
+		{
+			memcpy(&sbc_encode_buffer_send2,&sbc_encode_buffer_send,SBC_NUMBER_PER_FRAME_QUALITY*SBC_SEND_FRAME_NUMBER);
+			//A2DP_StreamSendSbcData(0, sbc_encode_buffer_send, SBC_NUMBER_PER_FRAME_QUALITY*SBC_SEND_FRAME_NUMBER, SBC_NUMBER_PER_FRAME_QUALITY);
+			A2DP_StreamSendSbcData(1, sbc_encode_buffer_send2, SBC_NUMBER_PER_FRAME_QUALITY*SBC_SEND_FRAME_NUMBER, SBC_NUMBER_PER_FRAME_QUALITY);
+			A2DP_StreamSendSbcData(0, sbc_encode_buffer_send, SBC_NUMBER_PER_FRAME_QUALITY*SBC_SEND_FRAME_NUMBER, SBC_NUMBER_PER_FRAME_QUALITY);
+		}
+		else
+		{
+			A2DP_StreamSendSbcData(index, sbc_encode_buffer_send, SBC_NUMBER_PER_FRAME_QUALITY*SBC_SEND_FRAME_NUMBER, SBC_NUMBER_PER_FRAME_QUALITY);
+		}
 //			GPIO_RegOneBitSet(GPIO_A_TGL, GPIOA2);
 	}
 	s_operate_only=0;
@@ -211,19 +247,21 @@ uint16_t GetBtSourceFifoSpaceLength(void)
 	}
 }
 
-extern void AppA2dpSuspendStream(void);
-extern void AppA2dpStartStream(void);
+extern void AppA2dpSuspendStream(uint8_t index);
+extern void AppA2dpStartStream(uint8_t index);
 
-void BtSourcePlay(void)
+void BtSourcePlay(uint8_t index)
 {
-	AudioCoreSinkEnable(AUDIO_BT_SOURCE_SINK_NUM);
-	AppA2dpStartStream();
+	printf("BtSourcePlay [%d]\n",index);
+	//AudioCoreSinkEnable(AUDIO_BT_SOURCE_SINK_NUM);
+	AppA2dpStartStream(index);
 }
 
-void BtSourceStop(void)
+void BtSourceStop(uint8_t index)
 {
-	AudioCoreSinkDisable(AUDIO_BT_SOURCE_SINK_NUM);
-	AppA2dpSuspendStream();
+	printf("BtSourceStop [%d]\n",index);
+	//AudioCoreSinkDisable(AUDIO_BT_SOURCE_SINK_NUM);
+	AppA2dpSuspendStream(index);
 }
 
 #endif

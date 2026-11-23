@@ -15,9 +15,9 @@
 #ifndef __BT_SOURCE_H__
 #define __BT_SOURCE_H__
 
-extern void BtSourceInit(void);
+extern void BtSourceInit(uint8_t index);
 extern uint16_t SbcSourceEncode(void* InBuf, uint16_t InLen);
-extern void SbcSourceSendData(void);
+extern void SbcSourceSendData(uint8_t index);
 extern uint16_t GetBtSourceFifoSpaceLength(void);
 
 extern void BtSourceReInquiryChack(void);
@@ -26,6 +26,7 @@ extern uint8_t SetBtSourceDefaultAccessMode(void);
 void BtSourceBtModeInit(void);
 void BtSourceBtModeDeinit(void);
 uint8_t BtSourceReconnectDevExcute(void);
+uint8_t BtSourceReconnectDev(uint8_t *addr, uint8_t index);
 void BtSourcePublicMsgPross(uint32_t msgID);
 
 void BtSourceEventInquiryComplete(void);
@@ -33,6 +34,7 @@ void BtSourceEventCommonLinkConnectIND(void * para);
 void BtSourceEventCommonGetRemdevNameTimeout(void * para);
 void BtSourceEventCommonInquiryResult(void * para);
 void BtSourceGetRemoteName(void * para);
+void BtSourceDisconnect(void);
 
 extern volatile uint32_t gSwitchSourceAndSink;
 

@@ -640,7 +640,8 @@
 #if defined(CFG_LOCK_PAIRED_TX_ONLY) && (defined(wireless2_1_X_initfuncset) || defined(wireless2_3_X_initfuncset))
 	#error	"CFG_LOCK_PAIRED_TX_ONLY not support!!!"
 #endif
-#if BLE_SUPPORT || BT_SOURCE_SUPPORT
+
+#if BT_SOURCE_SUPPORT
 	#error	"WIRELESS_SUPPORT Error!!!"
 #endif
 #endif /* __WIRELESS_CONFIG_H__ */
@@ -692,13 +693,12 @@
  * 4、关闭CFG_AUDIO_WIDTH_24BIT后无声，音效图接口是BITS_24,改BITS_16导出或关音效宏。
  *
  *
- * 251118同步代码：
- * 1、RF库libBtStack_wireless_noble.a更新至V15_1.4.0 / 5153
+ * 251222同步代码：
+ * 1、RF库libBtStack_wireless_noble.a更新至V15_1.6.0 / 6154
  * 2、audio_association.a同步至V1.3.2 / 5803
- * 3、wireless2.a :V1.3.87 / 5912
+ * 3、wireless2.a :V1.3.89 / 6092
  * 4、2.4G应用层:V2.35.5(不含)之后 / 5803
 
- * MVsB5_BT_Audio_SDK_V1.2.2Wireless1027发布
- * 1、5-1异常收包的问题。
- * 2、3-1异常同步问题。
+ * MVsB5_BT_Audio_MVWire6092_SDK_V1.3.0发布
+ * 1、2G4距离变近问题。
  * ***************************************************************************/

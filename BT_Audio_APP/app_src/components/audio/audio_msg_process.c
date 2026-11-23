@@ -95,40 +95,12 @@ uint8_t AudioCommonMsgProcess(uint16_t Msg)
 			AudioEffect_effect_enable(refresh_addr, !enable);
 		}
 		break;
-	case MSG_MUSIC_VOLUP:
-		refresh_addr = GetEffectControlIndex(MUSIC_VOLUME_ADJUST);
-		if(refresh_addr)
-		{
-			AudioMusicVolUp();
-		}
-		break;
-	case MSG_MUSIC_VOLDOWN:
-		refresh_addr = GetEffectControlIndex(MUSIC_VOLUME_ADJUST);
-		if(refresh_addr)
-		{
-			AudioMusicVolDown();
-		}
-		break;
-#if CFG_RES_MIC_SELECT
-	case MSG_MIC_VOLUP:
-		refresh_addr = GetEffectControlIndex(MIC_VOLUME_ADJUST);
-		if(refresh_addr)
-		{
-			AudioMicVolUp();
-		}
-		break;
-	case MSG_MIC_VOLDOWN:
-		refresh_addr = GetEffectControlIndex(MIC_VOLUME_ADJUST);
-		if(refresh_addr)
-		{
-			AudioMicVolDown();
-		}
-		break;
 	default:
 		refresh_addr = EffectModeMsgProcess(Msg);
+#ifdef CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN		
 		AudioEffect_CommunicationQueue_Send(refresh_addr);
+#endif		
 		break;
-#endif
 	}
 
 	return refresh_addr;

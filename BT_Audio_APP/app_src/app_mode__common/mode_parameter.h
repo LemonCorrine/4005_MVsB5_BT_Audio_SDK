@@ -132,7 +132,7 @@ volatile SysModeStruct SysMode[]=
 #ifdef CFG_APP_RADIOIN_MODE_EN
 	{ModeRadioAudioPlay,		RadioPlayInit,			RadioPlayDeinit,		RadioPlayRun,		ModeStateReady},//RADIO
 #endif
-#if (BT_HFP_SUPPORT && defined(CFG_APP_BT_MODE_EN))
+#if (BT_HFP_SUPPORT && defined(CFG_APP_BT_MODE_EN) && (!defined(BT_HFP_MODE_DISABLE)))
 	{ModeBtHfPlay,				BtHfInit,				BtHfDeinit,				BtHfRun,			ModeStateSusend},//ModeBtHfPlay
 #endif
 #ifdef CFG_APP_OPTICAL_MODE_EN
@@ -173,8 +173,10 @@ const uint32_t ModeKeyInvalid[]=//
 const DeviceEventMsgTable DeviceEventMsgTableArray[]=
 {
 //plug event msg 								support mode										enter mode
+#if (BT_HFP_SUPPORT && defined(CFG_APP_BT_MODE_EN) && (!defined(BT_HFP_MODE_DISABLE)))
 {MSG_DEVICE_SERVICE_BTHF_IN,        			~(PLUSIN_MASK_MODE),					        	ModeBtHfPlay},
 {MSG_DEVICE_SERVICE_BTHF_OUT,					BIT(ModeBtHfPlay),									ENTERR_PREV_MODE},
+#endif
 
 #ifndef CFG_FUNC_APP_USB_CARD_IDLE
 #ifdef CFG_APP_USB_PLAY_MODE_EN

@@ -1,12 +1,12 @@
 /***************************************************
  * @file    user_effect_flow_mic.c                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.19.1  
+ * @author  ACPWorkbench: 5.1.8  
  * @version V1.2.0                                 
  * @graphics: mic   
- * @Effect Version: 2.49.0
- * @RoboEffect Version: 2.32.0
- * @Created 2025-10-09T15:50:35                                      
+ * @Effect Version: 2.54.0
+ * @RoboEffect Version: 2.44.0
+ * @Created 2026-04-22T17:53:41                                      
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
 
@@ -127,7 +127,7 @@ static const roboeffect_exec_effect_info user_effects_mic[] = {
 };              
 
 roboeffect_effect_list_info user_effect_list_mic = {
-    MIC_COUNT_ADDR - 0x81, //count      
+    25, //count      
     44100, //sample rate
     256, //frame size
     user_effects_mic,
@@ -141,23 +141,23 @@ static const roboeffect_io_unit source_unit_mic[] = {
 
 static const roboeffect_io_unit sink_unit_mic[] = {
     {MIC_SINK_DAC0_SINK           ,   3, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {MIC_SINK_APP_SINK            ,   2, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {MIC_SINK_STEREO_SINK         ,   6, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {MIC_SINK_SPDIF_SINK          ,   7, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {MIC_SINK_REC_SINK            ,   4, BITS_16         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {MIC_SINK_APP_SINK            ,   0, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {MIC_SINK_STEREO_SINK         ,   4, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {MIC_SINK_SPDIF_SINK          ,   5, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {MIC_SINK_REC_SINK            ,   2, BITS_16         , CH_STEREO}, //{sink, mem, bit_width, ch}
 };
 
 static const uint32_t effect_flow_mic[] = {
-33686149, 50528770, 16843139, 33620225, 16843140, 33686155, 33686156, 67240449, 
-33686157, 33686158, 67372183, 67372184, 67372185, 33686530, 33686159, 33686160, 
-33686161, 33686162, 33686163, 33686164, 33686165, 33686166, 67240449, 50528770, 
-129, 33554433, 130, 33686150, 33686151, 33686152, 33686153, 33686154, 
-84017665, 100794881, 50529794, 100860673, 117835265, 67372290, 
+33686149, 50528770, 16843139, 16843140, 16843147, 16843148, 33620225, 16843149, 
+16843150, 33686167, 33686168, 33686169, 16843266, 16843151, 16843152, 16843153, 
+16843154, 16843155, 16843156, 16843157, 16843158, 33620225, 50528514, 129, 
+130, 134, 135, 136, 137, 138, 16777217, 67108865, 
+50529282, 67306241, 84149249, 33685762, 
 };
 
 const roboeffect_effect_steps_table user_effect_steps_mic = {
-    38,  //step cnt
-    4,  //mem used
+    36,  //step cnt
+    2,  //mem used
     4,  //src numb
     5,  //des numb
 
@@ -175,9 +175,9 @@ char *parameter_group_name_mic[1] = { "Mic" };
 
 const unsigned char user_effect_parameters_mic_Mic[] = {
 0x9f, 0x03, /*total data length*/
-0x02, 0x31, 0x00, /*Effect Version*/
+0x02, 0x36, 0x00, /*Effect Version*/
 
-0x02, 0x20, 0x00, /* Roboeffect Version*/
+0x02, 0x2c, 0x00, /* Roboeffect Version*/
 
 0x1e, 0x00, /*3rd part data total length  */
 0x02, /*number of 3rd part items*/
@@ -194,7 +194,7 @@ const unsigned char user_effect_parameters_mic_Mic[] = {
 0x82, /*silence_detector_mic*/
 0x03,/*length*/
 0x01, /*enable*/
-0x1d, 0x00, /*PCM amplitude*/
+0x00, 0x00, /*PCM amplitude*/
 
 0x83, /*preGain*/
 0x05,/*length*/
@@ -205,7 +205,7 @@ const unsigned char user_effect_parameters_mic_Mic[] = {
 0x84, /*silence_detector_music*/
 0x03,/*length*/
 0x01, /*enable*/
-0x19, 0x58, /*PCM amplitude*/
+0x00, 0x00, /*PCM amplitude*/
 
 0x85, /*remind_gain_control*/
 0x05,/*length*/

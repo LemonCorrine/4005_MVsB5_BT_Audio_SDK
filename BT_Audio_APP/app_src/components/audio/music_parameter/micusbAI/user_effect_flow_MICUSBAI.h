@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_MICUSBAI.h  
  * @brief   auto generated  
- * @author  ACPWorkbench: 3.19.2
+ * @author  ACPWorkbench: 5.1.8
  * @version V1.2.0 
- * @Created 2025-10-14T14:25:56 
+ * @Created 2026-04-22T17:53:41 
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define MICUSBAI_ROBOEFFECT_LIB_VER "2.32.0"
+#define MICUSBAI_ROBOEFFECT_LIB_VER "2.44.0"
 
 typedef enum _MICUSBAI_roboeffect_io_enum
 {
@@ -31,12 +31,12 @@ typedef enum _MICUSBAI_roboeffect_io_enum
 typedef enum _MICUSBAI_roboeffect_effect_list_enum{
 
     MICUSBAI_ai_denoise0_ADDR = 0x81,
-    MICUSBAI_upmix_1to2_0_ADDR,
-    MICUSBAI_mic_eq0_ADDR,
-    MICUSBAI_mic_ns_ADDR,
-    MICUSBAI_mic_EQ_ADDR,
-    MICUSBAI_mic_drc_ADDR,
-    MICUSBAI_mic_gain_ADDR,
+    MICUSBAI_upmix_1to2_0_ADDR = 0x82,
+    MICUSBAI_mic_eq0_ADDR = 0x83,
+    MICUSBAI_mic_ns_ADDR = 0x84,
+    MICUSBAI_mic_EQ_ADDR = 0x85,
+    MICUSBAI_mic_drc_ADDR = 0x86,
+    MICUSBAI_mic_gain_ADDR = 0x87,
     MICUSBAI_COUNT_ADDR,
 
 } MICUSBAI_roboeffect_effect_list_enum;

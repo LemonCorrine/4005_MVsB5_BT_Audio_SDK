@@ -705,7 +705,9 @@ static void SysModeEntrance(void * param)
 #ifdef CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN//usb path
 		if((GetSystemMode() != ModeIdle)
 		&& (GetSystemMode() != ModeUsbDevicePlay)
+#ifndef CFG_FUNC_APP_USB_CARD_IDLE
 		&& (GetSystemMode() != ModeUDiskAudioPlay)
+#endif
 		)
 		{
 #ifdef CFG_COMMUNICATION_BY_USB

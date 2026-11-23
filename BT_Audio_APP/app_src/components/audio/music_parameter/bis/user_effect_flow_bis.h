@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_bis.h  
  * @brief   auto generated  
- * @author  ACPWorkbench: 3.19.1
+ * @author  ACPWorkbench: 5.1.8
  * @version V1.2.0 
- * @Created 2025-10-09T15:50:34 
+ * @Created 2026-04-22T17:53:39 
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define BIS_ROBOEFFECT_LIB_VER "2.32.0"
+#define BIS_ROBOEFFECT_LIB_VER "2.44.0"
 
 typedef enum _BIS_roboeffect_io_enum
 {
@@ -36,30 +36,30 @@ typedef enum _BIS_roboeffect_io_enum
 typedef enum _BIS_roboeffect_effect_list_enum{
 
     BIS_freq_shifter0_ADDR = 0x81,
-    BIS_howling_guard0_ADDR,
-    BIS_upmix_1to2_0_ADDR,
-    BIS_silence_detector_mic_ADDR,
-    BIS_preGain_ADDR,
-    BIS_silence_detector_music_ADDR,
-    BIS_route_selector0_ADDR,
-    BIS_remind_gain_control_ADDR,
-    BIS_gain_control1_ADDR,
-    BIS_mic_eq0_ADDR,
-    BIS_mic_ns_ADDR,
-    BIS_mic_EQ_ADDR,
-    BIS_mic_drc_ADDR,
-    BIS_reverb0_ADDR,
-    BIS_mic_gain_ADDR,
-    BIS_gain_control0_ADDR,
-    BIS_noise_suppressor_expander0_ADDR,
-    BIS_compander_ADDR,
-    BIS_low_level_compressor1_ADDR,
-    BIS_harmonic_exciter0_ADDR,
-    BIS_mvbass_ADDR,
-    BIS_3D_ADDR,
-    BIS_eq2_ADDR,
-    BIS_music_drc_ADDR,
-    BIS_music_EQ_ADDR,
+    BIS_howling_guard0_ADDR = 0x82,
+    BIS_upmix_1to2_0_ADDR = 0x83,
+    BIS_silence_detector_mic_ADDR = 0x84,
+    BIS_preGain_ADDR = 0x85,
+    BIS_silence_detector_music_ADDR = 0x86,
+    BIS_route_selector0_ADDR = 0x87,
+    BIS_remind_gain_control_ADDR = 0x88,
+    BIS_gain_control1_ADDR = 0x89,
+    BIS_mic_eq0_ADDR = 0x8a,
+    BIS_mic_ns_ADDR = 0x8b,
+    BIS_mic_EQ_ADDR = 0x8c,
+    BIS_mic_drc_ADDR = 0x8d,
+    BIS_reverb0_ADDR = 0x8e,
+    BIS_mic_gain_ADDR = 0x8f,
+    BIS_gain_control0_ADDR = 0x90,
+    BIS_noise_suppressor_expander0_ADDR = 0x91,
+    BIS_compander_ADDR = 0x92,
+    BIS_low_level_compressor1_ADDR = 0x93,
+    BIS_harmonic_exciter0_ADDR = 0x94,
+    BIS_mvbass_ADDR = 0x95,
+    BIS_3D_ADDR = 0x96,
+    BIS_eq2_ADDR = 0x97,
+    BIS_music_drc_ADDR = 0x98,
+    BIS_music_EQ_ADDR = 0x99,
     BIS_COUNT_ADDR,
 
 } BIS_roboeffect_effect_list_enum;

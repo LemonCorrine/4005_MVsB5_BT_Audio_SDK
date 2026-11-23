@@ -25,9 +25,10 @@ extern "C" {
 #define	APE_HIGH_RESOLUTION
 #define	FLAC_HIGH_RESOLUTION
 #define	WAV_HIGH_RESOLUTION
+#define	DSD_HIGH_RESOLUTION
 #endif
 
-#define AUDIO_DECODER_LIBRARY_VERSION   "8.12.0"     /**< audio decoder library version string        */
+#define AUDIO_DECODER_LIBRARY_VERSION   "8.13.4"     /**< audio decoder library version string        */
 
 
 /**
@@ -50,6 +51,7 @@ typedef enum _DecoderType
 	A52_DECODER,                            /**< A52  decoder */
 	AMRWB_DECODER,						    /**< AMR wideband decoder */
 	MP2_DECODER,                            /**< MP2 only decoder */
+    DSD_DECODER,                            /**< DSD decoder */
 }DecoderType;
 
 
@@ -66,10 +68,10 @@ typedef struct _AudioDecoderContext
     BufferContext bc;			/**< Buffer context */
     SongInfo      song_info;	/**< Song information context */
     
-	int32_t      (*initialize)(struct _AudioDecoderContext *);				/**< Function pointer for initializing audio decoder           */
-    int32_t      (*decode)(struct _AudioDecoderContext *);					/**< Function pointer for decoding one audio frame             */
-    int32_t      (*can_continue)(struct _AudioDecoderContext *);			/**< Function pointer for checking whether the audio decoder can go on, if can, then decode, else abort audio decoder  */
-    int32_t      (*seek)(struct _AudioDecoderContext *, uint32_t seek_time);/**< Function pointer for seeking to special time to play */
+	int32_t      (*initialize)(void*);				/**< Function pointer for initializing audio decoder           */
+    int32_t      (*decode)(void*);					/**< Function pointer for decoding one audio frame             */
+    int32_t      (*can_continue)(void*);			/**< Function pointer for checking whether the audio decoder can go on, if can, then decode, else abort audio decoder  */
+    int32_t      (*seek)(void*, uint32_t seek_time);/**< Function pointer for seeking to special time to play */
 }AudioDecoderContext;
 
 

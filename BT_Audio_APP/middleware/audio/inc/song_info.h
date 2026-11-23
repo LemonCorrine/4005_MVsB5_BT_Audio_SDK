@@ -4,7 +4,7 @@
  * @brief   Definition of song information (metadata) related structures
  *
  * @author  Alfred Zhao
- * @version v1.3.0
+ * @version v1.4.0
  *
  * &copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  *
@@ -87,6 +87,7 @@ typedef enum _StreamType
 	STREAM_TYPE_OPUS,		/**< OPUS stream      */
 	STREAM_TYPE_A52,		/**< A52 stream       */
 	STREAM_TYPE_AMRWB,		/**< AMR-WB stream    */
+	STREAM_TYPE_DSD,		/**< DSD stream       */
 }StreamType;
 
 

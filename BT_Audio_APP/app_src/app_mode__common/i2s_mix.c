@@ -90,13 +90,18 @@ bool I2S_MixInit(bool hf_mode_flag)
 
 		i2s_set.RxPeripheralID = PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX_I2S_MODULE;
 
-		mainAppCt.I2S_MIX_RX_FIFO_LEN = AudioCoreFrameSizeGet(DefaultNet) * sizeof(PCM_DATA_TYPE) * 2 * 2;
+//		mainAppCt.I2S_MIX_RX_FIFO_LEN = AudioCoreFrameSizeGet(DefaultNet) * sizeof(PCM_DATA_TYPE) * 2 * 2;
+		mainAppCt.I2S_MIX_RX_FIFO_LEN = AudioCoreFrameSizeGet(DefaultNet) * 2 * sizeof(PCM_DATA_TYPE)*
+															((CFG_PARA_MIX_I2S_SAMPLERATE <= 48000) ? 2 :
+															 (CFG_PARA_MIX_I2S_SAMPLERATE <= 96000) ? 3 :
+															 (CFG_PARA_MIX_I2S_SAMPLERATE <= 192000) ? 4 :
+															 (CFG_PARA_MIX_I2S_SAMPLERATE <= 384000) ? 8 : 16);
 		if (mainAppCt.I2S_MIX_RX_FIFO == NULL)
 		{
 			mainAppCt.I2S_MIX_RX_FIFO = (uint32_t*)osPortMalloc(mainAppCt.I2S_MIX_RX_FIFO_LEN);//I2S mix rx fifo
 		}
 		i2s_set.RxBuf=(void*)mainAppCt.I2S_MIX_RX_FIFO;
-		i2s_set.RxLen=AudioCoreFrameSizeGet(DefaultNet) * sizeof(PCM_DATA_TYPE) * 2 * 2 ;//I2SIN_FIFO_LEN;
+		i2s_set.RxLen=mainAppCt.I2S_MIX_RX_FIFO_LEN;
 
 		GPIO_PortAModeSet(GET_I2S_GPIO_PORT(I2S_MIX_MCLK_GPIO), GET_I2S_GPIO_MODE(I2S_MIX_MCLK_GPIO));//mclk
 		GPIO_PortAModeSet(GET_I2S_GPIO_PORT(I2S_MIX_LRCLK_GPIO),GET_I2S_GPIO_MODE(I2S_MIX_LRCLK_GPIO));//lrclk
@@ -197,7 +202,12 @@ bool I2S_MixInit(bool hf_mode_flag)
 #endif
 	if(!AudioCoreSinkIsInit(AUDIO_I2S_MIX_OUT_SINK_NUM))
 	{
-		mainAppCt.I2S_MIX_TX_FIFO_LEN = AudioIOSet.Depth * sizeof(PCM_DATA_TYPE) * 2;
+//		mainAppCt.I2S_MIX_TX_FIFO_LEN = AudioIOSet.Depth * sizeof(PCM_DATA_TYPE) * 2;
+		mainAppCt.I2S_MIX_TX_FIFO_LEN = AudioIOSet.Depth * sizeof(PCM_DATA_TYPE) *
+											((CFG_PARA_MIX_I2S_SAMPLERATE <= 48000) ? 2 :
+											 (CFG_PARA_MIX_I2S_SAMPLERATE <= 96000) ? 3 :
+											 (CFG_PARA_MIX_I2S_SAMPLERATE <= 192000) ? 4 :
+											 (CFG_PARA_MIX_I2S_SAMPLERATE <= 384000) ? 8 : 16);
 		mainAppCt.I2S_MIX_TX_FIFO = (uint32_t*)osPortMalloc(mainAppCt.I2S_MIX_TX_FIFO_LEN);//I2S fifo
 		if(mainAppCt.I2S_MIX_TX_FIFO != NULL)
 		{
@@ -283,6 +293,7 @@ void I2S_MixDeinit(void)
 
 #ifdef CFG_RES_AUDIO_I2S_MIX_OUT_EN
 	I2S_ModuleDisable(CFG_RES_MIX_I2S_MODULE);
+	RST_I2SModule(CFG_RES_MIX_I2S_MODULE);
 	DMA_InterruptFlagClear(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX_I2S_MODULE, DMA_DONE_INT);
 	DMA_InterruptFlagClear(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX_I2S_MODULE, DMA_THRESHOLD_INT);
 	DMA_InterruptFlagClear(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX_I2S_MODULE, DMA_ERROR_INT);
@@ -375,13 +386,18 @@ bool I2S_Mix2Init(bool hf_mode_flag)
 
 		i2s_set.RxPeripheralID = PERIPHERAL_ID_I2S0_RX + 2 * CFG_RES_MIX2_I2S_MODULE;
 
-		mainAppCt.I2S_MIX2_RX_FIFO_LEN = AudioCoreFrameSizeGet(DefaultNet) * sizeof(PCM_DATA_TYPE) * 2 * 2;
+//		mainAppCt.I2S_MIX2_RX_FIFO_LEN = AudioCoreFrameSizeGet(DefaultNet) * sizeof(PCM_DATA_TYPE) * 2 * 2;
+		mainAppCt.I2S_MIX2_RX_FIFO_LEN = AudioCoreFrameSizeGet(DefaultNet) * 2 * sizeof(PCM_DATA_TYPE) *
+															((CFG_PARA_MIX2_I2S_SAMPLERATE <= 48000) ? 2 :
+															 (CFG_PARA_MIX2_I2S_SAMPLERATE <= 96000) ? 3 :
+															 (CFG_PARA_MIX2_I2S_SAMPLERATE <= 192000) ? 4 :
+															 (CFG_PARA_MIX2_I2S_SAMPLERATE <= 384000) ? 8 : 16);
 		if (mainAppCt.I2S_MIX2_RX_FIFO == NULL)
 		{
 			mainAppCt.I2S_MIX2_RX_FIFO = (uint32_t*)osPortMalloc(mainAppCt.I2S_MIX2_RX_FIFO_LEN);//I2S mix rx fifo
 		}
 		i2s_set.RxBuf=(void*)mainAppCt.I2S_MIX2_RX_FIFO;
-		i2s_set.RxLen=AudioCoreFrameSizeGet(DefaultNet) * sizeof(PCM_DATA_TYPE) * 2 * 2 ;//I2SIN_FIFO_LEN;
+		i2s_set.RxLen=mainAppCt.I2S_MIX2_RX_FIFO_LEN;
 
 		GPIO_PortAModeSet(GET_I2S_GPIO_PORT(I2S_MIX2_MCLK_GPIO), GET_I2S_GPIO_MODE(I2S_MIX2_MCLK_GPIO));//mclk
 		GPIO_PortAModeSet(GET_I2S_GPIO_PORT(I2S_MIX2_LRCLK_GPIO),GET_I2S_GPIO_MODE(I2S_MIX2_LRCLK_GPIO));//lrclk
@@ -482,7 +498,12 @@ bool I2S_Mix2Init(bool hf_mode_flag)
 #endif
 	if(!AudioCoreSinkIsInit(AUDIO_I2S_MIX2_OUT_SINK_NUM))
 	{
-		mainAppCt.I2S_MIX2_TX_FIFO_LEN = AudioIOSet.Depth * sizeof(PCM_DATA_TYPE) * 2;
+//		mainAppCt.I2S_MIX2_TX_FIFO_LEN = AudioIOSet.Depth * sizeof(PCM_DATA_TYPE) * 2;
+		mainAppCt.I2S_MIX2_TX_FIFO_LEN = AudioIOSet.Depth * sizeof(PCM_DATA_TYPE) *
+									((CFG_PARA_MIX2_I2S_SAMPLERATE <= 48000) ? 2 :
+									 (CFG_PARA_MIX2_I2S_SAMPLERATE <= 96000) ? 3 :
+									 (CFG_PARA_MIX2_I2S_SAMPLERATE <= 192000) ? 4 :
+									 (CFG_PARA_MIX2_I2S_SAMPLERATE <= 384000) ? 8 : 16);
 		mainAppCt.I2S_MIX2_TX_FIFO = (uint32_t*)osPortMalloc(mainAppCt.I2S_MIX2_TX_FIFO_LEN);//I2S fifo
 		if(mainAppCt.I2S_MIX2_TX_FIFO != NULL)
 		{
@@ -568,6 +589,7 @@ void I2S_Mix2Deinit(void)
 
 #ifdef CFG_RES_AUDIO_I2S_MIX2_OUT_EN
 	I2S_ModuleDisable(CFG_RES_MIX2_I2S_MODULE);
+	RST_I2SModule(CFG_RES_MIX2_I2S_MODULE);
 	DMA_InterruptFlagClear(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX2_I2S_MODULE, DMA_DONE_INT);
 	DMA_InterruptFlagClear(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX2_I2S_MODULE, DMA_THRESHOLD_INT);
 	DMA_InterruptFlagClear(PERIPHERAL_ID_I2S0_TX + 2 * CFG_RES_MIX2_I2S_MODULE, DMA_ERROR_INT);

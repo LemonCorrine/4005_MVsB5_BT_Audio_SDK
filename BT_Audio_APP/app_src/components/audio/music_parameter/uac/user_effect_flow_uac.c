@@ -1,12 +1,12 @@
 /***************************************************
  * @file    user_effect_flow_uac.c                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.19.1  
+ * @author  ACPWorkbench: 5.1.8  
  * @version V1.2.0                                 
  * @graphics: uac   
- * @Effect Version: 2.49.0
- * @RoboEffect Version: 2.32.0
- * @Created 2025-10-09T15:50:37                                      
+ * @Effect Version: 2.54.0
+ * @RoboEffect Version: 2.44.0
+ * @Created 2026-04-22T17:53:43                                      
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
 
@@ -132,7 +132,7 @@ static const roboeffect_exec_effect_info user_effects_uac[] = {
 };              
 
 roboeffect_effect_list_info user_effect_list_uac = {
-    UAC_COUNT_ADDR - 0x81, //count      
+    25, //count      
     44100, //sample rate
     256, //frame size
     user_effects_uac,
@@ -147,25 +147,24 @@ static const roboeffect_io_unit source_unit_uac[] = {
 
 static const roboeffect_io_unit sink_unit_uac[] = {
     {UAC_SINK_DAC0_SINK           ,   4, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {UAC_SINK_APP_SINK            ,   0, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {UAC_SINK_STEREO_SINK         ,   6, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {UAC_SINK_SPDIF_SINK          ,   7, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {UAC_SINK_REC_SINK            ,   5, BITS_16         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {UAC_SINK_USB_HOST_SINK       ,   8, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {UAC_SINK_APP_SINK            ,   1, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {UAC_SINK_STEREO_SINK         ,   2, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {UAC_SINK_SPDIF_SINK          ,   5, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {UAC_SINK_REC_SINK            ,   3, BITS_16         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {UAC_SINK_USB_HOST_SINK       ,   6, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
 };
 
 static const uint32_t effect_flow_uac[] = {
-50529157, 67371778, 33686147, 50463233, 33686148, 50529163, 50529164, 84083457, 
-50529165, 50529166, 84215191, 84215192, 84215193, 50529538, 50529167, 50529168, 
-50529169, 50529170, 50529171, 50529172, 50529173, 50529174, 84083457, 67371778, 
-129, 16842754, 65793, 16843138, 134, 135, 136, 137, 
-138, 50331649, 100663297, 67372546, 100926465, 117835265, 134678273, 84214530, 
-
+50529157, 67371778, 33686147, 33686148, 33686155, 33686156, 50463233, 33686157, 
+33686158, 50529175, 50529176, 50529177, 33686274, 33686159, 33686160, 33686161, 
+33686162, 33686163, 33686164, 33686165, 33686166, 50463233, 67371522, 129, 
+16842754, 16843138, 16843142, 16843143, 16843144, 16843145, 16843146, 65793, 
+33620225, 67371522, 33817601, 84017665, 100992257, 50528258, 
 };
 
 const roboeffect_effect_steps_table user_effect_steps_uac = {
-    40,  //step cnt
-    4,  //mem used
+    38,  //step cnt
+    2,  //mem used
     5,  //src numb
     6,  //des numb
 
@@ -183,9 +182,9 @@ char *parameter_group_name_uac[1] = { "Uac" };
 
 const unsigned char user_effect_parameters_uac_Uac[] = {
 0x9f, 0x03, /*total data length*/
-0x02, 0x31, 0x00, /*Effect Version*/
+0x02, 0x36, 0x00, /*Effect Version*/
 
-0x02, 0x20, 0x00, /* Roboeffect Version*/
+0x02, 0x2c, 0x00, /* Roboeffect Version*/
 
 0x1e, 0x00, /*3rd part data total length  */
 0x02, /*number of 3rd part items*/
@@ -202,7 +201,7 @@ const unsigned char user_effect_parameters_uac_Uac[] = {
 0x82, /*silence_detector_mic*/
 0x03,/*length*/
 0x01, /*enable*/
-0x07, 0x00, /*PCM amplitude*/
+0x00, 0x00, /*PCM amplitude*/
 
 0x83, /*preGain*/
 0x05,/*length*/
@@ -213,7 +212,7 @@ const unsigned char user_effect_parameters_uac_Uac[] = {
 0x84, /*silence_detector_music*/
 0x03,/*length*/
 0x01, /*enable*/
-0x53, 0x19, /*PCM amplitude*/
+0x00, 0x00, /*PCM amplitude*/
 
 0x85, /*remind_gain_control*/
 0x05,/*length*/

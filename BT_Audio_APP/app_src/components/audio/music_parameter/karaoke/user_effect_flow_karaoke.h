@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_Karaoke.h  
  * @brief   auto generated  
- * @author  ACPWorkbench: 3.19.1
+ * @author  ACPWorkbench: 5.1.8
  * @version V1.2.0 
- * @Created 2025-10-09T15:50:35 
+ * @Created 2026-04-22T17:53:40 
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define KARAOKE_ROBOEFFECT_LIB_VER "2.32.0"
+#define KARAOKE_ROBOEFFECT_LIB_VER "2.44.0"
 
 typedef enum _KARAOKE_roboeffect_io_enum
 {
@@ -41,54 +41,54 @@ typedef enum _KARAOKE_roboeffect_io_enum
 typedef enum _KARAOKE_roboeffect_effect_list_enum{
 
     KARAOKE_preGain_ADDR = 0x81,
-    KARAOKE_silence_detector_music_ADDR,
-    KARAOKE_gain_control13_ADDR,
-    KARAOKE_downmix_2to10_ADDR,
-    KARAOKE_gain_control1_ADDR,
-    KARAOKE_noise_suppressor_expander1_ADDR,
-    KARAOKE_silence_detector0_ADDR,
-    KARAOKE_gain_control0_ADDR,
-    KARAOKE_noise_suppressor_expander0_ADDR,
-    KARAOKE_compander0_ADDR,
-    KARAOKE_low_level_compressor0_ADDR,
-    KARAOKE_virtual_bass0_ADDR,
-    KARAOKE_3D_ADDR,
-    KARAOKE_harmonic_exciter0_ADDR,
-    KARAOKE_stereo_widener0_ADDR,
-    KARAOKE_eq0_ADDR,
-    KARAOKE_drc1_ADDR,
-    KARAOKE_eq1_ADDR,
-    KARAOKE_freq_shifter0_ADDR,
-    KARAOKE_howling_suppressor0_ADDR,
-    KARAOKE_howling_suppressor_fine0_ADDR,
-    KARAOKE_gain_control7_ADDR,
-    KARAOKE_pitch_shifter0_ADDR,
-    KARAOKE_pitch_shifter_pro0_ADDR,
-    KARAOKE_upmix_1to20_ADDR,
-    KARAOKE_eq7_ADDR,
-    KARAOKE_gain_control2_ADDR,
-    KARAOKE_eq4_ADDR,
-    KARAOKE_gain_control5_ADDR,
-    KARAOKE_drc0_ADDR,
-    KARAOKE_gain_control8_ADDR,
-    KARAOKE_voice_changer0_ADDR,
-    KARAOKE_voice_changer_pro0_ADDR,
-    KARAOKE_gain_control12_ADDR,
-    KARAOKE_auto_tune0_ADDR,
-    KARAOKE_eq5_ADDR,
-    KARAOKE_echo0_ADDR,
-    KARAOKE_gain_control3_ADDR,
-    KARAOKE_eq6_ADDR,
-    KARAOKE_reverb0_ADDR,
-    KARAOKE_reverb_plate0_ADDR,
-    KARAOKE_gain_control4_ADDR,
-    KARAOKE_gain_control6_ADDR,
-    KARAOKE_gain_control9_ADDR,
-    KARAOKE_eq9_ADDR,
-    KARAOKE_drc2_ADDR,
-    KARAOKE_gain_control10_ADDR,
-    KARAOKE_gain_control11_ADDR,
-    KARAOKE_gain_control14_ADDR,
+    KARAOKE_silence_detector_music_ADDR = 0x82,
+    KARAOKE_gain_control13_ADDR = 0x83,
+    KARAOKE_downmix_2to10_ADDR = 0x84,
+    KARAOKE_gain_control1_ADDR = 0x85,
+    KARAOKE_noise_suppressor_expander1_ADDR = 0x86,
+    KARAOKE_silence_detector0_ADDR = 0x87,
+    KARAOKE_gain_control0_ADDR = 0x88,
+    KARAOKE_noise_suppressor_expander0_ADDR = 0x89,
+    KARAOKE_compander0_ADDR = 0x8a,
+    KARAOKE_low_level_compressor0_ADDR = 0x8b,
+    KARAOKE_virtual_bass0_ADDR = 0x8c,
+    KARAOKE_3D_ADDR = 0x8d,
+    KARAOKE_harmonic_exciter0_ADDR = 0x8e,
+    KARAOKE_stereo_widener0_ADDR = 0x8f,
+    KARAOKE_eq0_ADDR = 0x90,
+    KARAOKE_drc1_ADDR = 0x91,
+    KARAOKE_eq1_ADDR = 0x92,
+    KARAOKE_freq_shifter0_ADDR = 0x93,
+    KARAOKE_howling_suppressor0_ADDR = 0x94,
+    KARAOKE_howling_suppressor_fine0_ADDR = 0x95,
+    KARAOKE_gain_control7_ADDR = 0x96,
+    KARAOKE_pitch_shifter0_ADDR = 0x97,
+    KARAOKE_pitch_shifter_pro0_ADDR = 0x98,
+    KARAOKE_upmix_1to20_ADDR = 0x99,
+    KARAOKE_eq7_ADDR = 0x9a,
+    KARAOKE_gain_control2_ADDR = 0x9b,
+    KARAOKE_eq4_ADDR = 0x9c,
+    KARAOKE_gain_control5_ADDR = 0x9d,
+    KARAOKE_drc0_ADDR = 0x9e,
+    KARAOKE_gain_control8_ADDR = 0x9f,
+    KARAOKE_voice_changer0_ADDR = 0xa0,
+    KARAOKE_voice_changer_pro0_ADDR = 0xa1,
+    KARAOKE_gain_control12_ADDR = 0xa2,
+    KARAOKE_auto_tune0_ADDR = 0xa3,
+    KARAOKE_eq5_ADDR = 0xa4,
+    KARAOKE_echo0_ADDR = 0xa5,
+    KARAOKE_gain_control3_ADDR = 0xa6,
+    KARAOKE_eq6_ADDR = 0xa7,
+    KARAOKE_reverb0_ADDR = 0xa8,
+    KARAOKE_reverb_plate0_ADDR = 0xa9,
+    KARAOKE_gain_control4_ADDR = 0xaa,
+    KARAOKE_gain_control6_ADDR = 0xab,
+    KARAOKE_gain_control9_ADDR = 0xac,
+    KARAOKE_eq9_ADDR = 0xad,
+    KARAOKE_drc2_ADDR = 0xae,
+    KARAOKE_gain_control10_ADDR = 0xaf,
+    KARAOKE_gain_control11_ADDR = 0xb0,
+    KARAOKE_gain_control14_ADDR = 0xb1,
     KARAOKE_COUNT_ADDR,
 
 } KARAOKE_roboeffect_effect_list_enum;

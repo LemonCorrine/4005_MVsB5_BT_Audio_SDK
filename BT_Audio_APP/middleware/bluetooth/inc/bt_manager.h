@@ -21,6 +21,7 @@
 #include "bt_common_api.h"
 #include "timeout.h"
 #include "sys_param.h"
+#include "bt_source_switch.h"
 
 #define MAX_PHONE_NUMBER_LENGTH		20
 
@@ -159,6 +160,13 @@ typedef enum
 	BT_PBAP_STATE_CONNECTING,
 	BT_PBAP_STATE_CONNECTED,
 } BT_PBAP_STATE;
+
+typedef enum
+{
+	BT_MFI_STATE_NONE,
+	BT_MFI_STATE_CONNECTING,
+	BT_MFI_STATE_CONNECTED,
+} BT_MFI_STATE;
 
 #if	BT_SOURCE_SUPPORT
 typedef struct _BT_SOURCE_INQUIRY_LIST
@@ -332,8 +340,13 @@ typedef struct _BT_MANAGER_ST
 	uint8_t 				btLinkState; //0=disconnect; 1=connected
 	//多链路
 	uint8_t					linkedNumber;
+
+	#if BT_SOURCE_SUPPORT
+	BT_LINKED_ENV_TAG		btLinked_env[BT_SRC_LINK_DEV_NUM];	//2条链路数据结构
+	#else
 	BT_LINKED_ENV_TAG		btLinked_env[BT_LINK_DEV_NUM];	//2条链路数据结构
-	
+	#endif
+
 	uint8_t					remoteAddr[BT_ADDR_SIZE];
 	uint8_t					remoteName[BT_NAME_SIZE];
 	uint8_t					remoteNameLen;
@@ -418,13 +431,23 @@ typedef struct _BT_MANAGER_ST
 	//pbap
 	BT_PBAP_STATE			pbapState;
 #endif
+
+#if (BT_MFI_SUPPORT)
+	//mfi
+	BT_MFI_STATE			mfiState;
+#endif
 	
 #if	BT_SOURCE_SUPPORT	
 	uint8_t					conRemoteAddr[6];
-	BT_A2DP_STATE			a2dpSourceState;
+	BT_A2DP_STATE			a2dpSourceState[BT_SRC_LINK_DEV_NUM];
+
+	BT_SourceContext 		g_ctx;
+
 	BT_SOURCE_INQUIRY_LIST	SourceInqResultList[A2DP_SCAN_NUMBER];
-	BT_HFP_STATE			hfgState;
+	BT_HFP_STATE			hfgState[BT_SRC_LINK_DEV_NUM];
 	uint8_t					GetNameFlag;
+
+	uint32_t				btSrcReconnectDelayCount;//上电后蓝牙初始化,在进入模式后再发起回连
 #endif
 
 #ifdef BT_ACCESS_MODE_SET_BY_POWER_ON_TIMEOUT
@@ -669,7 +692,7 @@ BT_A2DP_STATE GetA2dpState(uint8_t index);
  * @return state
  * @Note
  *******************************************************************/
-BT_A2DP_STATE GetSourceA2dpState(void);
+BT_A2DP_STATE GetSourceA2dpState(uint8_t index);
 #endif
 
 /********************************************************************
@@ -963,7 +986,7 @@ void BtHfgHangUp(void);
 uint8_t SetPinCode(uint8_t *code,uint8_t Len,uint8_t *addr);
 uint8_t RejectPinCode(uint8_t *addr);
 
-BT_HFP_STATE GetSourceHfgState(void);
+BT_HFP_STATE GetSourceHfgState(uint8_t index);
 
 extern volatile uint32_t gSwitchSourceAndSink;
 

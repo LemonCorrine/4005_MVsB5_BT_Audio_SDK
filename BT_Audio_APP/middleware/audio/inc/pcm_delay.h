@@ -4,7 +4,7 @@
  * @brief	Delay of PCM samples
  *
  * @author	ZHAO Ying (Alfred)
- * @version	V2.3.0
+ * @version	V2.3.1
  *
  * &copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  *

@@ -4,7 +4,7 @@
  * @brief   beamforming
  *
  * @author  Cecilia Wang
- * @version V4.2.2
+ * @version V5.0.0
  *
  * $Created: 2021-10-11 13:32:38$
  *
@@ -27,6 +27,7 @@ extern "C" {
 #define  CHANNEL_NUMBER       	  4
 #define  FRAME_MAX_WINDOW_SIZE 	  256
 #define  FRAME_MAX_DELAY	      4
+#define  SMOOTH_WINDOW            3
 
 typedef enum _BEAMFORMING_MIC_ARRAY_TYPE
 {
@@ -75,6 +76,10 @@ typedef struct _BeamformingContext
     float   omegas[FRAME_MAX_WINDOW_SIZE];
     float   delay_samp[CHANNEL_NUMBER];
     float   one_sample_dis;
+    float   angle_window[SMOOTH_WINDOW];
+    uint32_t window_idx;
+    uint32_t sample_coun;
+    float    last_angle;
 
     int64_t pcm_adder[FRAME_MAX_WINDOW_SIZE];
     int64_t pcm_before[FRAME_MAX_WINDOW_SIZE];
@@ -109,7 +114,15 @@ int32_t beamforming_init(BeamformingContext *ct, int32_t num_channels, int32_t s
  */
 int32_t beamforming_apply(BeamformingContext *ct, int16_t pcm_in[][CHANNEL_NUMBER], int16_t *pcm_out, float delay_samples[CHANNEL_NUMBER], uint8_t *nearest_mic);
 
-
+/**
+ * @brief get the positioning angle of the square array.
+ * @param ct Pointer to an BeamformingContext object.
+ * @param square_side_len The side len, unit: mm.
+ * @param delay_samples Input mic delay samples
+ * @param valid 1: valid, 0: invalid¡£
+ * @return angle,range: 0 ~ 360.
+ */
+float square_array_doa(BeamformingContext *ct, float square_side_len, float delay_samples[CHANNEL_NUMBER], bool *valid);
 
 #ifdef  __cplusplus
 }

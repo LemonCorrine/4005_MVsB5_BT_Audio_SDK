@@ -35,6 +35,7 @@ extern const uint8_t effect_property_for_display[];
 #define V3_PACKAGE_EFFECT_ALL_PARAM_EFFECT		9
 #define V3_PACKAGE_EFFECT_ALL_PARAM_CODEC 		10
 #define V3_PACKAGE_EFFECT_SOURCESINK_STATUS		11
+#define V3_PACKAGE_TYPE_MODE_LIB_CRC            14
 
 void AudioEffect_CommunicationQueue_Init();
 

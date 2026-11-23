@@ -120,7 +120,9 @@ void Audio_BisDACSwtichChannal(uint8_t channal)
 		Swtich = 1;
 	}
 
+	osMutexLock(AudioEffectMutex);
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, GetBisEffectRouteSelector(), 0, (int16_t *)&Swtich);
+	osMutexUnlock(AudioEffectMutex);
 }
 #endif
 
@@ -173,13 +175,16 @@ void AudioEffect_SourceGain_Update(uint8_t source, uint8_t vol)
 		vol = CFG_PARA_MAX_VOLUME_NUM;
 	if(effect_addr != 0)
 	{
+		osMutexLock(AudioEffectMutex);	//protect vol set in mode task, other effect control should be in AudioCore task
 		roboeffect_set_effect_parameter(AudioEffect.context_memory, effect_addr, 1, (int16_t *)&VolumeTable[vol]);
+		osMutexUnlock(AudioEffectMutex);
 		AudioEffect_update_local_params(effect_addr, 1, (int16_t *)&VolumeTable[vol], 2);
 	}
 
 	gCtrlVars.AutoRefresh = effect_addr;
+#ifdef CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN	
 	AudioEffect_CommunicationQueue_Send(gCtrlVars.AutoRefresh);
-
+#endif
 #ifdef CFG_FUNC_BREAKPOINT_EN
 	BackupInfoUpdata(BACKUP_SYS_INFO);
 #endif

@@ -1,12 +1,12 @@
 /***************************************************
  * @file    user_effect_flow_bypass.c                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 3.19.1  
+ * @author  ACPWorkbench: 5.1.8  
  * @version V1.2.0                                 
  * @graphics: bypass   
- * @Effect Version: 2.49.0
- * @RoboEffect Version: 2.32.0
- * @Created 2025-10-09T15:50:34                                      
+ * @Effect Version: 2.54.0
+ * @RoboEffect Version: 2.44.0
+ * @Created 2026-04-22T17:53:40                                      
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
 
@@ -57,7 +57,7 @@ static const roboeffect_exec_effect_info user_effects_bypass[] = {
 };              
 
 roboeffect_effect_list_info user_effect_list_bypass = {
-    BYPASS_COUNT_ADDR - 0x81, //count      
+    4, //count      
     44100, //sample rate
     384, //frame size
     user_effects_bypass,
@@ -102,9 +102,9 @@ char *parameter_group_name_bypass[1] = { "Bypass" };
 
 const unsigned char user_effect_parameters_bypass_Bypass[] = {
 0x3e, 0x00, /*total data length*/
-0x02, 0x31, 0x00, /*Effect Version*/
+0x02, 0x36, 0x00, /*Effect Version*/
 
-0x02, 0x20, 0x00, /* Roboeffect Version*/
+0x02, 0x2c, 0x00, /* Roboeffect Version*/
 
 0x1e, 0x00, /*3rd part data total length  */
 0x02, /*number of 3rd part items*/

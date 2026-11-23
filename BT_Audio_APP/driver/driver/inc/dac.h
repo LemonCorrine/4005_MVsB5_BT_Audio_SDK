@@ -44,7 +44,7 @@ typedef enum _DOUT_MODE
 {
     MODE0 = 0,// L_o=L_i;R_o=R_i;
     MODE1 = 1,// L_o=R_i;R_o=L_i; L R swap;
-    MODE2 = 2,// L_o=(L_i+R_i)/2;R_o=(L_i+R_i)/2;
+    MODE2 = 2,// L_o=(L_i+R_i)/2;R_o=(L_i+R_i)/2;
     MODE3 = 3,// L_o=(L_i+R_i)/2;R_o=-(L_i+R_i)/2;
 }DOUT_MODE;
 
@@ -327,8 +327,8 @@ void AudioDAC_SoftMute(DAC_MODULE DACModule, bool LeftMuteEn, bool RightMuteEn);
 /**
  * @brief Audio DAC volume set,DAC0 has left channel and right channel
  * @param DACModule which AudioDAC you will use
- * @param LeftVol left channel for DAC0,its scope is form 0 to 0x3fff
- * @param RightVol right channel for DAC0,its scope is form 0 to 0x3fff
+ * @param LeftVol left channel for DAC0,its scope is form 0 to 0x1000
+ * @param RightVol right channel for DAC0,its scope is form 0 to 0x1000
  * @return NONE
  */
 void AudioDAC_VolSet(DAC_MODULE DACModule, uint16_t LeftVol, uint16_t RightVol);
@@ -336,8 +336,8 @@ void AudioDAC_VolSet(DAC_MODULE DACModule, uint16_t LeftVol, uint16_t RightVol);
 /**
  * @brief Audio DAC volume Get,DAC0 has left channel and right channel
  * @param DACModule which AudioDAC you will use
- * @param *LeftVol left channel for DAC0,its scope is form 0 to 0x3fff
- * @param *RightVol right channel for DAC0,its scope is form 0 to 0x3fff
+ * @param *LeftVol left channel for DAC0,its scope is form 0 to 0x1000
+ * @param *RightVol right channel for DAC0,its scope is form 0 to 0x1000
  * @return NONE
  */
 void AudioDAC_VolGet(DAC_MODULE DACModule,uint16_t* LeftVol, uint16_t* RightVol);
@@ -456,6 +456,10 @@ void AudioDAC_ExternalEnable(DMIX_MODE DMIXMODE, EXT_MODE EXTMODE);
  * @return NONE
  */
 void AudioDAC_ExternalDisable(void);
+
+void AudioDAC_DirectEnable(DMIX_MODE DMIXMODE);
+
+void AudioDAC_DirectVolSet(uint16_t vol);
 
 #ifdef  __cplusplus
 }

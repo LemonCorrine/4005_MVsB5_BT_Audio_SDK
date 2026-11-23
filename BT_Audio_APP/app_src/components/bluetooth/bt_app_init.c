@@ -29,6 +29,7 @@
 #include "bt_spp_api.h"
 #include "bt_em_config.h"
 #include "bt_common_api.h"
+#include "bt_mfi_api.h"
 #if BT_OBEX_SUPPORT
 #include "bt_obex_api.h"
 #endif
@@ -41,6 +42,13 @@
 #endif
 
 extern BT_CONFIGURATION_PARAMS		*btStackConfigParams;
+
+static void Set_BtL2cap_Channel( void );
+extern void Bt_Set_L2capChannel(uint8_t channel_num );
+extern void Bt_SetDevNum(uint8_t dev_num);
+extern void Bt_SetSNKDevNum(uint8_t dev_num);
+extern void Bt_SetSRCDevNum(uint8_t dev_num);
+extern void Init_Bt_Config_data(void);
 
 //EM BT HOST CONFIG DATA
 const BT_HOST_PARAM App_Bt_Host_config = 
@@ -144,8 +152,10 @@ bool GetBleDefaultAddr(uint8_t *devAddr,uint8_t *BleAddr)
 		return FALSE;
 
 	memcpy(BleAddr, devAddr,6);
-	BleAddr[0] |= 0xc0;
 	BleAddr[5] |= 0xc0;
+	BleAddr[0] |= 0xc0;
+	BleAddr[1] = ~BleAddr[1];
+	BleAddr[4] = ~BleAddr[4];
 	return TRUE;
 }
 
@@ -580,6 +590,15 @@ bool BtStackInit(void)
 	int32_t retInit=0;
 
 	BtStackParams	stackParams;
+#if BT_SOURCE_SUPPORT
+	Bt_SetDevNum(BT_SRC_LINK_DEV_NUM);
+	Bt_SetSRCDevNum(BT_SRC_LINK_DEV_NUM);
+#else
+	//Bt_SetDevNum(BT_LINK_DEV_NUM);
+	Bt_SetSNKDevNum(BT_LINK_DEV_NUM);
+#endif
+	Set_BtL2cap_Channel();
+	Init_Bt_Config_data();
 
 	BtManageInit();
 
@@ -591,6 +610,11 @@ bool BtStackInit(void)
 	ConfigBtStackParams(&stackParams);
 
 	//stackParams.btDeviceFlag = ( BT_LINK_DEV_NUM | (BT_TWS_SUPPORT<<2) );
+	#if BT_SOURCE_SUPPORT
+	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
+	stackParams.btDeviceFlag = BT_SRC_LINK_DEV_NUM;
+	else
+	#endif
 	stackParams.btDeviceFlag = BT_LINK_DEV_NUM;
 
 #ifdef BT_PROFILE_BQB_ENABLE
@@ -675,6 +699,15 @@ bool BtStackInit(void)
 	}
 #endif
 
+#if (BT_MFI_SUPPORT)
+	retInit = MFiAppInit(BtMfiCallback);
+	if(retInit == 0)
+	{
+		APP_DBG("MFi Init Error!\n");
+		return FALSE;
+	}
+#endif
+
 #if (BT_HFG_SUPPORT)
 #include "bt_hfg_api.h"
 	retInit = HfgAppInit(&stackParams.hfgFeatures);
@@ -731,5 +764,35 @@ void BtStackRunNotify(void)
 //	OSQueueMsgSend(MSG_NEED_BT_STACK_RUN, NULL, 0, MSGPRIO_LEVEL_HI, 0);
 }
 
+/***********************************************************************************
+ * 
+ **********************************************************************************/
+static void Set_BtL2cap_Channel( void )
+{
+	uint8_t channel_num = 3;	//default =3 SDP CLIENT/SERVER + reserve
 
+	#if  ( BT_A2DP_SUPPORT )
+		channel_num += 3;		//AVDTP_STREAM /SIGNAL + AVCTP(avrcp)
+	#endif
+
+	#if (BT_HFP_SUPPORT || BT_SPP_SUPPORT)
+		channel_num += 1;//hf and spp use rfcomm protocol which uses L2CAP
+	#endif
+
+
+	#if ( BT_HID_SUPPORT )
+		channel_num += 1;
+	#endif
+
+	#if (BT_OBEX_SUPPORT)
+		//obex can use either rfcomm or l2cap
+	#endif
+
+#if(BT_SRC_LINK_DEV_NUM>=2)
+	Bt_Set_L2capChannel( channel_num * BT_SRC_LINK_DEV_NUM );
+#else
+	Bt_Set_L2capChannel( channel_num * 2 );//bt sink±ØÐëÎª2
+#endif
+
+}
 

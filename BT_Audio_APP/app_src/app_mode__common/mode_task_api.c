@@ -335,6 +335,7 @@ bool AudioEffectInit()
 		else
 #endif
 		{
+			memcpy(AudioEffect.user_effect_parameters, para->user_effect_parameters,get_user_effect_parameters_len(para->user_effect_parameters) * sizeof(uint8_t));
 			DBG("EFFECT_MODE: %s\n", AudioEffect.cur_effect_para->user_effect_name);
 		}
 	}
@@ -426,6 +427,7 @@ bool AudioEffectInit()
 		{
 			return FALSE;
 		}
+		memset(AudioEffect.context_memory, 0, AudioEffect.audioeffect_memory_size);
 		/**
 		 * initial roboeffect context memory
 		*/
@@ -527,6 +529,7 @@ bool ModeCommonInit(void)
 		DBG("!!!audioeffect init must be earlier than sink init!!!.\n");
 		return FALSE;
 	}
+
 #ifdef CFG_AUDIO_OUT_AUTO_SAMPLE_RATE_44100_48000
 	AudioOutSampleRecover();
 #endif
@@ -606,6 +609,10 @@ bool ModeCommonInit(void)
 	}
 	gCtrlVars.HwCt.DAC0Ct.dac_sample_rate = SampleRateIndexGet(AudioDAC_SampleRateGet(DAC0));
 	AudioCoreSinkEnable(AUDIO_DAC0_SINK_NUM);
+#else
+	#if	CFG_RES_MIC_SELECT
+	AudioADC_VMIDInit();
+	#endif
 #endif
 
 	//Mic1 analog  = Soure0.
@@ -687,7 +694,7 @@ bool ModeCommonInit(void)
 		AudioIOSet.Adapt = SRC_ONLY;
 		AudioIOSet.SampleRate = sampleRate;//初始值
 		AudioIOSet.Sync = FALSE;
-		AudioIOSet.Channels = 1;
+		AudioIOSet.Channels = get_remind_channels();
 		AudioIOSet.Net = DefaultNet;
 		AudioIOSet.DataIOFunc = RemindDataGet;
 		AudioIOSet.LenGetFunc = RemindDataLenGet;
@@ -717,7 +724,12 @@ bool ModeCommonInit(void)
 #endif
 	if(!AudioCoreSinkIsInit(AUDIO_I2SOUT_SINK_NUM))
 	{
-		mainAppCt.I2SFIFO_LEN = AudioIOSet.Depth * sizeof(PCM_DATA_TYPE) * 2;
+//		mainAppCt.I2SFIFO_LEN = AudioIOSet.Depth * sizeof(PCM_DATA_TYPE) * 2;
+		mainAppCt.I2SFIFO_LEN = AudioIOSet.Depth * sizeof(PCM_DATA_TYPE) *
+										((CFG_PARA_I2S_SAMPLERATE <= 48000) ? 2 :
+										 (CFG_PARA_I2S_SAMPLERATE <= 96000) ? 3 :
+										 (CFG_PARA_I2S_SAMPLERATE <= 192000) ? 4 :
+										 (CFG_PARA_I2S_SAMPLERATE <= 384000) ? 8 : 16);
 		mainAppCt.I2SFIFO = (uint32_t*)osPortMalloc(mainAppCt.I2SFIFO_LEN);//I2S fifo
 		if(mainAppCt.I2SFIFO != NULL)
 		{
@@ -1063,7 +1075,9 @@ bool AudioIoCommonForHfp(uint16_t gain)
 	if(!AudioEffectInit())
 	{
 		DBG("!!!audioeffect init must be earlier than sink init!!!.\n");
+		return FALSE;
 	}
+
 	sampleRate = AudioCoreMixSampleRateGet(DefaultNet);
 	APP_DBG("Systerm HFP SampleRate: %ld\n", sampleRate);
 
@@ -1076,8 +1090,8 @@ bool AudioIoCommonForHfp(uint16_t gain)
 	memset(&AudioIOSet, 0, sizeof(AudioCoreIO));
 	AudioIOSet.Depth = AudioCore.FrameSize[DefaultNet] * 2 ;
 #ifdef	CFG_AUDIO_WIDTH_24BIT
-	AudioIOSet.IOBitWidth = PCM_DATA_16BIT_WIDTH;//0,16bit,1:24bit
-	AudioIOSet.IOBitWidthConvFlag = 1;//DAC 24bit ,sink最后一级输出时需要转变为24bi
+	AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;//0,16bit,1:24bit
+	AudioIOSet.IOBitWidthConvFlag = 0;//DAC 24bit ,sink最后一级输出时需要转变为24bi
 #endif
 	if(!AudioCoreSinkIsInit(AUDIO_DAC0_SINK_NUM))
 	{
@@ -1133,6 +1147,10 @@ bool AudioIoCommonForHfp(uint16_t gain)
 	}
 	gCtrlVars.HwCt.DAC0Ct.dac_sample_rate = SampleRateIndexGet(AudioDAC_SampleRateGet(DAC0));
 	AudioCoreSinkEnable(AUDIO_DAC0_SINK_NUM);
+#else
+	#if	CFG_RES_MIC_SELECT
+	AudioADC_VMIDInit();
+	#endif	
 #endif
 
 #if CFG_RES_MIC_SELECT
@@ -1162,7 +1180,7 @@ bool AudioIoCommonForHfp(uint16_t gain)
 //		AudioADC_PGAGainSet(ADC1_MODULE, CHANNEL_RIGHT, LINEIN3_RIGHT_OR_MIC2, 15, 4);
 
 		//Mic1   digital
-		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_16BITS,(void*)mainAppCt.ADCFIFO,FifoLenStereo);
+		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_24BITS,(void*)mainAppCt.ADCFIFO,FifoLenStereo);
 
 	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
         Clock_AudioMclkSel(AUDIO_ADC1, gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source);
@@ -1178,7 +1196,7 @@ bool AudioIoCommonForHfp(uint16_t gain)
 		AudioIOSet.DataIOFunc = AudioADC1_DataGet;
 		AudioIOSet.LenGetFunc = AudioADC1_DataLenGet;
 #ifdef CFG_AUDIO_WIDTH_24BIT
-		AudioIOSet.IOBitWidth = PCM_DATA_16BIT_WIDTH;			//0,16bit,1:24bit
+		AudioIOSet.IOBitWidth = PCM_DATA_24BIT_WIDTH;			//0,16bit,1:24bit
 		AudioIOSet.IOBitWidthConvFlag = 0;	//需要数据位宽不扩展
 #endif
 		if(!AudioCoreSourceInit(&AudioIOSet, MIC_SOURCE_NUM))
@@ -1206,7 +1224,7 @@ bool AudioIoCommonForHfp(uint16_t gain)
 
 		//Mic1	 digital
 		memset(mainAppCt.ADCFIFO, 0, FifoLenStereo);
-		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_16BITS, (void*)mainAppCt.ADCFIFO, FifoLenStereo);
+		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_24BITS, (void*)mainAppCt.ADCFIFO, FifoLenStereo);
 
 	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
         Clock_AudioMclkSel(AUDIO_ADC1, gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source);
@@ -1459,6 +1477,14 @@ void CommonMsgProccess(uint16_t Msg)
 
 	switch(Msg)
 	{
+	#if BT_SOURCE_SUPPORT
+		case MSG_BT_SOURCE_AUDIO_SWITCH:
+		BT_Source_Toggle();
+		break;
+		case MSG_BT_SOURCE_AUDIO_MULTICAST:
+		BT_Source_EnableMulticast();
+		break;
+	#endif
 #ifdef VD51_REDMINE_13199
 		case MSG_RGB_MODE:
 			if(IsRgbLedModeMenuExit())
@@ -1500,6 +1526,25 @@ void CommonMsgProccess(uint16_t Msg)
             MessageSend(GetSysModeMsgHandle(), &msgSend);
 			#endif
 			break;
+
+		case MSG_MUSIC_VOLUP:
+			AudioMusicVolUp();
+			APP_DBG("MSG_MUSIC_VOLUP\n");
+			break;
+		case MSG_MUSIC_VOLDOWN:
+			AudioMusicVolDown();
+			APP_DBG("MSG_MUSIC_VOLDOWN\n");
+			break;
+#if CFG_RES_MIC_SELECT
+		case MSG_MIC_VOLUP:
+			AudioMicVolUp();
+			APP_DBG("MSG_MIC_VOLUP\n");
+			break;
+		case MSG_MIC_VOLDOWN:
+			AudioMicVolDown();
+			APP_DBG("MSG_MIC_VOLDOWN\n");
+			break;
+#endif
 #ifdef CFG_APP_BT_MODE_EN
 		case MSG_BT_PLAY_SYNC_VOLUME_CHANGED:
 			APP_DBG("MSG_BT_PLAY_SYNC_VOLUME_CHANGED\n");
@@ -1634,13 +1679,14 @@ void CommonMsgProccess(uint16_t Msg)
 			{
 				gCtrlVars.AutoRefresh = 0x80;
 				gCtrlVars.EffectRefresh = V3_PACKAGE_TYPE_STREAM;
-				AudioEffect_CommunicationQueue_Send(gCtrlVars.AutoRefresh);
 			}
 			else
 			{
 				gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
-				AudioEffect_CommunicationQueue_Send(gCtrlVars.AutoRefresh);
 			}
+#ifdef CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN
+			AudioEffect_CommunicationQueue_Send(gCtrlVars.AutoRefresh);
+#endif			
 #endif
 #endif
 			break;
@@ -1656,7 +1702,9 @@ void CommonMsgProccess(uint16_t Msg)
 			{
 				AudioEffectModeSel(mainAppCt.EffectMode, 1);//sel: 0=init hw, 1=effect, 2=hw + effect
 				gCtrlVars.AutoRefresh = AutoRefresh_ALL_EFFECTS_PARA;
+#ifdef CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN				
 				AudioEffect_CommunicationQueue_Send(gCtrlVars.AutoRefresh);
+#endif				
 			}
 			else
 			{
@@ -1685,7 +1733,9 @@ void CommonMsgProccess(uint16_t Msg)
 				{
 					AudioEffectModeSel(mainAppCt.EffectMode, 1);//sel: 0=init hw, 1=effect, 2=hw + effect
 					gCtrlVars.AutoRefresh = addr;
+#ifdef CFG_FUNC_AUDIO_EFFECT_ONLINE_TUNING_EN					
 					AudioEffect_CommunicationQueue_Send(gCtrlVars.AutoRefresh);
+#endif					
 				}
 			}
 

@@ -26,6 +26,38 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 --------------------------------------------------------------------------------------
 版本历史：（采用倒序排列，最新版置顶）
 
+2026-4-27【v15_1.9.5】
+1、优化 ACL 事件优先级处理
+2、优化上电蓝牙连接异常死机问题，手机连接设备，设备连接其他手机AVRCP引起
+3、SDP_SERVER_SEND_SIZE恢复128，解决部分MP3或者老的安卓手机无法连接的问题
+
+2026-4-3【v15_1.9.4】
+1、Modify CompId to MVSilicon.
+2、BB_disconnect 增加数组index合法性判断
+
+2026-4-1【v15_1.9.3】
+1、增加libBtStack_wireless_bt_ble,用以支持wireless和bt_ble的切换
+2、增加rf_agc_disable 和 rf_agc_enable
+3、Remove QL_POWER_MSK during inc and dec power. 
+
+2026-3-26【v15_1.9.2】
+1、增加bt source 1v2配置API到应用层
+
+2026-3-20【v15_1.9.1】
+1、将NUM_BT_DEVICES，L2CAP_NUM_CHANNELS等宏改为变量，由sdk层设置，并将相关变量改为指针且增加内存申请代码；
+2、增加文件bt_param.c，包含宏改为变量的定义以及接口配置函数
+3、增加PANU代码
+
+2026-1-16【v15_1.8.0】
+1,增加bt source 1v2相关应用代码
+2,增加PBAP_get_photo
+
+2026-1-6【v15_1.7.0】
+1, 完善DUT测试模式
+2, 修改RF参数
+3, 优化BtSource兼容性
+4, 完善BLE链接安卓手机死机异常
+
 2025-11-4【v15_1.6.0】
 1）完善PBAP协议获取电话簿功能；
 2）完善PBAP_PullPhoneBook接口，增加参数vcardFormat,maxListCount,listStartOffset的设置；以及maxlistcount的获取

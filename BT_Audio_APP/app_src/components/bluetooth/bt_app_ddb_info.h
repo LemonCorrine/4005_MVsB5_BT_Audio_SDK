@@ -16,7 +16,7 @@
 #define __BLUETOOTH_DDB_INFO_H__
 
 #include "bt_manager.h"
-
+#include "bt_config.h"
 #define DDB_NOT_FOUND  0xffff
 
 //蓝牙参数保存位置:size:4KB(0x1ff000~0x1fffff)
@@ -47,7 +47,11 @@
 #else
 #define BT_REC_INFO_LEN						25//(6+16+1+1+1) = (addr+linkkey+flag+role+profile)
 #endif
-#define BT_DEVICE_LIST_START				1//
+#if BT_SOURCE_SUPPORT
+#define BT_DEVICE_LIST_START				BT_SRC_LINK_DEV_NUM
+#else
+#define BT_DEVICE_LIST_START				1
+#endif
 
 /*extern uint8_t KeyEnc;*/
 //#define PRINT_RECORD_INFOR
@@ -101,6 +105,10 @@ void DdbDeleteRecord(uint8_t index);
 uint32_t DdbFindRecord(const uint8_t *bdAddr);
 
 bool BtDdb_GetLastBtAddr(uint8_t *BtLastAddr, uint8_t* profile);
+
+#ifdef BT_SOURCE_SUPPORT
+uint8_t BtDdb_BtSourceReconAddr(uint8_t *Addr1, uint8_t *Addr2, uint8_t* profile1, uint8_t* profile2);
+#endif
 
 #ifdef FLASH_SAVE_REMOTE_BT_NAME
 void BtDdb_UpdateDeviceName(uint8_t *bdAddr, uint8_t *bdName);

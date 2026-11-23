@@ -2,6 +2,7 @@
 #include "pmu_powerkey.h"
 #include "timeout.h"
 #include "watchdog.h"
+#include "clk.h"
 
 void PMU_PowerKey8SResetSet(void)
 {
@@ -20,6 +21,27 @@ void PMU_PowerKey8SResetSet(void)
 	PMU_PowerKeyStateClear();
 	PMU_PowerKeyShortPressStateClear();
 	PMU_PowerKeyLongPressStateClear();
+}
+
+void PMU_PowerKey8sResetEnable()
+{
+    PMU_PowerKeyModeSet(SOFT_MODE);
+    PMU_PowerKeyActiveLevelSet(LOW_INDICATE_POWERON);
+    PMU_PowerKeyLongOrShortPressSet(POWERKEY_SHORT_PRESS_MODE);
+    PMU_PowerLongResetModeSet(LONGR_RST_MODE_TIMEOUT);
+
+    PMU_PowerKeyStateClear();
+    PMU_PowerKeyShortPressStateClear();
+    PMU_PowerKeyLongPressStateClear();
+
+    PMU_PowerKeyEnable();
+    APP_DBG("8sReset Enable\r\n");
+}
+
+void PMU_PowerKey8sResetDisable()
+{
+    PMU_PowerKeyDisable();
+    APP_DBG("8sReset Disable\r\n");
 }
 
 #ifdef CFG_IDLE_MODE_POWER_KEY
@@ -81,6 +103,19 @@ uint16_t GetSystemPowerKeyMsg(void)
 }
 #endif
 
+void SystemPowerdownPreHandle()
+{
+    // 关中断
+    GIE_DISABLE();
+    //切时钟到RC 12M
+    Clock_DeepSleepSysClkSelect(RC_CLK_MODE, FSHC_RC_CLK_MODE, 1);
+    Clock_PllClose();
+    Clock_APllClose();
+#if !defined(CFG_RES_RTC_EN)
+    Clock_HOSCDisable(); // 若有RTC应用并且RTC所用时钟是HOSC，则不关闭HOSC，即24M晶振
+#endif
+}
+
 void SystemPowerDown(void)
 {
 	switch(POWERKEY_MODE)
@@ -89,7 +124,6 @@ void SystemPowerDown(void)
 		PMU_PowerKeyDisable();
 		break;
 	case POWERKEY_MODE_PUSH_BUTTON:
-		PMU_PowerKeyEnable();
 		PMU_PowerKeyModeSet(SOFT_MODE);
 		PMU_PowerKeyActiveLevelSet(LOW_INDICATE_POWERON);
 		PMU_PowerKeyLongOrShortPressSet(POWERKEY_SHORT_PRESS_MODE);
@@ -97,11 +131,16 @@ void SystemPowerDown(void)
 		PMU_PowerKeyLongPressTrigMaxCntSet(0xff);
 		PMU_PowerKeyNoiseFilterMaxCntSet(0xff);
 
-		PMU_PowerKeyStateClear();
+        SystemPowerdownPreHandle();
+
+        PMU_PowerKeyStateClear();
 		PMU_PowerKeyShortPressStateClear();
 		PMU_PowerKeyLongPressStateClear();
-		PMU_SystemPowerDown();
-		break;
+        
+        PMU_PowerKeyEnable();//配置完后再enable Powerkey
+
+        PMU_SystemPowerDown();
+        break;
 	case POWERKEY_MODE_SLIDE_SWITCH_LPD://硬开关高唤醒
 		PMU_PowerKeyStateClear();
 		PMU_PowerKeyShortPressStateClear();

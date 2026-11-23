@@ -93,6 +93,15 @@ typedef enum
   USBH_ERROR_SPEED_UNKNOWN,
 } USBH_StatusTypeDef;
 
+typedef OTG_HOST_ERR_CODE (*USBH_ControlWrite)(USB_CTRL_SETUP_REQUEST SetupPacket, uint8_t *Buf, uint32_t Len, uint32_t TimeOut);
+typedef OTG_HOST_ERR_CODE (*USBH_ControlRead)(USB_CTRL_SETUP_REQUEST SetupPacket, uint8_t *Buf, uint32_t Len, uint32_t TimeOut);
+
+/**
+ * @brief 注册控制传输完成的回调函数
+ * @param Wcallback：回调函数指针（NULL表示取消注册）
+ * @param Rcallback：回调函数指针（NULL表示取消注册）
+ */
+void USBH_RegisterControlCallback(USBH_ControlWrite Wcallback, USBH_ControlRead Rcallback);
 /**
  * @brief  设置接口
  * @param  InterfaceNum 接口号

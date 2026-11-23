@@ -155,6 +155,7 @@ void BtHfpCallback(BT_HFP_CALLBACK_EVENT event, BT_HFP_CALLBACK_PARAMS * param)
 			}
 			break;
 
+#ifndef BT_HFP_MODE_DISABLE
 		case BT_STACK_EVENT_HFP_CALLSETUP_IN:
 			{
 				BtHfpCallSetupIncoming(param);
@@ -194,12 +195,6 @@ void BtHfpCallback(BT_HFP_CALLBACK_EVENT event, BT_HFP_CALLBACK_PARAMS * param)
 		case BT_STACK_EVENT_HFP_CALL_WAIT_NOTIFY:
 			{
 				BtHfpCallWaitNotify(param);
-			}
-			break;
-
-		case BT_STACK_EVENT_HFP_BATTERY:  //手机端的电池电量
-			{
-				BtHfpBatteryLevel(param);
 			}
 			break;
 
@@ -245,7 +240,8 @@ void BtHfpCallback(BT_HFP_CALLBACK_EVENT event, BT_HFP_CALLBACK_PARAMS * param)
 					APP_DBG("Hfp roam FALSE\n");
 			}
 			break;
-		
+#endif
+
 		case BT_STACK_EVENT_HFP_MANUFACTORY_INFO:
 			BtHfpManufactoryInfo(param);
 			break;
@@ -286,7 +282,13 @@ void BtHfpCallback(BT_HFP_CALLBACK_EVENT event, BT_HFP_CALLBACK_PARAMS * param)
 
 		case BT_STACK_EVENT_HFP_DEVICE_TIME:
 			{
-				APP_DBG("hfp time :%s\n", param->params.hfpRemoteDeviceTime);
+				APP_DBG("%s\n", param->params.hfpRemoteDeviceTime);
+			}
+			break;
+
+		case BT_STACK_EVENT_HFP_BATTERY:  //手机端的电池电量
+			{
+				BtHfpBatteryLevel(param);
 			}
 			break;
 

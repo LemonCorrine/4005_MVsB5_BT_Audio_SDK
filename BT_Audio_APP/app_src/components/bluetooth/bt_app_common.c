@@ -126,6 +126,27 @@ static uint32_t BtRemoteDeviceConnecting_SinglePhone(uint8_t *addr)
 }
 #endif
 
+#if BT_SOURCE_SUPPORT
+static uint32_t BtSourceRemoteDeviceConnecting(uint8_t *addr)
+{
+	uint8_t i = 0;
+	for(i = 0;i<BT_SRC_LINK_DEV_NUM;i++)
+	{
+		if(!BT_Source_IsConnected(i))
+		break;
+	}
+
+	if(i>=BT_SRC_LINK_DEV_NUM)
+	{
+		return BT_CON_REJECT;
+	}
+	else 
+	{
+		return BT_CON_MASTER;
+	}
+}
+#endif
+
 /***********************************************************************************
  * 被连接时,确认连接条件
  * return: 
@@ -135,6 +156,13 @@ static uint32_t BtRemoteDeviceConnecting_SinglePhone(uint8_t *addr)
  **********************************************************************************/
 uint32_t BtRemoteLinkConReq(uint8_t *addr)
 {
+#if BT_SOURCE_SUPPORT
+	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
+	{
+		return BtSourceRemoteDeviceConnecting(addr);
+	}
+#endif
+
 #if (BT_DEVICE_NUMBER == 2)
 	return BtRemoteDeviceConnecting_DualPhone(addr);
 #else //(BT_DEVICE_NUMBER == 1)
@@ -243,11 +271,43 @@ static void BtAccessMode_SinglePhone(void)
 	}
 }
 #endif
+
+#if BT_SOURCE_SUPPORT
+static void BtAccessMode_BtSource(void)
+{
+	APP_DBG("BtAccessMode_BtSource \n");
+	
+	uint8_t i = 0;
+	for(i = 0;i<BT_SRC_LINK_DEV_NUM;i++)
+	{
+		if(!BT_Source_IsConnected(i))
+		break;
+	}
+
+	
+	if(i>=BT_SRC_LINK_DEV_NUM)
+	{
+		BtSetAccessModeApi(BtAccessModeNotAccessible);
+	}
+	else
+	{
+		BtSetAccessModeApi(BtAccessModeConnectableOnly);
+	}
+
+}
+#endif
 /*****************************************************************************************
  * 根据实际的应用条件，重新配置蓝牙可见性
  ****************************************************************************************/ 
 void BtAccessModeSetting(void)
 {
+#if BT_SOURCE_SUPPORT
+	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
+	{
+		return BtAccessMode_BtSource();
+	}
+#endif
+
 #if (BT_DEVICE_NUMBER == 2)
 	BtAccessMode_DualPhone();
 #else //(BT_DEVICE_NUMBER == 1)
@@ -382,6 +442,10 @@ void BtDevConnectionLinkLoss(BT_STACK_CALLBACK_PARAMS * param)
 	{
 		APP_DBG("BB LOST\n");
 
+		#if BT_SOURCE_SUPPORT
+		if(gSwitchSourceAndSink == A2DP_SET_SOURCE) return ;
+		#endif
+
 	if(!btManager.btLastAddrUpgradeIgnored)
 	{
 		if(sys_parameter.bt_BBLostReconnectionEnable)
@@ -430,6 +494,10 @@ uint32_t GetSupportProfiles(void)
 
 #if BT_PBAP_SUPPORT
 	profiles |= BT_PROFILE_SUPPORTED_PBAP;
+#endif
+
+#if BT_MFI_SUPPORT
+	profiles |= BT_PROFILE_SUPPORTED_MFI;
 #endif
 
 	return profiles;

@@ -57,7 +57,9 @@ void AudioMusicProcess(AudioCoreContext *pAudioCore)
 	#endif
 #endif
 
+	osMutexLock(AudioEffectMutex);
 	roboeffect_apply(AudioEffect.context_memory);
+	osMutexUnlock(AudioEffectMutex);
 
 #if	defined(CFG_APP_USB_AUDIO_MODE_EN) || (defined(CFG_WIRELESS_EN) && defined(PACKET_AUDIO_CH_BACKWARD))
 	if(mode_out)
@@ -119,7 +121,9 @@ void AudioEffectProcessBTHF(AudioCoreContext *pAudioCore)
 		hf_pcm_out[s] = hf_mic_in[s];
 	}
 #else
+	osMutexLock(AudioEffectMutex);
 	roboeffect_apply(AudioEffect.context_memory);
+	osMutexUnlock(AudioEffectMutex);
 #endif
 
 }

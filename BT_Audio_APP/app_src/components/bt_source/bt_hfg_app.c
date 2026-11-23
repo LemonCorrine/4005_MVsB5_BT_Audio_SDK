@@ -42,14 +42,14 @@ void BtHfgSetCallState(uint8_t dir, uint8_t state);
 extern void AppA2dpSuspendStream(void);
 extern void AppA2dpStartStream(void);
 
-static void SetSourceHfgState(BT_HFP_STATE state)
+static void SetSourceHfgState(uint8_t index, BT_HFP_STATE state)
 {
-	GetBtManager()->hfgState = state;
+	GetBtManager()->hfgState[index] = state;
 }
 
-BT_HFP_STATE GetSourceHfgState(void)
+BT_HFP_STATE GetSourceHfgState(uint8_t index)
 {
-	return GetBtManager()->hfgState;
+	return GetBtManager()->hfgState[index];
 }
 
 #define HFG_IND_CALL 2		  //0: no call  1: active call
@@ -61,6 +61,7 @@ uint8_t testBuf[120];
  ****************************************************************************************/
 void BtHfgCallback(BT_HFG_CALLBACK_EVENT event, BT_HFG_CALLBACK_PARAMS * param)
 {
+	uint8_t index = 0;
 	switch(event)
 	{
 		case BT_STACK_EVENT_HFG_CONNECTED:
@@ -72,7 +73,7 @@ void BtHfgCallback(BT_HFG_CALLBACK_EVENT event, BT_HFG_CALLBACK_PARAMS * param)
 						(param->params.bd_addr)[3],
 						(param->params.bd_addr)[4],
 						(param->params.bd_addr)[5]);
-				SetSourceHfgState(BT_HFP_STATE_CONNECTED);
+				SetSourceHfgState(index, BT_HFP_STATE_CONNECTED);
 				if((param->params.bd_addr)[0] || (param->params.bd_addr)[1] || (param->params.bd_addr)[2] 
 					|| (param->params.bd_addr)[3] || (param->params.bd_addr)[4] || (param->params.bd_addr)[5])
 				{
@@ -90,7 +91,7 @@ void BtHfgCallback(BT_HFG_CALLBACK_EVENT event, BT_HFG_CALLBACK_PARAMS * param)
 		case BT_STACK_EVENT_HFG_DISCONNECTED:
 			{
 				//BtHfgHangUp();
-				SetSourceHfgState(BT_HFP_STATE_NONE);
+				SetSourceHfgState(index, BT_HFP_STATE_NONE);
 				APP_DBG("Hfg disconnect\n");
 				hfgSetIndicator(HFG_IND_CALL_SETUP,0);
 				hfgSetIndicator(HFG_IND_CALL,0);
@@ -133,7 +134,7 @@ void BtHfgCallback(BT_HFG_CALLBACK_EVENT event, BT_HFG_CALLBACK_PARAMS * param)
 
 		case BT_STACK_EVENT_HFG_SCO_CONNECTED:
 			APP_DBG("BT_STACK_EVENT_HFG_SCO_CONNECTED\n");
-			SetSourceHfgState(BT_HFP_STATE_ACTIVE);
+			SetSourceHfgState(index, BT_HFP_STATE_ACTIVE);
 			SetScoConnectFlag(TRUE);
 
 			if(GetSystemMode() != ModeBtHfPlay)
@@ -146,7 +147,7 @@ void BtHfgCallback(BT_HFG_CALLBACK_EVENT event, BT_HFG_CALLBACK_PARAMS * param)
 
 		case BT_STACK_EVENT_HFG_SCO_DISCONNECTED:
 			APP_DBG("BT_STACK_EVENT_HFG_SCO_DISCONNECTED\n");
-			SetSourceHfgState(BT_HFP_STATE_CONNECTED);
+			SetSourceHfgState(index, BT_HFP_STATE_CONNECTED);
 			SetScoConnectFlag(FALSE);
 
 			if(GetSystemMode() == ModeBtHfPlay)
@@ -185,7 +186,7 @@ void BtHfgCallback(BT_HFG_CALLBACK_EVENT event, BT_HFG_CALLBACK_PARAMS * param)
 void BtHfgCreateCall(void)
 {
 	APP_DBG("~~BtHfgCreateCall\n");
-	if(GetSourceHfgState() >= BT_HFP_STATE_CONNECTED)
+	if(GetSourceHfgState(0) >= BT_HFP_STATE_CONNECTED)
 	{
 		//hfgSetIndicator(HFG_IND_CALL,1);
 		if(hfgSetIndicator(HFG_IND_CALL_SETUP,2)!=1)//outgoing
@@ -198,8 +199,8 @@ void BtHfgCreateCall(void)
 
 void BthfgIncomingWait(char *number)//呼入等待
 {
-	if(GetSourceHfgState() < BT_HFP_STATE_CONNECTED) return;
-	SetSourceHfgState(BT_HFP_STATE_INCOMING);
+	if(GetSourceHfgState(0) < BT_HFP_STATE_CONNECTED) return;
+	SetSourceHfgState(0, BT_HFP_STATE_INCOMING);
 	APP_DBG("IncomingWait\n");
 	hfgSetIndicator(HFG_IND_CALL_SETUP,1);
 	HfgSetCallIndex(1);
@@ -214,8 +215,8 @@ void BthfgIncomingWait(char *number)//呼入等待
 
 void BthfgOutgoingWait(char *number)//呼出等待
 {
-	if(GetSourceHfgState() < BT_HFP_STATE_CONNECTED) return;
-	SetSourceHfgState(BT_HFP_STATE_OUTGOING);
+	if(GetSourceHfgState(0) < BT_HFP_STATE_CONNECTED) return;
+	SetSourceHfgState(0, BT_HFP_STATE_OUTGOING);
 	APP_DBG("OutgoingWait\n");
 	hfgSetIndicator(HFG_IND_CALL_SETUP,2);
 	HfgSetCallIndex(1);
@@ -226,7 +227,7 @@ void BthfgOutgoingWait(char *number)//呼出等待
 
 void BthfgAnswer(uint8_t flag)//接听电话
 {
-	if(GetSourceHfgState() < BT_HFP_STATE_CONNECTED) return;
+	if(GetSourceHfgState(0) < BT_HFP_STATE_CONNECTED) return;
 	APP_DBG("BthfgAnswer\n");
 	if(hfgSetIndicator(HFG_IND_CALL,1)!=1)
 	{
@@ -262,7 +263,7 @@ void BtHfgSetCurrNumber(char *number)
 
 void BtHfgHangUp(void)
 {
-	if(GetSourceHfgState() > BT_HFP_STATE_CONNECTED)
+	if(GetSourceHfgState(0) > BT_HFP_STATE_CONNECTED)
 	{
 //		ScoReConnFlag = 0;
 //		WaitMs(100);

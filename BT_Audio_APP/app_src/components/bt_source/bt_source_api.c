@@ -26,7 +26,7 @@
 
 #if BT_SOURCE_SUPPORT
 
-extern uint8_t A2dpSourceDisconnect(void);
+extern uint8_t A2dpSourceDisconnect(uint8_t index);
 volatile uint32_t gSwitchSourceAndSink = A2DP_SET_SOURCE;
 
 static uint8_t BtSourceGetNameCnt = 0;
@@ -46,14 +46,34 @@ void SetBtSinkSourceRole(uint32_t role)
 	BtStackServiceStart();
 }
 
+uint8_t BtSourceInquiryCheck(void)
+{
+	uint8_t i = 0;
+
+	for(i = 0;i<BT_SRC_LINK_DEV_NUM;i++)
+	{
+		if((GetSourceA2dpState(i) < BT_A2DP_STATE_CONNECTED)
+		#if BT_HFG_SUPPORT
+		&&(GetSourceHfgState(i) < BT_HFP_STATE_CONNECTED) 
+		#endif
+		&& (GetAvrcpState(i) < BT_AVRCP_STATE_CONNECTED)
+		)
+		{
+			return 1;
+		}
+	}
+}
+
 void SendQuiryCommand(void)
 {
 	//		return;
 	//	if(mainAppCt.state == TaskStateRunning ||(mainAppCt.state == TaskStatePausing))
 	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
 	{
-		if((GetSourceA2dpState() < BT_A2DP_STATE_CONNECTED)&&(GetSourceHfgState() < BT_HFP_STATE_CONNECTED) && (GetAvrcpState(0) < BT_AVRCP_STATE_CONNECTED))
+		//if((GetSourceA2dpState() < BT_A2DP_STATE_CONNECTED)&&(GetSourceHfgState() < BT_HFP_STATE_CONNECTED) && (GetAvrcpState(0) < BT_AVRCP_STATE_CONNECTED))
+		if(BtSourceInquiryCheck())
 		{
+		
 			APP_DBG("Inquiry start\n");//BKDBKD
 			BtSourceInquiryStart();
 			BTInquiry(INQUIRY_MODE_EXTENDED);//, A2DP_INQUIRY_TIMEOUT);
@@ -121,55 +141,86 @@ void BtSourceBtModeDeinit(void)
 #endif
 }
 
-uint8_t BtSourceReconnectDevExcute(void)
+
+uint8_t BtSourceReconnectDev(uint8_t *addr, uint8_t index)
 {
-	extern unsigned char A2dpSourceConnect(unsigned char * addr);
+	extern unsigned char A2dpSourceConnect(uint8_t index, unsigned char * addr);
 	extern uint32_t GetSourceSupportProfiles(void);
+
+	uint8_t i = 0;
+
+	extern uint8_t BtSourceGetIndexByAddr(uint8_t *addr);
+	i = BtSourceGetIndexByAddr(addr);
+
+	if(i<BT_SRC_LINK_DEV_NUM)
+	{
+			if((GetSourceA2dpState(i) == BT_A2DP_STATE_NONE)&&(GetAvrcpState(i) == BT_AVRCP_STATE_NONE)
+#if (BT_HFP_SUPPORT)
+			&&(GetSourceHfgState(i) == BT_HFP_STATE_NONE)
+#endif
+			)
+		{
+			//当前链路存在,则应用层停止发起新的连接,等待超时后再发起连接
+			if(lm_env_link_state(addr))
+			{
+				APP_DBG("link exist, delay2s reconnect device...\n");
+				return FALSE;
+			}
+		}
+	}
+	else
+	{
+		bt_reconnect_stop();
+		return FALSE;
+	}
+
+
+
 	uint32_t reconnectProfile = 0;
 	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)//source
 	{
 		reconnectProfile = GetSourceSupportProfiles();
 		reconnectProfile &= (BT_PROFILE_SUPPORTED_HFG | BT_PROFILE_SUPPORTED_A2DP | BT_PROFILE_SUPPORTED_AVRCP);
 
-		if((reconnectProfile & BT_PROFILE_SUPPORTED_A2DP)&&(GetSourceA2dpState() < BT_A2DP_STATE_CONNECTED))
+		if((reconnectProfile & BT_PROFILE_SUPPORTED_A2DP)&&(GetSourceA2dpState(i) < BT_A2DP_STATE_CONNECTED))
 		{
 
-			A2dpSourceConnect(btManager.conRemoteAddr);
+			A2dpSourceConnect(i, addr);
 			APP_DBG("--A2dpSourceConnect :	[%02x:%02x:%02x:%02x:%02x:%02x]\n",
-					btManager.conRemoteAddr[0],
-					btManager.conRemoteAddr[1],
-					btManager.conRemoteAddr[2],
-					btManager.conRemoteAddr[3],
-					btManager.conRemoteAddr[4],
-					btManager.conRemoteAddr[5]
+					addr[0],
+					addr[1],
+					addr[2],
+					addr[3],
+					addr[4],
+					addr[5]
 				);
 		}
-		else if((reconnectProfile & BT_PROFILE_SUPPORTED_AVRCP)&&(GetAvrcpState(0) != BT_AVRCP_STATE_CONNECTED))
+		else if((reconnectProfile & BT_PROFILE_SUPPORTED_AVRCP)&&(GetAvrcpState(i) != BT_AVRCP_STATE_CONNECTED))
 		{
 			reconnectProfile &= ~(BT_PROFILE_SUPPORTED_A2DP);
 
-			AvrcpConnect(0, GetBtManager()->conRemoteAddr);
+			AvrcpConnect(i, addr);
 			APP_DBG("--AvrcpConnect :  [%02x:%02x:%02x:%02x:%02x:%02x]\n",
-					GetBtManager()->conRemoteAddr[0],
-					GetBtManager()->conRemoteAddr[1],
-					GetBtManager()->conRemoteAddr[2],
-					GetBtManager()->conRemoteAddr[3],
-					GetBtManager()->conRemoteAddr[4],
-					GetBtManager()->conRemoteAddr[5]
+					addr[0],
+					addr[1],
+					addr[2],
+					addr[3],
+					addr[4],
+					addr[5]
 				);
 		}
 #if BT_HFG_SUPPORT == 1
-		else if((reconnectProfile & BT_PROFILE_SUPPORTED_HFG)&&(GetSourceHfgState() < BT_HFP_STATE_CONNECTED))
+		else if((reconnectProfile & BT_PROFILE_SUPPORTED_HFG)&&(GetSourceHfgState(i) < BT_HFP_STATE_CONNECTED))
 		{
 			reconnectProfile &= ~(BT_PROFILE_SUPPORTED_AVRCP | BT_PROFILE_SUPPORTED_A2DP);
-			HfgConnect(GetBtManager()->conRemoteAddr);
+			HfgConnect(addr);
 			APP_DBG("--HfgConnect :  [%02x:%02x:%02x:%02x:%02x:%02x]\n",
-					GetBtManager()->conRemoteAddr[0],
-					GetBtManager()->conRemoteAddr[1],
-					GetBtManager()->conRemoteAddr[2],
-					GetBtManager()->conRemoteAddr[3],
-					GetBtManager()->conRemoteAddr[4],
-					GetBtManager()->conRemoteAddr[5]
+					addr[0],
+					addr[1],
+					addr[2],
+					addr[3],
+					addr[4],
+					addr[5]
 				);
 			//hfg只连接一次
 			reconnectProfile &= ~(BT_PROFILE_SUPPORTED_HFG | BT_PROFILE_SUPPORTED_A2DP | BT_PROFILE_SUPPORTED_AVRCP);
@@ -186,7 +237,7 @@ uint8_t BtSourceReconnectDevExcute(void)
 
 		return TRUE;
 	}
-	return FALSE;
+	return TRUE;//FALSE;
 }
 
 
@@ -202,7 +253,8 @@ void BtSourcePublicMsgPross(uint32_t msgID)
 		BtSourceInquiryStart();
 		if(mainAppCt.state == TaskStateRunning ||(mainAppCt.state == TaskStatePausing))
 		{
-			if(GetSourceA2dpState()<BT_A2DP_STATE_CONNECTED)
+			//if(GetSourceA2dpState(0)<BT_A2DP_STATE_CONNECTED)
+			if(BtSourceInquiryCheck())
 			{
 				APP_DBG("Inquiry start\n");
 				BTInquiry(INQUIRY_MODE_EXTENDED);
@@ -210,10 +262,7 @@ void BtSourcePublicMsgPross(uint32_t msgID)
 		}
 		break;
 	case MSG_BT_SOURCE_DISCONNECT:
-		if(GetSourceA2dpState()>=BT_A2DP_STATE_CONNECTED)
-		{
-			A2dpSourceDisconnect();
-		}
+		BtSourceDisconnect();
 		break;
 	case MSG_BT_SOURCE_CONNECT:
 		{
@@ -282,6 +331,64 @@ void BtSourceReInquiryChack(void)
 		TimeOutSet(&QuiryDelayTimer,3000);
 	}
 }
+#endif
+
+void BtSourceDisconnect(void)
+{
+	uint8_t i = 0;
+
+	bt_reconnect_stop();
+	
+	for(i = 0;i< BT_SRC_LINK_DEV_NUM;i++)
+	{
+		if(BT_Source_IsConnected(i))
+			A2dpSourceDisconnect(i);
+	}
+
+	APP_DBG("BtSourceDisconnect\n");
+}
+
+
+#if BT_SRC_RECONNECTION_SUPPORT
+
+void BtSourceReconnectDevice(void)
+{
+	btManager.BtPowerOnFlag = 1;
+	uint8_t addr1[6];
+	uint8_t profile1 = 0;
+
+	uint8_t addr2[6];
+	uint8_t profile2 = 0;
+
+	uint8_t ret = 0;
+
+	//reconnect last bluetooth device
+	ret = BtDdb_BtSourceReconAddr(&addr1, &addr2, &profile1, &profile2);
+
+	if(ret == 0)
+	{
+		APP_DBG("Bt Source Reconnect Addr is NULL\n");
+		return ;
+	}
+
+	switch(ret)
+	{
+		case 1:
+			bt_reconnect_set_dev(1, addr1);
+		break;
+		case 2:
+			bt_reconnect_set_dev(2, addr2);
+		break;
+		case 3:
+			bt_reconnect_set_dev(1, addr1);
+			bt_reconnect_set_dev(2, addr2);
+		break;
+	}
+
+	bt_reconnect_start();
+	
+}
+
 #endif
 
 

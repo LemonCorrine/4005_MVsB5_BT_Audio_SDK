@@ -4,7 +4,7 @@
  * @brief	Parametric EQ
  *
  * @author	ZHAO Ying (Alfred), Aissen Li
- * @version	v8.3.1
+ * @version	v8.3.2
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************

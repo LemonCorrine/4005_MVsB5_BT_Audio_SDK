@@ -48,7 +48,7 @@
 #endif
 
 #define  CFG_SDK_MAJOR_VERSION		(1)
-#define  CFG_SDK_MINOR_VERSION		(3)
+#define  CFG_SDK_MINOR_VERSION		(4)
 #define  CFG_SDK_PATCH_VERSION	    (0)
 
 //****************************************************************************************
@@ -148,6 +148,7 @@
 		#define CFG_PARA_WAKEUP_SOURCE_IR		SYSWAKEUP_SOURCE11_IR//固定source11
 		/*ADCKey唤醒 配合CFG_PARA_WAKEUP_GPIO_ADCKEY 唤醒键ADCKEYWAKEUP设置及其电平*/
 		#define CFG_PARA_WAKEUP_SOURCE_ADCKEY	SYSWAKEUP_SOURCE1_GPIO//如使用ADC唤醒，必须打开CFG_RES_ADC_KEY_SCAN 和CFG_RES_ADC_KEY_USE
+		#define CFG_PARA_WAKEUP_SOURCE_CEC		SYSWAKEUP_SOURCE2_GPIO//HDMI专用，CFG_PARA_WAKEUP_GPIO_CEC
 		#define CFG_PARA_WAKEUP_SOURCE_POWERKEY SYSWAKEUP_SOURCE6_POWERKEY
 		#define CFG_PARA_WAKEUP_SOURCE_IOKEY1	SYSWAKEUP_SOURCE3_GPIO
 		#define CFG_PARA_WAKEUP_SOURCE_IOKEY2	SYSWAKEUP_SOURCE4_GPIO
@@ -410,7 +411,8 @@
 //    2.此版本默认打开，请勿关闭!!!!!!!!!!
 //****************************************************************************************	
 #define	CFG_FUNC_MIXER_SRC_EN
-//#define	CFG_FUNC_SRC_HIGHER_EN
+#define	CFG_FUNC_SRC_POLYPHASE_EN
+//#define	CFG_FUNC_SRC_SINC_EN
 //#define	CFG_FUNC_USB_ADJUST_UNION_EN			//usb上下行硬件微调共用机制
 //#define	CFG_FUNC_AUDIO_SILENCE_AVOIDANCE_EN		//DAC防播空机制
 
