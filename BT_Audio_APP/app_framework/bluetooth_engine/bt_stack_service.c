@@ -50,7 +50,7 @@ extern AvrcpAdvMediaStatus sPlayStatus[BT_LINK_DEV_NUM];
 
 
 //BR/EDR STACK SERVICE
-#define BT_STACK_SERVICE_STACK_SIZE		768
+#define BT_STACK_SERVICE_STACK_SIZE		1024
 #define BT_STACK_SERVICE_PRIO			4
 #define BT_STACK_NUM_MESSAGE_QUEUE		20
 
@@ -888,6 +888,24 @@ static void BtStackMsgProcess(uint16_t msgId)
 	}
 }
 
+
+#ifdef MV_APP_CONTROL
+/*=============================================================================
+ * 轮询发送函数（在主循环中调用）
+ * 作用：从队列取出消息，真正通过BLE发送出去
+ *============================================================================*/
+#include "protocol_queue.h"
+uint8_t mv_frame[512];
+uint16_t mv_frameLen;
+extern ProtocolQueue g_sendQueue; 
+void Protocol_PollSend(void) {
+		// 从队列中取出消息
+		if (ProtocolQueue_Dequeue(&g_sendQueue, mv_frame, &mv_frameLen)) {
+			ble_send_data(0,0,0,0x10,mv_frame,mv_frameLen,0);
+    }
+}
+#endif
+
 /***********************************************************************************
  * 蓝牙协议栈任务处理
  **********************************************************************************/
@@ -1058,6 +1076,10 @@ static void BtStackServiceEntrance(void * param)
 				}
 			}
 		}
+
+#ifdef MV_APP_CONTROL
+		Protocol_PollSend();
+#endif
 	}
 }
 

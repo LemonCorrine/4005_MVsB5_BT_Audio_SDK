@@ -1,9 +1,9 @@
 /***************************************************
  * @file     user_effect_flow_uac.h  
  * @brief   auto generated  
- * @author  ACPWorkbench: 5.1.8
+ * @author  ACPWorkbench: 5.7.0
  * @version V1.2.0 
- * @Created 2026-04-22T17:53:43 
+ * @Created 2026-07-20T10:16:19 
 
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
@@ -16,7 +16,7 @@
 #include "type.h"
 #include "roboeffect_api.h"
 
-#define UAC_ROBOEFFECT_LIB_VER "2.44.0"
+#define UAC_ROBOEFFECT_LIB_VER "2.47.1"
 
 typedef enum _UAC_roboeffect_io_enum
 {

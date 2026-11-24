@@ -964,6 +964,19 @@ void MediaPlayerCloseSongFile(void)
 	}
 }
 
+void SendPreviewPlayNextMsg(void)
+{
+	MessageContext		msgSend;
+	if(gMediaPlayer->CurPlayMode!=PLAY_MODE_PREVIEW_PLAY)
+		return;
+
+	if(gMediaPlayer->CurPlayTime >= PREVIEW_PLAY_TIME)
+	{
+		msgSend.msgId = MSG_SOFT_NEXT;
+		MessageSend(GetSysModeMsgHandle(), &msgSend);
+	}
+}
+
 //播放器 下一首 设定
 void MediaPlayerNextSong(bool IsSongPlayEnd)
 {
@@ -1019,6 +1032,7 @@ void MediaPlayerNextSong(bool IsSongPlayEnd)
 			}
 		case PLAY_MODE_REPEAT_OFF:
 		case PLAY_MODE_REPEAT_ALL:
+		case PLAY_MODE_PREVIEW_PLAY:		
 			gMediaPlayer->CurFileIndex++;
 			if(gMediaPlayer->CurFileIndex > gMediaPlayer->TotalFileSumInDisk)
 			{
@@ -1129,6 +1143,7 @@ void MediaPlayerPreSong(void)
 		case PLAY_MODE_REPEAT_OFF:
 		case PLAY_MODE_REPEAT_ALL:
 		case PLAY_MODE_REPEAT_ONE:
+		case PLAY_MODE_PREVIEW_PLAY:		
 			gMediaPlayer->CurFileIndex--;
 			if(gMediaPlayer->CurFileIndex < 1)
 			{
@@ -1346,6 +1361,12 @@ void MediaPlayerSwitchPlayMode(uint8_t PlayMode)
 				gMediaPlayer->CurPlayMode %= PLAY_MODE_SUM;
 			}
 			
+			if((gMediaPlayer->CurPlayMode == PLAY_MODE_REPEAT_FOLDER || gMediaPlayer->CurPlayMode == PLAY_MODE_RANDOM_FOLDER)
+				&& (GetSystemMode() == ModeUDiskAudioPlay || GetSystemMode() == ModeCardAudioPlay))
+			{
+				f_file_count_in_dir(&gMediaPlayer->PlayerFolder);//确认此文件夹 歌曲数量
+			}	
+
 			if(gMediaPlayer->CurPlayMode==PLAY_MODE_PREVIEW_PLAY)
 			{
 				MediaPlayerStop();
@@ -1669,6 +1690,9 @@ void MediaPlayerTimeUpdate(void)
 				case PLAY_MODE_REPEAT_OFF:
 					APP_DBG("RP_OFF ");
 					break;
+				case PLAY_MODE_PREVIEW_PLAY:
+					APP_DBG("PREVIEW ");
+					break;						
 #ifdef FUNC_BROWSER_PARALLEL_EN
 				case PLAY_MODE_BROWSER:
 					APP_DBG("BROWSER ");

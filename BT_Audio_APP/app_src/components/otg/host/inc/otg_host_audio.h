@@ -29,7 +29,7 @@ typedef struct _AUDIO_Process
 
 	uint16_t SpeakerFramesPerSecond;
 	uint32_t SpeakerAccumulator;
-	uint8_t  SpeakerIntervalFrames;
+	uint16_t SpeakerIntervalFrames;
 
 	uint16_t TimeBase;					//时间基准
 	uint32_t FeedbackRequest;			//反馈值

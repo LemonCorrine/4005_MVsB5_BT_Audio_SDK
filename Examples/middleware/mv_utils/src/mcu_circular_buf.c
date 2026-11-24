@@ -42,9 +42,9 @@ int32_t MCUCircular_GetSpaceLen(MCU_CIRCULAR_CONTEXT* CircularBuf)
 	}   
 }
 
-void MCUCircular_PutData(MCU_CIRCULAR_CONTEXT* CircularBuf, void* InBuf, uint16_t Len)
+void MCUCircular_PutData(MCU_CIRCULAR_CONTEXT* CircularBuf, void* InBuf, uint32_t Len)
 {
-    if(Len == 0||CircularBuf->CircularBuf == NULL)
+    if((Len == 0) || (CircularBuf == 0) || (CircularBuf->BufDepth == 0) || (Len >= (MCUCircular_GetSpaceLen(CircularBuf))))
 	{
 		return;
 	}
@@ -60,7 +60,7 @@ void MCUCircular_PutData(MCU_CIRCULAR_CONTEXT* CircularBuf, void* InBuf, uint16_
     CircularBuf->W = (CircularBuf->W + Len) % CircularBuf->BufDepth;    
 }
 
-void MCUCircular_PutData_Printf(MCU_CIRCULAR_CONTEXT* CircularBuf, void* InBuf, uint16_t Len)
+void MCUCircular_PutData_Printf(MCU_CIRCULAR_CONTEXT* CircularBuf, void* InBuf, uint32_t Len)
 {
     if(Len == 0||CircularBuf->CircularBuf == NULL)
 	{
@@ -78,10 +78,10 @@ void MCUCircular_PutData_Printf(MCU_CIRCULAR_CONTEXT* CircularBuf, void* InBuf, 
     CircularBuf->W = (CircularBuf->W + Len) % CircularBuf->BufDepth;    
 }
 
-uint16_t MCUCircular_GetDataLen(MCU_CIRCULAR_CONTEXT* CircularBuf)
+uint32_t MCUCircular_GetDataLen(MCU_CIRCULAR_CONTEXT* CircularBuf)
 {
-	uint16_t R, W;
-	uint16_t Len;
+	uint32_t R, W;
+	uint32_t Len;
 	if(CircularBuf->CircularBuf == NULL)
 	{
 		return 0;
@@ -108,10 +108,10 @@ uint16_t MCUCircular_GetDataLen(MCU_CIRCULAR_CONTEXT* CircularBuf)
 }
 
 
-int32_t MCUCircular_GetData(MCU_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint16_t MaxLen)
+int32_t MCUCircular_GetData(MCU_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint32_t MaxLen)
 {
-    uint16_t R;//, W;
-    uint16_t Len;
+    uint32_t R;//, W;
+    uint32_t Len;
     
 	if(CircularBuf->CircularBuf == NULL)
 	{
@@ -150,10 +150,10 @@ int32_t MCUCircular_GetData(MCU_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uin
     return Len;
 }
 
-int32_t MCUCircular_GetData_Printf(MCU_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint16_t MaxLen)
+int32_t MCUCircular_GetData_Printf(MCU_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint32_t MaxLen)
 {
-    uint16_t R;//, W;
-    uint16_t Len;
+    uint32_t R;//, W;
+    uint32_t Len;
     
 	if(CircularBuf->CircularBuf == NULL)
 	{
@@ -194,10 +194,10 @@ int32_t MCUCircular_GetData_Printf(MCU_CIRCULAR_CONTEXT* CircularBuf, void* OutB
     return Len;
 }
 
-int32_t MCUCircular_ReadData(MCU_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint16_t MaxLen)
+int32_t MCUCircular_ReadData(MCU_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint32_t MaxLen)
 {
-    uint16_t R;//, W;
-    uint16_t Len;
+    uint32_t R;//, W;
+    uint32_t Len;
 
 	if(CircularBuf->CircularBuf == NULL)
 	{
@@ -237,10 +237,52 @@ int32_t MCUCircular_ReadData(MCU_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, ui
 }
 
 
-int32_t MCUCircular_AbortData(MCU_CIRCULAR_CONTEXT* CircularBuf, uint16_t MaxLen)
+//Æ«ÒÆÁ¿
+int32_t MCUCircular_ReadData_2(MCU_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint16_t offset, uint16_t MaxLen)
 {
     uint16_t R;//, W;
     uint16_t Len;
+
+	if(CircularBuf->CircularBuf == NULL)
+	{
+		return 0;
+	}
+
+	if(MaxLen == 0)
+	{
+		return 0;
+	}
+
+	R = (CircularBuf->R + offset ) % CircularBuf->BufDepth;
+//	W = CircularBuf->W;
+
+	Len = MCUCircular_GetDataLen(CircularBuf);
+
+    if(Len > MaxLen)
+    {
+        Len = MaxLen;
+    }
+
+    if(Len + R > CircularBuf->BufDepth)
+    {
+        memcpy(OutBuf, (void *)&CircularBuf->CircularBuf[R], CircularBuf->BufDepth - R);
+        memcpy((uint8_t* )OutBuf + CircularBuf->BufDepth - R, (void *)&CircularBuf->CircularBuf[0], Len + R - CircularBuf->BufDepth);
+    }
+    else
+    {
+        memcpy(OutBuf, (void *)&CircularBuf->CircularBuf[R], Len);
+    }
+
+//    R = (R + Len) % CircularBuf->BufDepth;
+//
+//    CircularBuf->R = R;
+
+    return Len;
+}
+int32_t MCUCircular_AbortData(MCU_CIRCULAR_CONTEXT* CircularBuf, uint32_t MaxLen)
+{
+    uint32_t R;//, W;
+    uint32_t Len;
 
 	if(CircularBuf->CircularBuf == NULL)
 	{
@@ -293,9 +335,9 @@ int32_t MCUDCircular_GetSpaceLen(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf)
 	}
 }
 
-void MCUDCircular_PutData(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf, void* InBuf, uint16_t Len)
+void MCUDCircular_PutData(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf, void* InBuf, uint32_t Len)
 {
-    if(Len == 0)
+    if((Len == 0) || (CircularBuf == 0) || (CircularBuf->BufDepth == 0) || (Len >= (MCUDCircular_GetSpaceLen(CircularBuf))))
 	{
 		return;
 	}
@@ -311,10 +353,10 @@ void MCUDCircular_PutData(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf, void* InBuf,
     CircularBuf->W = (CircularBuf->W + Len) % CircularBuf->BufDepth;
 }
 
-uint16_t MCUDCircular_Get1To2Len(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf)
+uint32_t MCUDCircular_Get1To2Len(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf)
 {
-	uint16_t R1, R2;
-	uint16_t Len;
+	uint32_t R1, R2;
+	uint32_t Len;
 
 	R1 = CircularBuf->R1;
 	R2 = CircularBuf->R2;
@@ -336,10 +378,10 @@ uint16_t MCUDCircular_Get1To2Len(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf)
 	return Len;
 }
 
-uint16_t MCUDCircular_GetData1Len(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf)
+uint32_t MCUDCircular_GetData1Len(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf)
 {
-	uint16_t R1, W;
-	uint16_t Len;
+	uint32_t R1, W;
+	uint32_t Len;
 
 	R1 = CircularBuf->R1;
 	W = CircularBuf->W;
@@ -362,10 +404,10 @@ uint16_t MCUDCircular_GetData1Len(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf)
 }
 
 
-int32_t MCUDCircular_GetData1(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint16_t MaxLen)
+int32_t MCUDCircular_GetData1(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint32_t MaxLen)
 {
-    uint16_t R1;//, W;
-    uint16_t Len;
+    uint32_t R1;//, W;
+    uint32_t Len;
 
 
 	if(MaxLen == 0)
@@ -405,10 +447,10 @@ int32_t MCUDCircular_GetData1(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf, void* Ou
 
 
 
-int32_t MCUDCircular_ReadData1(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint16_t MaxLen)
+int32_t MCUDCircular_ReadData1(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint32_t MaxLen)
 {
-    uint16_t R1;//, W;
-    uint16_t Len;
+    uint32_t R1;//, W;
+    uint32_t Len;
 
 
 	if(MaxLen == 0)
@@ -443,10 +485,10 @@ int32_t MCUDCircular_ReadData1(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf, void* O
 
 
 
-uint16_t MCUDCircular_GetData2Len(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf)
+uint32_t MCUDCircular_GetData2Len(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf)
 {
-	uint16_t R2, W;
-	uint16_t Len;
+	uint32_t R2, W;
+	uint32_t Len;
 
 	R2 = CircularBuf->R2;
 	W = CircularBuf->W;
@@ -469,10 +511,10 @@ uint16_t MCUDCircular_GetData2Len(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf)
 }
 
 
-int32_t MCUDCircular_GetData2(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint16_t MaxLen)
+int32_t MCUDCircular_GetData2(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint32_t MaxLen)
 {
-    uint16_t R2;//, W;
-    uint16_t Len;
+    uint32_t R2;//, W;
+    uint32_t Len;
 
 	if(MaxLen == 0)
 	{

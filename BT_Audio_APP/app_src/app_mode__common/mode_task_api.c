@@ -1180,7 +1180,11 @@ bool AudioIoCommonForHfp(uint16_t gain)
 //		AudioADC_PGAGainSet(ADC1_MODULE, CHANNEL_RIGHT, LINEIN3_RIGHT_OR_MIC2, 15, 4);
 
 		//Mic1   digital
+	#ifdef CFG_AUDIO_WIDTH_24BIT	
 		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_24BITS,(void*)mainAppCt.ADCFIFO,FifoLenStereo);
+	#else
+		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_16BITS,(void*)mainAppCt.ADCFIFO,FifoLenStereo);
+	#endif	
 
 	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
         Clock_AudioMclkSel(AUDIO_ADC1, gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source);
@@ -1224,7 +1228,11 @@ bool AudioIoCommonForHfp(uint16_t gain)
 
 		//Mic1	 digital
 		memset(mainAppCt.ADCFIFO, 0, FifoLenStereo);
+#ifdef CFG_AUDIO_WIDTH_24BIT		
 		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_24BITS, (void*)mainAppCt.ADCFIFO, FifoLenStereo);
+#else
+		AudioADC_DigitalInit(ADC1_MODULE, sampleRate,ADC_WIDTH_16BITS, (void*)mainAppCt.ADCFIFO, FifoLenStereo);
+#endif				
 
 	#ifdef CFG_FUNC_MCLK_USE_CUSTOMIZED_EN
         Clock_AudioMclkSel(AUDIO_ADC1, gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source > 2 ? (gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source - 1):gCtrlVars.HwCt.ADC1DigitalCt.adc_mclk_source);

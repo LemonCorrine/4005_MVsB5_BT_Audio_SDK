@@ -549,7 +549,12 @@ static void ConfigBtStackParams(BtStackParams *stackParams)
 		stackParams->a2dpFeatures.a2dp_sink_source_support = 1;
 		//AVRCP
 		stackParams->avrcpFeatures.source_or_sink = gSwitchSourceAndSink;//2:source avrcp  1:sink avrcp
-		stackParams->avrcpFeatures.supportTgSide  = 0;
+		//stackParams->avrcpFeatures.supportTgSide  = 0;
+		#if ((BT_AVRCP_PLAYER_SETTING)||(BT_AVRCP_VOLUME_SYNC))
+			stackParams->avrcpFeatures.supportTgSide = 1;
+		#else
+			stackParams->avrcpFeatures.supportTgSide = 0;
+		#endif
 	}
 	
 	APP_DBG("avrcp Features.supportTgSide [%d]\n", stackParams->avrcpFeatures.supportTgSide);
@@ -575,6 +580,8 @@ static void ConfigBtStackParams(BtStackParams *stackParams)
 #endif
 	
 #if BT_HFG_SUPPORT
+	stackParams->hfgFeatures.wbsSupport = BT_HFP_SUPPORT_WBS;
+	stackParams->hfgFeatures.hfpAudioDataFormat = BT_HFP_AUDIO_DATA;
 	stackParams->hfgFeatures.hfgAppCallback = BtHfgCallback;
 #else
 //	stackParams->hfgFeatures.hfgAppCallback = NULL;
@@ -631,6 +638,7 @@ bool BtStackInit(void)
 	}
 
 #if ( BT_A2DP_SUPPORT )
+	//SetBtA2dpSbcBitpool(35);//53:high-quality SBC settings(bitpool = 53) 35:middle-quality SBC settings(bitpool = 35)
 	retInit = A2dpAppInit(&stackParams.a2dpFeatures);
     if(retInit == 0)
 	{

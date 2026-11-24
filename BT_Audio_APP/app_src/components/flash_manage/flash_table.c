@@ -255,7 +255,7 @@ void flash_table_init(void)
 		APP_DBG("rec_addr_start = 0x%lx\n",rec_addr_start);
 	#endif
 #endif
-#if 1
+#if 0
 	flash_table_info.user_config_addr = (flash_table_info.flash_capacity - USER_CONFIG_OFFSET);
 	flash_table_info.bt_config_addr = (flash_table_info.flash_capacity - BT_CONFIG_OFFSET);
 #else

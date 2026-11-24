@@ -189,7 +189,10 @@ void OnHostAudioRcvIsoPacket(void)
 	#endif
 		}
 
-		MCUCircular_PutData(&UsbAudioInFiFoBuf,  (uint8_t*)host_iso_buf, sample*sizeof(PCM_DATA_TYPE));
+		if(MCUCircular_GetSpaceLen(&UsbAudioInFiFoBuf) > sample*sizeof(PCM_DATA_TYPE))
+		{
+			MCUCircular_PutData(&UsbAudioInFiFoBuf,  (uint8_t*)host_iso_buf, sample*sizeof(PCM_DATA_TYPE));
+		}
 
 		if(!AudioCoreSourceIsEnable(USB_HOST_SOURCE_NUM)
 				&& !UacAudio.MicStartFlag
@@ -423,7 +426,12 @@ bool UsbHostPlayHardwareInit(void)
 {
 	uint32_t i;
 	uint16_t IsoBufMaxLen = 0;
-	//默认参数配置 -- 如果声卡不支持则会选择其他配置。
+	//跳过8BIT
+	//优先级1: ByteSet 和 采样率都匹配
+	//优先级2: 仅采样率匹配（ByteSet不要求）
+	//优先级3: ByteSet匹配，采样率最接近的
+	//优先级4：采样率最接近的（ByteSet不要求）
+	//默认参数配置 -- 按照优先级选择声卡配置。
 	UacAudio.Mic.ByteSet = PCM16BIT;
 	UacAudio.Mic.frequency = AudioCore.SampleRate[DefaultNet];
 
@@ -461,7 +469,7 @@ bool UsbHostPlayHardwareInit(void)
 	}
 
 	OTG_DBG("IsoBufMaxLen %d\n",IsoBufMaxLen);
-	host_iso_buf = (uint8_t*)osPortMalloc(IsoBufMaxLen);
+	host_iso_buf = (uint8_t*)osPortMalloc(IsoBufMaxLen*2);
 	if(host_iso_buf == NULL)
 	{
 		OTG_DBG("host_iso_buf == NULL\n");
@@ -634,25 +642,25 @@ bool UsbHostPlayResMalloc(uint16_t SampleLen)
 	APP_DBG("UsbHostPlayResMalloc %u\n", SampleLen);
 	if(UacAudio.Mic.supported == 1)
 	{
-		PcmInFiFoBuf = (uint8_t*)osPortMalloc(SampleLen * sizeof(PCM_DATA_TYPE) * 2 * 2);
+		PcmInFiFoBuf = (uint8_t*)osPortMalloc(SampleLen * sizeof(PCM_DATA_TYPE) * 2 * 3);
 		if(PcmInFiFoBuf == NULL)
 		{
 			APP_DBG("PcmInFiFoBuf memory error\n");
 			return FALSE;
 		}
-		memset(PcmInFiFoBuf, 0, SampleLen *  sizeof(PCM_DATA_TYPE) * 2 * 2);
-		MCUCircular_Config(&UsbAudioInFiFoBuf, PcmInFiFoBuf, SampleLen * sizeof(PCM_DATA_TYPE) * 2 * 2);
+		memset(PcmInFiFoBuf, 0, SampleLen *  sizeof(PCM_DATA_TYPE) * 2 * 3);
+		MCUCircular_Config(&UsbAudioInFiFoBuf, PcmInFiFoBuf, SampleLen * sizeof(PCM_DATA_TYPE) * 2 * 3);
 	}
 	if(UacAudio.Speaker.supported == 1)
 	{
-		PcmOutFiFoBuf = (uint8_t*)osPortMalloc(SampleLen * sizeof(PCM_DATA_TYPE) * 2 * 2);
+		PcmOutFiFoBuf = (uint8_t*)osPortMalloc(SampleLen * sizeof(PCM_DATA_TYPE) * 2 * 3);
 		if(PcmOutFiFoBuf == NULL)
 		{
 			APP_DBG("PcmOutFiFoBuf memory error\n");
 			return FALSE;
 		}
-		memset(PcmOutFiFoBuf, 0, SampleLen * sizeof(PCM_DATA_TYPE) * 2 * 2);
-		MCUCircular_Config(&UsbAudioOutFiFoBuf, PcmOutFiFoBuf, SampleLen * sizeof(PCM_DATA_TYPE) * 2 * 2);
+		memset(PcmOutFiFoBuf, 0, SampleLen * sizeof(PCM_DATA_TYPE) * 2 * 3);
+		MCUCircular_Config(&UsbAudioOutFiFoBuf, PcmOutFiFoBuf, SampleLen * sizeof(PCM_DATA_TYPE) * 2 * 3);
 	}
 
 	if(UacAudio.Hid.supported == 1)
@@ -675,11 +683,13 @@ void UsbHostPlayResRelease(void)
 	{
 		APP_DBG("PcmOutFiFoBuf\n");
 		osPortFree(PcmOutFiFoBuf);
+		PcmOutFiFoBuf = NULL;
 	}
 	if(PcmInFiFoBuf != NULL)
 	{
 		APP_DBG("PcmInFiFoBuf\n");
 		osPortFree(PcmInFiFoBuf);
+		PcmInFiFoBuf = NULL;
 	}
 	if(host_iso_buf != NULL)
 	{
@@ -691,6 +701,13 @@ void UsbHostPlayResRelease(void)
 	{
 		APP_DBG("Hid.ReportDescriptor\n");
 		osPortFree(UacAudio.Hid.ReportDescriptor);
+		UacAudio.Hid.ReportDescriptor = NULL;
+	}
+	if(hidInFiFoBuf != NULL)
+	{
+		APP_DBG("hidInFiFoBuf\n");
+		osPortFree(hidInFiFoBuf);
+		hidInFiFoBuf = NULL;
 	}
 	memset(&UacAudio,0,sizeof(UacAudio));
 	APP_DBG("UsbHostPlayResRelease\n");
@@ -719,10 +736,10 @@ bool UsbHostPlayMixDeinit(void)
 	AudioCoreSourceDisable(USB_HOST_SOURCE_NUM);
 	AudioCoreSinkDisable(USB_HOST_SINK_NUM);
 
-	UsbHostPlayResRelease();
-
 	AudioCoreSourceDeinit(USB_HOST_SOURCE_NUM);
 	AudioCoreSinkDeinit(USB_HOST_SINK_NUM);
+
+	UsbHostPlayResRelease();
 	return TRUE;
 }
 #endif

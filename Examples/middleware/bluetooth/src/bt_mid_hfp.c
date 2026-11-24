@@ -102,7 +102,11 @@ void BtHfpCallback(BT_HFP_CALLBACK_EVENT event, BT_HFP_CALLBACK_PARAMS * param)
 		APP_DBG("ERROR: index%d,event:0x%x\n", param->index, event);
 		return;
 	}
-	
+
+#if defined(CFG_GAME_AUDIO_MODE_EN) && (GAME_AUDIO_ROLE == GAME_AUDIO_ROLE_SRC)
+	BtHfpWatchdogFeed();	/* <<< add by xiaofeng 新增: 任何HFP事件都证明通道活着 */
+#endif
+
 	switch(event)
 	{
 		case BT_STACK_EVENT_HFP_CONNECTED:

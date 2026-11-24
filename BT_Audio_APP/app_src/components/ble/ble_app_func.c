@@ -6,6 +6,9 @@
 #include "bt_manager.h"
 #include "bt_config.h"
 #include "ble_app_gatt.h"
+#ifdef MV_APP_CONTROL
+#include "mv_app_protocol_handler.h"
+#endif
 extern BT_CONFIGURATION_PARAMS		*btStackConfigParams;
 
 #include "debug.h"
@@ -113,6 +116,9 @@ void BleAppInit(void)
 	extern void rwble_enable_init(void);
     LeInitConfigParams(); //le parameters config
     rwble_enable_init();
+#ifdef MV_APP_CONTROL
+    Mv_AppProtocol_Init();
+#endif
 }
 #endif
 

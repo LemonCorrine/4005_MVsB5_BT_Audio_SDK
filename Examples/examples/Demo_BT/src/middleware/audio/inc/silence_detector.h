@@ -4,7 +4,7 @@
  * @brief	Silence detector.
  *
  * @author	ZHAO Ying (Alfred)
- * @version	v1.2.0
+ * @version	v1.2.1
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************
@@ -32,6 +32,11 @@ typedef struct _SilenceDetectorContext
 	int32_t sample_rate;
 	int32_t num_channels;	
 	int32_t state;
+
+	//castle add to buffer frame data
+	uint32_t buf_size;
+	uint32_t buf_ptr;
+	uint8_t buffer[];//when buffer moved, has problem, fix it next version
 	
 } SilenceDetectorContext;
 

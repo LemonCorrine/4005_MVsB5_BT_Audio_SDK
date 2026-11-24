@@ -138,6 +138,8 @@ typedef struct _InquriyResultParam
 	uint16_t		extRespLen;
 	uint8_t			classOfDev[3];
 	uint8_t			inquiryMode;
+	uint8_t			pageScanRepMode;
+	uint16_t		clockOffset;
 }InquriyResultParam;
 
 
@@ -207,6 +209,9 @@ bool BTInquiryCancel(void);
  * @Note 
  *******************************************************************/
 bool BTGetRemoteDeviceName(uint8_t * addr);
+
+/* Get a remote name using the page scan parameters from Inquiry. */
+bool BTGetRemoteDeviceNameEx(uint8_t *addr, uint8_t pageScanRepMode, uint16_t clockOffset);
 
 /********************************************************************
  * @brief  User Command: Set local bluetooth access mode.

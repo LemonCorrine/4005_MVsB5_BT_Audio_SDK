@@ -205,4 +205,4 @@ typedef enum _roboeffect_user_effect_type_enum
 
 #endif
 
-#define EFFECT_PROPERTY_BIN_CRC32 (0xF8364398)
+#define EFFECT_PROPERTY_BIN_CRC32 (0x6CE00AD0)

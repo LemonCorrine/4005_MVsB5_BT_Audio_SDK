@@ -85,6 +85,7 @@ void BtHfgCallback(BT_HFG_CALLBACK_EVENT event, BT_HFG_CALLBACK_PARAMS * param)
 					BtReconnectDevStop();
 				}
 			    Hfgmicset(10);
+				SetScoConnectFlag(TRUE);
 			}
 			break;
 
@@ -160,6 +161,10 @@ void BtHfgCallback(BT_HFG_CALLBACK_EVENT event, BT_HFG_CALLBACK_PARAMS * param)
 
 		case BT_STACK_EVENT_HFG_GENERATE_DTMF:
 			APP_DBG("BT_STACK_EVENT_HFG_GENERATE_DTMF %d\n",param->params.DtmfDate);
+			break;
+
+		case BT_STACK_EVENT_HFG_CODEC_TYPE:
+			printf("BT_STACK_EVENT_HFG_CODEC_TYPE:%d\n",param->params.features);
 			break;
 
 		case BT_STACK_EVENT_HFG_SCO_DATA_RECEIVED:

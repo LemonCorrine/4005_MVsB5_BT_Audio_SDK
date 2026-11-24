@@ -324,9 +324,6 @@ void UsbDevicePlayHardwareInit(void)
 	if(!SoftFlagGet(SoftFlagSysCurModeReboot))
 	{
 		OTG_DeviceModeSel(CFG_PARA_USB_MODE, USB_VID, USBPID(CFG_PARA_USB_MODE));
-#ifdef CFG_OTG_MODE_READER_EN
-		OTG_DeviceStorInit();
-#endif
 		OTG_DeviceFifoInit();
 		OTG_DeviceInit();
 		NVIC_EnableIRQ(Usb_IRQn);

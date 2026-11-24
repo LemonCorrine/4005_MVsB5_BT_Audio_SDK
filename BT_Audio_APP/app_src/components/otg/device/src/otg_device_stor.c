@@ -641,9 +641,20 @@ void OTG_DeviceStorProcess(void)
 
 		case START_STOP_UNIT:
 			//DBG("START_STOP_UNIT\n");
-			DeviceStorSendCSW(0);
-			DeviceStorStoppedFlag = TRUE;
-			sReaderState = READER_UNREADY;
+			if(gCBW[19] == 0)
+			{
+				//DBG("STOP_UNIT\n");
+				DeviceStorSendCSW(0);
+				DeviceStorStoppedFlag = TRUE;
+				sReaderState = READER_UNREADY;
+			}
+			else if(gCBW[19] == 1)
+			{
+				//DBG("START_UNIT\n");
+				DeviceStorSendCSW(0);
+				DeviceStorStoppedFlag = FALSE;
+				sReaderState = READER_READY;
+			}
 			break;
 
 		default:

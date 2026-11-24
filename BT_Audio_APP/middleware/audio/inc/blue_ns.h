@@ -4,7 +4,7 @@
  * @brief	Noise Suppression for Mono Signals
  *
  * @author	ZHAO Ying (Alfred)
- * @version	v3.1.0
+ * @version	v3.2.0
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************
@@ -36,7 +36,7 @@ extern "C" {
 /**
  * 
  * @brief Estimate the memory usage of noise suppression module before actual initialization.
- * @param[in]  blk_len Block length in samples. 4 supported values: 64 / 128 / 256 / 512.
+ * @param[in]  blk_len Block length in samples. Supported range: 64 ~ 512 (any integer value).
  * @param[in]  bit_depth Bit depth of the PCM samples. Choose either 16 or 24 bits.
  * @param[out] persistent_size  size of persistent memory in bytes. The contents of this memory cannot be modified or cleared between calls to blue_ns_run16() or blue_ns_run24().
  * @param[out] scratch_size  size of scratch memory in bytes. The contents of this memory can be modified or cleared for other use between calls to blue_ns_run16() or blue_ns_run24().
@@ -66,7 +66,7 @@ int32_t blue_ns_estimate_memory_usage(int32_t blk_len, int32_t bit_depth, uint32
  * @brief Initialize the noise suppression module.
  * @param ct Pointer to the noise suppression context object (persistent_size in bytes).
  * @param scratch Pointer to the scratch area (scratch_size in bytes).
- * @param blk_len Block length in samples. 4 supported values: 64 / 128 / 256 / 512.
+ * @param blk_len Block length in samples. Supported range: 64 ~ 512 (any integer value).
  * @param bit_depth Bit depth of the PCM samples. Choose either 16 or 24 bits.
  * @return error code. BLUENS_ERROR_OK means successful, other codes indicate error.
  * @note Only mono signals are supported. 

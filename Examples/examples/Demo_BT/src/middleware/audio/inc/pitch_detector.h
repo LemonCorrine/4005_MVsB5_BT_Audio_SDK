@@ -46,6 +46,11 @@ typedef struct _PitchDetectorContext
 	int16_t pcm_buf[3200];	// size related to window_size
 	float   v[1600+1];		// size related to max_lag
 	int32_t B[2000+1][2];	// size related to pitch_max
+
+	//castle add to buffer frame data
+	uint32_t buf_size;
+	uint32_t buf_ptr;
+	uint8_t buffer[];//when buffer moved, has problem, fix it next version
 } PitchDetectorContext;
 
 

@@ -4,7 +4,7 @@
  * @brief	Acoustic Echo Cancellation (AEC) routines for voice signals
  *
  * @author	ZHAO Ying (Alfred)
- * @version	V6.6.1
+ * @version	V6.7.0
  *
  * &copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  *
@@ -44,8 +44,8 @@ typedef struct _BlueAECContext
 	int32_t phiv[AEC_BLK_LEN*2];
 	float pv[AEC_BLK_LEN+1];
 	
-	float yp[AEC_BLK_LEN + 1];
-	float sy[AEC_BLK_LEN + 1];
+	//float yp[AEC_BLK_LEN + 1];
+	//float sy[AEC_BLK_LEN + 1];
 	float sym[AEC_BLK_LEN + 1];
 
 	int64_t dd[AEC_BLK_LEN+1];

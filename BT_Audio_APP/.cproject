@@ -101,6 +101,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/rtos/rtos_api}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/rtos/freertos/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/middleware/roboeffect/third_party_effect/ai_denoise}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/app_src/mv_app}&quot;"/>
 								</option>
 								<option id="nds.c.compiler.option.debugging.level.315162434" name="Debug Level" superClass="nds.c.compiler.option.debugging.level" value="nds.c.debugging.level.max" valueType="enumerated"/>
 								<option id="nds.c.compiler.option.misc.other.1628901459" name="Other flags" superClass="nds.c.compiler.option.misc.other" value="-c -fmessage-length=0 -ldsp -mext-dsp -std=gnu99" valueType="string"/>
@@ -115,6 +116,17 @@
 								<option id="nds.c.compiler.option.optimization.removesections.data.766274609" name="Remove unused data sections (-fdata-sections)" superClass="nds.c.compiler.option.optimization.removesections.data" value="true" valueType="boolean"/>
 								<option id="nds32le-elf-mculib-v3s.c.compiler.option.optimization.level.base.1312002207" name="Optimization Level" superClass="nds32le-elf-mculib-v3s.c.compiler.option.optimization.level.base" value="nds.c.optimization.level.space.mOs1" valueType="enumerated"/>
 								<option id="nds.c.compiler.option.optimization.flags.902723598" name="Other optimization flags" superClass="nds.c.compiler.option.optimization.flags" value="-fwrapv" valueType="string"/>
+								<option id="nds.c.compiler.option.warnings.allwarn.307815291" name="All warnings (-Wall)" superClass="nds.c.compiler.option.warnings.allwarn" value="true" valueType="boolean"/>
+								<option id="nds.c.compiler.option.warnings.extrawarn.736580271" name="Extra warnings (-Wextra)" superClass="nds.c.compiler.option.warnings.extrawarn" value="false" valueType="boolean"/>
+								<option id="nds.c.compiler.option.warnings.toerrors.1354388064" name="Warnings as errors (-Werror)" superClass="nds.c.compiler.option.warnings.toerrors" value="false" valueType="boolean"/>
+								<option id="nds.c.compiler.option.warnings.nowarn.1491815909" name="Inhibit all warnings (-w)" superClass="nds.c.compiler.option.warnings.nowarn" value="false" valueType="boolean"/>
+								<option id="nds.c.compiler.option.warnings.pedantic.1527951909" name="Pedantic (-pedantic)" superClass="nds.c.compiler.option.warnings.pedantic" value="false" valueType="boolean"/>
+								<option id="nds.c.compiler.option.warnings.pedantic.error.1984065770" name="Pedantic warnings as errors (-pedantic-errors)" superClass="nds.c.compiler.option.warnings.pedantic.error" value="false" valueType="boolean"/>
+								<option id="nds.c.compiler.option.warnings.syntax.1445299507" name="Check syntax only (-fsyntax-only)" superClass="nds.c.compiler.option.warnings.syntax" value="false" valueType="boolean"/>
+								<option id="nds.c.compiler.option.misc.verbose.405812137" name="Verbose (-v)" superClass="nds.c.compiler.option.misc.verbose" value="false" valueType="boolean"/>
+								<option id="nds.c.compiler.option.misc.ansi.260049962" name="Support ANSI programs (-ansi)" superClass="nds.c.compiler.option.misc.ansi" value="false" valueType="boolean"/>
+								<option id="nds.c.compiler.option.misc.coverage.661789705" name="Code Coverage (--coverage)" superClass="nds.c.compiler.option.misc.coverage" value="false" valueType="boolean"/>
+								<option id="nds.c.compiler.option.misc.single.114750450" name="Single Precision Constant (-fsingle-precision-constant)" superClass="nds.c.compiler.option.misc.single" value="false" valueType="boolean"/>
 								<inputType id="tool.nds.c.compiler.input.619503611" superClass="tool.nds.c.compiler.input"/>
 							</tool>
 							<tool command="$(CROSS_COMPILE)gcc" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser" id="tool.nds32le-elf-mculib-v3s.c.linker.base.1485094752" name="Andes C Linker" superClass="tool.nds32le-elf-mculib-v3s.c.linker.base">
@@ -180,18 +192,44 @@
 								</inputType>
 							</tool>
 							<tool command="$(CROSS_COMPILE)as" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GASErrorParser" id="tool.nds32le-elf-mculib-v3s.assembler.base.117608961" name="Andes Assembler" superClass="tool.nds32le-elf-mculib-v3s.assembler.base">
-								<option defaultValue="-g" id="nds.both.asm.option.flags.1595571728" name="Assembler flags" superClass="nds.both.asm.option.flags" valueType="string"/>
+								<option defaultValue="-g" id="nds.both.asm.option.flags.1595571728" name="Assembler flags" superClass="nds.both.asm.option.flags" valueType="string" value=""/>
 								<inputType id="tool.nds.assembler.input.1799818292" superClass="tool.nds.assembler.input"/>
 							</tool>
-							<tool command="$(CROSS_COMPILE)nm" commandLinePattern="${COMMAND} ${FLAGS} &quot;${BuildArtifactFilePrefix}${BuildArtifactFileName}&quot; ${OUTPUT_FLAG} ${OUTPUT}" errorParsers="" id="tool.nds32le-elf-mculib-v3s.nm.base.1539676136" name="NM (symbol listing)" superClass="tool.nds32le-elf-mculib-v3s.nm.base"/>
-							<tool command="$(CROSS_COMPILE)readelf" commandLinePattern="${COMMAND} ${FLAGS} &quot;${BuildArtifactFilePrefix}${BuildArtifactFileName}&quot; ${OUTPUT_FLAG} ${OUTPUT}" errorParsers="" id="tool.nds32le-elf-mculib-v3s.readelf.base.2079687443" name="Readelf (ELF info listing)" superClass="tool.nds32le-elf-mculib-v3s.readelf.base"/>
+							<tool command="$(CROSS_COMPILE)nm" commandLinePattern="${COMMAND} ${FLAGS} &quot;${BuildArtifactFilePrefix}${BuildArtifactFileName}&quot; ${OUTPUT_FLAG} ${OUTPUT}" errorParsers="" id="tool.nds32le-elf-mculib-v3s.nm.base.1539676136" name="NM (symbol listing)" superClass="tool.nds32le-elf-mculib-v3s.nm.base">
+								<option id="nds.nm.option.disable.x104cqfx" name="Disable" superClass="nds.nm.option.disable" value="false" valueType="boolean"/>
+								<option id="nds.nm.option.sortbyaddress.d1ctvmlb" name="Sort by address (-n)" superClass="nds.nm.option.sortbyaddress" value="true" valueType="boolean"/>
+								<option id="nds.nm.option.linenumbers.dbhbu5kp" name="Line numbers (-l)" superClass="nds.nm.option.linenumbers" value="true" valueType="boolean"/>
+								<option id="nds.nm.option.demangle.3kpzabhw" name="Demangle (-C)" superClass="nds.nm.option.demangle" value="true" valueType="boolean"/>
+								<option id="nds.nm.option.definedonly.34lr2pot" name="Defined only (-U)" superClass="nds.nm.option.definedonly" value="false" valueType="boolean"/>
+								<option id="nds.nm.option.externonly.hjgsqe3k" name="External only (-g)" superClass="nds.nm.option.externonly" value="false" valueType="boolean"/>
+							</tool>
+							<tool command="$(CROSS_COMPILE)readelf" commandLinePattern="${COMMAND} ${FLAGS} &quot;${BuildArtifactFilePrefix}${BuildArtifactFileName}&quot; ${OUTPUT_FLAG} ${OUTPUT}" errorParsers="" id="tool.nds32le-elf-mculib-v3s.readelf.base.2079687443" name="Readelf (ELF info listing)" superClass="tool.nds32le-elf-mculib-v3s.readelf.base">
+								<option id="nds.readelf.option.disable.4mb8ramt" name="Disable" superClass="nds.readelf.option.disable" value="false" valueType="boolean"/>
+								<option id="nds.readelf.option.allinfo.16hpdtan" name="All info (-a)" superClass="nds.readelf.option.allinfo" value="true" valueType="boolean"/>
+								<option id="nds.readelf.option.fileheader.95ytngr3" name="File header (-h)" superClass="nds.readelf.option.fileheader" value="false" valueType="boolean"/>
+								<option id="nds.readelf.option.programheaders.dslmoc5g" name="Program headers (-l)" superClass="nds.readelf.option.programheaders" value="false" valueType="boolean"/>
+								<option id="nds.readelf.option.sectionheaders.evkkwyry" name="Section headers (-S)" superClass="nds.readelf.option.sectionheaders" value="false" valueType="boolean"/>
+								<option id="nds.readelf.option.symbols.zzx0hcs3" name="Symbols (-s)" superClass="nds.readelf.option.symbols" value="false" valueType="boolean"/>
+								<option id="nds.readelf.option.relocations.2ub4ulkn" name="Relocations (-r)" superClass="nds.readelf.option.relocations" value="false" valueType="boolean"/>
+							</tool>
 							<tool command="$(CROSS_COMPILE)objdump" commandLinePattern="${COMMAND} ${FLAGS} &quot;${BuildArtifactFilePrefix}${BuildArtifactFileName}&quot; ${OUTPUT_FLAG} ${OUTPUT}" errorParsers="" id="tool.nds32le-elf-mculib-v3s.objdump.base.1479603782" name="Objdump (disassembly)" superClass="tool.nds32le-elf-mculib-v3s.objdump.base">
 								<option id="nds.objdump.option.disable.672972340" name="Disable. (Do not auto-generate output file.)" superClass="nds.objdump.option.disable" value="false" valueType="boolean"/>
+								<option id="nds.objdump.option.allheaders.hz5hs8yt" name="Display all headers (-x)" superClass="nds.objdump.option.allheaders" value="true" valueType="boolean"/>
+								<option id="nds.objdump.option.sectionheaders.f5ashfrt" name="Display section headers (-h)" superClass="nds.objdump.option.sectionheaders" value="false" valueType="boolean"/>
+								<option id="nds.objdump.option.disassemble.89wc7jr3" name="Display disassembly (-d)" superClass="nds.objdump.option.disassemble" value="true" valueType="boolean"/>
+								<option id="nds.objdump.option.symboltable.saiezstq" name="Display symbol table (-t)" superClass="nds.objdump.option.symboltable" value="false" valueType="boolean"/>
+								<option id="nds.objdump.option.linenumbers.psvs98d1" name="Display line numbers (-l)" superClass="nds.objdump.option.linenumbers" value="false" valueType="boolean"/>
+								<option id="nds.objdump.option.demangle.ze6pbopc" name="Demangle names (-C)" superClass="nds.objdump.option.demangle" value="true" valueType="boolean"/>
 							</tool>
 							<tool command="$(CROSS_COMPILE)objcopy" commandLinePattern="${COMMAND} ${FLAGS} &quot;${BuildArtifactFilePrefix}${BuildArtifactFileName}&quot; ${OUTPUT}" errorParsers="" id="tool.nds32le-elf-mculib-v3s.objcopy.base.1692092306" name="Objcopy (object content copy)" superClass="tool.nds32le-elf-mculib-v3s.objcopy.base">
 								<option id="nds.objcopy.option.disable.959429256" name="Disable. (Do not auto-generate output file.)" superClass="nds.objcopy.option.disable" value="false" valueType="boolean"/>
 							</tool>
-							<tool command="$(CROSS_COMPILE)size" commandLinePattern="${COMMAND} ${FLAGS} &quot;${BuildArtifactFilePrefix}${BuildArtifactFileName}&quot; ${OUTPUT_FLAG} ${OUTPUT}" errorParsers="" id="tool.nds32le-elf-mculib-v3s.size.base.1918770417" name="Size (section size listing)" superClass="tool.nds32le-elf-mculib-v3s.size.base"/>
+							<tool command="$(CROSS_COMPILE)size" commandLinePattern="${COMMAND} ${FLAGS} &quot;${BuildArtifactFilePrefix}${BuildArtifactFileName}&quot; ${OUTPUT_FLAG} ${OUTPUT}" errorParsers="" id="tool.nds32le-elf-mculib-v3s.size.base.1918770417" name="Size (section size listing)" superClass="tool.nds32le-elf-mculib-v3s.size.base">
+								<option id="nds.size.option.disable.u7gvgjtn" name="Disable" superClass="nds.size.option.disable" value="false" valueType="boolean"/>
+								<option id="nds.size.option.format.mu7mk3m2" name="Format" superClass="nds.size.option.format" value="berkeley" valueType="string"/>
+								<option id="nds.size.option.radix.1bo9fnfs" name="Radix" superClass="nds.size.option.radix" value="decimal" valueType="string"/>
+								<option id="nds.size.option.totals.75zys835" name="Show totals (-t)" superClass="nds.size.option.totals" value="false" valueType="boolean"/>
+							</tool>
 							<tool command="$(ANDESIGHT_ROOT)/utils/nds_ldsag" commandLinePattern="${COMMAND} ${FLAGS} ${INPUTS} ${OUTPUT_FLAG} $(LDSAG_OUT)" errorParsers="" id="tool.nds32le-elf-mculib-v3s.ldsag.base.367638005" name="LdSaG Tool" superClass="tool.nds32le-elf-mculib-v3s.ldsag.base"/>
 						</toolChain>
 					</folderInfo>

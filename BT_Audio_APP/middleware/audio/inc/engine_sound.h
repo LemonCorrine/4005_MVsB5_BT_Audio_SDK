@@ -4,7 +4,7 @@
  * @brief	Simulation of engine sound
  *
  * @author	ZHAO Ying (Alfred)
- * @version	v1.1.1
+ * @version	v1.3.3
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************
@@ -14,7 +14,9 @@
 #define __ENGINE_SOUND_H__
 
 #include <stdint.h>
-#include "pitch_shifter.h"
+
+#define ENGINE_MAX_W_SIZE		576		// Maximum w size, same as original MAX_W_SIZE
+#define ENGINE_SRC_BUF_SIZE		(ENGINE_MAX_W_SIZE * 2)	// Source buffer for resampler, large enough for step up to ~4.0
 
 
 /** error code for engine sound */
@@ -47,6 +49,16 @@ typedef enum _ES_ERROR_CODE
 typedef int32_t(*EngineSoundPCMReadCallback)(int32_t sound_idx, int32_t n, int16_t *pcm_buf);
 
 
+/** Resampler context */
+typedef struct
+{
+	int16_t src_buf[ENGINE_SRC_BUF_SIZE];	// source sample buffer
+	int32_t src_pos;							// fractional read position (Q16 fixed point)
+	int32_t src_fill;							// number of valid samples in src_buf
+	int32_t step_q16;							// step ratio in Q16 format (65536 = 1.0x)
+} EngineSoundResamplerCT;
+
+
 /** Engine Sound Context */
 typedef struct _EngineSoundContext
 {
@@ -56,11 +68,11 @@ typedef struct _EngineSoundContext
 	EngineSoundPCMReadCallback cb;
 	int32_t frame_state;
 	int32_t sound1, sound2;
-	PitchShifterContext16 ct1, ct2;
-	PitchShifterContext16 *pct1, *pct2;
-	int32_t rpm, rpmfi, rpma, rpmb, rpm_min, rpm_max;
-	int16_t pcm1[MAX_W_SIZE / 2];
-	int16_t pcm2[MAX_W_SIZE / 2];
+	EngineSoundResamplerCT rc1, rc2;
+	EngineSoundResamplerCT *rc1p, *rc2p;
+	int32_t rpm, rpm_target, rpmfi, rpma, rpmb, rpm_min, rpm_max;
+	int16_t pcm1[ENGINE_MAX_W_SIZE / 2];
+	int16_t pcm2[ENGINE_MAX_W_SIZE / 2];
 } EngineSoundContext;
 
 

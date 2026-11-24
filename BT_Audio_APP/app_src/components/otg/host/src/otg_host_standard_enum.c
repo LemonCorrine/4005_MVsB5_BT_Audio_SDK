@@ -213,10 +213,10 @@ bool OTG_HostEnumDevice(void)
 		OTG_HostSetIpodChargeCurrent(500);
 	}
 
-	if(OtgHostInfo.DeviceDesCriptor.bNumConfigurations != 1)
-	{
-		return FALSE;
-	}
+//	if(OtgHostInfo.DeviceDesCriptor.bNumConfigurations != 1)
+//	{
+//		return FALSE;
+//	}
 
 	OTG_DBG("Get Device ConfigCriptor\n");
 	if(!OTG_HostGetDescriptor(USB_DT_CONFIG, 0, (uint8_t *)&OtgHostInfo.ConfigDesCriptor, 9))
@@ -265,7 +265,8 @@ bool OTG_HostEnumDevice(void)
 		DescriptorType = pBuf[i+1];
 		if((DescriptorType == USB_DT_INTERFACE) && (pBuf[i + 3] == 0))//接口atl setting = 0，表示一个新的接口
 		{
-			InterfaceNum = pBuf[i+2];
+//			InterfaceNum = pBuf[i+2];
+			InterfaceNum = OtgHostInfo.UsbInterfaceNum;
 			OtgHostInfo.UsbInterface[InterfaceNum].pData = pBuf + i;
 			OtgHostInfo.UsbInterface[InterfaceNum].Length = 0;
 			OtgHostInfo.UsbInterfaceNum++;

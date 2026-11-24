@@ -30,7 +30,7 @@
 #define AMRWB_INPUT_BUFFER_CAPACITY 256 // 256 is enough!
 #define SIZEOF_AMRWBDecoderContext 4804
 #define APE_INPUT_BUFFER_CAPACITY 2560
-#define SIZEOF_APEContext 22340
+#define SIZEOF_APEContext 22344
 #define DTS_INPUT_BUFFER_CAPACITY 2560
 #define SIZEOF_DTSContext 25152
 #define FLAC_INPUT_BUFFER_CAPACITY 2048
@@ -49,6 +49,9 @@
 #define SIZEOF_WMAContext 25532
 #define MP2_INPUT_BUFFER_CAPACITY 2560
 #define SIZEOF_MP2DecoderContext 9188
+#define DSD_INPUT_BUFFER_CAPACITY 2560
+#define SIZEOF_DSDDecoderContext 32856
+
 
 
 #ifdef  USE_MP3_DECODER
@@ -148,6 +151,15 @@ int32_t mp2_decoder_can_continue(AudioDecoderContext *audio_decoder);
 int32_t mp2_decoder_seek(AudioDecoderContext *audio_decoder, uint32_t seek_time);
 #endif
 
+#ifdef  USE_DSD_DECODER
+int32_t dsd_decoder_initialize(AudioDecoderContext* audio_decoder);
+int32_t dsd_decoder_initializeHR(AudioDecoderContext* audio_decoder);
+int32_t dsd_decoder_decode(AudioDecoderContext* audio_decoder);
+int32_t dsd_decoder_decodeHR(AudioDecoderContext* audio_decoder);
+int32_t dsd_decoder_can_continue(AudioDecoderContext* audio_decoder);
+int32_t dsd_decoder_seek(AudioDecoderContext* audio_decoder, uint32_t seek_time);
+#endif
+
 static const uint8_t audio_decoder_lib_version[] = AUDIO_DECODER_LIBRARY_VERSION " build @ " __DATE__ " " __TIME__;
 const uint8_t* audio_decoder_get_lib_version(void)
 {
@@ -211,6 +223,10 @@ static void get_buffer_context_size(int32_t decoder_type, uint32_t* buffer_capac
 	case MP2_DECODER:
 		*buffer_capacity = MP2_INPUT_BUFFER_CAPACITY;
 		*frame_context_size = SIZEOF_MP2DecoderContext;
+		break;
+	case DSD_DECODER:
+		*buffer_capacity = DSD_INPUT_BUFFER_CAPACITY;
+		*frame_context_size = SIZEOF_DSDDecoderContext;
 		break;
 	default:
 		*buffer_capacity = 0;
@@ -378,6 +394,20 @@ int32_t audio_decoder_initialize(uint8_t *ram_addr, void *io_handle, int32_t io_
 		break;
 #endif
 
+#ifdef  USE_DSD_DECODER
+	case DSD_DECODER:
+#ifdef DSD_HIGH_RESOLUTION
+		audio_decoder->initialize = dsd_decoder_initializeHR;
+		audio_decoder->decode = dsd_decoder_decodeHR;
+#else
+		audio_decoder->initialize = dsd_decoder_initialize;
+		audio_decoder->decode = dsd_decoder_decode;
+#endif
+		audio_decoder->can_continue = dsd_decoder_can_continue;
+		audio_decoder->seek = dsd_decoder_seek;
+		break;
+#endif
+
 	default:
         return RT_FAILURE;
     }
@@ -483,6 +513,9 @@ DecoderType audio_decoder_guess_format(uint8_t s[10])
 		return AMRWB_DECODER;
 	else if (s[0] == 0x4D && s[1] == 0x41 && s[2] == 0x43 && s[3] == 0x20) // 4D 41 43 20 ("MAC ") for .ape
 		return APE_DECODER;
+	else if ((s[0] == 0x44 && s[1] == 0x53 && s[2] == 0x44 && s[3] == 0x20) /* "DSD " */ ||
+		     (s[0] == 0x46 && s[1] == 0x52 && s[2] == 0x4D && s[3] == 0x38) /* "FRM8" */ )
+		return DSD_DECODER;
 	else if (s[0] == 0x0B && s[1] == 0x77) // 0B 77 for .ac3
 		return A52_DECODER;
 	else if (s[0] == 0x49 && s[1] == 0x44 && s[2] == 0x33) // "ID3"

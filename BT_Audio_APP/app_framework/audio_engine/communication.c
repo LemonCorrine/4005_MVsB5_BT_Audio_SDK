@@ -1180,7 +1180,7 @@ void Comm_AGC1_0x08(uint8_t * buf)
 			break;
 		case 2://target level
 			memcpy(&TmpData, &buf[1], 2);
-			gCtrlVars.HwCt.ADC1AGCCt.adc_agc_target_level = TmpData > 255? 255 : TmpData;
+			gCtrlVars.HwCt.ADC1AGCCt.adc_agc_target_level = TmpData > 31? 31 : TmpData;
 			AudioADC_AGCTargetLevel(ADC1_MODULE,(uint8_t)gCtrlVars.HwCt.ADC1AGCCt.adc_agc_target_level);
 			break;
 		case 3://max gain
@@ -1212,8 +1212,7 @@ void Comm_AGC1_0x08(uint8_t * buf)
 			break;
 		case 8://attack time
 			memcpy(&TmpData, &buf[1], 2);
-			TmpData = TmpData > 4096? 4096 : TmpData;
-			gCtrlVars.HwCt.ADC1AGCCt.adc_agc_attack_time = TmpData;
+			gCtrlVars.HwCt.ADC1AGCCt.adc_agc_attack_time = TmpData > 4096? 4096 : TmpData;
 			AudioADC_AGCAttackStepTime(ADC1_MODULE,(uint16_t)gCtrlVars.HwCt.ADC1AGCCt.adc_agc_attack_time);
 			break;
 		case 9://dacay time

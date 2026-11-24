@@ -51,29 +51,30 @@ int32_t MCUCircular_GetSpaceLen(MCU_CIRCULAR_CONTEXT* CircularBuf);
  * 注意：读写指针重合，只发生在MCU 循环fifo 初始化或者播空的时候，
  * 系统往fifo中写数据需要控制水位，防止满的情况发生
  */
-void MCUCircular_PutData(MCU_CIRCULAR_CONTEXT* CircularBuf, void* InBuf, uint16_t Len);
+void MCUCircular_PutData(MCU_CIRCULAR_CONTEXT* CircularBuf, void* InBuf, uint32_t Len);
 
 /*
  * 往循环fifo中读数据
  */
-int32_t MCUCircular_GetData(MCU_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint16_t MaxLen);
+int32_t MCUCircular_GetData(MCU_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint32_t MaxLen);
 
 /*
  * 获取循环fifo有效数据长度，单位Byte
  */
-uint16_t MCUCircular_GetDataLen(MCU_CIRCULAR_CONTEXT* CircularBuf);
+uint32_t MCUCircular_GetDataLen(MCU_CIRCULAR_CONTEXT* CircularBuf);
 
 /*
  * 循环fifo中丢弃数据
  */
-int32_t MCUCircular_AbortData(MCU_CIRCULAR_CONTEXT* CircularBuf, uint16_t MaxLen);
+int32_t MCUCircular_AbortData(MCU_CIRCULAR_CONTEXT* CircularBuf, uint32_t MaxLen);
 
 
 /*
  * 从fifo中读出新的数据 不改变读指针  不改变数据长度
  */
-int32_t MCUCircular_ReadData(MCU_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint16_t MaxLen);
+int32_t MCUCircular_ReadData(MCU_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint32_t MaxLen);
 
+int32_t MCUCircular_ReadData_2(MCU_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint16_t offset, uint16_t MaxLen);
 
 typedef struct __MCU_DOUBLE_CIRCULAR_CONTEXT__
 {
@@ -102,44 +103,44 @@ int32_t MCUDCircular_GetSpaceLen(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf);
  * 注意：读写指针重合，只发生在MCU 循环fifo 初始化或者播空的时候，
  * 系统往fifo中写数据需要控制水位，防止满的情况发生
  */
-void MCUDCircular_PutData(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf, void* InBuf, uint16_t Len);
+void MCUDCircular_PutData(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf, void* InBuf, uint32_t Len);
 
 /*
  * 往循环fifo中读数据
  */
-int32_t MCUDCircular_GetData1(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint16_t MaxLen);
+int32_t MCUDCircular_GetData1(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint32_t MaxLen);
 
 /*
  * 获取循环fifo有效数据长度，单位Byte
  */
-uint16_t MCUDCircular_GetData1Len(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf);
+uint32_t MCUDCircular_GetData1Len(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf);
 
 /*
  * 往循环fifo中读数据  不改变读写指针
  */
-int32_t MCUDCircular_ReadData1(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint16_t MaxLen);
+int32_t MCUDCircular_ReadData1(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint32_t MaxLen);
 
 /*
  * 往循环fifo中读数据
  */
-int32_t MCUDCircular_GetData2(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint16_t MaxLen);
+int32_t MCUDCircular_GetData2(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint32_t MaxLen);
 
 /*
  * 获取循环fifo有效数据长度，单位Byte
  */
-uint16_t MCUDCircular_GetData2Len(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf);
+uint32_t MCUDCircular_GetData2Len(MCU_DOUBLE_CIRCULAR_CONTEXT* CircularBuf);
 
 
 /*
  * 专门给串口打印用
  */
 
-void MCUCircular_PutData_Printf(MCU_CIRCULAR_CONTEXT* CircularBuf, void* InBuf, uint16_t Len);
+void MCUCircular_PutData_Printf(MCU_CIRCULAR_CONTEXT* CircularBuf, void* InBuf, uint32_t Len);
 
 /*
  * 专门给串口打印用
  */
-int32_t MCUCircular_GetData_Printf(MCU_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint16_t MaxLen);
+int32_t MCUCircular_GetData_Printf(MCU_CIRCULAR_CONTEXT* CircularBuf, void* OutBuf, uint32_t MaxLen);
 
 #ifdef __cplusplus
 }

@@ -4,7 +4,7 @@
  * @brief	Virtual bass (bass extension).
  *
  * @author	ZHAO Ying (Alfred)
- * @version	v4.4.2
+ * @version	v4.4.3
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************

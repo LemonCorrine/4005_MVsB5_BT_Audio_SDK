@@ -228,6 +228,7 @@ uint8_t BtSourceReconnectDev(uint8_t *addr, uint8_t index)
 #endif
 		else
 		{
+			bt_reconnect_stop();
 			reconnectProfile &= ~(BT_PROFILE_SUPPORTED_HFG | BT_PROFILE_SUPPORTED_A2DP | BT_PROFILE_SUPPORTED_AVRCP);
 
 #ifdef BT_RECONNECTION_FUNC// source
@@ -287,6 +288,7 @@ void BtSourcePublicMsgPross(uint32_t msgID)
 #if BT_HFG_SUPPORT
 	case MSG_BT_SOURCE_HFG_OUTGOING:
 		BthfgOutgoingWait("12345678900");
+		BthfgAnswer(1);
 		break;
 	case MSG_BT_SOURCE_HFG_INCOMING:
 		BthfgIncomingWait("12345678911");

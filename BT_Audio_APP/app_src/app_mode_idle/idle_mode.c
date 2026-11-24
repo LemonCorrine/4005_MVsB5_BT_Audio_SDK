@@ -304,7 +304,12 @@ void IdleModeRun(uint16_t msgId)
 		vTaskPrioritySet(NULL, pri);
 		AudioCoreServiceResume();
 		osTaskDelay(10);// for printf 
-	
+#ifdef CFG_FUNC_UDISK_DETECT
+		if(OTG_PortHostIsLink())
+		{
+			OTG_HostInit();
+		}
+#endif	
 		IdleMode.AutoPowerOnState = NEED_POWER_ON;
 	}
 #endif	

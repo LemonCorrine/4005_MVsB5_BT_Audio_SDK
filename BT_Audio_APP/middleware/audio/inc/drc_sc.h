@@ -8,7 +8,7 @@
  * - pcm_watch: the sidechain signal used for energy detection and gain decision
  *
  * @author	ZHAO Ying (Alfred)
- * @version	v1.0.0
+ * @version	v1.1.0
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *************************************************************************************

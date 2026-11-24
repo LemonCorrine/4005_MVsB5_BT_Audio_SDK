@@ -27,41 +27,56 @@ static uint8_t gBtSourceNameRequestCnt = 0;
 #define BLUETOOTH_DATA_TYPE_SHORTENED_LOCAL_NAME                               0x08 // Shortened Local Name
 #define BLUETOOTH_DATA_TYPE_COMPLETE_LOCAL_NAME                                0x09 // Complete Local Name
 
-void BtSourceInquiryResultParse(uint8_t *addr, uint16_t extRespLen, uint8_t *extResp, int8_t rssi, uint8_t *classOfDevice)
+void BtSourceInquiryResultParse(uint8_t *addr, uint16_t extRespLen, uint8_t *extResp, int8_t rssi,
+	uint8_t *classOfDevice, uint8_t pageScanRepMode, uint16_t clockOffset)
 {
-	uint16_t offset, name_len, name_offset = 0;
-	uint8_t extLen;
-	uint8_t dataType = 0;
+	uint16_t offset = 0;
+	uint16_t namePos;
 	uint8_t nameInforFlag = 0;
 
-	for(offset=0; offset<extRespLen; offset++)
+	if (extResp && extRespLen)
 	{
-		extLen = extResp[offset];
-		dataType = extResp[offset+1];
-		if((dataType == BLUETOOTH_DATA_TYPE_COMPLETE_LOCAL_NAME)||(dataType == BLUETOOTH_DATA_TYPE_SHORTENED_LOCAL_NAME))
+		while (offset < extRespLen)
 		{
-			name_len = (extLen - 1);
-			name_offset = offset+2;
+			uint8_t extLen = extResp[offset];
+			uint8_t dataType;
+			uint16_t nameLen;
 
-			BtSourceInquiryListInsert(addr, name_len, &extResp[name_offset], classOfDevice, rssi);
+			if (extLen == 0)
+				break;
+			if ((uint16_t)extLen + 1 > extRespLen - offset || extLen < 1)
+				break;
 
-			/*APP_DBG("name: ");
-			for(len = 0; len < name_len; len++)
+			dataType = extResp[offset + 1];
+			if ((dataType == BLUETOOTH_DATA_TYPE_COMPLETE_LOCAL_NAME) ||
+				(dataType == BLUETOOTH_DATA_TYPE_SHORTENED_LOCAL_NAME))
 			{
-				APP_DBG("%c", extResp[offset+2+len]);
+				nameLen = (uint16_t)extLen - 1;
+				BtSourceInquiryListInsert(addr, nameLen, &extResp[offset + 2], classOfDevice, rssi);
+				APP_DBG("name: ");
+				for (namePos = 0; namePos < nameLen; namePos++)
+					APP_DBG("%c", extResp[offset + 2 + namePos]);
+				APP_DBG(",classOfDev:%x-%x-%x\n", classOfDevice[0], classOfDevice[1], classOfDevice[2]);
+				nameInforFlag = 1;
 			}
-			APP_DBG(",classOfDev:%x-%x-%x\n", classOfDevice[0], classOfDevice[1], classOfDevice[2]);
-			*/
 
-			nameInforFlag = 1;
+			offset += (uint16_t)extLen + 1;
 		}
-		offset += extLen;
 	}
 
-	if(nameInforFlag == 0)
-	{
-		//无蓝牙名称反馈
+	if (nameInforFlag == 0)
 		BtSourceInquiryListInsert(addr, 0, NULL, classOfDevice, rssi);
+
+	/* Keep the FHS page parameters for a possible remote-name request. */
+	for (offset = 0; offset < A2DP_SCAN_NUMBER; offset++)
+	{
+		if (btManager.SourceInqResultList[offset].flag &&
+			memcmp(btManager.SourceInqResultList[offset].addr, addr, 6) == 0)
+		{
+			btManager.SourceInqResultList[offset].pageScanRepMode = pageScanRepMode;
+			btManager.SourceInqResultList[offset].clockOffset = clockOffset;
+			break;
+		}
 	}
 }
 
@@ -111,9 +126,10 @@ uint8_t BtSourceInquiryListInsert(uint8_t *addr, uint16_t nameLen, uint8_t *name
 				btManager.SourceInqResultList[i].rssi = rssi;
 				if((nameLen)&&(name))
 				{
-					if(nameLen > 40)
-						nameLen = 40;
-					memcpy(&btManager.SourceInqResultList[i].name[0], name, nameLen);
+					if(nameLen >= sizeof(btManager.SourceInqResultList[i].name))
+						nameLen = sizeof(btManager.SourceInqResultList[i].name) - 1;
+					memset(&btManager.SourceInqResultList[i].name[0], 0, sizeof(btManager.SourceInqResultList[i].name));
+						memcpy(&btManager.SourceInqResultList[i].name[0], name, nameLen);
 
 					btManager.SourceInqResultList[i].nameFlag = 1;
 				}
@@ -131,9 +147,10 @@ uint8_t BtSourceInquiryListInsert(uint8_t *addr, uint16_t nameLen, uint8_t *name
 				&& (btManager.SourceInqResultList[i].nameFlag == 0)
 				)
 			{
-				if(nameLen > 40)
-					nameLen = 40;
-				memcpy(&btManager.SourceInqResultList[i].name[0], name, nameLen);
+				if(nameLen >= sizeof(btManager.SourceInqResultList[i].name))
+						nameLen = sizeof(btManager.SourceInqResultList[i].name) - 1;
+				memset(&btManager.SourceInqResultList[i].name[0], 0, sizeof(btManager.SourceInqResultList[i].name));
+						memcpy(&btManager.SourceInqResultList[i].name[0], name, nameLen);
 
 				btManager.SourceInqResultList[i].nameFlag = 1;
 				btManager.SourceInqResultList[i].rssi = rssi;
@@ -159,9 +176,10 @@ void BtSourceInquiryListNameUpdate(uint8_t *addr, uint16_t nameLen, uint8_t *nam
 			{
 				if(nameLen && name)
 				{
-					if(nameLen > 40)
-						nameLen = 40;
-					memcpy(&btManager.SourceInqResultList[i].name[0], name, nameLen);
+					if(nameLen >= sizeof(btManager.SourceInqResultList[i].name))
+						nameLen = sizeof(btManager.SourceInqResultList[i].name) - 1;
+					memset(&btManager.SourceInqResultList[i].name[0], 0, sizeof(btManager.SourceInqResultList[i].name));
+						memcpy(&btManager.SourceInqResultList[i].name[0], name, nameLen);
 
 					btManager.SourceInqResultList[i].nameFlag = 1;
 
@@ -249,7 +267,9 @@ void BtSourceNameRequest(void)
 				btManager.SourceInqResultList[i].addr[5]
 				);
 				btManager.GetNameFlag = 1;//此Flag用于获取名称失败再次获取
-				BTGetRemoteDeviceName(&btManager.SourceInqResultList[i].addr[0]);
+				BTGetRemoteDeviceNameEx(&btManager.SourceInqResultList[i].addr[0],
+								btManager.SourceInqResultList[i].pageScanRepMode,
+								btManager.SourceInqResultList[i].clockOffset);
 				return;
 			}
 		}
@@ -486,7 +506,9 @@ void BtSourceEventCommonInquiryResult(void * para)
 								param->params.inquiryResult.extRespLen,
 								param->params.inquiryResult.extResp,
 								param->params.inquiryResult.rssi,
-								&param->params.inquiryResult.classOfDev[0]);
+								&param->params.inquiryResult.classOfDev[0],
+								param->params.inquiryResult.pageScanRepMode,
+								param->params.inquiryResult.clockOffset);
 }
 
 

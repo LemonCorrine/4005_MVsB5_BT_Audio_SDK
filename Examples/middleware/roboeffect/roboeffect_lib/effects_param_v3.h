@@ -5,8 +5,8 @@
 #include "type.h"
 
 /*
-	Roboeffect Version: 2.44.0
-	Audio Effect Lib Version: 2.54.0
+	Roboeffect Version: 2.47.1
+	Audio Effect Lib Version: 2.57.0
 	Protocol Version: 0.5.0
 */
 typedef struct _param_auto_tune
@@ -724,6 +724,16 @@ typedef struct _param_silence_detector_l
 {
 	int16_t pcm_amplitude;
 }param_silence_detector_l;
+
+typedef struct _param_phase_control_plus
+{
+	int16_t phase_shift;
+}param_phase_control_plus;
+
+typedef struct _param_peak_envelope
+{
+	int16_t release_time;
+}param_peak_envelope;
 
 typedef struct _param_fader
 {
@@ -1459,6 +1469,16 @@ typedef enum _SILENCE_DETECTOR_L_PARAMS_ENUM
 {
 	INDEX_SILENCE_DETECTOR_L_PCM_AMPLITUDE = 0,
 }SILENCE_DETECTOR_L_PARAMS_ENUM;
+
+typedef enum _PHASE_CONTROL_PLUS_PARAMS_ENUM
+{
+	INDEX_PHASE_CONTROL_PLUS_PHASE_SHIFT = 0,
+}PHASE_CONTROL_PLUS_PARAMS_ENUM;
+
+typedef enum _PEAK_ENVELOPE_PARAMS_ENUM
+{
+	INDEX_PEAK_ENVELOPE_RELEASE_TIME = 0,
+}PEAK_ENVELOPE_PARAMS_ENUM;
 
 typedef enum _FADER_PARAMS_ENUM
 {

@@ -239,6 +239,8 @@ extern int32_t sbc_decoder_init(SBCFrameDecoderContext *ct);
 extern int sbc_get_fram_infor(uint8_t *data,uint32_t *fram_size,uint32_t *frequency,uint32_t *data_out_fram_size);
 extern int32_t sbc_decoder_apply_phone(SBCFrameDecoderContext *ct,uint8_t *sbc_buf,uint8_t sbc_size,int16_t *pcm_buf);
 
+static uint32_t gA2dpFifoFullCnt = 0;	//统计fifo满的次数,用于调试
+
 
 /***********************************************************************************
  * a2dp sbc decoder 初始化函数
@@ -270,6 +272,66 @@ void a2dp_sbc_decoer_init(void)
 }
 
 /***********************************************************************************
+ * a2dp sbc 数据包检测流程
+ **********************************************************************************/
+static int16_t sbc_frame_check(uint8_t *data,uint32_t len)
+{
+	uint32_t v_offset = 0;
+	uint32_t v_frame_bytes = 0, v_freq = 0, v_out = 0;
+
+	// 在校验循环前加
+	if(len < 4)  // SBC 最小帧头 4 字节
+	{
+		BT_DBG("==== a2dp sbc pkt too short: %lu\n", len);
+		return -1;
+	}
+	
+	/* SBC 整包多帧校验：
+	 * 1. 逐帧检查同步字是否为 0x9C
+	 * 2. 调用 sbc_get_frame_infor 获取当前帧长，偏移至下一帧
+	 * 3. 所有帧字节累加后须精确等于 len，否则丢弃本包
+	 */
+	while(v_offset < len)
+	{
+		if(data[v_offset] != 0x9C)			//同步字校验
+		{
+			BT_DBG("==== a2dp sbc frame[%lu] sync err: 0x%02x, pkt_len=%lu\n",
+				v_offset, data[v_offset], len);
+			return v_offset;
+		}
+
+		if(v_offset + 4 > len)			//边界保护：剩余不足最小帧头，丢弃当前坏帧及后续
+        	return v_offset;
+
+		if(sbc_get_fram_infor(data + v_offset, &v_frame_bytes, &v_freq, &v_out) != 0
+			|| v_frame_bytes == 0)		//帧信息解析
+		{
+			BT_DBG("==== a2dp sbc frame[%lu] infor err, pkt_len=%lu\n",
+				v_offset, len);
+			return v_offset;
+		}
+
+		if(v_offset + v_frame_bytes > len)
+		{
+			BT_DBG("==== a2dp sbc frame[%lu] overflow: frame_len=%lu pkt_len=%lu\n",
+				v_offset, v_frame_bytes, len);
+			return v_offset;
+		}
+		v_offset += v_frame_bytes;
+	}
+
+	if(v_offset != len)
+	{
+		BT_DBG("==== a2dp sbc frame len mismatch: frames_total=%lu pkt_len=%lu\n",
+			v_offset, len);
+		return -1;
+	}
+
+	//校验合格
+	return len;
+}
+
+/***********************************************************************************
  * a2dp sbc 接收数据保存处理函数
  **********************************************************************************/
 void a2dp_sbc_save(uint8_t *p,uint32_t len)
@@ -278,6 +340,7 @@ void a2dp_sbc_save(uint8_t *p,uint32_t len)
 	int play_start = 0;
 	int ret = 0;
 	uint8_t errorFlag = 0;
+	int16_t validLen = 0;
 	
 	if(!IsBtAudioMode())
 		return;
@@ -287,9 +350,11 @@ void a2dp_sbc_save(uint8_t *p,uint32_t len)
 		return;
 	}
 
-	if(p[0] != 0x9C)
+	//sbc frame check
+	validLen = sbc_frame_check(p, len);
+	if(validLen != len)
 	{
-		printf("==== a2dp recv sbc,len=%d, error: 0x%02x\n", len, p[0]);
+		APP_DBG("==== a2dp recv sbc tail dropped: valid=%d, pkt_len=%lu\n", validLen, len);
 		return;
 	}
 
@@ -325,12 +390,12 @@ void a2dp_sbc_save(uint8_t *p,uint32_t len)
 	}
 	
 #ifdef CFG_DUMP_DEBUG_EN
-	dumpUartSend(p, len);
+	dumpUartSend(p, validLen);
 #endif
 
 	int gie_ret = GIE_STATE_GET();
 	GIE_DISABLE();
-	if(MCUCircular_GetSpaceLen(&a2dp_player->sbc_fifo_cnt) > len)
+	if(MCUCircular_GetSpaceLen(&a2dp_player->sbc_fifo_cnt) > validLen)
 	{
 		if(a2dp_player->sbc_bytes == 0)//未曾解码 获取采样率等参数
 		{
@@ -354,8 +419,8 @@ void a2dp_sbc_save(uint8_t *p,uint32_t len)
 			}
 			info_ok = 1;
 		}
-		MCUCircular_PutData(&a2dp_player->sbc_fifo_cnt,p,len);
-		if(MCUCircular_GetSpaceLen(&a2dp_player->sbc_fifo_cnt) <= len)
+		MCUCircular_PutData(&a2dp_player->sbc_fifo_cnt,p,validLen);
+		if(MCUCircular_GetSpaceLen(&a2dp_player->sbc_fifo_cnt) <= validLen)
 		{
 			errorFlag = 1;
 			//MCUCircular_GetData(&a2dp_player->sbc_fifo_cnt,p,len);//抛弃旧数据
@@ -392,17 +457,32 @@ void a2dp_sbc_save(uint8_t *p,uint32_t len)
 	}
 	if(errorFlag)
 	{
-		if(errorFlag == 1)
+		if(errorFlag == 2) //sbc fifo full
 		{
-			printf("fifo full, cur_space_len = %d, recv_len=%d\n", MCUCircular_GetSpaceLen(&a2dp_player->sbc_fifo_cnt), len);
-		}
-		else if(errorFlag == 2)
-		{
-			printf("=========== error:sbc fifo is full, current space len = %d, recv len=%d\n", MCUCircular_GetSpaceLen(&a2dp_player->sbc_fifo_cnt), len);
+			//第1包,每隔100包打印一次
+			gA2dpFifoFullCnt++;
+			if(gA2dpFifoFullCnt == 1)
+			{
+				APP_DBG("error:sbc fifo is full, recv:%d, current space len = %ld, recv len=%lu\n", gA2dpFifoFullCnt, MCUCircular_GetSpaceLen(&a2dp_player->sbc_fifo_cnt), len);
+			}
+			else if(gA2dpFifoFullCnt % 100 == 0)
+			{
+				APP_DBG("error:sbc fifo is full, recv:%d, current space len = %ld, recv len=%lu\n", gA2dpFifoFullCnt, MCUCircular_GetSpaceLen(&a2dp_player->sbc_fifo_cnt), len);
+			}
 		}
 
 		errorFlag = 0;
 	}
+	else
+	{
+		//再次获取到数据时,打印fifo满的次数
+		if(gA2dpFifoFullCnt > 0)
+		{
+			APP_DBG("sbc fifo full cnt = %d\n", gA2dpFifoFullCnt);
+			gA2dpFifoFullCnt = 0;
+		}
+	}
+
 	if(info_ok)
 	{
 		APP_DBG("%ld %ld %ld\n",a2dp_player->sbc_bytes,a2dp_player->sample_rate,len);

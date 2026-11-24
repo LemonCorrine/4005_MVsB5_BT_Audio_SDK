@@ -1,12 +1,12 @@
 /***************************************************
  * @file    user_effect_flow_bis.c                      
  * @brief   auto generated                          
- * @author  ACPWorkbench: 5.1.8  
+ * @author  ACPWorkbench: 5.7.0  
  * @version V1.2.0                                 
  * @graphics: bis   
- * @Effect Version: 2.54.0
- * @RoboEffect Version: 2.44.0
- * @Created 2026-04-22T17:53:39                                      
+ * @Effect Version: 2.57.0
+ * @RoboEffect Version: 2.47.1
+ * @Created 2026-07-20T10:07:19                                      
  * @copy; Shanghai Mountain View Silicon Technology Co.,Ltd. All rights reserved.
  ***************************************************/
 
@@ -18,8 +18,23 @@
 #include "user_effect_flow_bis.h"
 
 const char chart_name_bis[] = "bis";
+static const uint8_t roboeffect_user_define_addi_data[] = {
+0x26, 0x00, /*total length  */
+0x02, 0x39, 0x00, /*Effect Version*/
+
+0x02, 0x2f, 0x01, /* Roboeffect Version*/
+
+0x1e, 0x00, /*3rd part data total length  */
+0x02, /*number of 3rd part items*/
+0x0a, /* ai_denoise name length*/
+0x01, 0x02, 0x00, /* effect version*/
+0x61, 0x69, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x69, 0x73, 0x65, /* ai_denoise*/
+0x0b, /* simple_gain name length*/
+0x01, 0x00, 0x00, /* effect version*/
+0x73, 0x69, 0x6d, 0x70, 0x6c, 0x65, 0x5f, 0x67, 0x61, 0x69, 0x6e, /* simple_gain*/
+};
 const unsigned char user_effects_script_bis[] = {
-0x03, 0x06, 0x00, 0x02, 0x03, 0x62, 0x69, 0x73, 0x08, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x2e, 0x39, 0x3e, 
+0x03, 0x06, 0x00, 0x02, 0x03, 0x62, 0x69, 0x73, 0x07, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x2e, 0x39, 0x3e, 
 0x39, 0x2c, 0x38, 0x37, 0x2c, 0x3f, 0x76, 0x6e, 0x69, 0x2e, 0x39, 0x3e, 0x39, 0x2c, 0x38, 0x37, 0x2c, 0x3f, 0x7e, 0x11, 
 0x00, 0x19, 0x05, 0x6e, 0x7b, 0x79, 0x7f, 0x68, 0x43, 0x29, 0x24, 0x30, 0x69, 0x70, 0x76, 0x3e, 0x20, 0x2e, 0x09, 0x37, 
 0x3b, 0x2e, 0x7e, 0x11, 0x00, 0x19, 0x05, 0x6e, 0x7b, 0x79, 0x7f, 0x7f, 0x69, 0x20, 0x23, 0x20, 0x20, 0x2e, 0x09, 0x37, 
@@ -132,6 +147,8 @@ roboeffect_effect_list_info user_effect_list_bis = {
     48000, //sample rate
     256, //frame size
     user_effects_bis,
+    roboeffect_user_define_addi_data,
+    NULL
 };
 static const roboeffect_io_unit source_unit_bis[] = {
     {BIS_SOURCE_MIC_SOURCE          ,  0 , BITS_24         , CH_MONO}, //{source, mem, bit_width, ch}
@@ -145,20 +162,20 @@ static const roboeffect_io_unit sink_unit_bis[] = {
     {BIS_SINK_APP_SINK            ,   0, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
     {BIS_SINK_DAC0_SINK           ,   3, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
     {BIS_SINK_BIS_SINK            ,   2, BITS_24         , CH_STEREO}, //{sink, mem, bit_width, ch}
-    {BIS_SINK_REC_SINK            ,   1, BITS_16         , CH_STEREO}, //{sink, mem, bit_width, ch}
+    {BIS_SINK_REC_SINK            ,   5, BITS_16         , CH_STEREO}, //{sink, mem, bit_width, ch}
 };
 
 static const uint32_t effect_flow_bis[] = {
-50529161, 33686152, 50528770, 16843141, 16843142, 33620225, 83952775, 84215184, 
-17106177, 84215185, 84215186, 84215187, 84215188, 84215189, 84215190, 84215191, 
-84215192, 84215193, 50529538, 129, 130, 131, 132, 138, 
-139, 140, 141, 142, 143, 67108865, 84149249, 50529282, 
-16844034, 
+50529161, 33686152, 50528770, 129, 130, 131, 132, 138, 
+139, 140, 141, 142, 143, 33554433, 84017665, 50528770, 
+16843141, 16843142, 33620225, 100729991, 101058192, 17171969, 101058193, 101058194, 
+101058195, 101058196, 101058197, 101058198, 101058199, 101058200, 101058201, 50529794, 
+84214018, 
 };
 
 const roboeffect_effect_steps_table user_effect_steps_bis = {
     33,  //step cnt
-    1,  //mem used
+    2,  //mem used
     5,  //src numb
     4,  //des numb
 
@@ -175,19 +192,9 @@ uint32_t get_user_effects_script_len_bis(void)
 char *parameter_group_name_bis[1] = { "Bis" };
 
 const unsigned char user_effect_parameters_bis_Bis[] = {
-0xe1, 0x02, /*total data length*/
-0x02, 0x36, 0x00, /*Effect Version*/
-
-0x02, 0x2c, 0x00, /* Roboeffect Version*/
-
-0x1e, 0x00, /*3rd part data total length  */
-0x02, /*number of 3rd part items*/
-0x0a, /* ai_denoise name length*/
-0x01, 0x02, 0x00, /* effect version*/
-0x61, 0x69, 0x5f, 0x64, 0x65, 0x6e, 0x6f, 0x69, 0x73, 0x65, /* ai_denoise*/
-0x0b, /* simple_gain name length*/
-0x01, 0x00, 0x00, /* effect version*/
-0x73, 0x69, 0x6d, 0x70, 0x6c, 0x65, 0x5f, 0x67, 0x61, 0x69, 0x6e, /* simple_gain*/
+0xc3, 0x02, /*total data length*/
+0x80, 0xbb, 0x00, 0x00,/*sample rate, 48000 Hz*/
+0x00, 0x01, 0x00, 0x00,/*frame, 256 Samples*/
 0x81, /*freq_shifter0*/
 0x03,/*length*/
 0x00, /*enable*/

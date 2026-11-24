@@ -512,6 +512,9 @@ void OTG_DeviceAudioSoftwareReset(void)
 	UsbAudioMic.LeftGain        = UsbValToMcuGain(AUDIO_MAX_VOLUME);
 	UsbAudioMic.RightGain       = UsbValToMcuGain(AUDIO_MAX_VOLUME);
 #endif
+#ifdef CFG_OTG_MODE_READER_EN
+	OTG_DeviceStorInit();
+#endif
 }
 
 

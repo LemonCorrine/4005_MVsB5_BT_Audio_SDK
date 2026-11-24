@@ -290,8 +290,8 @@ void SchemeInit(void)
 #ifndef CFG_RESOURCE_DIS
 	#if (defined(CFG_DCDC_EN)&&\
 		( (!(defined(WIRELESS_TURNKEY2_9))) && (!(defined(WIRELESS_TURNKEY3_5))) && (!(defined(WIRELESS_TURNKEY3_6))) ))
-		//ldo_switch_to_dcdc(3);//0-1.9V;1-1.8;2-1.7V;3-1.6V;4-1.5V;5-1.4V;6-1.3V
-		ldo_switch_to_dcdc(5);//0-1.9V;1-1.8;2-1.7V;3-1.6V;4-1.5V;5-1.4V;6-1.3V
+		//ldo_switch_to_dcdc(PWD_DCDC_LVL_1V6);
+		ldo_switch_to_dcdc(PWD_DCDC_LVL_1V4);
 	#else
 		Power_LDO16Config(0);
 	#endif

@@ -31,6 +31,7 @@ extern uint16_t AudioDAC0DataLenGet(void);
 extern bool gain_control_apply(int16_t *pcm_in, int16_t *pcm_out, uint32_t n, int16_t mute, int16_t gain, int8_t ch_num);
 extern int32_t resampler_rom_polyphase_init(ResamplerPolyphaseContext *ct, int32_t num_channels, int32_t src_ratio);
 extern int32_t resampler_rom_polyphase_apply(ResamplerPolyphaseContext *ct, int16_t *pcm_in, int16_t *pcm_out, int32_t n);
+extern int32_t resampler_rom_polyphase_apply24(ResamplerPolyphaseContext *ct, int32_t *pcm_in, int32_t *pcm_out, int32_t n);
 #define AUDIO_CORE_DEBUG 	//强化配置安全检测和定位
 
 #if (BP15_ROM_VERSION == BP15_ROM_V2)
@@ -275,7 +276,7 @@ bool GetRatioEnum(uint32_t Scale1000,int32_t *src_ratio)
 }
 
 //根据转采样比例，输入数据和输出空间，获取合适的输入长度，返回 SRC_INPUT_MIN~MAX_FRAME_SAMPLES
-uint16_t	SRCValidLenGet(uint32_t SampleRateIn, uint32_t AudioLen, uint32_t SampleRateOut, uint32_t SpaceLen)
+uint16_t	SRCValidLenGet(uint32_t AudioLen, uint32_t SampleRateIn, uint32_t SpaceLen, uint32_t SampleRateOut)
 {
 	uint16_t ValidData = 0;
 	uint16_t ValidSpace = sizeof(AudioCore.AdaptOut) / 4;
@@ -1427,10 +1428,10 @@ void AudioCoreIOLenProcess(void)
 #ifdef CFG_FUNC_MIXER_SRC_EN
 						if(SrcAdapter->SampleRate != AudioCore.SampleRate[AudioCore.AudioSource[Index].Net])
 						{
-							SrcAudioLen = SRCValidLenGet(SrcAdapter->SampleRate,
-												Source->DataLenFunc(),
-												AudioCore.SampleRate[AudioCore.AudioSource[Index].Net],
-												MCUCircular_GetSpaceLen(&SrcAdapter->SrcBufHandler) / PcmDataLen - 1);
+							SrcAudioLen = SRCValidLenGet(Source->DataLenFunc(),
+											SrcAdapter->SampleRate,
+											MCUCircular_GetSpaceLen(&SrcAdapter->SrcBufHandler) / PcmDataLen - 1,	
+											AudioCore.SampleRate[AudioCore.AudioSource[Index].Net]);
 							if(SrcAudioLen)
 							{
 								SrcAudioLen = Source->DataGetFunc(AudioCore.AdaptIn, SrcAudioLen);
@@ -1444,7 +1445,7 @@ void AudioCoreIOLenProcess(void)
 #if (BP15_ROM_VERSION == BP15_ROM_V2)
 								if(Source->SrcAdapterRomFlag)
 								{
-									SrcAudioLen = resampler_rom_polyphase_apply24(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+									SrcAudioLen = resampler_rom_polyphase_apply24(&SrcAdapter->SrcCt, (int32_t *)AudioCore.AdaptIn, (int32_t *)AudioCore.AdaptOut, SrcAudioLen);
 									if(SrcAudioLen < 0) SrcAudioLen = 0;
 								}
 								else
@@ -1581,10 +1582,10 @@ void AudioCoreIOLenProcess(void)
 #ifdef CFG_FUNC_MIXER_SRC_EN
 						if(SrcAdapter->SampleRate != AudioCore.SampleRate[AudioCore.AudioSource[Index].Net])
 						{
-							SrcAudioLen = SRCValidLenGet(SrcAdapter->SampleRate,
-												Source->DataLenFunc(),
-												AudioCore.SampleRate[AudioCore.AudioSource[Index].Net],
-												MCUCircular_GetSpaceLen(&SrcAdapter->SrcBufHandler) / PcmDataLen);
+							SrcAudioLen = SRCValidLenGet(Source->DataLenFunc(),
+														SrcAdapter->SampleRate,
+														MCUCircular_GetSpaceLen(&SrcAdapter->SrcBufHandler) / PcmDataLen,
+														AudioCore.SampleRate[AudioCore.AudioSource[Index].Net]);
 							if(SrcAudioLen)
 							{
 								SrcAudioLen = Source->DataGetFunc(AudioCore.AdaptIn, SrcAudioLen);
@@ -1598,7 +1599,7 @@ void AudioCoreIOLenProcess(void)
 #if (BP15_ROM_VERSION == BP15_ROM_V2)
 									if(Source->SrcAdapterRomFlag)
 									{
-										SrcAudioLen = resampler_rom_polyphase_apply24(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+										SrcAudioLen = resampler_rom_polyphase_apply24(&SrcAdapter->SrcCt, (int32_t *)AudioCore.AdaptIn, (int32_t *)AudioCore.AdaptOut, SrcAudioLen);
 										if(SrcAudioLen < 0) SrcAudioLen = 0;
 									}
 									else
@@ -1742,10 +1743,10 @@ void AudioCoreIOLenProcess(void)
 #ifdef CFG_FUNC_MIXER_SRC_EN
 						if(SrcAdapter->SampleRate != AudioCore.SampleRate[AudioCore.AudioSink[Index].Net])
 						{
-							SrcAudioLen = SRCValidLenGet(AudioCore.SampleRate[AudioCore.AudioSink[Index].Net],
-												MCUCircular_GetDataLen(&SrcAdapter->SrcBufHandler) / PcmDataLen,
-												SrcAdapter->SampleRate,
-												Sink->SpaceLenFunc() - 1);
+							SrcAudioLen = SRCValidLenGet(MCUCircular_GetDataLen(&SrcAdapter->SrcBufHandler) / PcmDataLen,
+														AudioCore.SampleRate[AudioCore.AudioSink[Index].Net],
+														Sink->SpaceLenFunc() - 1,
+														SrcAdapter->SampleRate);
 							if(SrcAudioLen)
 							{
 								SrcAudioLen = MCUCircular_GetData(&SrcAdapter->SrcBufHandler, AudioCore.AdaptIn, SrcAudioLen * PcmDataLen) / PcmDataLen;
@@ -1759,7 +1760,7 @@ void AudioCoreIOLenProcess(void)
 #if (BP15_ROM_VERSION == BP15_ROM_V2)
 									if(Sink->SrcAdapterRomFlag)
 									{
-										SrcAudioLen = resampler_rom_polyphase_apply24(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+										SrcAudioLen = resampler_rom_polyphase_apply24(&SrcAdapter->SrcCt, (int32_t *)AudioCore.AdaptIn, (int32_t *)AudioCore.AdaptOut, SrcAudioLen);
 										if(SrcAudioLen < 0) SrcAudioLen = 0;
 									}
 									else
@@ -1962,7 +1963,7 @@ void AudioCoreIOLenProcess(void)
 							if(SraAudioLen)
 							{
 								SraAudioLen = MCUCircular_GetData(&AdjAdapter->SraBufHandler, AudioCore.AdaptOut, SraAudioLen * PcmDataLen) / PcmDataLen;
-								MCUCircular_GetData(&SrcAdapter->SrcBufHandler, AudioCore.AdaptOut, SraAudioLen * PcmDataLen);
+								MCUCircular_PutData(&SrcAdapter->SrcBufHandler, AudioCore.AdaptOut, SraAudioLen * PcmDataLen);
 							}
 						}
 						if(MCUCircular_GetSpaceLen(&AdjAdapter->SraBufHandler) / PcmDataLen >= SINKFRAME(Index))
@@ -1976,10 +1977,10 @@ void AudioCoreIOLenProcess(void)
 #ifdef CFG_FUNC_MIXER_SRC_EN
 						if(SrcAdapter->SampleRate != AudioCore.SampleRate[AudioCore.AudioSink[Index].Net])
 						{
-							SrcAudioLen = SRCValidLenGet(AudioCore.SampleRate[AudioCore.AudioSink[Index].Net],
-												MCUCircular_GetDataLen(&SrcAdapter->SrcBufHandler) / PcmDataLen,
-												SrcAdapter->SampleRate,
-												Sink->SpaceLenFunc());
+							SrcAudioLen = SRCValidLenGet(MCUCircular_GetDataLen(&SrcAdapter->SrcBufHandler) / PcmDataLen,
+														AudioCore.SampleRate[AudioCore.AudioSink[Index].Net],
+														Sink->SpaceLenFunc(),
+														SrcAdapter->SampleRate);
 							if(SrcAudioLen)
 							{
 								SrcAudioLen= MCUCircular_GetData(&SrcAdapter->SrcBufHandler, AudioCore.AdaptIn, SrcAudioLen * PcmDataLen) / PcmDataLen;
@@ -1992,7 +1993,7 @@ void AudioCoreIOLenProcess(void)
 #elif defined(CFG_FUNC_SRC_POLYPHASE_EN)
 #if (BP15_ROM_VERSION == BP15_ROM_V2)
 									if(Sink->SrcAdapterRomFlag)
-										SrcAudioLen = resampler_rom_polyphase_apply24(&SrcAdapter->SrcCt, (int16_t *)AudioCore.AdaptIn, (int16_t *)AudioCore.AdaptOut, SrcAudioLen);
+										SrcAudioLen = resampler_rom_polyphase_apply24(&SrcAdapter->SrcCt, (int32_t *)AudioCore.AdaptIn, (int32_t *)AudioCore.AdaptOut, SrcAudioLen);
 									else
 #endif
 										SrcAudioLen = resampler_polyphase_apply24(&SrcAdapter->SrcCt, (int32_t *)AudioCore.AdaptIn, (int32_t *)AudioCore.AdaptOut, SrcAudioLen);

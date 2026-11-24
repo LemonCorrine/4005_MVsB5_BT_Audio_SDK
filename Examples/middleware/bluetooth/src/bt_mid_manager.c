@@ -237,7 +237,11 @@ void BtLinkStateConnect(uint8_t flag, uint8_t index)
 	if(!btManager.btLinked_env[index].btLinkState
 #else
 	if(((!btManager.btLinked_env[index].btLinkState)
+#if(BT_A2DP_SUPPORT)
 		&&((btManager.btLinked_env[index].a2dpState >= BT_A2DP_STATE_CONNECTED)
+#else
+		&&( 1
+#endif
 #if	BT_SOURCE_SUPPORT		
 		|| GetSourceA2dpState(index) >= BT_A2DP_STATE_CONNECTED
 #endif	

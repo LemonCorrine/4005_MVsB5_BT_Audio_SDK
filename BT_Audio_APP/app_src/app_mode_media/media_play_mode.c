@@ -329,6 +329,7 @@ static void MediaPlayMsgProcess(uint16_t msgId)
 
 		case MSG_DECODER_SERVICE_UPDATA_PLAY_TIME:
 			MediaPlayerTimeUpdate();
+			SendPreviewPlayNextMsg();
             #ifdef CFG_FUNC_DISPLAY_EN
 			msgSend.msgId = MSG_DISPLAY_SERVICE_MEDIA;
 			MessageSend(GetSysModeMsgHandle(), &msgSend);
@@ -667,7 +668,7 @@ void MediaPlayRun(uint16_t msgId)
 			}
 #endif
 
-			if(!IsMediaPlugOut() && (GetSystemMode() == ModeUDiskAudioPlay || GetSystemMode() == ModeCardAudioPlay))
+			if(!IsMediaPlugOut() && (GetSystemMode() == ModeUDiskAudioPlay || GetSystemMode() == ModeCardAudioPlay) && !SoftFlagGet(SoftFlagMediaModeExitTimeOut))
 			{
 				SendModeKeyMsg();
 			}
@@ -702,6 +703,8 @@ void MediaPlayRun(uint16_t msgId)
 bool MediaPlayDeinit(void)
 {
 	APP_DBG("Media Play Deinit\n");
+	SoftFlagDeregister(SoftFlagMediaModeExitTimeOut);
+
 	if(sMediaPlayCt == NULL)
 	{
 		return TRUE;

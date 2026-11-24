@@ -621,7 +621,7 @@ void AvrcpAdvTargetSyncVolumeConfig(uint8_t index,uint8_t volume);
  * @return	True for the command implement successful
  * @Note	callback info includes:
  ******************************************************************/
-bool AvrcpCtrlSetPlayerSettingValues(uint8_t attrId, uint8_t setting);
+bool AvrcpCtrlSetPlayerSettingValues(uint8_t index, uint8_t attrId, uint8_t setting);
 #define BTCtrlSetPlayerSettingValues		AvrcpCtrlSetPlayerSettingValues
 
 /*******************************************************************

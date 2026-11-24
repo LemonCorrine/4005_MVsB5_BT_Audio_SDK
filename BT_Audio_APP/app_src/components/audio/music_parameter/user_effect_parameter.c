@@ -458,17 +458,15 @@ bool AudioEffect_CheckFlashEffectParam(void)
 #endif
 
 //total data length  	---- 2 Bytes
-//Effect Version		---- 3 Bytes
-//Roboeffect Version  	---- 3 Bytes
-//ACPWorkbench V3.8.15浠ュ悗鐗堟湰瀵煎嚭鐨勫弬鏁板鍔犱簡3瀛楄妭鐨凴oboeffect Version + 3rd part data
-//浣跨敤鐨勬椂鍊欐敞鎰忓弬鏁扮殑鐗堟湰锛屼慨鏀瑰搴旂殑鍋忕Щ
+//sample rate			---- 4 Bytes
+//framesize			  	---- 4 Bytes
+//使用的时候注意参数的版本，修改对应的偏移
 EffectValidParamUnit AudioEffect_GetUserEffectValidParam(uint8_t *effect_param)
 {
 	EffectValidParamUnit unit;
-	uint16_t third_data_len = *(uint16_t *)(effect_param + 8);
 
-	unit.params_first_address = effect_param + 8 + third_data_len + 2;
-	unit.data_len = *(uint16_t *)effect_param - 8 - third_data_len;
+	unit.params_first_address = effect_param + 10;
+	unit.data_len = *(uint16_t *)effect_param - 10;
 
 	return unit;
 }
@@ -476,12 +474,11 @@ EffectValidParamUnit AudioEffect_GetUserEffectValidParam(uint8_t *effect_param)
 uint32_t AudioEffect_GetUserEffectParamCRCLen(uint8_t *effect_param)
 {
 	EffectValidParamUnit unit;
-	uint16_t third_data_len = *(uint16_t *)(effect_param + 8);
 	uint32_t crcLen = 0;
 
-	unit.params_first_address = effect_param + 8 + third_data_len + 2;
+	unit.params_first_address = effect_param + 10;
 	uint8_t *params = unit.params_first_address;
-	unit.data_len = *(uint16_t *)effect_param - 8 - third_data_len;
+	unit.data_len = *(uint16_t *)effect_param - 10;
 
 	for(uint32_t i = 0; i < unit.data_len; i++)
 	{

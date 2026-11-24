@@ -57,7 +57,7 @@ void BtSniffLowPower(void)
 {
 	PauseAuidoCore();
 #ifdef CHIP_USE_DCDC
-	ldo_switch_to_dcdc(5); // 电压高RF性能好，最求RF功率性能，建议设置为1.7V；低功耗配置建议设置为1.4V
+    ldo_switch_to_dcdc(PWD_DCDC_LVL_1V4); // 电压高RF性能好，最求RF功率性能，建议设置为1.7V；低功耗配置建议设置为1.4V
 #else
 	Power_LDO16Config(0);
 #endif
@@ -102,7 +102,7 @@ void BtSniffNormalPower(void)
 	Clock_SysClkDivSet(SYS_CLK_DIV);
 	Clock_CoreClkDivSet(SYS_CORE_CLK_DIV);
 #ifdef CHIP_USE_DCDC
-	ldo_switch_to_dcdc(3); // 3-1.6V Default:1.6V
+    ldo_switch_to_dcdc(PWD_DCDC_LVL_1V6); // 3-1.6V Default:1.6V
 #else
 	Power_LDO16Config(1);
 #endif

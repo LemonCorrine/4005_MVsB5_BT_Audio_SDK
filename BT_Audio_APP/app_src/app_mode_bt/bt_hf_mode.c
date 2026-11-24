@@ -402,7 +402,46 @@ static void BtHfModeRunningConfig(void)
 	APP_DBG("calling start...\n");
 
 	DecoderSourceNumSet(BT_HF_SOURCE_NUM,DECODER_MODE_CHANNEL);
-
+#if BT_SOURCE_SUPPORT
+	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
+	{
+		//call resume 
+		if(GetHfgScoAudioCodecType())
+		{
+			if(gBtHfCt->codecType != HFP_AUDIO_DATA_mSBC)
+			{
+				gBtHfCt->codecType = HFP_AUDIO_DATA_mSBC;
+				AudioCoreSinkChange(AUDIO_HF_SCO_SINK_NUM, 1, BTHF_MSBC_SAMPLE_RATE);
+			}
+		}
+		else
+		{
+			if(gBtHfCt->codecType != HFP_AUDIO_DATA_PCM)
+			{
+				gBtHfCt->codecType = HFP_AUDIO_DATA_PCM;
+				AudioCoreSinkChange(AUDIO_HF_SCO_SINK_NUM, 1, BTHF_CVSD_SAMPLE_RATE);
+			}
+		}
+	}else{
+		//call resume 
+		if(GetHfpScoAudioCodecType(BtCurIndex_Get()))
+		{
+			if(gBtHfCt->codecType != HFP_AUDIO_DATA_mSBC)
+			{
+				gBtHfCt->codecType = HFP_AUDIO_DATA_mSBC;
+				AudioCoreSinkChange(AUDIO_HF_SCO_SINK_NUM, 1, BTHF_MSBC_SAMPLE_RATE);
+			}
+		}
+		else
+		{
+			if(gBtHfCt->codecType != HFP_AUDIO_DATA_PCM)
+			{
+				gBtHfCt->codecType = HFP_AUDIO_DATA_PCM;
+				AudioCoreSinkChange(AUDIO_HF_SCO_SINK_NUM, 1, BTHF_CVSD_SAMPLE_RATE);
+			}
+		}
+	}
+#else
 	//call resume 
 	if(GetHfpScoAudioCodecType(BtCurIndex_Get()))
 	{
@@ -420,6 +459,7 @@ static void BtHfModeRunningConfig(void)
 			AudioCoreSinkChange(AUDIO_HF_SCO_SINK_NUM, 1, BTHF_CVSD_SAMPLE_RATE);
 		}
 	}
+#endif
 
 	//³õÊ¼»¯½âÂëÆ÷
 	BtHf_MsbcInit();
@@ -543,13 +583,28 @@ bool BtHfInit(void)
 	memset(&gBtHfCt->ScoInDataBuf[0], 0, SCO_IN_DATA_SIZE);
 	
 	memset(&gBtHfCt->PcmBufForMsbc[0], 0, MSBC_PACKET_PCM_SIZE);
-	
+#if BT_SOURCE_SUPPORT
+	if(gSwitchSourceAndSink == A2DP_SET_SOURCE)
+	{
+		//call resume 
+		if(GetHfgScoAudioCodecType())
+			gBtHfCt->codecType = HFP_AUDIO_DATA_mSBC;
+		else
+			gBtHfCt->codecType = HFP_AUDIO_DATA_PCM;
+	}else{
+		//call resume 
+		if(GetHfpScoAudioCodecType(BtCurIndex_Get()))
+			gBtHfCt->codecType = HFP_AUDIO_DATA_mSBC;
+		else
+			gBtHfCt->codecType = HFP_AUDIO_DATA_PCM;
+	}
+#else
 	//call resume 
 	if(GetHfpScoAudioCodecType(BtCurIndex_Get()))
 		gBtHfCt->codecType = HFP_AUDIO_DATA_mSBC;
 	else
 		gBtHfCt->codecType = HFP_AUDIO_DATA_PCM;
-	
+#endif
 	{
 		MCUCircular_Config(&gBtHfCt->ScoInPcmFIFOCircular, &gBtHfCt->ScoInPcmFIFO[0], BT_SCO_PCM_FIFO_LEN);
 		memset(&gBtHfCt->ScoInPcmFIFO[0], 0, BT_SCO_PCM_FIFO_LEN);

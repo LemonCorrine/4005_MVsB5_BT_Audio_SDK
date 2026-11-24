@@ -177,6 +177,7 @@ enum _SYS_SOFTWARE_FLAG_
 
 	//标记切换音效需要重启当前模式
 	SoftFlagSysCurModeReboot 		=	BIT(24),
+	SoftFlagMediaModeExitTimeOut 	= 	BIT(25), //标记退出MediaMode退出超时
 };
 
 #define SoftFlagRegister(SoftEvent)			(mainAppCt.SoftwareFlag |= SoftEvent)

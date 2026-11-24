@@ -26,6 +26,33 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 --------------------------------------------------------------------------------------
 版本历史：（采用倒序排列，最新版置顶）
 
+2026-10-21【v15_2.1.1】
+1、蓝牙初始化阶段Bluetooth_common_init，将开关总中断换成只开关蓝牙相关中断；
+
+2026-10-9【v15_2.1.0】
+1、Update Core ver from 6.0 to 6.3;
+2、Set rf normal gain during bt init.
+3、更新map 发送数据，保证数据处理完成后，再发送下一个包
+4、优化Inquiry名称获取的流程，提升速率和准确度
+5、update page gain and normal gain by write rf register.
+6、Update rssi value under ECO4&ECO5 chip.
+
+2026-8-4【v15_2.0.1】
+1、修改扫描启动异常问题
+2、修复AvrcpCtrlSetPlayerSettingValues函数功能
+3、解决双key下，ble死机问题
+4、增加bitpool参数修改函数接口，SetBtA2dpSbcBitpool
+5、完善BQB认证项内容-#17691-PTS 8.14.0 Build4
+
+2026-7-14【v15_2.0.0】
+1、修复PDU池耗尽导致AVRCP死锁
+2、优化芯片回连手机，手机连接芯片，概率出现死机问题
+3、蓝牙核心协议版本：v6.0
+
+2026-6-25【v15_1.9.9】
+1、修改central 接收从机ntf 数据异常问题
+2、source支持16k通话
+
 2026-5-29【v15_1.9.8】
 1、解决AvrcpConnect回连时，链接发起失效问题
 

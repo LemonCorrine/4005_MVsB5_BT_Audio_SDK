@@ -57,7 +57,7 @@
 									<listOptionValue builtIn="false" value="AudioDecoderLibrary"/>
 									<listOptionValue builtIn="false" value="BtStack"/>
 									<listOptionValue builtIn="false" value="BtRom"/>
-									<listOptionValue builtIn="false" value="BlueAEC"/>
+									<listOptionValue builtIn="false" value="AudioEffectLibrary"/>
 									<listOptionValue builtIn="false" value="dsp"/>
 									<listOptionValue builtIn="false" value="m"/>
 								</option>

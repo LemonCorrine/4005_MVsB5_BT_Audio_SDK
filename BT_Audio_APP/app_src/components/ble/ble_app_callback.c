@@ -10,6 +10,9 @@
 #endif
 #include "rtos_api.h"
 #include "bt_config.h"
+#ifdef MV_APP_CONTROL
+#include "mv_app_protocol_handler.h"
+#endif
 #if (BLE_SUPPORT)
 
 uint8_t BleConnectFlag = 0;
@@ -197,14 +200,18 @@ void AppEventCallBack(LE_CB_EVENT event, LE_CB_PARAMS* param)
         uint8_t i;
         APP_DBG("\n*****LE_RCV_DATA_EVENT*****\n");
         BLE_INFO("connect handle: 0x%04x,att_handle: 0x%04x\n", param->rcv_data.conhdl, param->rcv_data.handle);
-        BLE_INFO("RCV DATA: ");
-        for (i = 0; i < param->rcv_data.len; i++)
-        {
-            APP_DBG("0x%02x,", param->rcv_data.data[i]);
-        }
-        APP_DBG("\n");
-        //发送示例
-        ble_send_data(param->rcv_data.conhdl,0,0,0x0d,test_buff,sizeof(test_buff),0);
+        #ifdef MV_APP_CONTROL
+            mvble_data_received(param->rcv_data.data,param->rcv_data.len);
+        #else
+            BLE_INFO("RCV DATA: ");
+            for (i = 0; i < param->rcv_data.len; i++)
+            {
+                APP_DBG("0x%02x,", param->rcv_data.data[i]);
+            }
+            APP_DBG("\n");
+            //发送示例
+            ble_send_data(param->rcv_data.conhdl,0,0,0x0d,test_buff,sizeof(test_buff),0);
+        #endif
         break;
     }
     case LE_APP_READ_DATA_EVENT:

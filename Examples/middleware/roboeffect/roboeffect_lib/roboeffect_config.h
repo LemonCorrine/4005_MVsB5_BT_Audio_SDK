@@ -57,7 +57,9 @@ extern "C" {
 #define OVER_DRIVE_PLOY_ENABLE                  (1)
 #define PCM_DELAY_ENABLE                        (1)
 #define PCM_DELAY_MS_ENABLE                     (1)
+#define PEAK_ENVELOPE_ENABLE                    (1)
 #define PHASE_CONTROL_ENABLE                    (1)
+#define PHASE_CONTROL_PLUS_ENABLE               (1)
 #define PHASE_INVERTER_ENABLE                   (1)
 #define PINGPONG_ENABLE                         (1)
 #define PITCH_DETECTOR_ENABLE                   (1)
@@ -159,6 +161,8 @@ extern "C" {
 #define ROBOEFFECT_REVERB_PLATE_ME_PARAM_LEN          8
 #define ROBOEFFECT_DRC_SC_PARAM_LEN                   26
 #define ROBOEFFECT_SILENCE_DETECTOR_L_PARAM_LEN       1
+#define ROBOEFFECT_PHASE_CONTROL_PLUS_PARAM_LEN       1
+#define ROBOEFFECT_PEAK_ENVELOPE_PARAM_LEN            1
 #define ROBOEFFECT_FADER_PARAM_LEN                    3
 #define ROBOEFFECT_DOWNMIX_2TO1_PARAM_LEN             0
 #define ROBOEFFECT_UPMIX_1TO2_PARAM_LEN               0
@@ -604,6 +608,18 @@ bool roboeffect_silence_detector_l_init_if(void *node);
 bool roboeffect_silence_detector_l_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
 bool roboeffect_silence_detector_l_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
 bool roboeffect_silence_detector_l_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
+
+//phase_control_plus interface
+bool roboeffect_phase_control_plus_init_if(void *node);
+bool roboeffect_phase_control_plus_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
+bool roboeffect_phase_control_plus_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
+bool roboeffect_phase_control_plus_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
+
+//peak_envelope interface
+bool roboeffect_peak_envelope_init_if(void *node);
+bool roboeffect_peak_envelope_config_if(void *node, int16_t *new_param, uint8_t param_num, uint8_t len);
+bool roboeffect_peak_envelope_apply_if(void *node, int16_t *pcm_in1, int16_t *pcm_in2, int16_t *pcm_out, int32_t n);
+bool roboeffect_peak_envelope_memory_size_if(roboeffect_memory_size_query *query, roboeffect_memory_size_response *response);
 
 //fader interface
 bool roboeffect_fader_init_if(void *node);

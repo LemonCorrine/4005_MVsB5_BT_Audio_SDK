@@ -13,7 +13,7 @@
 #define __ROBOEFFECT_API_H__
 
 /*Roboeffect Library version*/
-#define ROBOEFFECT_LIB_VER "2.44.0"
+#define ROBOEFFECT_LIB_VER "2.47.1"
 
 #include <stdio.h>
 #include <nds32_intrinsic.h>
@@ -33,7 +33,7 @@
 #define ROBOEFFECT_IO_TYPE_DES 2
 
 
-#define ROBOEFFECT_CH_NA						0
+#define ROBOEFFECT_CH_NA				0
 #define ROBOEFFECT_CH_MONO          1
 #define ROBOEFFECT_CH_STEREO        2
 #define ROBOEFFECT_CH_MONO_STEREO   3
@@ -46,7 +46,7 @@
 #define PARAMBIN_MAGIC_NUM (0xA55AB44B)
 
 #define PARAMBIN_VER_H 0
-#define PARAMBIN_VER_M 9
+#define PARAMBIN_VER_M 10
 #define PARAMBIN_VER_L 0
 
 #define ALIGN4(x) (((x) + 3) & ~3)
@@ -138,6 +138,8 @@ typedef enum _roboeffect_effect_type_enum
 	ROBOEFFECT_REVERB_PLATE_ME,
 	ROBOEFFECT_DRC_SC,
 	ROBOEFFECT_SILENCE_DETECTOR_L,
+	ROBOEFFECT_PHASE_CONTROL_PLUS,
+	ROBOEFFECT_PEAK_ENVELOPE,
 
 	/*node type below*/
 	ROBOEFFECT_FADER,//
@@ -181,9 +183,10 @@ typedef enum _ROBOEFFECT_ERROR_CODE
 	ROBOEFFECT_FLUSH_FIFO_FULL,//flush fifo is full
 	ROBOEFFECT_APPLY_ERROR,//engine execution error
 	ROBOEFFECT_CONFIG_PARAM_ERROR,//set parameter error, maybe parameter not correct
+    ROBOEFFECT_EFFECT_CROPPED,//effect is cropped to optimize storage capacity.
 
 	// No Error
-	ROBOEFFECT_ERROR_OK = 0,					/**< no error */
+	ROBOEFFECT_ERROR_OK = 0, /**< no error */
 } ROBOEFFECT_ERROR_CODE;
 
 typedef enum _param_act_method
@@ -216,8 +219,10 @@ typedef enum _roboeffect_fader_step
 {
 	FADE_INOUT_NONE = 0,
 	FADE_INOUT_OUT,
+	FADE_INOUT_OUT_PROC,
 	FADE_INOUT_ZERO,
 	FADE_INOUT_IN,
+	FADE_INOUT_IN_PROC,
 } roboeffect_fader_step;
 
 typedef enum _roboeffect_operation
@@ -260,6 +265,22 @@ typedef struct _roboeffect_fader_context_inner
 	FaderContext cnx;
 } roboeffect_fader_context_inner;
 
+typedef enum _roboeffect_fader_op
+{
+	FADER_TRIGGER_BYPASS = 0,
+	FADER_TRIGGER_MUTE,
+	FADER_TRIGGER_FADE_OUT,
+	FADER_TRIGGER_FADE_IN,
+
+	FADER_STATUS_READY,
+	FADER_STATUS_OUT_PROC,
+	FADER_STATUS_OUT_DONE,
+	FADER_STATUS_IN_PROC,
+	FADER_STATUS_IN_DONE,
+	FADER_STATUS_DONE,
+}roboeffect_fader_op;
+
+
 typedef struct _roboeffect_proc_mm_node
 {
 	uint8_t id;
@@ -277,6 +298,15 @@ typedef struct _roboeffect_io_unit
 	uint8_t width;//roboeffect_width
 	uint8_t ch;//roboeffect_channel
 } roboeffect_io_unit;
+
+typedef struct _roboeffect_memory_layout
+{
+	uint8_t mem_id;
+	uint8_t width;//roboeffect_width
+	uint8_t ch;//roboeffect_channel
+    uint8_t reserved;
+} roboeffect_memory_layout;
+
 
 typedef struct _roboeffect_step
 {
@@ -314,6 +344,8 @@ typedef struct _roboeffect_effect_list_info
 	uint32_t sample_rate;
 	uint32_t frame_size;
 	const roboeffect_exec_effect_info *effect_info;
+	const uint8_t *robo_addi_info;
+	const uint8_t *mounted_param;
 } roboeffect_effect_list_info;//parameter header for all
 
 typedef struct _roboeffect_memory_size_query
@@ -450,8 +482,23 @@ typedef struct _roboeffect_parambin_brief
 	const uint8_t *password;
 	const uint8_t *flow_ptr;
 	uint32_t parambin_crc32;
+	uint16_t addi_data_len;
+	uint8_t *addi_data;
+
 
 } roboeffect_parambin_brief;
+
+typedef enum _roboeffect_param_data_type
+{
+    PARAM_TYPE_LENGTH = 0,
+    PARAM_TYPE_SAMPLE_RATE,
+    PARAM_TYPE_FRAME_SIZE,
+    PARAM_TYPE_EFFECT,
+
+    PARAM_TYPE_MAX,
+
+} roboeffect_param_data_type;
+
 
 /*********************************************parambin end*********************************************************/
 
@@ -737,6 +784,18 @@ void *roboeffect_get_effect_params_pool(void *main_context, uint32_t *node_size)
  * @return ROBOEFFECT_ERROR_CODE 
  */
 ROBOEFFECT_ERROR_CODE roboeffect_get_frame_buffer_info(void *main_context, void **buffer_pointer, int32_t *buffer_size);
+
+
+/**
+ * @brief Get corresponding data based on the given type in parameter block
+ * 
+ * @param *parameter : effect parameter block
+ * @param addr : effect node's address if type is PARAM_TYPE_EFFECT, start from ROBOEFFECT_FIRST_ADDR
+ * @param data_type : data type
+ * @return uint8_t*, a pointer to data. 
+ */
+uint8_t *roboeffect_get_parameter_section(uint8_t *parameter, uint8_t addr, roboeffect_param_data_type data_type);
+
 
 /**
  * @brief For user defined effect api, check parameters, should be called in interface named roboeffect_XXXX_config_if

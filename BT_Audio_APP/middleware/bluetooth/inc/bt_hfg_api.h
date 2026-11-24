@@ -91,6 +91,8 @@ void BtHfgCallback(BT_HFG_CALLBACK_EVENT event, BT_HFG_CALLBACK_PARAMS * param);
 
 typedef struct _HfgAppFeatures
 {
+	bool				wbsSupport;
+	HfpAudioDataFormat	hfpAudioDataFormat;
 	BTHfgCallbackFunc	hfgAppCallback;
 }HfgAppFeatures;
 
@@ -146,7 +148,7 @@ void HfgSetCurrNumber(char *number);
  *
  */
 bool HfgSendScoData(uint8_t * data, uint16_t dataLen);
-
+uint8_t GetHfgScoAudioCodecType();
 #endif /*__BT_HFG_API_H__*/
 
 /**

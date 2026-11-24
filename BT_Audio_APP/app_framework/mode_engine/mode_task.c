@@ -499,6 +499,7 @@ void SysModeChangeTimeoutProcess(void)
 			if(SoftFlagGet(SoftFlagMediaModeRead))
 			{
 				APP_DBG("====SoftFlagMediaModeRead === \n");
+				SoftFlagRegister(SoftFlagMediaModeExitTimeOut);
 				gChangeModeTimeOutTimer = CHANGE_MODE_TIMEOUT_COUNT;
 				return;
 			}

@@ -563,6 +563,19 @@ void AudioCodecGainUpdata(void)
 	AudioADC_DigitalMute(ADC1_MODULE, gCtrlVars.HwCt.ADC1DigitalCt.adc_mute, gCtrlVars.HwCt.ADC1DigitalCt.adc_mute);
 
 	AudioADC_AGCChannelSel(ADC1_MODULE, (gCtrlVars.HwCt.ADC1AGCCt.adc_agc_mode & 0x01), (gCtrlVars.HwCt.ADC1AGCCt.adc_agc_mode >> 1) & 0x01);
+	AudioADC_AGCTargetLevel(ADC1_MODULE,(uint8_t)gCtrlVars.HwCt.ADC1AGCCt.adc_agc_target_level);
+	AudioADC_AGCMaxLevel(ADC1_MODULE,(uint8_t)gCtrlVars.HwCt.ADC1AGCCt.adc_agc_max_level);
+	AudioADC_AGCMaxGain(ADC1_MODULE,(uint8_t)(31 - gCtrlVars.HwCt.ADC1AGCCt.adc_agc_max_gain));
+	AudioADC_AGCMinGain(ADC1_MODULE,(uint8_t)(31 - gCtrlVars.HwCt.ADC1AGCCt.adc_agc_min_gain));
+	AudioADC_AGCGainOffset(ADC1_MODULE,(uint8_t)gCtrlVars.HwCt.ADC1AGCCt.adc_agc_gainoffset);
+	AudioADC_AGCFrameTime(ADC1_MODULE,(uint16_t)gCtrlVars.HwCt.ADC1AGCCt.adc_agc_fram_time);
+	AudioADC_AGCHoldFrames(ADC1_MODULE,(uint32_t)gCtrlVars.HwCt.ADC1AGCCt.adc_agc_hold_time);
+	AudioADC_AGCAttackStepTime(ADC1_MODULE,(uint16_t)gCtrlVars.HwCt.ADC1AGCCt.adc_agc_attack_time);
+	AudioADC_AGCDecayStepTime(ADC1_MODULE,(uint16_t)gCtrlVars.HwCt.ADC1AGCCt.adc_agc_decay_time);
+	AudioADC_AGCNoiseGateEnable(ADC1_MODULE,(bool)gCtrlVars.HwCt.ADC1AGCCt.adc_agc_noise_gate_en);
+	AudioADC_AGCNoiseThreshold(ADC1_MODULE,(uint8_t)gCtrlVars.HwCt.ADC1AGCCt.adc_agc_noise_threshold);
+	AudioADC_AGCNoiseGateMode(ADC1_MODULE,(uint8_t)gCtrlVars.HwCt.ADC1AGCCt.adc_agc_noise_gate_mode);
+	AudioADC_AGCNoiseHoldTime(ADC1_MODULE,(uint8_t)gCtrlVars.HwCt.ADC1AGCCt.adc_agc_noise_time);
 
 	AudioDAC_VolSet(DAC0, gCtrlVars.HwCt.DAC0Ct.dac_dig_l_vol, gCtrlVars.HwCt.DAC0Ct.dac_dig_r_vol);
 #ifndef CFG_AUDIO_WIDTH_24BIT

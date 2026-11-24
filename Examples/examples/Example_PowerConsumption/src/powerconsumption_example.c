@@ -84,7 +84,7 @@ int main(void)
     __c_init_rom();
     SystemClockInit();
 #if (USE_DCDC == 1)
-	ldo_switch_to_dcdc(6);
+    ldo_switch_to_dcdc(PWD_DCDC_LVL_1V3);
 #else
     Power_LDO16Config(1);
 #endif

@@ -344,13 +344,13 @@ void BtGetRemoteName(BT_STACK_CALLBACK_PARAMS * param)
 	
 	if((param->params.remDevName.nameLen) && (param->params.remDevName.name))
 	{
-		if(param->params.remDevName.nameLen < 40)
+		if(param->params.remDevName.nameLen < sizeof(btManager.remoteName) - 1)
 		{
 			btManager.remoteNameLen = param->params.remDevName.nameLen;
 		}
 		else
 		{
-			btManager.remoteNameLen = 40;
+			btManager.remoteNameLen = sizeof(btManager.remoteName) - 1;
 		}
 		memcpy(btManager.remoteName, param->params.remDevName.name, btManager.remoteNameLen);
 	}

@@ -177,6 +177,8 @@ typedef struct _BT_SOURCE_INQUIRY_LIST
 	uint8_t		name[40];
 	uint8_t		classOfDev[3];
 	int8_t		rssi;
+	uint8_t		pageScanRepMode;
+	uint16_t	clockOffset;
 }BT_SOURCE_INQUIRY_LIST;
 #endif
 
@@ -695,6 +697,16 @@ BT_A2DP_STATE GetA2dpState(uint8_t index);
 BT_A2DP_STATE GetSourceA2dpState(uint8_t index);
 #endif
 
+/*********************************************************************
+* @brief  SetBtA2dpSbcBitpool() - Set the SBC quality for A2DP streaming.
+* @param  value: <= 53 (default = 53)
+*			53: high-quality SBC settings(bitpool = 53)
+*			35: middle-quality SBC settings(bitpool = 35)
+* @return 1=success; 0=fail
+* @Note   ÉèÖÃA2DP SBCÒôÖÊ
+*********************************************************************/
+uint8_t SetBtA2dpSbcBitpool(uint8_t value);
+
 /********************************************************************
  * @brief  connect the a2dp profile 
  * @param  index: 0 or 1
@@ -968,7 +980,8 @@ void BtStopReconnect(void);
 
 #if BT_SOURCE_SUPPORT
 void BtconnectAvrcpStart(void);
-void BtSourceInquiryResultParse(uint8_t *addr, uint16_t extRespLen, uint8_t *extResp, int8_t rssi, uint8_t *classOfDevice);
+void BtSourceInquiryResultParse(uint8_t *addr, uint16_t extRespLen, uint8_t *extResp, int8_t rssi,
+	uint8_t *classOfDevice, uint8_t pageScanRepMode, uint16_t clockOffset);
 void BtSourceInquiryListClear(void);
 uint8_t BtSourceInquiryListInsert(uint8_t *addr, uint16_t nameLen, uint8_t *name, uint8_t *classOfDev, int8_t rssi);
 void BtSourceInquiryListNameUpdate(uint8_t *addr, uint16_t nameLen, uint8_t *name);

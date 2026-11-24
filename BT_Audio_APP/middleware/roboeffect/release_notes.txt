@@ -25,9 +25,63 @@ Shanghai Mountain View Silicon Co. Ltd. Copyright 2014, All rights reserved.
 联系山景的技术工程人员，谢谢！
 
 ------------------------------------------------------------------------------------------------
+date: 2026_07_16：v2.47.1
+1. 引擎数据格式重大更新：
+	A. parambin格式更新到v0.10.0，重新布局第三方音效数据信息等内容。
+	B. 音效数据块(user_effect_parameters_xxxx[])格式改动，请使用新增接口roboeffect_get_parameter_section()解析音效参数。
+2. roboeffect_effect_list_info结构新增mounted_param指针，当传入roboeffect_parambin_init()接口时，
+	用户可以外挂一块额外的音效参数，引擎初始化后，会使用这个外挂参数，忽略params_index指定的参数索引。
+
+适配的上位机Acpworkbench版本应不低于v5.7.0。
+
+------------------------------------------------------------------------------------------------
+date: 2026_07_07：v2.46.1
+1. pitch_shifter音效帧长范围开放为64~288区间内的偶数帧长。
+2. 修复若干音效调整参数后，误报-234错误码的bug。
+
+适配的上位机Acpworkbench版本应不低于v5.6.10。
+
+------------------------------------------------------------------------------------------------
+date: 2026_07_02：v2.46.0
+1. 更新音效库到 v2.57.0，以下两个改动：
+  A. 新增Peak Envelope模块peak_envelope（峰值包络）。
+  B. 升级Sidechain DRC(侧链DRC drc_sc)模块到v1.1.0。
+2. documents目录新增markdown格式roboeffect_third_party_user_manual.md，
+   可以将它喂给AI工具，学习自动添加第三方音效。
+
+------------------------------------------------------------------------------------------------
+date: 2026_06_25：v2.45.3
+1. 新增引擎错误码ROBOEFFECT_EFFECT_CROPPED，明确告知客户当前音效因为裁剪而无法开启。
+2. 修复third_party_effects_data_gen.exe若干bug。
+3. 为drc_sc音效的输入端口命名为in和watch。
+
+------------------------------------------------------------------------------------------------
+date: 2026_06_09：v2.45.2
+1. 规范音效库信息bin文件发布的文件名，标准版本不再带有crc串：roboeffect_library_info_v2.45.2.bin。
+2. 更新third_party_effects_data_gen.exe脚本，为了兼容不同版本，完整的音效库bin文件转换逻辑如下：
+roboeffect_library_info.bin --> roboeffect_library_info_v2.45.2_0xafe88769_3rdparty.bin
+roboeffect_library_info_v2.45.2.bin --> roboeffect_library_info_v2.45.2_0xafe88769_3rdparty.bin
+roboeffect_library_info_v2.45.2_0x98b9827a.bin --> roboeffect_library_info_v2.45.2_0xafe88769_3rdparty.bin
+roboeffect_library_info_v2.45.2_0xafe88769_3rdparty.bin --> 报错，不能输入集成了第三方音效的bin文件。
+
+
+------------------------------------------------------------------------------------------------
+date: 2026_06_02：v2.45.1
+1. 更新音效库到 v2.55.2，增加Phase Shifter Plus模块，virtual_bass输出归零等优化。
+2. 修复sine_generator偶尔无故误报错误的bug。
+
+------------------------------------------------------------------------------------------------
+date: 2026_05_25：v2.44.2
+1. 优化开关音效时fader的操作逻辑。
+
+------------------------------------------------------------------------------------------------
+date: 2026_05_22：v2.44.1
+1. 修复fader音效模块内部状态机混乱的问题。
+
+------------------------------------------------------------------------------------------------
 date: 2026_04_21：v2.44.0
 1. 更新音效库到 v2.54.0，相关改动有： 
-  A. 升级noise_suppressor_blu 至 v3.2.0, 支持64~512之间任意值的帧长。
+  A. 升级noise_suppressor_blue 至 v3.2.0, 支持64~512之间任意值的帧长。
   B. 新drc_sc音效。
 2. 新增silence_detector_l音效，用于查看低16位的值。
 3. 修复一些文档的显示问题。

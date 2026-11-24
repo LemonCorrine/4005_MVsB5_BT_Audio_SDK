@@ -48,8 +48,8 @@
 #endif
 
 #define  CFG_SDK_MAJOR_VERSION		(1)
-#define  CFG_SDK_MINOR_VERSION		(4)
-#define  CFG_SDK_PATCH_VERSION	    (2)
+#define  CFG_SDK_MINOR_VERSION		(5)
+#define  CFG_SDK_PATCH_VERSION	    (0)
 
 //****************************************************************************************
 // 系统App功能模式选择
@@ -518,6 +518,8 @@
 #if(defined(CFG_APP_USB_PLAY_MODE_EN) || defined(CFG_APP_CARD_PLAY_MODE_EN) || BT_AVRCP_SONG_TRACK_INFOR)
 /**LRC歌词功能 **/
 //#define CFG_FUNC_LRC_EN			 	// LRC歌词文件解析
+
+#define PREVIEW_PLAY_TIME	10
 
 /*------browser function------*/
 //#define FUNC_BROWSER_PARALLEL_EN  		//browser Parallel

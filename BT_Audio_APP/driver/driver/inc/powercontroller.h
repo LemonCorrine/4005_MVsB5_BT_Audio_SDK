@@ -372,15 +372,20 @@ void Power_LDO33AConfigHighCurrentLimit(uint8_t OCSel_val);
 
 typedef enum _PWR_DCDC_LVL_SEL
 {
-    PWD_DCDC_LVL_1V6 = 3, // 1.6V
-    PWD_DCDC_LVL_1V5 = 4, // 1.5V
-    PWD_DCDC_LVL_1V4 = 5, // 1.4V
-    PWD_DCDC_LVL_1V3 = 6, // 1.3V
-    PWD_DCDC_LVL_1V2 = 7, // 1.2V
+    PWD_DCDC_LVL_1V98 = 0, // 1.98V
+    PWD_DCDC_LVL_1V9 , // 1.9V
+    PWD_DCDC_LVL_1V8 , // 1.8V
+    PWD_DCDC_LVL_1V7 , // 1.7V
+    PWD_DCDC_LVL_1V6 , // 1.6V
+    PWD_DCDC_LVL_1V5 , // 1.5V
+    PWD_DCDC_LVL_1V4 , // 1.4V
+    PWD_DCDC_LVL_1V3 , // 1.3V
+    PWD_DCDC_LVL_1V2 , // 1.2V
+    PWD_DCDC_LVL_NUM  //记录DCDC电压档位数量
 } PWR_DCDC_LVL_SEL;
 /**
  * @brief  ldo_switch_to_dcdc, 切换到DCDC模式，配置电压
- * @param  trim_cfg: 3-1.6V;4-1.5V;5-1.4V;6-1.3V,7-1.2V
+ * @param  trim_cfg: detail in PWR_DCDC_LVL_SEL
  * @return void
  * @note
  *          DCDC电感选型： 负载最大电流150mA选择一类电感，负载最大电流100mA选择一类或二类电感
@@ -394,7 +399,7 @@ void ldo_switch_to_dcdc(PWR_DCDC_LVL_SEL trim_cfg);
 
 /**
  * @brief  Config LDO16D voltage
- * @param  uint8_t value: 3-1.6V;4-1.5V;5-1.4V;6-1.3V
+ * @param  value： detail in PWR_DCDC_LVL_SEL
  * @return void
  * @note   需要在DCDC模式下调用，否则无效。
  */
@@ -404,7 +409,7 @@ void Power_DCDCConfig(PWR_DCDC_LVL_SEL value);
  * @brief  DCDC16配置频率
  * @param  freq 频率选择：1M或者2M
  * @return void
- * @note   none
+ * @note   注意：测试用接口，不要在实际应用中改动配置值！
  */
 void Power_DCDC16ConfigFreq(PWR_DCDC_FREQ_SEL freq);
 

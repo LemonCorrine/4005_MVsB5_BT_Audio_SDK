@@ -17,6 +17,7 @@
 
 #ifdef CFG_APP_CONFIG
 	#include "sys_gpio.h"
+	#include "main_task.h"
 #else
 	#define CFG_RES_CARD_USE
 	#define CFG_RES_UDISK_USE
@@ -48,13 +49,24 @@ DSTATUS disk_status (
 		return stat;
 
 	case DEV_MMC :
+#ifdef CFG_APP_CONFIG
+		if(GetSystemMode() == ModeCardAudioPlay && SoftFlagGet(SoftFlagMediaModeExitTimeOut))
+		{
+			return STA_NOINIT;
+		}
+#endif
 		stat = RES_OK;
 		return stat;
 
 	case DEV_USB :
 		//result = USB_disk_status();
-
+#ifdef CFG_APP_CONFIG
 		// translate the result code here
+		if(GetSystemMode() == ModeUDiskAudioPlay && SoftFlagGet(SoftFlagMediaModeExitTimeOut))
+		{
+			return STA_NOINIT;
+		}
+#endif
 		stat = RES_OK;
 
 		return stat;

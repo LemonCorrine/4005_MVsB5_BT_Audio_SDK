@@ -107,7 +107,7 @@ const roboeffect_effect_property_struct effect_property_for_robo[] = {
 #endif/*NOISE_GATE_ENABLE*/
 	},
 
-	{ROBOEFFECT_PITCH_SHIFTER, ROBOEFFECT_CH_MONO_STEREO, ROBOEFFECT_PITCH_SHIFTER_PARAM_LEN, FZ_GEAR, 2, {128,256},
+	{ROBOEFFECT_PITCH_SHIFTER, ROBOEFFECT_CH_MONO_STEREO, ROBOEFFECT_PITCH_SHIFTER_PARAM_LEN, FZ_RANGE, 2, {64,288},
 #if PITCH_SHIFTER_ENABLE
 	ROBOEFFECT_EFF_IF_NAME_INIT(pitch_shifter), ROBOEFFECT_EFF_IF_NAME_CONF(pitch_shifter), ROBOEFFECT_EFF_IF_NAME_APPLY(pitch_shifter), ROBOEFFECT_EFF_IF_NAME_MEMORY_SIZE(pitch_shifter),
 #else
@@ -187,7 +187,7 @@ const roboeffect_effect_property_struct effect_property_for_robo[] = {
 #endif/*VOICE_CHANGER_PRO_ENABLE*/
 	},
 
-	{ROBOEFFECT_PHASE_CONTROL, ROBOEFFECT_CH_MONO_STEREO, ROBOEFFECT_PHASE_CONTROL_PARAM_LEN, FZ_GEAR, 3, {64,128,256},
+	{ROBOEFFECT_PHASE_CONTROL, ROBOEFFECT_CH_MONO_STEREO, ROBOEFFECT_PHASE_CONTROL_PARAM_LEN, FZ_RANGE, 2, {1,256},
 #if PHASE_CONTROL_ENABLE
 	ROBOEFFECT_EFF_IF_NAME_INIT(phase_control), ROBOEFFECT_EFF_IF_NAME_CONF(phase_control), ROBOEFFECT_EFF_IF_NAME_APPLY(phase_control), ROBOEFFECT_EFF_IF_NAME_MEMORY_SIZE(phase_control),
 #else
@@ -611,6 +611,22 @@ const roboeffect_effect_property_struct effect_property_for_robo[] = {
 #endif/*SILENCE_DETECTOR_L_ENABLE*/
 	},
 
+	{ROBOEFFECT_PHASE_CONTROL_PLUS, ROBOEFFECT_CH_MONO_STEREO, ROBOEFFECT_PHASE_CONTROL_PLUS_PARAM_LEN, FZ_RANGE, 2, {1,512},
+#if PHASE_CONTROL_PLUS_ENABLE
+	ROBOEFFECT_EFF_IF_NAME_INIT(phase_control_plus), ROBOEFFECT_EFF_IF_NAME_CONF(phase_control_plus), ROBOEFFECT_EFF_IF_NAME_APPLY(phase_control_plus), ROBOEFFECT_EFF_IF_NAME_MEMORY_SIZE(phase_control_plus),
+#else
+	ROBOEFFECT_EFF_IF_NAME_INIT(null), ROBOEFFECT_EFF_IF_NAME_CONF(null), ROBOEFFECT_EFF_IF_NAME_APPLY(null), ROBOEFFECT_EFF_IF_NAME_MEMORY_SIZE(null),
+#endif/*PHASE_CONTROL_PLUS_ENABLE*/
+	},
+
+	{ROBOEFFECT_PEAK_ENVELOPE, ROBOEFFECT_CH_MONO_STEREO, ROBOEFFECT_PEAK_ENVELOPE_PARAM_LEN, FZ_ANY, 0, {0},
+#if PEAK_ENVELOPE_ENABLE
+	ROBOEFFECT_EFF_IF_NAME_INIT(peak_envelope), ROBOEFFECT_EFF_IF_NAME_CONF(peak_envelope), ROBOEFFECT_EFF_IF_NAME_APPLY(peak_envelope), ROBOEFFECT_EFF_IF_NAME_MEMORY_SIZE(peak_envelope),
+#else
+	ROBOEFFECT_EFF_IF_NAME_INIT(null), ROBOEFFECT_EFF_IF_NAME_CONF(null), ROBOEFFECT_EFF_IF_NAME_APPLY(null), ROBOEFFECT_EFF_IF_NAME_MEMORY_SIZE(null),
+#endif/*PEAK_ENVELOPE_ENABLE*/
+	},
+
 	{ROBOEFFECT_FADER, ROBOEFFECT_CH_MONO_STEREO, ROBOEFFECT_FADER_PARAM_LEN, FZ_ANY, 0, {0},
 	ROBOEFFECT_EFF_IF_NAME_INIT(fader), ROBOEFFECT_EFF_IF_NAME_CONF(fader), ROBOEFFECT_EFF_IF_NAME_APPLY(fader), ROBOEFFECT_EFF_IF_NAME_MEMORY_SIZE(fader),
 	},
@@ -658,8 +674,8 @@ char *effect_lib_version_return(void)
 __attribute__((section(".robo_property")))
 const uint8_t effect_property_for_display[] = {
 0x00, 0x05, 0x00, //protocol@0.5.0
-0x02, 0x2C, 0x00, //roboeffect_library@2.44.0
-0x02, 0x36, 0x00, //audio_effect_library@2.54.0
+0x02, 0x2F, 0x01, //roboeffect_library@2.47.1
+0x02, 0x39, 0x00, //audio_effect_library@2.57.0
 ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN, //number of total inner effects
 (ROBOEFFECT_TOTAL_MAX-ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN), //number of total 3rd party effects
 /*****auto_tune*****/
@@ -2253,14 +2269,14 @@ ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN, //number of total inner effects
 0x02, 0x01, //hold: 2,1
 /*****noise_gate end*****/
 /*****pitch_shifter*****/
-0x40, 0x00, //item len=64
+0x3F, 0x00, //item len=63
 0x01, 0x08, 0x00, //pitch_shifter@1.8.0
 0x0D, //effect name length
 0x70, 0x69, 0x74, 0x63, 0x68, 0x5F, 0x73, 0x68, 0x69, 0x66, 0x74, 0x65, 0x72, //pitch_shifter
 0x00, //effect category
 0x02, //bits width is 16/24
-0x09, //frame size formula length
-0x7B, 0x31, 0x32, 0x38, 0x2C, 0x32, 0x35, 0x36, 0x7D, //{128,256}
+0x08, //frame size formula length
+0x5B, 0x36, 0x34, 0x3A, 0x32, 0x38, 0x38, 0x5D, //[64:288]
 0x01, //input counter
 
 0x00, //input1 description
@@ -2474,7 +2490,7 @@ ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN, //number of total inner effects
 /*****three_d end*****/
 /*****virtual_bass*****/
 0x6E, 0x00, //item len=110
-0x04, 0x04, 0x02, //virtual_bass@4.4.2
+0x04, 0x04, 0x03, //virtual_bass@4.4.3
 0x0C, //effect name length
 0x76, 0x69, 0x72, 0x74, 0x75, 0x61, 0x6C, 0x5F, 0x62, 0x61, 0x73, 0x73, //virtual_bass
 0x00, //effect category
@@ -3006,14 +3022,14 @@ ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN, //number of total inner effects
 0x00, //ui_layout is auto
 /*****voice_changer_pro end*****/
 /*****phase_control*****/
-0x4A, 0x00, //item len=74
-0x01, 0x00, 0x00, //phase_control@1.0.0
+0x45, 0x00, //item len=69
+0x02, 0x00, 0x00, //phase_control@2.0.0
 0x0D, //effect name length
 0x70, 0x68, 0x61, 0x73, 0x65, 0x5F, 0x63, 0x6F, 0x6E, 0x74, 0x72, 0x6F, 0x6C, //phase_control
 0x00, //effect category
 0x02, //bits width is 16/24
-0x0C, //frame size formula length
-0x7B, 0x36, 0x34, 0x2C, 0x31, 0x32, 0x38, 0x2C, 0x32, 0x35, 0x36, 0x7D, //{64,128,256}
+0x07, //frame size formula length
+0x5B, 0x31, 0x3A, 0x32, 0x35, 0x36, 0x5D, //[1:256]
 0x01, //input counter
 
 0x00, //input1 description
@@ -5501,7 +5517,7 @@ ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN, //number of total inner effects
 /*****beat_tracker end*****/
 /*****engine_sound*****/
 0xA9, 0x00, //item len=169
-0x01, 0x01, 0x01, //engine_sound@1.1.1
+0x01, 0x03, 0x03, //engine_sound@1.3.3
 0x0C, //effect name length
 0x65, 0x6E, 0x67, 0x69, 0x6E, 0x65, 0x5F, 0x73, 0x6F, 0x75, 0x6E, 0x64, //engine_sound
 0x00, //effect category
@@ -8179,8 +8195,8 @@ ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN, //number of total inner effects
 0x02, 0x00, //max_predelay: 2,0
 /*****reverb_plate_me end*****/
 /*****drc_sc*****/
-0x0A, 0x03, //item len=778
-0x01, 0x00, 0x00, //drc_sc@1.0.0
+0x11, 0x03, //item len=785
+0x01, 0x01, 0x00, //drc_sc@1.1.0
 0x06, //effect name length
 0x64, 0x72, 0x63, 0x5F, 0x73, 0x63, //drc_sc
 0x00, //effect category
@@ -8189,10 +8205,12 @@ ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN, //number of total inner effects
 0x46, 0x5A, 0x5F, 0x41, 0x4E, 0x59, //FZ_ANY
 0x02, //input counter
 
-0x00, //input1 description
+0x02, //input1 description
+0x69, 0x6E, 
 0x03, //input1 channel is mono/stereo
 
-0x00, //input2 description
+0x05, //input2 description
+0x77, 0x61, 0x74, 0x63, 0x68, 
 0x03, //input2 channel is mono/stereo
 0x03, //output channel is mono/stereo
 0x1A, //params_number is 26
@@ -8631,6 +8649,76 @@ ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN, //number of total inner effects
 0x02, 0x04, //ui_grid_size is 2,4
 0x01, 0xFF, //PCM amplitude: 1,255
 /*****silence_detector_l end*****/
+/*****phase_control_plus*****/
+0x4A, 0x00, //item len=74
+0x02, 0x00, 0x00, //phase_control_plus@2.0.0
+0x12, //effect name length
+0x70, 0x68, 0x61, 0x73, 0x65, 0x5F, 0x63, 0x6F, 0x6E, 0x74, 0x72, 0x6F, 0x6C, 0x5F, 0x70, 0x6C, 0x75, 0x73, //phase_control_plus
+0x00, //effect category
+0x02, //bits width is 16/24
+0x07, //frame size formula length
+0x5B, 0x31, 0x3A, 0x35, 0x31, 0x32, 0x5D, //[1:512]
+0x01, //input counter
+
+0x00, //input1 description
+
+0x03, //input1 channel is mono/stereo
+0x03, //output channel is mono/stereo
+0x01, //params_number is 1
+
+0x0B, //index: 00, phase_shift
+0x70, 0x68, 0x61, 0x73, 0x65, 0x5F, 0x73, 0x68, 0x69, 0x66, 0x74, 
+0x02, //value: value
+0x98, 0xFE, //min -360
+0x68, 0x01, //max 360
+0x01, 0x00, //step 1
+0x00, 0x00, //default: 0
+0x00, 0x00, //method: METHOD_NONE
+
+0x00, //phase_shift: spinbox
+0x07, //unit length 7
+0x64, 0x65, 0x67, 0x72, 0x65, 0x65, 0x73, 
+0x00, //fract 0
+0x01, 0x00, //ratio 1
+0x00, //tips length 0
+
+0x00, //ui_layout is auto
+/*****phase_control_plus end*****/
+/*****peak_envelope*****/
+0x40, 0x00, //item len=64
+0x01, 0x00, 0x00, //peak_envelope@1.0.0
+0x0D, //effect name length
+0x70, 0x65, 0x61, 0x6B, 0x5F, 0x65, 0x6E, 0x76, 0x65, 0x6C, 0x6F, 0x70, 0x65, //peak_envelope
+0x00, //effect category
+0x02, //bits width is 16/24
+0x06, //frame size formula length
+0x46, 0x5A, 0x5F, 0x41, 0x4E, 0x59, //FZ_ANY
+0x01, //input counter
+
+0x00, //input1 description
+
+0x03, //input1 channel is mono/stereo
+0x03, //output channel is mono/stereo
+0x01, //params_number is 1
+
+0x0C, //index: 00, release_time
+0x72, 0x65, 0x6C, 0x65, 0x61, 0x73, 0x65, 0x5F, 0x74, 0x69, 0x6D, 0x65, 
+0x02, //value: value
+0x01, 0x00, //min 1
+0xFF, 0x7F, //max 32767
+0x01, 0x00, //step 1
+0xC8, 0x00, //default: 200
+0x01, 0x00, //method: METHOD_INIT
+
+0x00, //release_time: spinbox
+0x02, //unit length 2
+0x6D, 0x73, 
+0x00, //fract 0
+0x01, 0x00, //ratio 1
+0x00, //tips length 0
+
+0x00, //ui_layout is auto
+/*****peak_envelope end*****/
 /*****fader*****/
 0x94, 0x00, //item len=148
 0x01, 0x00, 0x01, //fader@1.0.1
@@ -8654,7 +8742,7 @@ ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN, //number of total inner effects
 0x00, 0x00, //min 0
 0x20, 0x4E, //max 20000
 0x01, 0x00, //step 1
-0x01, 0x00, //default: 1
+0x00, 0x04, //default: 1024
 0x00, 0x00, //method: METHOD_NONE
 
 0x07, //index: 01, trigger
@@ -8663,7 +8751,7 @@ ROBOEFFECT_USER_DEFINED_EFFECT_BEGIN, //number of total inner effects
 0x1C, //enum length 28
 0x42, 0x59, 0x50, 0x41, 0x53, 0x53, 0x3B, 0x4D, 0x55, 0x54, 0x45, 0x3B, 0x46, 0x41, 0x44, 0x45, 0x5F, 0x4F, 0x55, 0x54, 0x3B, 0x46, 0x41, 0x44, 0x45, 0x5F, 0x49, 0x4E, 
 0x00, 0x00, //default: 0
-0x00, 0x00, //method: METHOD_NONE
+0x02, 0x00, //method: METHOD_CFG_1
 
 0x06, //index: 02, status
 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 
@@ -8816,13 +8904,13 @@ USER_DEFINED_LIBS_DATA
 
 uint16_t sizeof_effect_property_for_display(void)
 {
-    return sizeof(effect_property_for_display);// 16790 bytes
+    return sizeof(effect_property_for_display);// 16933 bytes
 }
 
 int16_t *roboeffect_get_param_by_raw_data(uint8_t addr, uint8_t *enable, uint8_t *len, const uint8_t *parameters)
 {
 	uint16_t total_len = *((uint16_t*)parameters);
-	const uint8_t *ptr = parameters + 5;//start from the first item
+	const uint8_t *ptr = parameters + 10;//start from the first item
 	while(ptr < parameters + total_len)
 	{
 		if(*ptr == addr)

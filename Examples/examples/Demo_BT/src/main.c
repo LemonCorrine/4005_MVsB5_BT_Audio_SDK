@@ -112,7 +112,7 @@ static uint8_t MsbcDecoderInitialized = 0;
 
 //发送memory和fifo
 MemHandle	HfSend_MemHandle;
-uint8_t		HfSend_fifo[1024];
+uint8_t HfSend_fifo[BT_MSBC_DECODER_INPUT_LEN];
 
 uint8_t hfpSendBuf[120];
 
@@ -360,9 +360,9 @@ void Msbc_DecoderInit(void)
 	MSBC_MemHandle.p = 0;
 
 	//发送fifo(cvsd:pcm / msbc编码)
-	memset(HfSend_fifo, 0, 2*1024);
-	HfSend_MemHandle.addr = HfSend_fifo;
-	HfSend_MemHandle.mem_capacity = 2*1024;
+    memset(HfSend_fifo, 0, BT_MSBC_DECODER_INPUT_LEN);
+    HfSend_MemHandle.addr = HfSend_fifo;
+	HfSend_MemHandle.mem_capacity = BT_MSBC_DECODER_INPUT_LEN;
 	HfSend_MemHandle.mem_len = 0;
 	HfSend_MemHandle.p = 0;
 
@@ -419,7 +419,7 @@ void BtHfpScoLinkConnected(void)
 	MsbcDecoderInitialized = 0;
 	Msbc_DecoderInit();
 
-	//切换到16KHz
+	//切换到8KHz
     uint32_t SampleRate = 8000;
     uint32_t DACBitWidth = 16;
     AUDIO_BitWidth ADCBitWidth = ADC_WIDTH_16BITS;
@@ -435,6 +435,7 @@ void BtHfpScoLinkConnected(void)
     ct.DACLoadStatus = DAC_NOLoad;
     ct.PVDDModel = PVDD33;
     ct.DACEnergyModel = DACCommonEnergy;
+    ct.DACVcomModel = Disable;
 
     // DAC init
     AudioDAC_Init(&ct, SampleRate, DACBitWidth, (void *)AudioDACBuf, sizeof(AudioDACBuf), NULL, 0);

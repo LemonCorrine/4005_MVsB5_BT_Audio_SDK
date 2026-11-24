@@ -32,6 +32,7 @@
  *****************************************************************/
 #if (BLE_SUPPORT == ENABLE)
 #define BLE_DUAL_ROLE 				DISABLE //BLE主从一体开关
+// #define MV_APP_CONTROL
 #endif
 
 /*****************************************************************
@@ -152,7 +153,7 @@ enum
 #define BT_MFI_SUPPORT				(0)
 
 #if BT_SOURCE_SUPPORT && BT_HFP_SUPPORT
-#define BT_HFG_SUPPORT				(1)		//语音发射(暂只支持CVSD格式--8KHz)
+#define BT_HFG_SUPPORT				(1)	
 #else
 #define BT_HFG_SUPPORT				(0)
 #endif
@@ -268,6 +269,7 @@ enum
 //0: only cvsd
 //1: cvsd + msbc
 #define BT_HFP_SUPPORT_WBS				(1)
+#define BT_HFP_AUDIO_DATA				HFP_AUDIO_DATA_mSBC
 
 //电池电量同步(开启需要和 CFG_FUNC_POWER_MONITOR_EN 关联)
 //#define BT_HFP_BATTERY_SYNC			//电池电量同步(本地电量同步到手机端显示)

@@ -57,7 +57,8 @@ typedef enum __ADC_DC_CHANNEL_SEL
 	ADC_CHANNEL_AD5_A30,						/**channel 11*/
 	ADC_CHANNEL_AD6_A31,						/**channel 12*/
 	ADC_CHANNEL_AD8_A0A1A2B4B5B9 = 14,			/**channel 14*/
-	ADC_CHANNEL_BK_ADKEY						/**channel 15*/
+	ADC_CHANNEL_BK_ADKEY,						/**channel 15*/
+    ADC_CHANNEL_MAX
 }ADC_DC_CHANNEL_SEL;
 
 
@@ -74,6 +75,8 @@ typedef enum __ADC_CONV
 	ADC_CON_SINGLE,
 	ADC_CON_CONTINUA
 }ADC_CONV;
+
+#define ADC_AUTOLOAD_MAX_CHANNEL_NUM 8  //自动轮询AD通道最大数量,不能修改
 
 /**
  * @brief  ADC使能
@@ -202,6 +205,23 @@ void ADC_ContinuModeStart(uint32_t ChannalNum);
  * @return ADC采样量化后数据[0-4095]
  */
 uint16_t ADC_ContinuModeDataGet(void);
+
+/**
+ * @brief  ADC自动采样多通道启动
+ * @param  multiChannelsTable ADC采样的通道数组。
+ * @param  multiChannelNum 自动采样通道数。1-8通道
+ * @return void
+ * @note   调用者确保传入的通道数组成员是有效的ADC通道，否则影响采样结果。
+ */
+void ADC_AutoLoadModeStart(uint8_t* multiChannelsTable, uint8_t multiChannelNum);
+
+/**
+ * @brief  ADC自动采样多通道停止
+ * @param  void
+ * @return void
+ * @note   none
+ */
+void ADC_AutoLoadModeStop(void);
 
 /**
  * @brief  ADC连续采样方式结束

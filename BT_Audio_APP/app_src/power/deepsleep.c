@@ -32,7 +32,6 @@
 #include "bt_common_api.h"
 #include "bt_manager.h"
 #include "bt_app_sniff.h"
-#include "hdmi_in_api.h"
 #include "adc_interface.h"
 #include "dac_interface.h"
 
@@ -40,14 +39,11 @@
 #include "otg_host_standard_enum.h"
 
 #ifdef CFG_IDLE_MODE_DEEP_SLEEP
-HDMIInfo  			 *gHdmiCt;
 void GIE_ENABLE(void);
 void WakeupMain(void);
 void SleepMain(void);
 void LogUartConfig(bool InitBandRate);
 #define CHECK_SCAN_TIME				5000		//醒来确认有效唤醒源 扫描限时ms。
-TIMER   waitCECTime;
-uint8_t	waitCECTimeFlag = 0;
 static uint32_t sources;
 #ifdef CFG_PARA_WAKEUP_SOURCE_RTC
 uint32_t alarm = 0;
@@ -57,18 +53,6 @@ __attribute__((section(".driver.isr")))void WakeupInterrupt(void)
 {
 	sources |= Power_WakeupSourceGet();
 
-#if defined(CFG_PARA_WAKEUP_SOURCE_CEC) && defined(CFG_PARA_WAKEUP_GPIO_CEC)
-	if(sources & CFG_PARA_WAKEUP_SOURCE_CEC)
-	{
-		if(waitCECTimeFlag == 0)
-		{
-			SysTickInit();
-			TimeOutSet(&waitCECTime, CHECK_SCAN_TIME);
-			HDMI_HPD_CHECK_IO_INIT();
-			waitCECTimeFlag =  1;
-		}
-	}
-#endif
 
 	Power_WakeupSourceClear();
 }
@@ -242,31 +226,21 @@ void DeepSleeping(void)
 //	GpioBPD_Back = GPIO_RegGet(GPIO_B_PD);
 	WakeupSourceSet();
 	SleepMain();
-#if defined(CFG_PARA_WAKEUP_SOURCE_CEC) && defined(CFG_PARA_WAKEUP_GPIO_CEC)
-	if(gHdmiCt == NULL)
-	{
-		HDMI_CEC_DDC_Init();
-		gHdmiCt->hdmiReportStatus = 0;
-	}
-//	osTaskDelay(10);
-	while(!HDMI_CEC_IsReadytoDeepSleep(10));//拉低10ms，保障后续18ms没有通信和中断响应。
-#endif
 	WDG_Disable();
 	Power_GotoDeepSleep();
 	WDG_Enable(WDG_STEP_4S);
 	while(!SystermWackupSourceCheck())
 	{
 		Power_WakeupDisable(0xff);
+	SoftFlagRegister(SoftFlagWakeUpSouceIsCEC);
 		WakeupSourceSet();
 		WDG_Disable();
 		Power_GotoDeepSleep();
 		WDG_Enable(WDG_STEP_4S);
 	}
 	Power_WakeupDisable(0xff);
+	SoftFlagRegister(SoftFlagWakeUpSouceIsCEC);
 
-#if defined(CFG_PARA_WAKEUP_SOURCE_CEC) && defined(CFG_PARA_WAKEUP_GPIO_CEC)
-	HDMI_CEC_DDC_DeInit();
-#endif
 	//GPIO恢复上下拉
 //	GPIO_RegSet(GPIO_A_PU, GpioAPU_Back);
 //	GPIO_RegSet(GPIO_A_PD, GpioAPD_Back);
@@ -287,12 +261,12 @@ void DeepSleeping(void)
 	KeyInit();//Init keys
 #endif	
 
-#ifdef CFG_FUNC_UDISK_DETECT
-    if(OTG_PortHostIsLink())
-    {
-        OTG_HostInit();
-    }
-#endif
+// #ifdef CFG_FUNC_UDISK_DETECT
+//     if(OTG_PortHostIsLink())
+//     {
+//         OTG_HostInit();
+//     }
+// #endif
 
 #ifdef CFG_FUNC_LED_REFRESH
 	//默认优先级为0，旨在提高刷新速率，特别是断点记忆等写flash操作有影响刷屏，必须严格遵守所有timer6中断调用都是TCM代码，含调用的driver库代码
@@ -356,16 +330,18 @@ bool SystermWackupSourceCheck(void)
 	}
 #endif
 
-#if defined(CFG_PARA_WAKEUP_SOURCE_CEC) && defined(CFG_PARA_WAKEUP_GPIO_CEC)
-	bool CecRest = FALSE;//cec空闲状态(18ms消抖)。以免影响后续解析和唤醒。
-	HDMI_HPD_CHECK_IO_INIT();
-#endif
 
+
+#if defined(CFG_PARA_WAKEUP_SOURCE_CEC) && defined(CFG_PARA_WAKEUP_GPIO_CEC)
+	if(sources & CFG_PARA_WAKEUP_SOURCE_CEC)
+	{
+		sources = 0;
+		SoftFlagRegister(SoftFlagWakeUpSouceIsCEC);
+		return TRUE;
+	}
+#endif
 	TimeOutSet(&WaitScan, CHECK_SCAN_TIME);
 	while(!IsTimeOut(&WaitScan)
-#if defined(CFG_PARA_WAKEUP_SOURCE_CEC) && defined(CFG_PARA_WAKEUP_GPIO_CEC)
-			|| !CecRest
-#endif
 		)
 	{
 		WDG_Feed();
@@ -415,22 +391,6 @@ bool SystermWackupSourceCheck(void)
 #endif
 #endif
 
-#if defined(CFG_PARA_WAKEUP_SOURCE_CEC) && defined(CFG_PARA_WAKEUP_GPIO_CEC)
-		if(gHdmiCt)
-		{
-			HDMI_CEC_Scan(0);
-			if(gHdmiCt->hdmi_poweron_flag == 1)
-			{
-				SoftFlagRegister(SoftFlagWakeUpSouceIsCEC);
-				APP_DBG("CEC PowerOn\n");
-				return TRUE;
-			}
-		}
-		if(IsTimeOut(&WaitScan))//超时之后等待下拉电平，同时保持scan。
-		{
-			CecRest = HDMI_CEC_IsReadytoDeepSleep(6);
-		}
-#endif
 	}
 	sources = 0;
 #if defined(CFG_PARA_WAKEUP_SOURCE_ADCKEY)
@@ -475,7 +435,7 @@ void BtDeepSleepForUsr(void)
 	GIE_DISABLE();
 	SystermBTWakeupConfig();
 #ifdef CHIP_USE_DCDC
-	ldo_switch_to_dcdc(6); // 3-1.6V 睡眠时候用1.3V
+    ldo_switch_to_dcdc(PWD_DCDC_LVL_1V3); // 3-1.6V 睡眠时候用1.3V
 #else
 	Power_LDO16Config(0);
 #endif
@@ -513,7 +473,7 @@ void BtDeepSleepForUsr(void)
 	Clock_PllClose();
 #endif
 #ifdef CHIP_USE_DCDC
-	ldo_switch_to_dcdc(5); // 3-1.6V 睡眠时候用1.3V
+    ldo_switch_to_dcdc(PWD_DCDC_LVL_1V4); // 3-1.6V 睡眠时候用1.3V
 #else
 	Power_LDO16Config(0);
 #endif

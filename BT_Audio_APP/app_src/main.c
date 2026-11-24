@@ -339,7 +339,7 @@ void SleepMain(void)
 	Clock_UARTClkSelect(RC_CLK_MODE);//先切换log clk。避免后续慢速处理
 	LogUartConfig(TRUE); //scan不打印时 可屏蔽
 
-	SpiFlashInit(80000000, MODE_1BIT, 0, FSHC_PLL_CLK_MODE);//rc时钟 不支持flash 4bit，系统恢复时重配。
+	SpiFlashInit(80000000, MODE_1BIT, 0, SYS_FLASH_CLK_SELECT);//rc时钟 不支持flash 4bit，系统恢复时重配。
 	FshcClkSwitch(FSHC_RC_CLK_MODE, 80000000);//再切RC
 	Clock_DeepSleepSysClkSelect(RC_CLK_MODE, FSHC_RC_CLK_MODE, 1);
 	Clock_PllClose();
@@ -354,7 +354,16 @@ void SleepMain(void)
 void WakeupMain(void)
 {
 	WDG_Feed();
-    Power_LDO11DConfig(PWD_LDO11_LVL_1V10); // 升回1.1V
+    //ower_LDO11DConfig(PWD_LDO11_LVL_1V10); // 升回1.1V
+#if (SYS_CORE_APLL_FREQ >= (288*1000)) || (SYS_CORE_DPLL_FREQ >= (288*1000))
+#if (SYS_CORE_APLL_FREQ >= (360*1000)) || (SYS_CORE_DPLL_FREQ >= (360*1000))
+	//超频需要配置LDO11
+	Power_LDO11DConfig(PWD_LDO11_LVL_1V20);		//需要驱动0.2.8以后版本支持
+#else
+	//超频需要配置LDO11
+	Power_LDO11DConfig(PWD_LDO11_LVL_1V15);
+#endif
+#endif
     
     Chip_Init(1);
 	SystemClockInit(TRUE);

@@ -22,7 +22,7 @@ extern "C" {
 
 #define ResourceCard	1
 #define ResourceUDisk	2
-#define CHANGE_MODE_TIMEOUT_COUNT			600//MS
+#define CHANGE_MODE_TIMEOUT_COUNT			200//MS
 #define CHANGE_MODE_SYS_REMIND				2000
 
 typedef struct _SysModeContext

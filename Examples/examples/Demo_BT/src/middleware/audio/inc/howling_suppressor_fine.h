@@ -4,7 +4,7 @@
  * @brief	Howling detection & suppression with fine resolution for mono signals
  *
  * @author	Zhao Ying (Alfred)
- * @version	V3.1.0
+ * @version	V3.1.2
  *
  * &copy; Shanghai Mountain View Silicon Co.,Ltd. All rights reserved.
  *
@@ -17,7 +17,7 @@
 #include <stdint.h>
 
 #define MAX_PAST_FRAMES 12
-#define MAX_FILTERS 4
+#define MAX_ACTIVE_FILTERS 4
 
  /** error code for howling suppressor fine */
 typedef enum _HOWLING_SUPPRESSOR_FINE_ERROR_CODE
@@ -39,13 +39,13 @@ typedef struct _HowlingFineContext
 	int32_t lpd[4];
 	//int16_t pcm_win[512];
 	int32_t pcm_win[512];
-	int16_t howling_candidates[MAX_PAST_FRAMES *MAX_FILTERS];
-	int32_t fc[MAX_FILTERS];
-	int32_t fc_new[MAX_FILTERS];
-	float   fchz[MAX_FILTERS];
-	int32_t fba[MAX_FILTERS][3];
-	int32_t d[MAX_FILTERS][4];
-	int32_t dp[MAX_FILTERS][4];
+	int16_t howling_candidates[MAX_PAST_FRAMES *MAX_ACTIVE_FILTERS];
+	int32_t fc[MAX_ACTIVE_FILTERS];
+	int32_t fc_new[MAX_ACTIVE_FILTERS];
+	float   fchz[MAX_ACTIVE_FILTERS];
+	int32_t fba[MAX_ACTIVE_FILTERS][3];
+	int32_t d[MAX_ACTIVE_FILTERS][4];
+	int32_t dp[MAX_ACTIVE_FILTERS][4];
 	int16_t pcm_buf[512 * 2];
 	int32_t x[512 * 2];
 	uint8_t peaks[512];
@@ -74,7 +74,7 @@ int32_t howling_suppressor_fine_init(HowlingFineContext *ct, int32_t sample_rate
  * @param n Number of PCM samples to process. It should be an even number between 128 ~ 512 (both inclusive). It is recommended to keep n constant between frames although it can be varied. Usually, the smaller the value of n, the greater the amount of MCPS consumed.
  * @param q_min Minimum Q factor in Q6.10 format of the notch filters for howling suppression. Q factor is defined as the ratio of a filter's center frequency to its 3dB bandwidth. Range: 256 ~ 16384 to stand for 0.25 ~ 16
  * @param q_max Maximum Q factor in Q6.10 format of the notch filters for howling suppression. Q factor is defined as the ratio of a filter's center frequency to its 3dB bandwidth. Range: 256 ~ 16384 to stand for 0.25 ~ 16
- * @return none.
+ * @return error code. HOWLING_SUPPRESSOR_FINE_ERROR_OK means successful, other codes indicate error.
  * @note Input signals should be mono. 
  *       q_min should be less than or equal to q_max:
  *       - If q_min = q_max, the notch filter's quality factor is fixed at q_min or q_max.
@@ -91,7 +91,7 @@ int32_t howling_suppressor_fine_apply(HowlingFineContext *ct, int16_t *pcm_in, i
  * @param n Number of PCM samples to process. It should be an even number between 128 ~ 512 (both inclusive). It is recommended to keep n constant between frames although it can be varied. Usually, the smaller the value of n, the greater the amount of MCPS consumed.
  * @param q_min Minimum Q factor in Q6.10 format of the notch filters for howling suppression. Q factor is defined as the ratio of a filter's center frequency to its 3dB bandwidth. Range: 256 ~ 16384 to stand for 0.25 ~ 16
  * @param q_max Maximum Q factor in Q6.10 format of the notch filters for howling suppression. Q factor is defined as the ratio of a filter's center frequency to its 3dB bandwidth. Range: 256 ~ 16384 to stand for 0.25 ~ 16
- * @return none.
+ * @return error code. HOWLING_SUPPRESSOR_FINE_ERROR_OK means successful, other codes indicate error.
  * @note Input signals should be mono.
  *       q_min should be less than or equal to q_max:
  *       - If q_min = q_max, the notch filter's quality factor is fixed at q_min or q_max.
