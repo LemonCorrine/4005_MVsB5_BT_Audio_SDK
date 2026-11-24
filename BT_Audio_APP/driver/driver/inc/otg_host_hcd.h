@@ -34,6 +34,7 @@ extern "C" {
 #define	HOST_INT_OUT_EP			1
 #define	HOST_ISO_OUT_EP			2
 #define	HOST_ISO_IN_EP			2
+#define	HOST_ISO_FEEDBACK_IN_EP 1
 
 #define	HOST_FS_CONTROL_MPS		64
 #define	HOST_FS_INT_IN_MPS		64

@@ -2,7 +2,6 @@
 #define __FLASH_TABLE_H__
 #include "type.h"
 
-#define WIRELESS_BP_EN		0//1//因h文件层次宏组合, 在此开功能
 // 8  --> 8Mb		
 // 4/8/16/32/64/128
 #define FLASH_CAPACTITY_TYPE	CHIP_FLASH_CAPACTITY
@@ -62,9 +61,6 @@ uint32_t get_sys_parameter_addr(void);	//flash 参量化数据地址
 uint32_t get_effect_data_addr(void);	//音效参数数据地址
 
 #define REMIND_FLASH_STORE_BASE				(get_remind_addr())
-//CFG_WIRELESS_EN
-#define WIRELEDD_CONFIG_ADDR				(get_wireless_bp_addr())
-#define WIRELESS_CAP_ADDR					(get_bt_config_addr())
 
 /////////////////////////////////////////////////////////////////
 //下面flash的定义是无效的，只是暂时解决编译错误

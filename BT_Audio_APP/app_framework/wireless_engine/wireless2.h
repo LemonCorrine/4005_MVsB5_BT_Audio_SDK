@@ -8,7 +8,7 @@
 #ifndef WIRELESS2_H_
 #define WIRELESS2_H_
 
-#define MVW2_LIB_VERSION	"1.3.89"
+#define MVW2_LIB_VERSION	"1.4.23"
 
 #define NOPAIR_WORD					0xFFFFFFFF
 #define COMPANY_BYTE3				0x38
@@ -249,6 +249,10 @@ void wireless2_3_3_initfuncset(uint32_t BB_Relocate);
 
 void wireless2_4_X_initfuncset(uint32_t BB_Relocate);
 
+void wireless2_4_2_initfuncset(uint32_t BB_Relocate);
+
+void wireless2_4_3_initfuncset(uint32_t BB_Relocate);
+
 void wireless2_5_1_initfuncset(uint32_t BB_Relocate);
 
 void wireless2_5_2_initfuncset(uint32_t BB_Relocate);
@@ -270,6 +274,10 @@ void wireless2_Active(void);
 void wireless2_RfStop(void);
 bool wireless2_CheckStopped(void);
 void wireless2_Restart(void);
+
+//1-x 2-x 3-x 4-x 5-1,5-2 6-x 
+void Wireless2_hopTblSet(uint8_t *data, uint8_t *hop_len);
+
 /**************************************/
 
 void MvWireless2AdvModePairModeEn (uint8_t en);
@@ -315,6 +323,16 @@ uint8_t MvWireless2AdvModeGetWorkState(uint8_t *role,uint8_t *state);
  * 获取双讲状态  0 --单向通话中  1--双向通话中
  */
 uint8_t MvWireless2AdvModeGetSchState(void);
+
+/**
+ * 获取设备角色，当前只针对4_3 TurnKey
+*/
+uint8_t MvWireless2RoleGet(void);
+
+/**
+ * 适配G1芯片,目前只对#3_8起效
+ */
+void MvWireless2AdapterG1Chip(uint8_t en);
 
 uint16_t wireless_CRC16_2(uint8_t * pData, uint16_t wDataLen);
 

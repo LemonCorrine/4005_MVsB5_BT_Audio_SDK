@@ -22,6 +22,7 @@ extern "C"{
 #include "otg_host_hcd.h"
 #include "otg_host_standard_enum.h"
 #include "mvintrinsics.h"
+
 typedef struct
 {
   uint8_t              mute;
@@ -44,13 +45,13 @@ AUDIOX_ControlAttributeTypeDef;
 typedef struct
 {
 	PIPE_INFO           Pipe;				//端点信息
+	PIPE_INFO           FeedBackPipe;		//反馈端点
+
 	uint8_t             supported;			//是否支持
 	uint8_t             interface;			//接口
 	uint8_t             AltSettings;		//接口设置
 
 	uint8_t				ResamplerEn;
-
-	uint32_t 			Accumulator;
 
 	uint32_t            frequency;
 	uint8_t				NrChannels;

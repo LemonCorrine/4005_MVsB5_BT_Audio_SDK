@@ -9,10 +9,15 @@
 #define __WIRELESS_CONFIG_H__
 
 #include "chip_config.h"
-#include "flash_table.h"
+//#include "flash_table.h"
+#include "type.h"
 #include "bt_em_config.h"
 #include "wireless2.h"
 #include "spi_flash.h"
+
+//CFG_WIRELESS_EN
+#define WIRELEDD_CONFIG_ADDR				(get_wireless_bp_addr())
+#define WIRELESS_CAP_ADDR					(get_bt_config_addr())
 
 //sync threshold @script_tcmcheck.bat
 #define WIRELESS_TCM_SIZE   			(20 + DRV_REMAP_SIZE/1024)// 12
@@ -23,7 +28,7 @@
 /******************************************************************************
  * AudioSDK缺省配置启用2.4G应用步骤:
  * 1、开WIRELESS_SUPPORT@bt_config.h
- * 2、如需配对记忆,开WIRELESS_BP_EN@flash_table.h
+ * 2、如需配对记忆,开WIRELESS_BP_EN@bt_config.h
  * 3、连接稳定,关BP_SAVE_TO_FLASH@app_config.h
  * 4、Tx/Rx与相应2.4G SDK turnkey设备混合使用
  * 2.4G T/Rx SDK角色宏控制,关CFG_SYNC_TO_TX_SDK等效于CFG_SYNC_TO_RX_SDK
@@ -51,7 +56,11 @@
 	#define		ONE_FRAME						128
 	#define		PACKET_AUDIO_CH					2
 	#define 	RFPACK_NAUDIO					2
+#ifdef CFG_SYNC_TO_TX_SDK
+	#define		RFPACK_REQUEST					1
+#else
 	#define		RFPACK_REQUEST					3
+#endif
 	#define		AUDIO_LOWFRAME
 	#ifdef AUDIO_LOWFRAME
 		#define 	AUDIO_QUALITY				41

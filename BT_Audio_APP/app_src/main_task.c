@@ -38,6 +38,7 @@
 #include "bt_app_connect.h"
 #include <components/soft_watchdog/soft_watch_dog.h>
 #include "can_func.h"
+#include "reset.h"
 
 MainAppContext	mainAppCt;
 #ifdef CFG_RES_IR_NUMBERKEY
@@ -624,6 +625,7 @@ static void PublicMsgPross(MessageContext msg)
 				newmsg.msgId = MSG_WIRELESS_EXITED;
 				MessageSend(mainAppCt.msgHandle, &newmsg);
 #ifdef CFG_APP_BT_MODE_EN
+				Reset_FunctionReset(BTDM_FUNC_SEPA|MDM_FUNC_SEPA);
 				if(sys_parameter.bt_BackgroundType != BT_BACKGROUND_DISABLE)
 				{
 					//reset bb and bt stack

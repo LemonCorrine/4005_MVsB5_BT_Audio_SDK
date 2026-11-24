@@ -777,8 +777,26 @@ void BreakPointSave(uint16_t device_msgId)
 #ifdef  VD51_REDMINE_13199
 			pBpSysInfo->rgb_mode = GetRgbLedMode();
 #endif
-			if(memcmp(&sys_info,pBpSysInfo,sizeof(BP_SYS_INFO)) != 0)
-				gBreakPointTimer = DEVICE_BREAK_POINT_TIMER;
+
+#if defined(CFG_WIRELESS_EN) && defined(CFG_SYNC_TO_TX_SDK)
+		uint8_t * sys_info_p1;
+		uint8_t * sys_info_p2;
+		sys_info_p1 = (uint8_t *)(&sys_info);
+		sys_info_p2 = (uint8_t *)pBpSysInfo;
+		sys_info_p1++;
+		sys_info_p2++;
+		if(memcmp(sys_info_p1,sys_info_p2,sizeof(BP_SYS_INFO)-1) != 0)//因wirerless tx模式比较特殊，只比较除sys_mode外的系统信息，有改变时进行保存
+		{
+			printf("cur_sys_moed:%d,bp_sys_mode:%d\n",pBpSysInfo->CurModuleId,sys_info.CurModuleId);
+			gBreakPointTimer = DEVICE_BREAK_POINT_TIMER;
+		}
+#else
+		if(memcmp(&sys_info,pBpSysInfo,sizeof(BP_SYS_INFO)) != 0)
+		{
+			printf("cur_sys_moed:%d,bp_sys_mode:%d\n",pBpSysInfo->CurModuleId,sys_info.CurModuleId);
+			gBreakPointTimer = DEVICE_BREAK_POINT_TIMER;
+		}
+#endif
 			
 			
 		}

@@ -264,10 +264,6 @@ void AudioI2S_DataSet(I2S_MODULE Module, void *Buf, uint32_t Len)
 	}
 }
 
-
-
-
-
 uint16_t AudioI2S0_DataLenGet(void)
 {
 	return AudioI2S_DataLenGet(I2S0_MODULE);

@@ -284,8 +284,8 @@ void AudioADC_RegReset(void);
 /**
  * @brief  ADC 模块音量设置
  * @param  ADCModule    0,ADC0模块; 1,ADC1模块
- * @param  LeftVol      左声道音量值，0x00:静音, 0x001:-72dB, 0xFFF:0dB
- * @param  RightVol     右声道音量值，0x00:静音, 0x001:-72dB, 0xFFF:0dB
+ * @param  LeftVol      左声道音量值，0x00:静音, 0x001:-72dB, 0x1000:0dB
+ * @param  RightVol     右声道音量值，0x00:静音, 0x001:-72dB, 0x1000:0dB
  * @return 无
  */
 void AudioADC_VolSet(ADC_MODULE ADCModule, uint16_t LeftVol, uint16_t RightVol);
@@ -295,7 +295,7 @@ void AudioADC_VolSet(ADC_MODULE ADCModule, uint16_t LeftVol, uint16_t RightVol);
  * @brief  ADC 模块音量设置（左右声道独立设置）
  * @param  ADCModule    0,ADC0模块; 1,ADC1模块
  * @param  ChannelSel   左右声道选择，0x00: 无；0x1：左声道；0x2：右声道
- * @param  Vol     		音量值，0x00:静音, 0x001:-72dB, 0xFFF:0dB、
+ * @param  Vol     		音量值，0x00:静音, 0x001:-72dB, 0x1000:0dB、
  * @note   当ChannelSel为3时，同时选择了左右声道，此时Vol配置对左右声道均有效，左右声道音量值一致
  * @return 无
  */
@@ -304,8 +304,8 @@ void AudioADC_VolSetChannel(ADC_MODULE ADCModule, ADC_CHANNEL ChannelSel, uint16
 /**
  * @brief  ADC 模块音量获取
  * @param  ADCModule    0,ADC0模块; 1,ADC1模块
- * @param  *LeftVol      左声道音量值，0x00:静音, 0x001:-72dB, 0xFFF:0dB
- * @param  *RightVol     右声道音量值，0x00:静音, 0x001:-72dB, 0xFFF:0dB
+ * @param  *LeftVol      左声道音量值，0x00:静音, 0x001:-72dB, 0x1000:0dB
+ * @param  *RightVol     右声道音量值，0x00:静音, 0x001:-72dB, 0x1000:0dB
  * @return 无
  */
 void AudioADC_VolGet(ADC_MODULE ADCModule, uint16_t* LeftVol, uint16_t* RightVol);

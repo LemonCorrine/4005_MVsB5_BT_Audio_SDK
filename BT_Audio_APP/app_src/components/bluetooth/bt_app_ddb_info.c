@@ -205,8 +205,8 @@ void DdbDeleteRecord(uint8_t index)
 	}
 	else
 	{
-		memset(&btManager.btLinkDeviceInfo[count], 0, sizeof(BT_LINK_DEVICE_INFO));
-		btManager.btLinkDeviceInfo[count].remote_profile = 0xff;
+		memset(&btManager.btLinkDeviceInfo[MAX_BT_DEVICE_NUM - 1], 0, sizeof(BT_LINK_DEVICE_INFO));
+		btManager.btLinkDeviceInfo[MAX_BT_DEVICE_NUM - 1].remote_profile = 0xff;
 	}
 }
 
@@ -511,7 +511,11 @@ bool BtDdb_UpgradeLastBtAddr(uint8_t *BtLastAddr, uint8_t BtLastProfile)
 	{
 		return 0;
 	}
-	else if(count == 0 || count == 1 )
+	else if(count == 0 
+#if (BT_SRC_LINK_DEV_NUM>=2)
+		|| count == 1 
+#endif		
+	)
 	{
 		if(count == 1) return 0;
 		//保存之前最后记录

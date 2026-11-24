@@ -174,7 +174,6 @@ void I2S0_Master_RX_Example(void)
 	i2s_ct.I2sTxRxEnable  = 2;
 
     AudioDAC_Init(&dac_ct, 48000, 24, (void *)DacFifo, DAC_FIFO_LEN, NULL, 0);
-	I2S_AlignModeSet(I2S0_MODULE, I2S_LOW_BITS_ACTIVE);
 	AudioI2S_Init(I2S0_MODULE, &i2s_ct);
 
 	while(1)
@@ -208,7 +207,6 @@ void I2S1_Slave_TX_Example(void)
 	i2s_ct.TxBuf          = (void* )I2s1TxFifo;
 	i2s_ct.TxLen		  = I2S1_TX_FIFO_LEN;
 	i2s_ct.I2sTxRxEnable  = 1;
-	I2S_AlignModeSet(I2S1_MODULE, I2S_LOW_BITS_ACTIVE);
 	AudioI2S_Init(I2S1_MODULE, &i2s_ct);
 
     AudioADC_AnaInit(ADC0_MODULE, CHANNEL_LEFT, LINEIN1_LEFT, Single, ADCCommonEnergy, 17);
@@ -278,7 +276,6 @@ void I2S0_I2S1_Binding_Example(void)
 	i2s0_ct.TxBuf          = (void* )I2s0TxFifo;
 	i2s0_ct.TxLen		   = I2S0_TX_FIFO_LEN;
 	i2s0_ct.I2sTxRxEnable  = 1;
-	I2S_AlignModeSet(I2S0_MODULE, I2S_LOW_BITS_ACTIVE);
 	AudioI2S_Init(I2S0_MODULE, &i2s0_ct);
 
 	//I2S1 Config: slave and rx
@@ -290,7 +287,6 @@ void I2S0_I2S1_Binding_Example(void)
 	i2s1_ct.RxBuf          = (void* )I2s1RxFifo;
 	i2s1_ct.RxLen		   = I2S1_RX_FIFO_LEN;
 	i2s1_ct.I2sTxRxEnable  = 2;
-	I2S_AlignModeSet(I2S1_MODULE, I2S_LOW_BITS_ACTIVE);
 	AudioI2S_Init(I2S1_MODULE, &i2s1_ct);
 
 	while(1)
@@ -329,7 +325,6 @@ void I2S0_24Bit_Example(void)
 	i2s_ct.TxLen		  = I2S0_TX_FIFO_LEN;
 
 	i2s_ct.I2sTxRxEnable = 3;
-	I2S_AlignModeSet(I2S0_MODULE, I2S_LOW_BITS_ACTIVE);
 	AudioI2S_Init(I2S0_MODULE, &i2s_ct);
 
 	while(1)

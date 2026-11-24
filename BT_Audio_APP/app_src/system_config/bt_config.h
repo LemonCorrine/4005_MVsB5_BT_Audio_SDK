@@ -75,6 +75,7 @@
  * 关联script_copy.ini,无BLE、无BT_SOURCE_SUPPORT
  *****************************************************************/
 #define WIRELESS_SUPPORT			DISABLE//ENABLE//
+#define WIRELESS_BP_EN				0
 
 /*****************************************************************
  * 蓝牙通用功能配置

@@ -716,6 +716,10 @@ static void BtStackMsgProcess(uint16_t msgId)
 
 		case MSG_BTSTACK_RUN_START:
 			APP_DBG("[BT_STACK_MSG]:MSG_BTSTACK_RUN_START\n");
+			GIE_DISABLE();
+			extern void rf_wakeup_rx(void);
+			rf_wakeup_rx();	//在从wireless 切回到BT模式时，必须要调用一次rf_wakeup_rx(),否则可能会有BT模式下，RX关闭的问题。
+			GIE_ENABLE();
 			//BtMidMessageSend(MSG_BT_MID_STATE_FAST_ENABLE, 0);
 			BtStackServiceMsgSend(MSG_BTSTACK_ACCESS_MODE_SET);
 			if(sys_parameter.bt_BackgroundType == BT_BACKGROUND_DISABLE)
@@ -903,6 +907,8 @@ static void BtStackServiceEntrance(void * param)
 	Bluetooth_common_init(&bbParams);
 #ifdef BT_SNIFF_ENABLE
 	Bt_Set_sniff_clk_src(0);//默认是是0,在BB_int 之前做设置,设置为1使用24MHZ分频
+	extern void BtSniffReqAllowSet(uint8_t enable);
+	BtSniffReqAllowSet(1);
 #endif
 #if ( BT_SUPPORT )
 	Bt_init((void*)&bbParams);

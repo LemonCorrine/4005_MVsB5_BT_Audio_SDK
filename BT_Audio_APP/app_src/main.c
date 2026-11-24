@@ -538,6 +538,7 @@ int main(void)
 #endif
 #if defined(CFG_APP_BT_MODE_EN) || defined(CFG_WIRELESS_EN)
     APP_DBG("BtLib Version: %s\n", (unsigned char *)GetLibVersionBt());
+    APP_DBG("BtRomLib Version: %s\n", (unsigned char *)GetBTRomCodeVersion());
 #endif
 #ifdef CFG_WIRELESS_EN
     APP_DBG("wireless2 Version: %s\n", (unsigned char *)GetLibVersionWireless2());
