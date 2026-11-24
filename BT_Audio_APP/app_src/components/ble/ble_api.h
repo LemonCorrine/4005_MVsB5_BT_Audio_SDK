@@ -14,7 +14,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define BLE_INFO(fmt, args...) printf("[BLE_INFO]:" fmt, ##args)
+#define BLE_INFO(...) printf("[BLE_INFO]:" __VA_ARGS__)
 #define BLE_GATT_UUID_128_LEN (16)
 #define BLE_DFLT_DEVICE_MAX_NAME_LEN (18)
 
@@ -37,7 +37,7 @@ typedef enum
     UUID_TYPE_128,
 
 } uuid_type_t;
-// ±ê×¼16Î»uuidÄ£ĞÍ
+// æ ‡å‡†16ä½uuidæ¨¡å‹
 typedef struct ble_gatt_att16_desc
 {
     /// Attribute UUID (16-bit UUID - LSB First)
@@ -52,7 +52,7 @@ typedef struct ble_gatt_att16_desc
     uint16_t ext_info;
 } ble_gatt_att16_desc_t;
 
-// ±ê×¼×Ô¶¨Òå128Î»uuidÄ£ĞÍ
+// æ ‡å‡†è‡ªå®šä¹‰128ä½uuidæ¨¡å‹
 typedef struct ble_gatt_att128_desc
 {
     /// Attribute UUID (LSB First)
@@ -105,7 +105,7 @@ typedef struct le_init_parameter
 le_init_parameter_t le_user_config;
 /***********************************************************************************************/
 /**
- * @brief LEÏà¹Ø»Øµ÷ÊÂ¼şÃ¶¾Ù
+ * @brief LEç›¸å…³å›è°ƒäº‹ä»¶æšä¸¾
  */
 typedef enum
 {
@@ -117,6 +117,7 @@ typedef enum
     LE_RCV_DATA_EVENT,
     LE_APP_READ_DATA_EVENT,
     LE_ADV_REPORT_EVENT,
+    LE_ADV_CMP_EVENT,
 } LE_CB_EVENT;
 
 typedef struct le_addr
@@ -138,7 +139,7 @@ typedef struct ble_app_read_data
 } ble_app_read_data_t;
 
 /**
- * @brief service ½ÓÊÕÊı¾İ½á¹¹Ìå
+ * @brief service æ¥æ”¶æ•°æ®ç»“æ„ä½“
  *
  */
 typedef struct ble_rcv_data
@@ -154,7 +155,7 @@ typedef struct ble_rcv_data
 } ble_rcv_data_t;
 
 /**
- * @brief LE ¶Ï¿ªÁ¬½ÓÊÂ¼ş²ÎÊı
+ * @brief LE æ–­å¼€è¿æ¥äº‹ä»¶å‚æ•°
  *
  */
 typedef struct le_disconnect_params
@@ -168,7 +169,7 @@ typedef struct le_disconnect_params
 } le_disconnect_params_t;
 
 /**
- * @brief LEÁ¬½ÓÍê³ÉÊÂ¼ş²ÎÊı
+ * @brief LEè¿æ¥å®Œæˆäº‹ä»¶å‚æ•°
  *
  */
 typedef struct _le_connected_complete
@@ -194,7 +195,7 @@ typedef struct _le_connected_complete
 } le_connected_complete;
 
 /**
- * @brief app_update_param Ê¹ÓÃ
+ * @brief app_update_param ä½¿ç”¨
  *
  */
 typedef struct le_connection_param
@@ -209,7 +210,7 @@ typedef struct le_connection_param
     uint16_t time_out;
 } le_connection_param_t;
 /**
- * @brief LEÁ¬½Ó²ÎÊı¸üĞÂÊÂ¼ş
+ * @brief LEè¿æ¥å‚æ•°æ›´æ–°äº‹ä»¶
  *
  */
 typedef struct _le_con_update_params
@@ -228,7 +229,7 @@ typedef struct _le_con_update_params
     uint16_t sup_to;
 } le_con_update_params;
 /**
- * @brief GAPÉè±¸µØÖ·½á¹¹Ìå
+ * @brief GAPè®¾å¤‡åœ°å€ç»“æ„ä½“
  *
  */
 typedef struct gap_bdaddr
@@ -247,7 +248,7 @@ enum le_phy_prop
     /// Scan connectable advertisements on the LE Coded PHY. Connection parameters for the LE Coded PHY are provided
     PROP_CODED_BIT = (1 << 2),
 };
-/*************×¢Òâ£ºÖ»ÓĞµ±½ÇÉ«ÎªCentralÊ±²Å»áÆôÓÃÒÔÏÂAPI START**************/
+/*************æ³¨æ„ï¼šåªæœ‰å½“è§’è‰²ä¸ºCentralæ—¶æ‰ä¼šå¯ç”¨ä»¥ä¸‹API START**************/
 /// Scanning Types
 enum le_scan_type
 {
@@ -383,7 +384,7 @@ typedef struct le_connect_param
     gap_bdaddr_t peer_addr_r;
 } le_connect_param_t;
 
-/*************×¢Òâ£ºÖ»ÓĞµ±½ÇÉ«ÎªCentralÊ±²Å»áÆôÓÃÒÔÉÏAPI END**************/
+/*************æ³¨æ„ï¼šåªæœ‰å½“è§’è‰²ä¸ºCentralæ—¶æ‰ä¼šå¯ç”¨ä»¥ä¸ŠAPI END**************/
 
 typedef struct _LE_CB_PARAMS
 {
@@ -395,6 +396,7 @@ typedef struct _LE_CB_PARAMS
     uint16_t mtu_size;
     ble_rcv_data_t rcv_data;       // LE_RCV_DATA_EVENT
     ble_app_read_data_t read_data; // LE_APP_READ_DATA_EVENT
+    uint8_t adv_proc_id;          // LE_ADV_CMP_EVENT
 } LE_CB_PARAMS;
 
 typedef void (*LeParamCB)(LE_CB_EVENT event, LE_CB_PARAMS *param);
@@ -403,9 +405,9 @@ LeParamCB LeCallBackAPP;
 
 /*******************************FOR GATT CLIENTS START********************************/
 
-/*************×¢Òâ£ºÖ»ÓĞµ±½ÇÉ«ÎªCentralÊ±²Å»áÆôÓÃÒÔÏÂAPI START**************/
+/*************æ³¨æ„ï¼šåªæœ‰å½“è§’è‰²ä¸ºCentralæ—¶æ‰ä¼šå¯ç”¨ä»¥ä¸‹API START**************/
 /**
- * @brief gatt client»Øµ÷º¯Êı
+ * @brief gatt clientå›è°ƒå‡½æ•°
  */
 typedef struct gatt_client_example_appli_itf
 {
@@ -417,40 +419,40 @@ typedef struct gatt_client_example_appli_itf
 } gatt_client_appli_itf_t;
 
 /**
- * @brief gatt client×¢²á»Øµ÷º¯Êı
+ * @brief gatt clientæ³¨å†Œå›è°ƒå‡½æ•°
  *
  * @param p_appli_itf
  * @return uint16_t
  */
 uint16_t gatt_client_init(gatt_client_appli_itf_t *p_appli_itf);
 /**
- * @brief gatt clientÅäÖÃ(À¶ÑÀ¿âµ÷ÓÃAPI)
+ * @brief gatt clienté…ç½®(è“ç‰™åº“è°ƒç”¨API)
  *
  * @return uint16_t
  */
 uint16_t gatt_client_config(void);
 /**
- * @brief gatt client ·¢ËÍÊı¾İ
+ * @brief gatt client å‘é€æ•°æ®
  *
- * @param conidx Éè±¸¾ä±ú
- * @param hdl vlaue handle ÊôĞÔ¾ä±ú
- * @param metainfo ÔªËØĞÅÏ¢ ´øÈëcallback·µ»Ø ´øÈëclient_user_lid;extern uint8_t client_user_lid
- * @param write_type ·¢ËÍÀàĞÍ 0x00 GATT_WRITE, 0x01 GATT_WRITE_NO_RSP
- * @param p_data ·¢ËÍBUFF
- * @param offset ·¢ËÍÆ«ÒÆÖµ0 bufferÆğÊ¼Î»ÖÃ
- * @param length ·¢ËÍ³¤¶È
+ * @param conidx è®¾å¤‡å¥æŸ„
+ * @param hdl vlaue handle å±æ€§å¥æŸ„
+ * @param metainfo å…ƒç´ ä¿¡æ¯ å¸¦å…¥callbackè¿”å› å¸¦å…¥client_user_lid;extern uint8_t client_user_lid
+ * @param write_type å‘é€ç±»å‹ 0x00 GATT_WRITE, 0x01 GATT_WRITE_NO_RSP
+ * @param p_data å‘é€BUFF
+ * @param offset å‘é€åç§»å€¼0 bufferèµ·å§‹ä½ç½®
+ * @param length å‘é€é•¿åº¦
  * @return uint16_t
  */
 
 uint16_t gatt_client_send_data(uint8_t conidx, uint16_t hdl, uint16_t metainfo, uint8_t write_type, uint8_t *p_data, uint16_t offset, uint16_t length);
 /**
- * @brief gatt client ¶ÁÈ¡Êı¾İ
+ * @brief gatt client è¯»å–æ•°æ®
  *
- * @param conidx Éè±¸¾ä±ú
- * @param hdl value handle ÊôĞÔ¾ä±ú
- * @param metainfo ÔªËØĞÅÏ¢ ´øÈëcallback·µ»Ø
- * @param offset Æ«ÒÆÖµ
- * @param length ³¤¶È
+ * @param conidx è®¾å¤‡å¥æŸ„
+ * @param hdl value handle å±æ€§å¥æŸ„
+ * @param metainfo å…ƒç´ ä¿¡æ¯ å¸¦å…¥callbackè¿”å›
+ * @param offset åç§»å€¼
+ * @param length é•¿åº¦
  * @return uint16_t
  */
 
@@ -460,24 +462,24 @@ uint16_t gatt_client_read_data(uint8_t conidx, uint16_t hdl, uint16_t metainfo, 
 
 /*********************FOR CENTRAL ROlE START****************/
 /**
- * @brief ½âÎö¹ã²¥Êı¾İ
+ * @brief è§£æå¹¿æ’­æ•°æ®
  */
 int prase_adv_data(const char *name, uint8_t *adv_data, uint16_t adv_len);
 /**
- * @brief ¿ªÊ¼É¨Ãè
+ * @brief å¼€å§‹æ‰«æ
  *
  * @param p_param
  * @return uint16_t
  */
 uint16_t le_scan_start(le_scan_param_t *p_param);
 /**
- * @brief Í£Ö¹É¨Ãè
+ * @brief åœæ­¢æ‰«æ
  *
  * @return uint16_t
  */
 uint16_t le_scan_stop(void);
 /**
- * @brief Á¬½ÓÉè±¸
+ * @brief è¿æ¥è®¾å¤‡
  *
  * @param param
  * @return uint16_t
@@ -486,85 +488,85 @@ uint16_t le_create_connection(le_connect_param_t *param);
 
 /********************FOR CENTRAL ROlE END*********************/
 
-/*************×¢Òâ£ºÖ»ÓĞµ±½ÇÉ«ÎªCentralÊ±²Å»áÆôÓÃÒÔÉÏAPI END***********************/
+/*************æ³¨æ„ï¼šåªæœ‰å½“è§’è‰²ä¸ºCentralæ—¶æ‰ä¼šå¯ç”¨ä»¥ä¸ŠAPI END***********************/
 
 /**
- * @brief ×¢²áÊÂ¼ş»Øµ÷º¯Êı
+ * @brief æ³¨å†Œäº‹ä»¶å›è°ƒå‡½æ•°
  *
  */
 void LeAppRegCB(LeParamCB LeCBFunc);
 /**
- * @brief ³õÊ¼»¯BLE»ù´¡²ÎÊı
+ * @brief åˆå§‹åŒ–BLEåŸºç¡€å‚æ•°
  *
  * @return uint8_t
  */
 uint8_t LeInitConfigParams(void);
 
 /**
- * @brief LeÊÂ¼ş»Øµ÷º¯Êı
+ * @brief Leäº‹ä»¶å›è°ƒå‡½æ•°
  *
  * @param event
  * @param param
  */
 void AppEventCallBack(LE_CB_EVENT event, LE_CB_PARAMS *param);
-/*****************************¹Ì»¯API£¬·Ç±ØÒª½ûÖ¹¸Ä¶¯******************************/
+/*****************************å›ºåŒ–APIï¼Œéå¿…è¦ç¦æ­¢æ”¹åŠ¨******************************/
 
 /**
- * @brief @brief ÉèÖÃ¹ã²¥Êı¾İ(MAx LEN < 31)
+ * @brief @brief è®¾ç½®å¹¿æ’­æ•°æ®(MAx LEN < 31)
  *
  * @param data
  * @param len
  */
 void app_set_adv_data(uint8_t *data, uint16_t len);
 /**
- * @brief @brief ÉèÖÃ¹ã²¥»Ø¸´Êı¾İ(MAx LEN < 31)
+ * @brief @brief è®¾ç½®å¹¿æ’­å›å¤æ•°æ®(MAx LEN < 31)
  *
  * @param data
  * @param len
  */
 void app_set_scan_rsp_data(uint8_t *data, uint16_t len);
 /**
- * @brief           ·¢ËÍÊı¾İ½Ó¿Ú
+ * @brief           å‘é€æ•°æ®æ¥å£
  *
  * @param conidx    0x00
  * @param user_lid  0x00
  * @param metainfo  0x00
- * @param hdl       ÊôĞÔhandle-1Îªvalue handle
- * @param p         Êı¾İ
- * @param len       ³¤¶È
- * @param nf_or_nd  0x00 GATT_NOTIFY, 0x01 GATT_INDICATE ·½Ê½
+ * @param hdl       å±æ€§handle-1ä¸ºvalue handle
+ * @param p         æ•°æ®
+ * @param len       é•¿åº¦
+ * @param nf_or_nd  0x00 GATT_NOTIFY, 0x01 GATT_INDICATE æ–¹å¼
  * @return uint32_t
  */
 uint32_t ble_send_data(uint8_t conidx, uint8_t user_lid, uint16_t metainfo, uint16_t hdl, uint8_t *p, uint32_t len, uint8_t nf_or_nd);
 /**
- * @brief Ö÷¶¯¶Ï¿ªÁ¬½Ó
+ * @brief ä¸»åŠ¨æ–­å¼€è¿æ¥
  *
  */
 void ble_app_disconnect(void);
 /**
- * @brief ¿ªÊ¼¹ã²¥
+ * @brief å¼€å§‹å¹¿æ’­
  *
  */
 void app_start_advertising(void);
 /**
- * @brief Í£Ö¹¹ã²¥
+ * @brief åœæ­¢å¹¿æ’­
  *
  */
 void app_stop_advertising(void);
 /**
- * @brief ÉèÖÃ¹ã²¥¼ä¸ô
+ * @brief è®¾ç½®å¹¿æ’­é—´éš”
  *
  * @param adv_param
  */
 void app_set_adv_param(set_adv_interval_t adv_param);
 
 /**
- * @brief ¸üĞÂÁ¬½Ó²ÎÊı
+ * @brief æ›´æ–°è¿æ¥å‚æ•°
  *
  */
 void app_update_param(struct le_connection_param *p_conn_param);
 /**
- * @brief »ñµÃµ±Ç°Éè±¸Ãû
+ * @brief è·å¾—å½“å‰è®¾å¤‡å
  *
  * @param p_name
  * @return uint8_t

@@ -3,7 +3,7 @@
  * @file    sound_remind.h
  * @author  castle (Automatic generated)
  * @version v5.1
- * @date    2026-11-23
+ * @date    2026-11-24
  * @brief   
  *******************************************************************************
  * @attention

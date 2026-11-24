@@ -242,6 +242,15 @@ void DeepSleeping(void)
 //	GpioBPD_Back = GPIO_RegGet(GPIO_B_PD);
 	WakeupSourceSet();
 	SleepMain();
+#if defined(CFG_PARA_WAKEUP_SOURCE_CEC) && defined(CFG_PARA_WAKEUP_GPIO_CEC)
+	if(gHdmiCt == NULL)
+	{
+		HDMI_CEC_DDC_Init();
+		gHdmiCt->hdmiReportStatus = 0;
+	}
+//	osTaskDelay(10);
+	while(!HDMI_CEC_IsReadytoDeepSleep(10));//拉低10ms，保障后续18ms没有通信和中断响应。
+#endif
 	WDG_Disable();
 	Power_GotoDeepSleep();
 	WDG_Enable(WDG_STEP_4S);

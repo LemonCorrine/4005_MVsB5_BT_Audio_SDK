@@ -49,7 +49,7 @@
 
 #define  CFG_SDK_MAJOR_VERSION		(1)
 #define  CFG_SDK_MINOR_VERSION		(4)
-#define  CFG_SDK_PATCH_VERSION	    (0)
+#define  CFG_SDK_PATCH_VERSION	    (1)
 
 //****************************************************************************************
 // 系统App功能模式选择

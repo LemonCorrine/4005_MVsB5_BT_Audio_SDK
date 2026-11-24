@@ -463,10 +463,12 @@ static void BtPlayRunning(uint16_t msgId)
 		case MSG_REMIND_PLAY_END:
 			if(GetBtPlayState()  == BT_PLAYER_STATE_STOP && (!RemindSoundIsPlay()))
 			{
+#if !defined(CFG_FUNC_LINEIN_MIX_MODE) && !defined(CFG_FUNC_USB_AUDIO_MIX_MODE)
 				if(IsAudioPlayerMute() == FALSE)
 				{
 					HardWareMuteOrUnMute();
 				}			
+#endif
 				extern uint32_t a2dp_unmute_delay_cnt ;
 				a2dp_unmute_delay_cnt = 0;
 				AudioCoreSourceDisable(APP_SOURCE_NUM);

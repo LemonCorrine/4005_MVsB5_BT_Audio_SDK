@@ -13,6 +13,35 @@
 #if (BLE_SUPPORT)
 
 uint8_t BleConnectFlag = 0;
+enum adv_stauts
+{
+    /// Create a new activity
+    ACTV_CREATE = 0,
+    /// Start activity
+    ACTV_START,
+    /// Stop activity
+    ACTV_STOP,
+    /// Delete activity
+    ACTV_DELETE,
+    /// Set advertising data
+    ACTV_SET_ADV_DATA,
+    /// Force Advertising data (no data check and AD Type Flag not append)
+    ACTV_FORCE_ADV_DATA,
+    /// Set scan response Data
+    ACTV_SET_SCAN_RSP_DATA,
+    /// Set periodic advertising data
+    ACTV_SET_PERIOD_ADV_DATA,
+    /// Control CTE transmission in periodic ADV activity.
+    ACTV_PERIOD_ADV_CTE_TX_CTRL,
+    /// Control periodic advertising report reception
+    ACTV_PERIOD_REPORT_CTRL,
+    /// Control IQ Report (manage sampling configuration)
+    ACTV_PERIOD_IQ_REPORT_CTRL,
+    /// Set unchanged periodic advertising data
+    ACTV_SET_PERIOD_ADV_DATA_UNCHANGED,
+    /// Set change reasons for advertising resolvable private address
+    ACTV_SET_ADV_ADDR_CHANGE_REASONS,
+};
 
 uint8_t GetBLEConnState(void)
 {
@@ -23,9 +52,55 @@ void LeAppRegCB(LeParamCB LeCBFunc)
 {
     LeCallBackAPP = LeCBFunc;
 }
-
-uint8_t test_buff[] = {0x01,0x02,0x66};
-void AppEventCallBack(LE_CB_EVENT event, LE_CB_PARAMS *param)
+void app_adv_cmp_status(uint8_t status)
+{
+    switch (status)
+    {
+    case ACTV_CREATE:
+        BLE_INFO("ACTV_CREATE\n");
+        break;
+    case ACTV_START:
+        BLE_INFO("ACTV_START\n");
+        break;
+    case ACTV_STOP:
+        BLE_INFO("ACTV_STOP\n");
+        break;
+    case ACTV_DELETE:
+        BLE_INFO("ACTV_DELETE\n");
+        break;
+    case ACTV_SET_ADV_DATA:
+        BLE_INFO("ACTV_SET_ADV_DATA\n");
+        break;
+    case ACTV_FORCE_ADV_DATA:
+        BLE_INFO("ACTV_FORCE_ADV_DATA\n");
+        break;
+    case ACTV_SET_SCAN_RSP_DATA:
+        BLE_INFO("ACTV_SET_SCAN_RSP_DATA\n");
+        break;
+    case ACTV_SET_PERIOD_ADV_DATA:
+        BLE_INFO("ACTV_SET_PERIOD_ADV_DATA\n");
+        break;
+    case ACTV_PERIOD_ADV_CTE_TX_CTRL:
+        BLE_INFO("ACTV_PERIOD_ADV_CTE_TX_CTRL\n");
+        break;
+    case ACTV_PERIOD_REPORT_CTRL:
+        BLE_INFO("ACTV_PERIOD_REPORT_CTRL\n");
+        break;
+    case ACTV_PERIOD_IQ_REPORT_CTRL:
+        BLE_INFO("ACTV_PERIOD_IQ_REPORT_CTRL\n");
+        break;
+    case ACTV_SET_PERIOD_ADV_DATA_UNCHANGED:
+        BLE_INFO("ACTV_SET_PERIOD_ADV_DATA_UNCHANGED\n");
+        break;
+    case ACTV_SET_ADV_ADDR_CHANGE_REASONS:
+        BLE_INFO("ACTV_SET_ADV_ADDR_CHANGE_REASONS\n");
+        break;
+    default:
+        break;
+    }
+}
+uint8_t test_buff[] = { 0x01,0x02,0x66 };
+void AppEventCallBack(LE_CB_EVENT event, LE_CB_PARAMS* param)
 {
     switch (event)
     {
@@ -38,6 +113,9 @@ void AppEventCallBack(LE_CB_EVENT event, LE_CB_PARAMS *param)
         {
             BLE_INFO("\n----> LE INIT FAILED <-----\n status: 0x%02x\n", param->le_init_status);
         }
+        break;
+    case LE_ADV_CMP_EVENT:
+        app_adv_cmp_status(param->adv_proc_id);
         break;
 #if (BLE_DUAL_ROLE == ENABLE)
     case LE_ADV_REPORT_EVENT:
