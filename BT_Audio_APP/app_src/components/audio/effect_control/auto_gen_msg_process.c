@@ -45,7 +45,7 @@ int16_t ReverbStep = 0;
 static uint8_t Karaoke_eq7_MicBassStep_none_msg_effect_sync_filter1_gain(void)
 {
 	//param set type is STEPS
-	static const int16_t MicBassStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
+	static const int16_t MicBassStep_table[17] = {-700, -606, -513, -419, -325, -231, -138, -44, 50, 144, 238, 331, 425, 519, 613, 706, 800, };
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_eq7_ADDR, 6, &MicBassStep_table[MicBassStep]);
 	return (uint8_t)KARAOKE_eq7_ADDR;
 }
@@ -55,7 +55,7 @@ static uint8_t Karaoke_eq7_MicBassStep_none_msg_effect_sync_filter1_gain(void)
 static uint8_t Karaoke_eq7_MicTrebStep_none_msg_effect_sync_filter2_gain(void)
 {
 	//param set type is STEPS
-	static const int16_t MicTrebStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
+	static const int16_t MicTrebStep_table[17] = {-700, -606, -513, -419, -325, -231, -138, -44, 50, 144, 238, 331, 425, 519, 613, 706, 800, };
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_eq7_ADDR, 11, &MicTrebStep_table[MicTrebStep]);
 	return (uint8_t)KARAOKE_eq7_ADDR;
 }
@@ -65,7 +65,7 @@ static uint8_t Karaoke_eq7_MicTrebStep_none_msg_effect_sync_filter2_gain(void)
 static uint8_t Karaoke_eq0_MusicBassStep_none_msg_effect_sync_filter1_gain(void)
 {
 	//param set type is STEPS
-	static const int16_t MusicBassStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
+	static const int16_t MusicBassStep_table[17] = {-700, -606, -513, -419, -325, -231, -138, -44, 50, 144, 238, 331, 425, 519, 613, 706, 800, };
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_eq0_ADDR, 6, &MusicBassStep_table[MusicBassStep]);
 	return (uint8_t)KARAOKE_eq0_ADDR;
 }
@@ -75,7 +75,7 @@ static uint8_t Karaoke_eq0_MusicBassStep_none_msg_effect_sync_filter1_gain(void)
 static uint8_t Karaoke_eq0_MusicTrebStep_none_msg_effect_sync_filter2_gain(void)
 {
 	//param set type is STEPS
-	static const int16_t MusicTrebStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
+	static const int16_t MusicTrebStep_table[17] = {-700, -606, -513, -419, -325, -231, -138, -44, 50, 144, 238, 331, 425, 519, 613, 706, 800, };
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_eq0_ADDR, 11, &MusicTrebStep_table[MusicTrebStep]);
 	return (uint8_t)KARAOKE_eq0_ADDR;
 }
@@ -85,7 +85,7 @@ static uint8_t Karaoke_eq0_MusicTrebStep_none_msg_effect_sync_filter2_gain(void)
 static uint8_t Karaoke_echo0_ReverbStep_none_msg_effect_sync_delay(void)
 {
 	//param set type is STEPS
-	static const int16_t ReverbStep_table[32] = {0, 10, 19, 29, 39, 48, 58, 68, 77, 87, 97, 106, 116, 126, 135, 145, 155, 165, 174, 184, 194, 203, 213, 223, 232, 242, 252, 261, 271, 281, 290, 300, };
+	static const int16_t ReverbStep_table[33] = {0, 9, 19, 28, 38, 47, 56, 66, 75, 84, 94, 103, 113, 122, 131, 141, 150, 159, 169, 178, 188, 197, 206, 216, 225, 234, 244, 253, 263, 272, 281, 291, 300, };
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_echo0_ADDR, 2, &ReverbStep_table[ReverbStep]);
 	return (uint8_t)KARAOKE_echo0_ADDR;
 }
@@ -95,7 +95,7 @@ static uint8_t Karaoke_echo0_ReverbStep_none_msg_effect_sync_delay(void)
 static uint8_t Karaoke_echo0_ReverbStep_none_msg_effect_sync_attenuation(void)
 {
 	//param set type is STEPS
-	static const int16_t ReverbStep_table[32] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
+	static const int16_t ReverbStep_table[33] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_echo0_ADDR, 1, &ReverbStep_table[ReverbStep]);
 	return (uint8_t)KARAOKE_echo0_ADDR;
 }
@@ -105,7 +105,7 @@ static uint8_t Karaoke_echo0_ReverbStep_none_msg_effect_sync_attenuation(void)
 static uint8_t Karaoke_reverb0_ReverbStep_none_msg_effect_sync_wet(void)
 {
 	//param set type is STEPS
-	static const int16_t ReverbStep_table[32] = {0, 2, 4, 6, 8, 10, 12, 14, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 50, 52, 54, 56, 58, 60, 62, 64, };
+	static const int16_t ReverbStep_table[33] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, };
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_reverb0_ADDR, 1, &ReverbStep_table[ReverbStep]);
 	return (uint8_t)KARAOKE_reverb0_ADDR;
 }
@@ -115,7 +115,7 @@ static uint8_t Karaoke_reverb0_ReverbStep_none_msg_effect_sync_wet(void)
 static uint8_t Karaoke_reverb0_ReverbStep_none_msg_effect_sync_room(void)
 {
 	//param set type is STEPS
-	static const int16_t ReverbStep_table[32] = {0, 2, 4, 6, 8, 10, 12, 14, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 50, 52, 54, 56, 58, 60, 62, 64, };
+	static const int16_t ReverbStep_table[33] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, };
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_reverb0_ADDR, 3, &ReverbStep_table[ReverbStep]);
 	return (uint8_t)KARAOKE_reverb0_ADDR;
 }
@@ -125,7 +125,7 @@ static uint8_t Karaoke_reverb0_ReverbStep_none_msg_effect_sync_room(void)
 static uint8_t Karaoke_eq7_MicBassStep_down_stop_msg_mic_bass_dw_filter1_gain(void)
 {
 	//param set type is STEPS
-	static const int16_t MicBassStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
+	static const int16_t MicBassStep_table[17] = {-700, -606, -513, -419, -325, -231, -138, -44, 50, 144, 238, 331, 425, 519, 613, 706, 800, };
 	if(--MicBassStep < 0) MicBassStep = 0;
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_eq7_ADDR, 6, &MicBassStep_table[MicBassStep]);
 	return (uint8_t)KARAOKE_eq7_ADDR;
@@ -136,8 +136,8 @@ static uint8_t Karaoke_eq7_MicBassStep_down_stop_msg_mic_bass_dw_filter1_gain(vo
 static uint8_t Karaoke_eq7_MicBassStep_up_stop_msg_mic_bass_up_filter1_gain(void)
 {
 	//param set type is STEPS
-	static const int16_t MicBassStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
-	if(++MicBassStep >= 16) MicBassStep = 16-1;
+	static const int16_t MicBassStep_table[17] = {-700, -606, -513, -419, -325, -231, -138, -44, 50, 144, 238, 331, 425, 519, 613, 706, 800, };
+	if(++MicBassStep >= 17) MicBassStep = 17-1;
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_eq7_ADDR, 6, &MicBassStep_table[MicBassStep]);
 	return (uint8_t)KARAOKE_eq7_ADDR;
 }
@@ -147,8 +147,8 @@ static uint8_t Karaoke_eq7_MicBassStep_up_stop_msg_mic_bass_up_filter1_gain(void
 static uint8_t Karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_dw_delay(void)
 {
 	//param set type is STEPS
-	static const int16_t ReverbStep_table[32] = {0, 10, 19, 29, 39, 48, 58, 68, 77, 87, 97, 106, 116, 126, 135, 145, 155, 165, 174, 184, 194, 203, 213, 223, 232, 242, 252, 261, 271, 281, 290, 300, };
-	if(++ReverbStep >= 32) ReverbStep = 0;
+	static const int16_t ReverbStep_table[33] = {0, 9, 19, 28, 38, 47, 56, 66, 75, 84, 94, 103, 113, 122, 131, 141, 150, 159, 169, 178, 188, 197, 206, 216, 225, 234, 244, 253, 263, 272, 281, 291, 300, };
+	if(++ReverbStep >= 33) ReverbStep = 0;
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_echo0_ADDR, 2, &ReverbStep_table[ReverbStep]);
 	return (uint8_t)KARAOKE_echo0_ADDR;
 }
@@ -158,8 +158,8 @@ static uint8_t Karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_dw_delay(void)
 static uint8_t Karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_dw_attenuation(void)
 {
 	//param set type is STEPS
-	static const int16_t ReverbStep_table[32] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
-	if(++ReverbStep >= 32) ReverbStep = 0;
+	static const int16_t ReverbStep_table[33] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
+	if(++ReverbStep >= 33) ReverbStep = 0;
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_echo0_ADDR, 1, &ReverbStep_table[ReverbStep]);
 	return (uint8_t)KARAOKE_echo0_ADDR;
 }
@@ -169,8 +169,8 @@ static uint8_t Karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_dw_attenuation(vo
 static uint8_t Karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_dw_wet(void)
 {
 	//param set type is STEPS
-	static const int16_t ReverbStep_table[32] = {0, 2, 4, 6, 8, 10, 12, 14, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 50, 52, 54, 56, 58, 60, 62, 64, };
-	if(++ReverbStep >= 32) ReverbStep = 0;
+	static const int16_t ReverbStep_table[33] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, };
+	if(++ReverbStep >= 33) ReverbStep = 0;
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_reverb0_ADDR, 1, &ReverbStep_table[ReverbStep]);
 	return (uint8_t)KARAOKE_reverb0_ADDR;
 }
@@ -180,8 +180,8 @@ static uint8_t Karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_dw_wet(void)
 static uint8_t Karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_dw_room(void)
 {
 	//param set type is STEPS
-	static const int16_t ReverbStep_table[32] = {0, 2, 4, 6, 8, 10, 12, 14, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 50, 52, 54, 56, 58, 60, 62, 64, };
-	if(++ReverbStep >= 32) ReverbStep = 0;
+	static const int16_t ReverbStep_table[33] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, };
+	if(++ReverbStep >= 33) ReverbStep = 0;
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_reverb0_ADDR, 3, &ReverbStep_table[ReverbStep]);
 	return (uint8_t)KARAOKE_reverb0_ADDR;
 }
@@ -191,8 +191,8 @@ static uint8_t Karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_dw_room(void)
 static uint8_t Karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_up_delay(void)
 {
 	//param set type is STEPS
-	static const int16_t ReverbStep_table[32] = {0, 10, 19, 29, 39, 48, 58, 68, 77, 87, 97, 106, 116, 126, 135, 145, 155, 165, 174, 184, 194, 203, 213, 223, 232, 242, 252, 261, 271, 281, 290, 300, };
-	if(++ReverbStep >= 32) ReverbStep = 0;
+	static const int16_t ReverbStep_table[33] = {0, 9, 19, 28, 38, 47, 56, 66, 75, 84, 94, 103, 113, 122, 131, 141, 150, 159, 169, 178, 188, 197, 206, 216, 225, 234, 244, 253, 263, 272, 281, 291, 300, };
+	if(++ReverbStep >= 33) ReverbStep = 0;
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_echo0_ADDR, 2, &ReverbStep_table[ReverbStep]);
 	return (uint8_t)KARAOKE_echo0_ADDR;
 }
@@ -202,8 +202,8 @@ static uint8_t Karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_up_delay(void)
 static uint8_t Karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_up_attenuation(void)
 {
 	//param set type is STEPS
-	static const int16_t ReverbStep_table[32] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
-	if(++ReverbStep >= 32) ReverbStep = 0;
+	static const int16_t ReverbStep_table[33] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
+	if(++ReverbStep >= 33) ReverbStep = 0;
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_echo0_ADDR, 1, &ReverbStep_table[ReverbStep]);
 	return (uint8_t)KARAOKE_echo0_ADDR;
 }
@@ -213,8 +213,8 @@ static uint8_t Karaoke_echo0_ReverbStep_up_loop_msg_mic_effect_up_attenuation(vo
 static uint8_t Karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_up_wet(void)
 {
 	//param set type is STEPS
-	static const int16_t ReverbStep_table[32] = {0, 2, 4, 6, 8, 10, 12, 14, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 50, 52, 54, 56, 58, 60, 62, 64, };
-	if(++ReverbStep >= 32) ReverbStep = 0;
+	static const int16_t ReverbStep_table[33] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, };
+	if(++ReverbStep >= 33) ReverbStep = 0;
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_reverb0_ADDR, 1, &ReverbStep_table[ReverbStep]);
 	return (uint8_t)KARAOKE_reverb0_ADDR;
 }
@@ -224,8 +224,8 @@ static uint8_t Karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_up_wet(void)
 static uint8_t Karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_up_room(void)
 {
 	//param set type is STEPS
-	static const int16_t ReverbStep_table[32] = {0, 2, 4, 6, 8, 10, 12, 14, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 50, 52, 54, 56, 58, 60, 62, 64, };
-	if(++ReverbStep >= 32) ReverbStep = 0;
+	static const int16_t ReverbStep_table[33] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, };
+	if(++ReverbStep >= 33) ReverbStep = 0;
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_reverb0_ADDR, 3, &ReverbStep_table[ReverbStep]);
 	return (uint8_t)KARAOKE_reverb0_ADDR;
 }
@@ -235,7 +235,7 @@ static uint8_t Karaoke_reverb0_ReverbStep_up_loop_msg_mic_effect_up_room(void)
 static uint8_t Karaoke_eq7_MicTrebStep_down_stop_msg_mic_treb_dw_filter2_gain(void)
 {
 	//param set type is STEPS
-	static const int16_t MicTrebStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
+	static const int16_t MicTrebStep_table[17] = {-700, -606, -513, -419, -325, -231, -138, -44, 50, 144, 238, 331, 425, 519, 613, 706, 800, };
 	if(--MicTrebStep < 0) MicTrebStep = 0;
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_eq7_ADDR, 11, &MicTrebStep_table[MicTrebStep]);
 	return (uint8_t)KARAOKE_eq7_ADDR;
@@ -246,8 +246,8 @@ static uint8_t Karaoke_eq7_MicTrebStep_down_stop_msg_mic_treb_dw_filter2_gain(vo
 static uint8_t Karaoke_eq7_MicTrebStep_up_stop_msg_mic_treb_up_filter2_gain(void)
 {
 	//param set type is STEPS
-	static const int16_t MicTrebStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
-	if(++MicTrebStep >= 16) MicTrebStep = 16-1;
+	static const int16_t MicTrebStep_table[17] = {-700, -606, -513, -419, -325, -231, -138, -44, 50, 144, 238, 331, 425, 519, 613, 706, 800, };
+	if(++MicTrebStep >= 17) MicTrebStep = 17-1;
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_eq7_ADDR, 11, &MicTrebStep_table[MicTrebStep]);
 	return (uint8_t)KARAOKE_eq7_ADDR;
 }
@@ -257,7 +257,7 @@ static uint8_t Karaoke_eq7_MicTrebStep_up_stop_msg_mic_treb_up_filter2_gain(void
 static uint8_t Karaoke_eq0_MusicBassStep_down_stop_msg_music_bass_dw_filter1_gain(void)
 {
 	//param set type is STEPS
-	static const int16_t MusicBassStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
+	static const int16_t MusicBassStep_table[17] = {-700, -606, -513, -419, -325, -231, -138, -44, 50, 144, 238, 331, 425, 519, 613, 706, 800, };
 	if(--MusicBassStep < 0) MusicBassStep = 0;
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_eq0_ADDR, 6, &MusicBassStep_table[MusicBassStep]);
 	return (uint8_t)KARAOKE_eq0_ADDR;
@@ -268,8 +268,8 @@ static uint8_t Karaoke_eq0_MusicBassStep_down_stop_msg_music_bass_dw_filter1_gai
 static uint8_t Karaoke_eq0_MusicBassStep_up_stop_msg_music_bass_up_filter1_gain(void)
 {
 	//param set type is STEPS
-	static const int16_t MusicBassStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
-	if(++MusicBassStep >= 16) MusicBassStep = 16-1;
+	static const int16_t MusicBassStep_table[17] = {-700, -606, -513, -419, -325, -231, -138, -44, 50, 144, 238, 331, 425, 519, 613, 706, 800, };
+	if(++MusicBassStep >= 17) MusicBassStep = 17-1;
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_eq0_ADDR, 6, &MusicBassStep_table[MusicBassStep]);
 	return (uint8_t)KARAOKE_eq0_ADDR;
 }
@@ -279,7 +279,7 @@ static uint8_t Karaoke_eq0_MusicBassStep_up_stop_msg_music_bass_up_filter1_gain(
 static uint8_t Karaoke_eq0_MusicTrebStep_down_stop_msg_music_treb_dw_filter2_gain(void)
 {
 	//param set type is STEPS
-	static const int16_t MusicTrebStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
+	static const int16_t MusicTrebStep_table[17] = {-700, -606, -513, -419, -325, -231, -138, -44, 50, 144, 238, 331, 425, 519, 613, 706, 800, };
 	if(--MusicTrebStep < 0) MusicTrebStep = 0;
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_eq0_ADDR, 11, &MusicTrebStep_table[MusicTrebStep]);
 	return (uint8_t)KARAOKE_eq0_ADDR;
@@ -290,8 +290,8 @@ static uint8_t Karaoke_eq0_MusicTrebStep_down_stop_msg_music_treb_dw_filter2_gai
 static uint8_t Karaoke_eq0_MusicTrebStep_up_stop_msg_music_treb_up_filter2_gain(void)
 {
 	//param set type is STEPS
-	static const int16_t MusicTrebStep_table[16] = {-700, -600, -500, -400, -300, -200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, };
-	if(++MusicTrebStep >= 16) MusicTrebStep = 16-1;
+	static const int16_t MusicTrebStep_table[17] = {-700, -606, -513, -419, -325, -231, -138, -44, 50, 144, 238, 331, 425, 519, 613, 706, 800, };
+	if(++MusicTrebStep >= 17) MusicTrebStep = 17-1;
 	roboeffect_set_effect_parameter(AudioEffect.context_memory, KARAOKE_eq0_ADDR, 11, &MusicTrebStep_table[MusicTrebStep]);
 	return (uint8_t)KARAOKE_eq0_ADDR;
 }
